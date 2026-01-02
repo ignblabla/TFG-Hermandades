@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics
 from .serializers import UserSerializer, NoteSerializer
@@ -6,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note
 
 # Create your views here.
+
+User = get_user_model()
 
 class NoteListCreate(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
@@ -32,6 +35,6 @@ class NoteDelete(generics.DestroyAPIView):
 
 
 class CreateUserView(generics.CreateAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.all() # Ahora usará el modelo Hermano
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
