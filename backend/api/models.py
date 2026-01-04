@@ -25,20 +25,32 @@ class Hermano(AbstractUser):
         MASCULINO = 'MASCULINO', 'Masculino'
         FEMENINO = 'FEMENINO', 'Femenino'
 
-    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
-    nombre = models.CharField(max_length=100, verbose_name = "Nombre")
-    primer_apellido = models.CharField(max_length=100, verbose_name = "Primer apellido")
-    segundo_apellido = models.CharField(max_length=100, verbose_name = "Segundo apellido")
-    dni = models.CharField(max_length=9, unique=True, verbose_name = "DNI")
-    # fecha_nacimiento = models.DateField(verbose_name="Fecha de nacimiento")
-
     telefono_validator = RegexValidator(
         regex=r'^\d{9}$',
         message="El número de teléfono debe tener exactamente 9 dígitos numéricos."
     )
 
+    cp_validator = RegexValidator(
+        regex=r'^\d{5}$',
+        message="El código postal debe tener exactamente 5 dígitos numéricos."
+    )
+
+    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    nombre = models.CharField(max_length=100, verbose_name = "Nombre")
+    primer_apellido = models.CharField(max_length=100, verbose_name = "Primer apellido")
+    segundo_apellido = models.CharField(max_length=100, verbose_name = "Segundo apellido")
+    dni = models.CharField(max_length=9, unique=True, verbose_name = "DNI")
+    fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name = "Fecha de nacimiento")
+
     telefono = models.CharField(validators=[telefono_validator], max_length=9, verbose_name="Teléfono")
     genero = models.CharField(max_length=10, choices=Genero.choices, default=Genero.MASCULINO, verbose_name="Género")
+
+    direccion = models.CharField(max_length=255, verbose_name="Dirección postal", null=True, blank=True)
+    codigo_postal = models.CharField(max_length=5, validators=[cp_validator], verbose_name="Código postal", null=True, blank=True)
+
+    localidad = models.CharField(max_length=100, verbose_name="Localidad", null=True, blank=True)
+    provincia = models.CharField(max_length=100, verbose_name="Provincia", null=True, blank=True)
+    comunidad_autonoma = models.CharField(max_length=100, verbose_name="Comunidad Autónoma", null=True, blank=True)
 
     first_name = None
     last_name = None

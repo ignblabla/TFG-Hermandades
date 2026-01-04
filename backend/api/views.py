@@ -35,6 +35,6 @@ class NoteDelete(generics.DestroyAPIView):
 
 
 class CreateUserView(generics.CreateAPIView):
-    queryset = User.objects.all() # Ahora usará el modelo Hermano
+    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
