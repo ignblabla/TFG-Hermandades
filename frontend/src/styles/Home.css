@@ -1,0 +1,299 @@
+.profile-section-home {
+    padding: 40px 10%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+}
+
+/* Breadcrumbs */
+.breadcrumb-home {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.breadcrumb-home .active-path-home {
+    color: #a32dbb; /* Color morado de tu marca */
+    font-weight: 600;
+}
+
+/* Encabezado */
+.profile-header-home h1 {
+    font-family: 'Georgia', serif;
+    font-size: 2.5rem;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+.profile-header-home p {
+    color: #888;
+    margin-top: 5px;
+    font-size: 1.1rem;
+}
+
+/* Tarjeta de perfil */
+.profile-card-home {
+    margin-top: 30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    padding: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.profile-info-left-home {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+/* Avatar y Botón Editar */
+.avatar-container-home {
+    position: relative;
+}
+
+.profile-avatar-home {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f0f0f0;
+}
+
+.edit-avatar-btn-home {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: #a32dbb;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Datos del usuario */
+.user-data-home h2 {
+    font-family: 'Georgia', serif;
+    font-size: 1.8rem;
+    margin: 0 0 10px 0;
+    color: #222;
+}
+
+.badge-container-home {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.badge-home {
+    background-color: #f2f2f7;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #444;
+    font-weight: 500;
+}
+
+.status-badge-home {
+    background-color: #e8f9f1;
+    color: #28a745;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.status-badge-home .dot-home {
+    font-size: 0.6rem;
+    margin-right: 6px;
+}
+
+/* Botón Tarjeta Digital */
+.btn-digital-card-home {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.btn-digital-card-home:hover {
+    background-color: #f9f9f9;
+}
+
+.icon-card-home {
+    font-size: 1.2rem;
+}
+
+/* Ajustes Responsivos */
+@media (max-width: 768px) {
+    .profile-card-home {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    .profile-info-left-home {
+        flex-direction: column;
+    }
+    .badge-container-home {
+        justify-content: center;
+    }
+}
+
+/* Tarjetas inferiores */
+.profile-details-grid-home {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.details-card-home {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.details-card-header-home {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-title-home {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-title-home h3 {
+    font-size: 1.2rem;
+    color: #1a1a1a;
+    margin: 0;
+    font-weight: 700;
+}
+
+.header-icon-home {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+.purple-bg {
+    background-color: #f3e8ff; /* Color de fondo suave para el icono */
+    color: #9333ea;
+}
+
+.edit-link-home {
+    background: none;
+    border: none;
+    color: #a855f7;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.details-form-home {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-row-home {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group-home {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group-home label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #8c86a3; /* Color lila grisáceo de las etiquetas */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group-home input, 
+.form-group-home select {
+    background-color: #f7f7f9; /* Color de fondo de los inputs de la imagen */
+    border: 1px solid #edeef2;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    color: #333;
+    outline: none;
+    width: 100%;
+}
+
+.input-with-icon-home {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon-home {
+    position: absolute;
+    left: 12px;
+    color: #8c86a3;
+    font-size: 1rem;
+}
+
+.input-with-icon-home input {
+    padding-left: 38px;
+}
+
+.select-container-home {
+    position: relative;
+}
+
+.select-container-home::after {
+    content: '▼';
+    font-size: 10px;
+    color: #8c86a3;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.select-container-home select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: default;
+}
+
+@media (max-width: 900px) {
+    .profile-details-grid-home {
+        grid-template-columns: 1fr;
+    }
+}
