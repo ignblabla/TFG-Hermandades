@@ -1,83 +1,151 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 import api from "../api";
 import Note from "../components/Note"
 import "../styles/Home.css"
+import logoEscudo from '../assets/escudo.png';
 
 function Home() {
-    const [notes, setNotes] = useState([]);
-    const [content, setContent] = useState("");
-    const [title, setTitle] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const [activeSection, setActiveSection] = useState(null);
+    const [formData, setFormData] = useState({
+        telefono: "",
+        direccion: "",
+        codigo_postal: "",
+        localidad: "",
+        provincia: "",
+        comunidad_autonoma: "",
+        estado_civil: "",
+        lugar_bautismo: "",
+        fecha_bautismo: "",
+        parroquia_bautismo: ""
+    });
+
+    const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
+
+    const navigate = useNavigate();
 
     useEffect(() => {
-        getNotes();
+        const usuarioGuardado = localStorage.getItem("user_data");
+        if (usuarioGuardado) {
+            const parsedUser = JSON.parse(usuarioGuardado);
+            setUser(parsedUser);
+            inicializarFormulario(parsedUser);
+        }
     }, []);
 
-    const getNotes = () => {
-        api
-            .get("/api/notes/")
-            .then((res) => res.data)
-            .then((data) => {
-                setNotes(data);
-                console.log(data);
+    useEffect(() => {
+        const token = localStorage.getItem("access");
+
+        if (token) {
+            fetch("http://127.0.0.1:8000/api/me/", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
             })
-            .catch((err) => alert(err));
+            .then(async response => {
+                if (response.ok) {
+                    const data = await response.json();
+                    setUser(data);
+                    inicializarFormulario(data);
+                } else {
+                    console.log("Token caducado o inválido");
+                    localStorage.removeItem("access"); 
+                    setUser(null);
+                }
+            })
+            .catch(error => console.error("Error:", error))
+            .finally(() => setLoading(false));
+        } else {
+            setLoading(false);
+        }
+    }, []);
+
+    const inicializarFormulario = (datosUsuario) => {
+        setFormData({
+            telefono: datosUsuario.telefono || "",
+            direccion: datosUsuario.direccion || "",
+            codigo_postal: datosUsuario.codigo_postal || "",
+            localidad: datosUsuario.localidad || "",
+            provincia: datosUsuario.provincia || "",
+            comunidad_autonoma: datosUsuario.comunidad_autonoma || "",
+            estado_civil: datosUsuario.estado_civil || "",
+            lugar_bautismo: datosUsuario.lugar_bautismo || "",
+            fecha_bautismo: datosUsuario.fecha_bautismo || "",
+            parroquia_bautismo: datosUsuario.parroquia_bautismo || ""
+        });
     };
 
-    const deleteNote = (id) => {
-        api
-            .delete(`/api/notes/delete/${id}/`)
-            .then((res) => {
-                if (res.status === 204) alert("Note deleted!");
-                else alert("Failed to delete note.");
-                getNotes();
-            })
-            .catch((error) => alert(error));
+    const handleLogout = () => {
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("access");
+        setUser(null);
+        window.location.href = "/"; 
     };
 
-    const createNote = (e) => {
-        e.preventDefault();
-        api
-            .post("/api/notes/", { content, title })
-            .then((res) => {
-                if (res.status === 201) alert("Note created!");
-                else alert("Failed to make note.");
-                getNotes();
-            })
-            .catch((err) => alert(err));
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
+
+    const handleSave = () => {
+        const token = localStorage.getItem("access");
+        setMensaje({ texto: "Guardando...", tipo: "info" });
+
+        fetch("http://127.0.0.1:8000/api/me/", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(async response => {
+            if (response.ok) {
+                const data = await response.json();
+                
+                const usuarioActualizado = { ...user, ...data };
+
+                setUser(usuarioActualizado); 
+                setActiveSection(null);
+                setMensaje({ texto: "Datos actualizados correctamente.", tipo: "success" });
+                
+                localStorage.setItem("user_data", JSON.stringify(usuarioActualizado));
+                
+                setTimeout(() => setMensaje({ texto: "", tipo: "" }), 3000);
+            } else {
+                const errorData = await response.json();
+                console.error("Errores:", errorData);
+                setMensaje({ texto: "Error al actualizar. Revise los campos.", tipo: "error" });
+            }
+        })
+        .catch(error => {
+            console.error("Error de red:", error);
+            setMensaje({ texto: "Error de conexión.", tipo: "error" });
+        });
+    };
+
+    const handleCancel = () => {
+        setActiveSection(null);
+        if (user) inicializarFormulario(user);
+        setMensaje({ texto: "", tipo: "" });
+    };
+
+    if (loading) return <div className="site-wrapper">Cargando...</div>;
+    if (!user) return <div className="site-wrapper">No has iniciado sesión.</div>;
 
     return (
-        <div>
-            <div>
-                <h2>Notes</h2>
-                {notes.map((note) => (
-                    <Note note={note} onDelete={deleteNote} key={note.id} />
-                ))}
-            </div>
-            <h2>Create a Note</h2>
-            <form onSubmit={createNote}>
-                <label htmlFor="title">Title:</label>
-                <br />
-                <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    onChange={(e) => setTitle(e.target.value)}
-                    value={title}
-                />
-                <label htmlFor="content">Content:</label>
-                <br />
-                <textarea
-                    id="content"
-                    name="content"
-                    required
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                ></textarea>
-                <br />
-                <input type="submit" value="Submit"></input>
-            </form>
+        <div className="site-wrapper">
+            HOLA
         </div>
     );
 }

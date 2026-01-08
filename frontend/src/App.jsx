@@ -3,7 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Home from "./pages/Home"
+import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
+import EditMe from "./pages/EditMe"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -21,11 +23,20 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Index />} />
         <Route
-          path="/"
+          path="/home"
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-perfil"
+          element={
+            <ProtectedRoute>
+              <EditMe />
             </ProtectedRoute>
           }
         />
