@@ -5,6 +5,7 @@ import Register from "./pages/Register"
 import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
+import EditMe from "./pages/EditMe"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -28,6 +29,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-perfil"
+          element={
+            <ProtectedRoute>
+              <EditMe />
             </ProtectedRoute>
           }
         />
