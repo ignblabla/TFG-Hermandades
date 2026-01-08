@@ -4,21 +4,22 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
-
-class Note(models.Model):
-    title = models.CharField(max_length=100, verbose_name="Título")
-    content = models.TextField(verbose_name="Contenido")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de creación")
     
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.CASCADE, 
-        related_name="notes",
-        verbose_name="Autor"
-    )
+class AreaInteres(models.Model):
+    class NombreArea(models.TextChoices):
+        CARIDAD = 'CARIDAD', 'Caridad'
+        CULTOS_FORMACION = 'CULTOS_FORMACION', 'Cultos y Formación'
+        JUVENTUD = 'JUVENTUD', 'Juventud'
+        PATRIMONIO = 'PATRIMONIO', 'Patrimonio'
+        PRIOSTIA = 'PRIOSTIA', 'Priostía'
+        DIPUTACION_MAYOR_GOBIERNO = 'DIPUTACION_MAYOR_GOBIERNO', 'Diputación Mayor de Gobierno'
+        COSTALEROS = 'COSTALEROS', 'Costaleros'
+        ACOLITOS = 'ACÓLITOS', 'Acólitos'
+
+    nombre_area = models.CharField(max_length=50, choices=NombreArea.choices, unique=True, verbose_name="Nombre del área")
 
     def __str__(self):
-        return self.title
+        return self.get_nombre_area_display()
     
 
 class Hermano(AbstractUser):
@@ -64,6 +65,13 @@ class Hermano(AbstractUser):
     fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
     parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
 
+    areas_interes = models.ManyToManyField(
+        AreaInteres,
+        verbose_name="Áreas de interés",
+        blank=True,
+        related_name="hermanos"
+    )
+
     first_name = None
     last_name = None
 
@@ -75,7 +83,6 @@ class Hermano(AbstractUser):
     
     def clean(self):
         super().clean()
-
         if self.fecha_nacimiento and self.fecha_bautismo:
             if self.fecha_bautismo < self.fecha_nacimiento:
                 raise ValidationError({
