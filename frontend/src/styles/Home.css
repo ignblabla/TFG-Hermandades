@@ -1,12 +1,19 @@
 :root {
-    --primary-purple: #8e44ad;
-    --bg-light: #f8f9fa;
-    --text-main: #333;
-    --text-muted: #7f8c8d;
-    --border-color: #e2e8f0;
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    
+    --text-main: #333333;
+    --text-muted: #666666;
+    
+    --border-color: #ddd;
     --field-bg: #f8fafc;
     --success-green: #22c55e;
-    --white: #ffffff;
+    
+    --card-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -16,7 +23,7 @@
 }
 
 body {
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: var(--bg-light);
     color: var(--text-main);
     overflow-x: hidden;
@@ -33,41 +40,38 @@ body {
 .breadcrumbs-profile {
     display: flex;
     align-items: center;
-    font-size: 0.85rem; /* Tamaño de letra pequeño y elegante */
-    margin-bottom: 0.2rem; /* Espacio justo antes del título H1 */
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
     font-weight: 500;
 }
 
-/* Enlace inactivo (Inicio) */
 .breadcrumbs-profile a {
     text-decoration: none;
-    color: #686e7a; /* Un gris intermedio/azulado como en la foto */
+    color: var(--text-muted);
     transition: color 0.2s ease;
 }
 
 .breadcrumbs-profile a:hover {
-    color: var(--primary-purple);
+    color: var(--burgundy-primary);
 }
 
-/* El separador (>) */
 .breadcrumbs-profile span {
-    margin: 0 0.6rem; /* Espacio a los lados de la flecha */
-    color: #b0b5c0; /* Un gris muy suave */
-    font-size: 0.75rem; /* La flecha suele ser un poco más pequeña visualmente */
+    margin: 0 0.6rem;
+    color: #b0b5c0;
+    font-size: 0.75rem;
 }
 
-/* Enlace activo (Mi Perfil) */
 .breadcrumbs-profile a.active {
-    /* He sacado este color exacto de tu captura de pantalla (ese tono magenta/morado) */
-    color: #bf2df5; 
-    font-weight: 700; /* Un poco más grueso */
-    pointer-events: none; /* Opcional: Deshabilita el click porque ya estás en esa página */
+    color: var(--burgundy-primary); 
+    font-weight: 700;
+    pointer-events: none;
 }
 
 .main-title-profile {
-    font-family: Georgia, serif;
-    font-size: 1.5rem;
-    color: #1a202c;
+    font-family: 'Bitter', serif;
+    font-size: 1.6rem;
+    color: var(--text-main);
+    margin-bottom: 0.25rem;
 }
 
 .subtitle-profile {
@@ -77,9 +81,10 @@ body {
 
 .profile-card {
     background: var(--white);
-    padding: 1.2rem;
-    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -106,22 +111,39 @@ body {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+    border: 3px solid var(--white);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .edit-avatar-profile {
     position: absolute;
     bottom: 0;
     right: 0;
-    background: var(--primary-purple);
+    background: var(--burgundy-primary);
     color: white;
-    border: none;
-    width: 1.8rem;
-    height: 1.8rem;
+    border: 2px solid var(--white);
+    width: 2rem;
+    height: 2rem;
     border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.edit-avatar-profile:hover {
+    background-color: var(--burgundy-dark);
 }
 
 .user-meta-profile { text-align: center; }
+
+.user-name-profile {
+    font-family: 'Bitter', serif;
+    font-size: 1.25rem;
+    color: var(--text-main);
+}
 
 .badges-group-profile {
     display: flex;
@@ -154,29 +176,6 @@ body {
     cursor: pointer;
 }
 
-.profile-tabs {
-    display: flex;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--border-color);
-    scrollbar-width: none;
-}
-
-.tab-item-profile {
-    padding: 0.8rem 1rem;
-    background: none;
-    border: none;
-    white-space: nowrap;
-    color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    min-height: 44px;
-}
-
-.tab-item-profile.active {
-    color: var(--primary-purple);
-    border-bottom-color: var(--primary-purple);
-    font-weight: bold;
-}
-
 /* Info Boxes */
 .details-grid-profile {
     display: flex;
@@ -186,36 +185,47 @@ body {
 
 .info-box-profile {
     background: var(--white);
-    padding: 1.2rem;
-    border-radius: 0.75rem;
+    padding: 1.5rem;
+    border-radius: 12px;
     border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    scroll-margin-top: 2rem;
 }
 
 .box-header-profile {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 0.75rem;
 }
 
-.box-header-profile h3 { font-size: 1rem; }
-
-.info-note-profile {
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-left: 4px solid #6a1b9a;
-    border-radius: 4px;
-    padding: 12px 15px;
-    margin: 10px 0 20px 0;
-    font-size: 0.85rem;
-    color: #666;
+.box-header-profile h3 { 
+    font-size: 1.1rem; 
+    font-family: 'Bitter', serif;
+    color: var(--text-main);
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    line-height: 1.5;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.info-note-icon {
-    font-size: 1.1rem;
+.icon-profile {
+    font-size: 1.2rem;
+}
+
+.btn-edit-inline-profile, .btn-save-profile {
+    color: var(--burgundy-primary) !important;
+    background: none;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-family: 'Roboto', sans-serif;
+}
+
+.btn-cancel-profile {
+    color: var(--text-muted) !important;
 }
 
 .btn-edit-inline-profile {
@@ -230,9 +240,9 @@ body {
 
 .form-group-profile label {
     display: block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #64748b;
+    font-size: 0.70rem;
+    font-weight: 600;
+    color: var(--text-main);
     margin-bottom: 0.3rem;
     text-transform: uppercase;
 }
@@ -243,15 +253,17 @@ body {
     border-radius: 0.4rem;
     font-size: 0.9rem;
     border: 1px solid transparent;
+    color: var(--text-main);
 }
 
 .input-field-profile {
     width: 100%;
+    height: 2.5rem;
     background-color: var(--white);
     border: 1px solid var(--border-color);
     border-radius: 0.4rem;
     padding: 0.6rem 0.8rem;
-    font-family: inherit;
+    font-family: 'Roboto', sans-serif;
     font-size: 0.9rem;
     color: var(--text-main);
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -259,38 +271,58 @@ body {
 }
 
 .input-field-profile:focus {
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
+    border-color: var(--burgundy-primary);
+}
+
+.info-note-profile {
+    background-color: #fff9fa;
+    border: 1px solid #efebeb;
+    border-left: 4px solid var(--burgundy-primary);
+    border-radius: 4px;
+    padding: 12px 15px;
+    margin: 10px 0 20px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+}
+
+.info-note-icon {
+    font-size: 1.1rem;
 }
 
 @media (min-width: 1024px) {
     body {
         height: auto;
-        overflow: auto;
+        overflow-y: auto;
     }
 
     .profile-container {
         height: auto;
-        max-width: 1200px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 1rem 2rem;
+        padding: 2rem;
         display: grid;
         grid-template-rows: auto auto auto 1fr; 
-        gap: 0.75rem;
+        gap: 1.5rem;
     }
 
     .profile-card {
         flex-direction: row;
         justify-content: space-between;
-        padding: 0.8rem 1.5rem;
+        padding: 2rem;
+        align-items: center;
     }
 
     .profile-info-main {
         display: flex;
-        flex-direction: row; /* CAMBIO IMPORTANTE: Volver a fila en escritorio */
+        flex-direction: row; 
         align-items: center;
-        gap: 1.5rem;
-        text-align: left; /* Alinear texto a la izquierda en escritorio */
+        gap: 2rem;
+        text-align: left;
+        width: auto;
     }
 
     .user-meta-profile { 
@@ -303,42 +335,33 @@ body {
     .details-grid-profile {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 1rem;
-        overflow-y: auto;
-        padding-bottom: 1rem;
+        gap: 1.5rem;
+        overflow-y: visible;
+        padding-bottom: 2rem;
     }
 
     .info-box-profile {
         height: fit-content;
-        padding: 1rem;
+        padding: 2rem;
     }
 
     .form-row-profile {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.8rem;
-    }
-
-    .form-group-profile {
-        margin-bottom: 0.6rem;
+        gap: 1.5rem;
     }
 
     .read-only-field-profile {
-        padding: 0.5rem 0.8rem;
+        padding: 0.6rem 0.8rem;
     }
 }
 
 @media (min-width: 1024px) and (max-height: 700px) {
     .profile-container {
-        gap: 0.4rem;
-        padding-top: 0.5rem;
+        gap: 0.5rem;
+        padding-top: 1rem;
     }
-
-    body {
-        height: auto;
-        overflow-y: auto;
-    }
-    .main-title-profile { font-size: 1.2rem; }
-    .avatar-wrapper-profile { width: 4rem; height: 4rem; }
-    .info-box-profile { padding: 0.8rem; }
+    .main-title-profile { font-size: 1.4rem; }
+    .avatar-wrapper-profile { width: 4.5rem; height: 4.5rem; }
+    .info-box-profile { padding: 1rem; }
 }

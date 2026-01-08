@@ -241,21 +241,6 @@ function Home() {
                     </button>
                 </section>
 
-                <nav className="profile-tabs">
-                    <button className="tab-item-profile active">
-                        <span className="tab-icon-profile">👤</span> Datos Personales
-                    </button>
-                    <button className="tab-item-profile">
-                        <span className="tab-icon-profile">📧</span> Contacto
-                    </button>
-                    <button className="tab-item-profile">
-                        <span className="tab-icon-profile">⛪</span> Datos religiosos
-                    </button>
-                    <button className="tab-item-profile">
-                        <span className="tab-icon-profile">💳</span> Estado de cuotas
-                    </button>
-                </nav>
-
                 <div className="details-grid-profile">
                     <section className="info-box-profile">
                         <div className="box-header-profile">
