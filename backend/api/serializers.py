@@ -28,6 +28,12 @@ class UserSerializer(serializers.ModelSerializer):
         )
         return user
     
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        # Campos que el usuario tiene permitido modificar
+        fields = ["telefono", "direccion", "codigo_postal", "localidad", "provincia", "comunidad_autonoma"]
+    
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
