@@ -227,6 +227,8 @@ function Home() {
                             <div className="badges-group-profile">
                                 <span className="badge-profile">Número de registro: {user.id || "---"}</span>
                                 <span className="badge-profile">Antigüedad: {user.antiguedad || "Consultar"}</span>
+                                <span className="badge-profile">Antigüedad: {user.antiguedad || "Consultar"}</span>
+                                <span className="badge-profile">Antigüedad: {user.antiguedad || "Consultar"}</span>
                                 <span className="badge-status-profile">● Cuotas al día</span>
                             </div>
                         </div>
