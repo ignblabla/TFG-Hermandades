@@ -7,13 +7,14 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "dni", "nombre", "primer_apellido", "segundo_apellido", "telefono", "fecha_nacimiento", "genero", "password", "direccion", "codigo_postal", "localidad", "provincia", "comunidad_autonoma"]
+        fields = ["id", "dni", "nombre", "primer_apellido", "segundo_apellido", "telefono", "fecha_nacimiento", "genero", "estado_civil", "password", "direccion", "codigo_postal", "localidad", "provincia", "comunidad_autonoma"]
         extra_kwargs = {
             "password": {"write_only": True},
             "dni": {"required": True},
             "fecha_nacimiento": {"required": True},
             "telefono": {"required": True},
             "genero": {"required": True},
+            "estado_civil": {"required": True},
             "direccion": {"required": True},
             "codigo_postal": {"required": True},
             "localidad": {"required": True},
@@ -31,8 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        # Campos que el usuario tiene permitido modificar
-        fields = ["telefono", "direccion", "codigo_postal", "localidad", "provincia", "comunidad_autonoma"]
+        fields = ["telefono", "direccion", "codigo_postal", "localidad", "provincia", "comunidad_autonoma", "estado_civil"]
     
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:

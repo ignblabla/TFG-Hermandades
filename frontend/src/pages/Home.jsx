@@ -11,14 +11,15 @@ function Home() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const [editMode, setEditMode] = useState(false);
+    const [activeSection, setActiveSection] = useState(null);
     const [formData, setFormData] = useState({
         telefono: "",
         direccion: "",
         codigo_postal: "",
         localidad: "",
         provincia: "",
-        comunidad_autonoma: ""
+        comunidad_autonoma: "",
+        estado_civil: ""
     });
 
     const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
@@ -30,7 +31,6 @@ function Home() {
         if (usuarioGuardado) {
             const parsedUser = JSON.parse(usuarioGuardado);
             setUser(parsedUser);
-            // Inicializamos el formulario con los datos guardados
             inicializarFormulario(parsedUser);
         }
     }, []);
@@ -50,7 +50,7 @@ function Home() {
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data);
-                    inicializarFormulario(data); // Actualizamos form con datos frescos
+                    inicializarFormulario(data);
                 } else {
                     console.log("Token caducado o inválido");
                     localStorage.removeItem("access"); 
@@ -71,7 +71,8 @@ function Home() {
             codigo_postal: datosUsuario.codigo_postal || "",
             localidad: datosUsuario.localidad || "",
             provincia: datosUsuario.provincia || "",
-            comunidad_autonoma: datosUsuario.comunidad_autonoma || ""
+            comunidad_autonoma: datosUsuario.comunidad_autonoma || "",
+            estado_civil: datosUsuario.estado_civil || ""
         });
     };
 
@@ -106,17 +107,12 @@ function Home() {
             if (response.ok) {
                 const data = await response.json();
                 
-                // --- CORRECCIÓN AQUÍ ---
-                // No reemplazamos 'user' directamente.
-                // Creamos un nuevo objeto manteniendo lo que ya teníamos (...user)
-                // y sobrescribiendo solo lo que viene nuevo (...data).
                 const usuarioActualizado = { ...user, ...data };
 
                 setUser(usuarioActualizado); 
-                setEditMode(false);
+                setActiveSection(null);
                 setMensaje({ texto: "Datos actualizados correctamente.", tipo: "success" });
                 
-                // Guardamos el objeto COMPLETO y fusionado en localStorage
                 localStorage.setItem("user_data", JSON.stringify(usuarioActualizado));
                 
                 setTimeout(() => setMensaje({ texto: "", tipo: "" }), 3000);
@@ -133,8 +129,8 @@ function Home() {
     };
 
     const handleCancel = () => {
-        setEditMode(false);
-        if (user) inicializarFormulario(user); // Revertir cambios
+        setActiveSection(null);
+        if (user) inicializarFormulario(user);
         setMensaje({ texto: "", tipo: "" });
     };
 
@@ -258,6 +254,25 @@ function Home() {
                     <section className="info-box-profile">
                         <div className="box-header-profile">
                             <h3><span className="icon-profile">👤</span>Información Personal</h3>
+                            {activeSection !== 'personal' ? (
+                            <button 
+                                className="btn-edit-inline-profile" 
+                                onClick={() => setActiveSection('personal')}
+                                disabled={activeSection !== null}
+                                style={{ opacity: activeSection !== null ? 0.5 : 1 }}
+                            >
+                                Editar
+                            </button>
+                        ) : (
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button className="btn-save-profile" onClick={handleSave} style={{cursor: 'pointer', fontWeight: 'bold', color: '#6a1b9a', background: 'transparent', border: 'none'}}>
+                                    Guardar
+                                </button>
+                                <button className="btn-cancel-profile" onClick={handleCancel} style={{cursor: 'pointer', color: '#666', background: 'transparent', border: 'none'}}>
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
                         </div>
 
                         <div className="form-row-profile">
@@ -295,15 +310,38 @@ function Home() {
 
                         <div className="form-group-profile">
                             <label>ESTADO CIVIL</label>
-                            <div className="read-only-field-profile select-mock">{user.estado_civil || "-"}</div>
+                            {activeSection === 'personal' ? (
+                            <select 
+                                name="estado_civil" 
+                                className="input-field-profile"
+                                value={formData.estado_civil} 
+                                onChange={handleChange}
+                                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc'}}
+                            >
+                                <option value="">Seleccione...</option>
+                                <option value="SOLTERO">Soltero/a</option>
+                                <option value="CASADO">Casado/a</option>
+                                <option value="VIUDO">Viudo/a</option>
+                                <option value="SEPARADO">Separado/a</option>
+                            </select>
+                        ) : (
+                            <div className="read-only-field-profile select-mock">
+                                {user.estado_civil || "-"}
+                            </div>
+                        )}
                         </div>
                     </section>
 
                     <section className="info-box-profile">
                         <div className="box-header-profile">
                             <h3><span className="icon-profile">📍</span>Datos de contacto</h3>
-                            {!editMode ? (
-                                <button className="btn-edit-inline-profile" onClick={() => setEditMode(true)}>
+                            {activeSection !== 'contacto' ? (
+                                <button 
+                                    className="btn-edit-inline-profile" 
+                                    onClick={() => setActiveSection('contacto')}
+                                    disabled={activeSection !== null}
+                                    style={{ opacity: activeSection !== null ? 0.5 : 1 }}
+                                >
                                     Editar
                                 </button>
                             ) : (
@@ -320,11 +358,11 @@ function Home() {
 
                         <div className="form-group-profile">
                             <label>DIRECCIÓN POSTAL</label>
-                            {editMode ? (
+                            {activeSection === 'contacto' ? (
                                 <input 
                                     type="text" 
                                     name="direccion" 
-                                    className="input-field-profile" // Asegúrate de tener estilo para esto en CSS
+                                    className="input-field-profile"
                                     value={formData.direccion} 
                                     onChange={handleChange} 
                                 />
@@ -336,7 +374,7 @@ function Home() {
                         <div className="form-row-profile">
                             <div className="form-group-profile">
                                 <label>CÓDIGO POSTAL</label>
-                                {editMode ? (
+                                {activeSection === 'contacto' ? (
                                     <input 
                                         type="text" 
                                         name="codigo_postal" 
@@ -348,9 +386,10 @@ function Home() {
                                     <div className="read-only-field-profile">{user.codigo_postal}</div>
                                 )}
                             </div>
+
                             <div className="form-group-profile">
                                 <label>LOCALIDAD</label>
-                                {editMode ? (
+                                {activeSection === 'contacto' ? (
                                     <input 
                                         type="text" 
                                         name="localidad" 
@@ -367,7 +406,7 @@ function Home() {
                         <div className="form-row-profile">
                             <div className="form-group-profile">
                                 <label>PROVINCIA</label>
-                                {editMode ? (
+                                {activeSection === 'contacto' ? (
                                     <input 
                                         type="text" 
                                         name="provincia" 
@@ -379,10 +418,10 @@ function Home() {
                                     <div className="read-only-field-profile">{user.provincia}</div>
                                 )}
                             </div>
-                             {/* Agrego Comunidad Autónoma ya que estaba en tu formData */}
+                            
                             <div className="form-group-profile">
                                 <label>COMUNIDAD</label>
-                                {editMode ? (
+                                {activeSection === 'contacto' ? (
                                     <input 
                                         type="text" 
                                         name="comunidad_autonoma" 
@@ -399,7 +438,7 @@ function Home() {
                         <div className="form-row-profile">
                             <div className="form-group-profile">
                                 <label>TELÉFONO</label>
-                                {editMode ? (
+                                {activeSection === 'contacto' ? (
                                     <input 
                                         type="tel" 
                                         name="telefono" 

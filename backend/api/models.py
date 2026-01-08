@@ -25,6 +25,12 @@ class Hermano(AbstractUser):
         MASCULINO = 'MASCULINO', 'Masculino'
         FEMENINO = 'FEMENINO', 'Femenino'
 
+    class EstadoCivil(models.TextChoices):
+        SOLTERO = 'SOLTERO', 'Soltero'
+        SEPARADO = 'SEPARADO', 'Separado'
+        CASADO = 'CASADO', 'Casado'
+        VIUDO = 'VIUDO', 'Viudo'
+
     telefono_validator = RegexValidator(
         regex=r'^\d{9}$',
         message="El número de teléfono debe tener exactamente 9 dígitos numéricos."
@@ -44,6 +50,7 @@ class Hermano(AbstractUser):
 
     telefono = models.CharField(validators=[telefono_validator], max_length=9, verbose_name="Teléfono")
     genero = models.CharField(max_length=10, choices=Genero.choices, default=Genero.MASCULINO, verbose_name="Género")
+    estado_civil = models.CharField(max_length=10, choices=EstadoCivil.choices, verbose_name="Estado Civil")
 
     direccion = models.CharField(max_length=255, verbose_name="Dirección postal", null=True, blank=True)
     codigo_postal = models.CharField(max_length=5, validators=[cp_validator], verbose_name="Código postal", null=True, blank=True)
