@@ -19,7 +19,10 @@ function Home() {
         localidad: "",
         provincia: "",
         comunidad_autonoma: "",
-        estado_civil: ""
+        estado_civil: "",
+        lugar_bautismo: "",
+        fecha_bautismo: "",
+        parroquia_bautismo: ""
     });
 
     const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
@@ -72,7 +75,10 @@ function Home() {
             localidad: datosUsuario.localidad || "",
             provincia: datosUsuario.provincia || "",
             comunidad_autonoma: datosUsuario.comunidad_autonoma || "",
-            estado_civil: datosUsuario.estado_civil || ""
+            estado_civil: datosUsuario.estado_civil || "",
+            lugar_bautismo: datosUsuario.lugar_bautismo || "",
+            fecha_bautismo: datosUsuario.fecha_bautismo || "",
+            parroquia_bautismo: datosUsuario.parroquia_bautismo || ""
         });
     };
 
@@ -455,6 +461,45 @@ function Home() {
                                 <div className="read-only-field-profile">✉️ fran.perez@email.com</div>
                             </div>
                         </div>
+                    </section>
+
+                    <section className="info-box-profile">
+                        <div className="box-header-profile">
+                            <h3><span className="icon-profile">⛪</span>Datos Sacramentales</h3>
+                        </div>
+
+                        <div className="info-note-profile">
+                            <span className="info-note-icon">ℹ️</span>
+                            <span>
+                                Para modificar o aportar sus datos sacramentales, por favor contacte con Secretaría o envíe su partida de bautismo escaneada.
+                            </span>
+                        </div>
+
+                        <div className="form-row-profile">
+                            <div className="form-group-profile">
+                                <label>BAUTIZADO EN (LOCALIDAD)</label>
+                                <div className="read-only-field-profile">
+                                    {user.lugar_bautismo || <span style={{color: '#999', fontStyle: 'italic'}}>No registrado</span>}
+                                </div>
+                            </div>
+
+                            <div className="form-group-profile">
+                                <label>FECHA DE BAUTISMO</label>
+                                <div className="read-only-field-profile">
+                                    {user.fecha_bautismo 
+                                        ? user.fecha_bautismo.split('-').reverse().join('/') 
+                                        : <span style={{color: '#999', fontStyle: 'italic'}}>--/--/----</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-group-profile">
+                                <label>IGLESIA</label>
+                                <div className="read-only-field-profile">
+                                    {user.parroquia_bautismo || <span style={{color: '#999', fontStyle: 'italic'}}>No registrada</span>}
+                                </div>
+                            </div>
                     </section>
                 </div>
             </main>

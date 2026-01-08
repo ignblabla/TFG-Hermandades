@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
 class Note(models.Model):
     title = models.CharField(max_length=100, verbose_name="Título")
@@ -59,6 +60,10 @@ class Hermano(AbstractUser):
     provincia = models.CharField(max_length=100, verbose_name="Provincia", null=True, blank=True)
     comunidad_autonoma = models.CharField(max_length=100, verbose_name="Comunidad Autónoma", null=True, blank=True)
 
+    lugar_bautismo = models.CharField(max_length=100, verbose_name="Bautizado en", null=True, blank=True, help_text="Localidad o ciudad donde recibió el bautismo")
+    fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
+    parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
+
     first_name = None
     last_name = None
 
@@ -68,7 +73,17 @@ class Hermano(AbstractUser):
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
     
+    def clean(self):
+        super().clean()
+
+        if self.fecha_nacimiento and self.fecha_bautismo:
+            if self.fecha_bautismo < self.fecha_nacimiento:
+                raise ValidationError({
+                    'fecha_bautismo': 'La fecha de bautismo no puede ser anterior a la fecha de nacimiento'
+                })
+    
     def save(self, *args, **kwargs):
+        self.full_clean()
         if not self.username:
             self.username = self.dni
         super().save(*args, **kwargs)
