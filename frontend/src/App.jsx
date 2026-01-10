@@ -7,6 +7,7 @@ import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
 import AreaInteres from "./pages/AreasInteres"
+import CrearActo from "./pages/CrearActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -46,6 +47,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AreaInteres />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/crear-acto"
+          element={
+            <ProtectedRoute>
+              <CrearActo />
             </ProtectedRoute>
           }
         />

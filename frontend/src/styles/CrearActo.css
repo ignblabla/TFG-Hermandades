@@ -1,0 +1,231 @@
+:root {
+    /* --- PALETA DE COLORES ADAPTADA (Estilo Code B) --- */
+    --primary-color: #800020;
+    --primary-hover: #4d0013;
+    --primary-light: #f8eaff;
+    
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    
+    --text-main: #333333;
+    --text-muted: #666666;
+    
+    --border-color: #ddd;
+    --input-placeholder: #999999;
+    
+    --shadow: 0 10px 25px rgba(0, 0, 0, 0.1); 
+    
+    --font-serif: 'Bitter', serif;
+    --font-sans: 'Roboto', sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    font-family: var(--font-sans);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.admin-layout-acto {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem; /* Ajustado ligeramente */
+    min-height: 100vh;
+}
+
+.main-content-acto {
+    width: 100%;
+    max-width: 1100px; /* Ampliado para coincidir con el max-width de la ref */
+}
+
+.page-header-acto {
+    margin-bottom: 2rem;
+}
+
+.page-title-acto {
+    font-family: var(--font-serif); /* Ahora usa Bitter */
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+}
+
+.page-subtitle-acto {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-family: var(--font-sans);
+}
+
+.form-card-acto {
+    background: var(--card-bg);
+    padding: 2rem; /* Más padding como en la referencia */
+    border-radius: 12px; /* Redondeado específico de la referencia (12px) */
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color); /* Añadido borde sutil */
+}
+
+.event-form-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group-acto label {
+    font-size: 0.85rem; /* Un poco más grande para legibilidad en Roboto */
+    font-weight: 600;
+    letter-spacing: normal; /* Quitamos el espaciado forzado para estilo Roboto */
+    color: var(--text-main);
+}
+
+.input-with-icon-acto {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-icon-acto .icon-acto {
+    position: absolute;
+    left: 1rem;
+    color: var(--primary-color); /* Ahora es Burgundy */
+    pointer-events: none;
+    font-size: 1.1rem;
+}
+
+.input-with-icon-acto input,
+.input-with-icon-acto select,
+textarea {
+    width: 100%;
+    padding: 0.85rem 1rem 0.85rem 2.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    background-color: var(--card-bg);
+}
+
+textarea {
+    padding: 1rem;
+    resize: vertical;
+}
+
+input::placeholder, textarea::placeholder {
+    color: var(--input-placeholder);
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light); /* Efecto focus estilo moderno */
+}
+
+.form-actions-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+button {
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 1rem;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-cancel-acto {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.btn-cancel-acto:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.btn-save-acto {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    /* Sombra específica del botón de la referencia */
+    box-shadow: 0 4px 6px rgba(128, 0, 32, 0.2); 
+}
+
+.btn-save-acto:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px); /* Pequeño efecto de elevación */
+}
+
+.admin-footer-acto {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.footer-content-acto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    color: #999; /* Ajustado al color de breadcrumb */
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    letter-spacing: normal;
+}
+
+@media (min-width: 768px) {
+    .admin-layout-acto {
+        padding: 3rem 2rem;
+    }
+
+    .form-card-acto {
+        padding: 3rem;
+    }
+
+    /* El grid de dos columnas para Tipo y Fecha */
+    .form-row-acto {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    /* Botones en horizontal */
+    .form-actions-acto {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+
+    .btn-cancel-acto, .btn-save-acto {
+        min-width: 180px;
+    }
+}
+
+/* Pantallas grandes (min-width: 1024px) */
+@media (min-width: 1024px) {
+    .page-title-acto {
+        font-size: 2.2rem; /* Ajustado visualmente a Bitter */
+    }
+}
