@@ -2,9 +2,8 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import UserSerializer, NoteSerializer, UserUpdateSerializer
+from .serializers import UserSerializer, UserUpdateSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Note
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
@@ -12,28 +11,28 @@ from rest_framework.response import Response
 
 User = get_user_model()
 
-class NoteListCreate(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+# class NoteListCreate(generics.ListCreateAPIView):
+#     serializer_class = NoteSerializer
+#     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
+#     def get_queryset(self):
+#         user = self.request.user
+#         return Note.objects.filter(author=user)
 
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
+#     def perform_create(self, serializer):
+#         if serializer.is_valid():
+#             serializer.save(author=self.request.user)
+#         else:
+#             print(serializer.errors)
 
 
-class NoteDelete(generics.DestroyAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
+# class NoteDelete(generics.DestroyAPIView):
+#     serializer_class = NoteSerializer
+#     permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
+#     def get_queryset(self):
+#         user = self.request.user
+#         return Note.objects.filter(author=user)
 
 
 class CreateUserView(generics.CreateAPIView):

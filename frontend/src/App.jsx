@@ -6,6 +6,7 @@ import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
+import AreaInteres from "./pages/AreasInteres"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -37,6 +38,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditMe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/areas-interes"
+          element={
+            <ProtectedRoute>
+              <AreaInteres />
             </ProtectedRoute>
           }
         />
