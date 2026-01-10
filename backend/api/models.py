@@ -94,3 +94,64 @@ class Hermano(AbstractUser):
         if not self.username:
             self.username = self.dni
         super().save(*args, **kwargs)
+
+
+class TipoActo(models.Model):
+    class OpcionesTipo(models.TextChoices):
+        ESTACION_PENITENCIA = 'ESTACION_PENITENCIA', 'Estación de Penitencia'
+        CABILDO_GENERAL = 'CABILDO_GENERAL', 'Cabildo General'
+        CABILDO_EXTRAORDINARIO = 'CABILDO_EXTRAORDINARIO', 'Cabildo Extraordinario'
+        VIA_CRUCIS = 'VIA_CRUCIS', 'Vía Crucis'
+        QUINARIO = 'QUINARIO', 'Quinario'
+        TRIDUO = 'TRIDUO', 'Triduo'
+        ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
+        CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
+
+    tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
+    requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")
+    
+
+class Acto(models.Model):
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
+    descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
+    fecha = models.DateTimeField(verbose_name="Fecha y hora")
+
+    tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
+
+    def __str__(self):
+        return f"{self.nombre} ({self.fecha.year})"
+
+    
+class Puesto(models.Model):
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
+    numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones", default=1)
+    disponible = models.BooleanField(default=True, verbose_name="¿Está disponible?")
+    lugar_citacion = models.CharField(max_length=150, verbose_name="Lugar de citación", blank=True, null=True)
+    hora_citacion = models.TimeField(verbose_name="Hora de citación", blank=True, null=True)
+
+    acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='puestos_disponibles', verbose_name="Acto al que pertenece")
+
+    def __str__(self):
+        return f"{self.nombre} - {self.acto.nombre}"
+    
+
+class PapeletaSitio(models.Model):
+    class EstadoPapeleta(models.TextChoices):
+        NO_SOLICITADA = 'NO_SOLICITADA', 'No solicitada'
+        SOLICITADA = 'SOLICITADA', 'Solicitada'
+        EMITIDA = 'EMITIDA', 'Emitida'
+        RECOGIDA = 'RECOGIDA', 'Recogida'
+        LEIDA = 'LEIDA', 'Leída'
+        ANULADA = 'ANULADA', 'Anulada'
+
+    estado_papeleta = models.CharField(max_length=20, choices=EstadoPapeleta.choices, default=EstadoPapeleta.NO_SOLICITADA, verbose_name="Estado")
+    fecha_emision = models.DateField(auto_now_add=True, verbose_name="Fecha de emisión")
+    codigo_verificacion = models.CharField(max_length=100, verbose_name="Código de verificación", help_text="Código único para validad la autenticidad")
+    anio = models.PositiveIntegerField(verbose_name="Año")
+
+    hermano = models.ForeignKey(Hermano, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Hermano solicitante")
+    acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
+    puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
+
+    def __str__(self):
+        return f"Papeleta {self.numero_papeleta} - {self.anio})"
