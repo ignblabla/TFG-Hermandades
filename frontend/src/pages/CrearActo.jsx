@@ -4,6 +4,7 @@ import axios from 'axios';
 import api from "../api";
 import "../styles/CrearActo.css"
 import logoEscudo from '../assets/escudo.png';
+import { ArrowLeft } from "lucide-react";
 
 function CrearActo() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -37,7 +38,6 @@ function CrearActo() {
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data);
-                    // Opcional: Redirigir si no es admin en el frontend (aunque el backend protege igual)
                     if (!data.esAdmin) {
                         alert("No tienes permisos de administrador.");
                         navigate("/");
@@ -86,14 +86,11 @@ function CrearActo() {
 
             if (response.ok) {
                 setSuccess(true);
-                // Limpiar formulario o redirigir
                 setFormData({ nombre: "", tipo_acto: "", fecha: "", descripcion: "" });
-                setTimeout(() => navigate("/home"), 2000); // Redirigir a agenda tras 2s
+                setTimeout(() => navigate("/home"), 2000);
             } else {
-                // Manejo de errores de validación (ej: año incorrecto)
-                // Django suele devolver errores como { "fecha": ["Error..."] }
                 if (data.fecha) setError(data.fecha[0]);
-                else if (data.detail) setError(data.detail); // Error de permisos o genérico
+                else if (data.detail) setError(data.detail);
                 else setError("Error al crear el acto. Revise los datos.");
             }
         } catch (err) {
@@ -173,17 +170,23 @@ function CrearActo() {
                 </div>
             </nav>
 
-            <div className="admin-layout-acto">
-                <main className="main-content-acto">
-                    
-                    <header className="page-header-acto">
-                        <h1 className="page-title-acto">Creación nuevo acto</h1>
-                        <p className="page-subtitle-acto">Complete los detalles para programar un nuevo evento. Recuerde que debe ser para el año en curso.</p>
+            <main className="main-container-area">
+                <div className="card-container-area">
+                    <header className="content-header-area">
+                        <div className="title-row-area">
+                        <h1>Creación nuevo acto</h1>
+                        <button className="btn-back-area" onClick={() => navigate(-1)}>
+                            <ArrowLeft size={16} /> Volver
+                        </button>
+                    </div>
+                    <p className="description-area">
+                        Complete los detalles para programar un nuevo evento. Recuerde que debe ser para el año en curso.
+                    </p>
                     </header>
 
-                    {/* Feedback visual de errores o éxito */}
                     {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#dc2626', marginBottom: '1rem', borderRadius: '4px'}}>{error}</div>}
                     {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px'}}>¡Acto creado correctamente! Redirigiendo...</div>}
+
 
                     <section className="form-card-acto">
                         <form className="event-form-acto" onSubmit={handleSubmit}>
@@ -269,8 +272,8 @@ function CrearActo() {
                             </div>
                         </form>
                     </section>
-                </main>
-            </div>
+                </div>
+            </main>
         </div>
     );
 }
