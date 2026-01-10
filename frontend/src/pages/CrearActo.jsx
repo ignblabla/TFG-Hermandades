@@ -10,6 +10,16 @@ function CrearActo() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false);
+    const [formData, setFormData] = useState({
+        nombre: "",
+        tipo_acto: "",
+        fecha: "",
+        descripcion: ""
+    });
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -27,18 +37,71 @@ function CrearActo() {
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data);
+                    // Opcional: Redirigir si no es admin en el frontend (aunque el backend protege igual)
+                    if (!data.esAdmin) {
+                        alert("No tienes permisos de administrador.");
+                        navigate("/");
+                    }
                 } else {
-                    console.log("Token caducado o inválido");
                     localStorage.removeItem("access"); 
                     setUser(null);
+                    navigate("/login");
                 }
             })
             .catch(error => console.error("Error:", error))
             .finally(() => setLoading(false));
         } else {
             setLoading(false);
+            navigate("/login");
         }
-    }, []);
+    }, [navigate]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setError("");
+        setSuccess(false);
+
+        const token = localStorage.getItem("access");
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/api/actos/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSuccess(true);
+                // Limpiar formulario o redirigir
+                setFormData({ nombre: "", tipo_acto: "", fecha: "", descripcion: "" });
+                setTimeout(() => navigate("/home"), 2000); // Redirigir a agenda tras 2s
+            } else {
+                // Manejo de errores de validación (ej: año incorrecto)
+                // Django suele devolver errores como { "fecha": ["Error..."] }
+                if (data.fecha) setError(data.fecha[0]);
+                else if (data.detail) setError(data.detail); // Error de permisos o genérico
+                else setError("Error al crear el acto. Revise los datos.");
+            }
+        } catch (err) {
+            setError("Error de conexión con el servidor.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const handleLogout = () => {
         localStorage.removeItem("user_data");
@@ -115,70 +178,97 @@ function CrearActo() {
                     
                     <header className="page-header-acto">
                         <h1 className="page-title-acto">Creación nuevo acto</h1>
-                        <p className="page-subtitle-acto">Complete los detalles para programar un nuevo evento en el calendario de la Hermandad.</p>
+                        <p className="page-subtitle-acto">Complete los detalles para programar un nuevo evento. Recuerde que debe ser para el año en curso.</p>
                     </header>
 
+                    {/* Feedback visual de errores o éxito */}
+                    {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#dc2626', marginBottom: '1rem', borderRadius: '4px'}}>{error}</div>}
+                    {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px'}}>¡Acto creado correctamente! Redirigiendo...</div>}
+
                     <section className="form-card-acto">
-                        <form className="event-form-acto" onSubmit={(e) => e.preventDefault()}>
+                        <form className="event-form-acto" onSubmit={handleSubmit}>
+                            
+                            {/* CAMPO NOMBRE */}
                             <div className="form-group-acto full-width">
                                 <label htmlFor="nombre">NOMBRE DEL ACTO</label>
                                 <div className="input-with-icon-acto">
                                     <span className="icon-acto">📅</span>
                                     <input 
                                         type="text" 
-                                        id="nombre" 
-                                        placeholder="Ej: Solemne Quinario en honor a Nuestro Padre Jesús en Su Soberano Poder ante Caifás" 
+                                        id="nombre"
+                                        name="nombre" 
+                                        required
+                                        value={formData.nombre}
+                                        onChange={handleChange}
+                                        placeholder="Ej: Solemne Quinario..." 
                                     />
                                 </div>
                             </div>
 
                             <div className="form-row-acto">
+                                {/* CAMPO TIPO ACTO */}
                                 <div className="form-group-acto">
-                                    <label htmlFor="tipo">TIPO DE ACTO</label>
+                                    <label htmlFor="tipo_acto">TIPO DE ACTO</label>
                                     <div className="input-with-icon-acto">
                                         <span className="icon-acto">▲</span>
-                                        <select id="tipo" defaultValue="">
+                                        <select 
+                                            id="tipo_acto" 
+                                            name="tipo_acto"
+                                            required
+                                            value={formData.tipo_acto}
+                                            onChange={handleChange}
+                                        >
                                             <option value="" disabled>Seleccione categoría</option>
-                                            <option value="culto">Culto</option>
-                                            <option value="salida">Salida Procesional</option>
-                                            <option value="formacion">Formación</option>
+                                            <option value="ESTACION_PENITENCIA">Estación de Penitencia</option>
+                                            <option value="VIA_CRUCIS">Vía Crucis</option>
+                                            <option value="QUINARIO">Quinario</option>
+                                            <option value="TRIDUO">Triduo</option>
+                                            <option value="ROSARIO_AURORA">Rosario de la Aurora</option>
+                                            <option value="CABILDO_GENERAL">Cabildo General</option>
+                                            <option value="CABILDO_EXTRAORDINARIO">Cabildo Extraordinario</option>
+                                            <option value="CONVIVENCIA">Convivencia</option>
                                         </select>
                                     </div>
                                 </div>
 
+                                {/* CAMPO FECHA */}
                                 <div className="form-group-acto">
                                     <label htmlFor="fecha">FECHA Y HORA</label>
                                     <div className="input-with-icon-acto">
                                         <span className="icon-acto">🕒</span>
-                                        <input type="datetime-local" id="fecha" />
+                                        <input 
+                                            type="datetime-local" 
+                                            id="fecha"
+                                            name="fecha"
+                                            required
+                                            value={formData.fecha}
+                                            onChange={handleChange}
+                                        />
                                     </div>
                                 </div>
                             </div>
 
+                            {/* CAMPO DESCRIPCION */}
                             <div className="form-group-acto full-width">
                                 <label htmlFor="descripcion">DESCRIPCIÓN DEL ACTO</label>
                                 <textarea 
                                     id="descripcion" 
+                                    name="descripcion"
                                     rows="5" 
-                                    placeholder="Detalle la información relevante del acto para los hermanos..."
+                                    value={formData.descripcion}
+                                    onChange={handleChange}
+                                    placeholder="Detalle la información relevante..."
                                 ></textarea>
                             </div>
 
                             <div className="form-actions-acto">
-                                <button type="button" className="btn-cancel-acto">Cancelar</button>
-                                <button type="submit" className="btn-save-acto">
-                                    <span className="icon-save-acto">💾</span> Guardar Acto
+                                <button type="button" className="btn-cancel-acto" onClick={() => navigate("/agenda")}>Cancelar</button>
+                                <button type="submit" className="btn-save-acto" disabled={submitting}>
+                                    <span className="icon-save-acto">💾</span> {submitting ? "Guardando..." : "Guardar Acto"}
                                 </button>
                             </div>
                         </form>
                     </section>
-
-                    <footer className="admin-footer-acto">
-                        <div className="footer-content-acto">
-                            <span className="footer-logo-acto">📦</span>
-                            <span className="footer-text-acto">PANEL ADMINISTRATIVO • SAN GONZALO</span>
-                        </div>
-                    </footer>
                 </main>
             </div>
         </div>

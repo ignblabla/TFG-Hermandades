@@ -21,6 +21,40 @@ class AreaInteres(models.Model):
     def __str__(self):
         return self.get_nombre_area_display()
     
+class CuerpoPertenencia(models.Model):
+    class NombreCuerpo(models.TextChoices):
+        COSTALEROS = 'COSTALEROS', 'Costaleros'
+        NAZARENOS = 'NAZARENOS', 'Nazarenos'
+        DIPUTADOS = 'DIPUTADOS', 'Diputados de tramo'
+        BRAZALETES = 'BRAZALETES', 'Brazaletes'
+        ACOLITOS = 'ACOLITOS', 'Acólitos'
+        CAPATACES = 'CAPATACES', 'Capataces'
+        SANITARIOS = 'SANITARIOS', 'Sanitarios'
+        PRIOSTÍA = 'PRIOSTIA', 'Priostía'
+        CARIDAD_ACCION_SOCIAL = 'CARIDAD_ACCION_SOCIAL', 'Caridad y Acción Social'
+        JUVENTUD = 'JUVENTUD', 'Juventud'
+        JUNTA_GOBIERNO = 'JUNTA_GOBIERNO', 'Junta de Gobierno'
+
+    nombre_cuerpo = models.CharField(max_length=50, choices=NombreCuerpo.choices, unique=True, verbose_name="Nombre del cuerpo")
+
+    def __str__(self):
+        return self.get_nombre_cuerpo_display()
+    
+class HermanoCuerpo(models.Model):
+    hermano = models.ForeignKey('Hermano', on_delete=models.CASCADE, related_name='pertenencias_cuerpos',verbose_name="Hermano")
+
+    cuerpo = models.ForeignKey(
+        CuerpoPertenencia, 
+        on_delete=models.PROTECT, 
+        related_name='integrantes',
+        verbose_name="Cuerpo de pertenencia"
+    )
+
+    anio_ingreso = models.PositiveIntegerField(verbose_name="Año de ingreso", help_text="Año en el que el hermano ingresó en este cuerpo específico")
+
+    def __str__(self):
+        return f"{self.hermano} en {self.cuerpo} desde {self.anio_ingreso}"
+    
 
 class Hermano(AbstractUser):
     class Genero(models.TextChoices):
@@ -65,6 +99,8 @@ class Hermano(AbstractUser):
     fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
     parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
 
+    esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
+
     areas_interes = models.ManyToManyField(
         AreaInteres,
         verbose_name="Áreas de interés",
@@ -72,11 +108,19 @@ class Hermano(AbstractUser):
         related_name="hermanos"
     )
 
+    cuerpos = models.ManyToManyField(CuerpoPertenencia,
+        through='HermanoCuerpo',
+        verbose_name="Cuerpos de pertenencia",
+        related_name="hermanos_miembros",
+        blank=True,
+        help_text="Colectivos a los que pertenece el hermano"
+    )
+
     first_name = None
     last_name = None
 
     USERNAME_FIELD = 'dni'
-    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email']
+    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'username', 'telefono', 'estado_civil']
 
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
@@ -106,6 +150,8 @@ class TipoActo(models.Model):
         TRIDUO = 'TRIDUO', 'Triduo'
         ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
         CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
+        PROCESION_EUCARISTICA = 'PROCESION_EUCARISTICA', 'Procesión Eucarística'
+        
 
     tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
     requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")

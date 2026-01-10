@@ -2,10 +2,13 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import UserSerializer, UserUpdateSerializer
+from .serializers import UserSerializer, UserUpdateSerializer, ActoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from .services import create_acto_service
+
 
 # Create your views here.
 
@@ -57,3 +60,23 @@ class UsuarioLogueadoView(APIView):
             return Response(serializer.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# -----------------------------------------------------------------------------
+# VIEWS: PAPELETA DE SITIO
+# -----------------------------------------------------------------------------
+
+class CrearActoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ActoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        nuevo_acto = create_acto_service(
+            usuario=request.user,
+            data_validada=serializer.validated_data                   
+        )
+
+        response_serializer = ActoSerializer(nuevo_acto)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
