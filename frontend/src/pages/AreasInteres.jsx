@@ -250,10 +250,6 @@ function AreaInteres() {
                         </button>
                     </footer>
                 </div>
-
-                <p className="lopd-text-area">
-                    Última actualización: 24 Octubre 2023. Sus datos serán tratados conforme a la LOPD.
-                </p>
             </main>
         </div>
     );
