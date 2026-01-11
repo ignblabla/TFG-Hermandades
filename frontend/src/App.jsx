@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
 import AreaInteres from "./pages/AreasInteres"
 import CrearActo from "./pages/CrearActo"
+import EditarActo from "./pages/EditarActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -55,6 +56,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-acto/:id"
+          element={
+            <ProtectedRoute>
+              <EditarActo />
             </ProtectedRoute>
           }
         />
