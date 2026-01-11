@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio)
+from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
 from django.db import transaction
 
 User = get_user_model()
@@ -101,6 +101,7 @@ class TipoActoSerializer(serializers.ModelSerializer):
         model = TipoActo
         fields = ['id', 'tipo', 'requiere_papeleta']
 
+
 # -----------------------------------------------------------------------------
 # SERIALIZERS DE RELACIONES (HERMANO - CUERPO)
 # -----------------------------------------------------------------------------
@@ -137,12 +138,23 @@ class HermanoCuerpoSerializer(serializers.ModelSerializer):
 # SERIALIZERS DE GESTIÓN DE ACTOS Y PUESTOS
 # -----------------------------------------------------------------------------
 
+class TipoPuestoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoPuesto
+        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno']
+
 class PuestoSerializer(serializers.ModelSerializer):
+    tipo_puesto = serializers.SlugRelatedField(
+        slug_field='nombre_tipo',
+        queryset=TipoPuesto.objects.all()
+    )
+
     class Meta:
         model = Puesto
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
-            'disponible', 'lugar_citacion', 'hora_citacion', 'acto'
+            'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
+            'tipo_puesto'
         ]
 
 
@@ -192,6 +204,7 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
         """
         puesto = data.get('puesto')
         acto = data.get('acto')
+        hermano = data.get('hermano')
         
         if puesto and acto:
             if puesto.acto != acto:
@@ -203,5 +216,17 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "puesto": "El puesto seleccionado no está marcado como disponible."
             })
+        
+        if puesto and puesto.tipo_puesto.solo_junta_gobierno:
+            # Comprobamos si el hermano pertenece al cuerpo 'JUNTA_GOBIERNO'
+            # Usamos el related_name 'pertenencias_cuerpos' definido en HermanoCuerpo
+            es_miembro_junta = hermano.pertenencias_cuerpos.filter(
+                cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
+            ).exists()
+
+            if not es_miembro_junta:
+                raise serializers.ValidationError({
+                    "puesto": f"El puesto '{puesto.nombre}' ({puesto.tipo_puesto.nombre_tipo}) está reservado exclusivamente para miembros de la Junta de Gobierno."
+                })
 
         return data

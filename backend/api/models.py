@@ -168,6 +168,21 @@ class Acto(models.Model):
         return f"{self.nombre} ({self.fecha.year})"
 
     
+class TipoPuesto(models.Model):
+    """
+    Representa la categoría o tipología del puesto.
+    """
+    nombre_tipo = models.CharField(max_length=75, unique=True, verbose_name="Nombre del tipo de puesto")
+    solo_junta_gobierno = models.BooleanField(
+        default=False,
+        verbose_name="Solo para Junta de Gobierno",
+        help_text="Si se marca, este tipo de puesto estará restringido a miembros de la Junta de Gobierno."
+    )
+
+    def __str__(self):
+        return self.nombre_tipo
+
+
 class Puesto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
     numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones", default=1)
@@ -177,8 +192,10 @@ class Puesto(models.Model):
 
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='puestos_disponibles', verbose_name="Acto al que pertenece")
 
+    tipo_puesto = models.ForeignKey(TipoPuesto, on_delete=models.PROTECT, verbose_name="Tipo de puesto")
+
     def __str__(self):
-        return f"{self.nombre} - {self.acto.nombre}"
+        return f"{self.nombre} ({self.tipo_puesto.nombre_tipo}) - {self.acto.nombre}"
     
 
 class PapeletaSitio(models.Model):
