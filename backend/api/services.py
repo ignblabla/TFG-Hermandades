@@ -1,7 +1,11 @@
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Acto
+from .models import Acto, Puesto, TipoPuesto
+
+# -----------------------------------------------------------------------------
+# SERVICES: ACTO
+# -----------------------------------------------------------------------------
 
 def create_acto_service(usuario, data_validada):
     """
@@ -79,3 +83,45 @@ def update_acto_service(usuario, acto_id, data_validada):
 
     acto.save()
     return acto
+
+# -----------------------------------------------------------------------------
+# SERVICES: PUESTO
+# -----------------------------------------------------------------------------
+def create_puesto_service(usuario, data_validada):
+    """
+    Servicio para la creación de puestos en un acto.
+    
+    Args:
+        usuario (User): Usuario que realiza la petición.
+        data_validada (dict): Datos limpios del serializer.
+        
+    Returns:
+        Puesto: Instancia del puesto creado.
+        
+    Raises:
+        PermissionDenied: Si el usuario no es administrador.
+    """
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para crear puestos. Acción reservada a administradores.")
+    
+    acto = data_validada.get('acto')
+
+    if acto and not acto.tipo_acto.requiere_papeleta:
+        raise ValidationError({
+            "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite la creación de puestos ni papeletas de sitio."
+        })
+    
+    puesto = Puesto.objects.create(**data_validada)
+
+    return puesto
+
+
+# -----------------------------------------------------------------------------
+# SERVICES: TIPO DE PUESTO
+# -----------------------------------------------------------------------------
+def get_tipos_puesto_service():
+    """
+    Servicio para recuperar el catálogo completo de tipos de puestos.
+    Puede incluir lógica de filtrado si fuera necesaria en el futuro.
+    """
+    return TipoPuesto.objects.all()

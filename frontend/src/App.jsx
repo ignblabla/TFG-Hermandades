@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
 import AreaInteres from "./pages/AreasInteres"
 import CrearActo from "./pages/CrearActo"
+import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
@@ -56,6 +57,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/crear-puesto"
+          element={
+            <ProtectedRoute>
+              <CrearPuesto />
             </ProtectedRoute>
           }
         />

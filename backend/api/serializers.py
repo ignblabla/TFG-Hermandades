@@ -157,6 +157,14 @@ class PuestoSerializer(serializers.ModelSerializer):
             'tipo_puesto'
         ]
 
+    def validate_numero_maximo_asignaciones(self, value):
+        """
+        Validación de campo: El número de asignaciones debe ser positivo.
+        """
+        if value < 1:
+            raise serializers.ValidationError("El número máximo de asignaciones debe ser al menos 1.")
+        return value
+
 
 class ActoSerializer(serializers.ModelSerializer):
     tipo_acto = serializers.SlugRelatedField(
