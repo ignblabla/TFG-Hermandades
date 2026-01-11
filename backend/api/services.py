@@ -21,6 +21,7 @@ def create_acto_service(usuario, data_validada):
     if not getattr(usuario, 'esAdmin', False):
         raise PermissionDenied("No tienes permisos para crear actos. Contacta con Secretaría.")
     
+    nombre = data_validada.get('nombre')
     fecha_acto = data_validada.get('fecha')
 
     anio_actual = timezone.now().year
@@ -28,8 +29,12 @@ def create_acto_service(usuario, data_validada):
     if fecha_acto.year != anio_actual:
         raise ValidationError({"fecha": f"Solo se permite crear actos para el año en curso ({anio_actual})."})
     
+    if Acto.objects.filter(nombre=nombre, fecha__date=fecha_acto.date()).exists():
+        raise ValidationError({
+            "non_field_errors": [f"Ya existe un acto con el nombre '{nombre}' para el día {fecha_acto.date().strftime('%d/%m/%Y')}."]
+        })
+    
     acto = Acto.objects.create(**data_validada)
-
     return acto
 
 
@@ -55,6 +60,19 @@ def update_acto_service(usuario, acto_id, data_validada):
         anio_actual = timezone.now().year
         if nuevo_anio != anio_actual:
             raise ValidationError({"fecha": f"La fecha del acto debe ser del año en curso ({anio_actual})."})
+        
+    nuevo_nombre = data_validada.get('nombre', acto.nombre)
+    nueva_fecha_entera = data_validada.get('fecha', acto.fecha)
+
+    nueva_fecha_dia = nueva_fecha_entera.date()
+
+    existe_duplicado = Acto.objects.filter(
+        nombre = nuevo_nombre,
+        fecha__date = nueva_fecha_dia
+    ).exclude(pk=acto_id).exists()
+
+    if existe_duplicado:
+        raise ValidationError({"non_field_errors": [f"Ya existe otro acto con el nombre '{nuevo_nombre}' para el día {nueva_fecha_dia.strftime('%d/%m/%Y')}."]})
         
     for attr, value in data_validada.items():
         setattr(acto, attr, value)

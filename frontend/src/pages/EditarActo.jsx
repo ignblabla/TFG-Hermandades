@@ -98,11 +98,25 @@ function EditarActo() {
             setTimeout(() => navigate("/home"), 2000);
         } catch (err) {
             console.error("Error actualizando:", err);
+            
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
-                if (errorData.fecha) setError(errorData.fecha[0]);
-                else if (errorData.detail) setError(errorData.detail);
-                else setError("Error al validar los datos. Revisa el formulario.");
+                
+                if (errorData.non_field_errors) {
+                    setError(errorData.non_field_errors[0]);
+                }
+                else if (errorData.nombre) {
+                    setError(errorData.nombre[0]);
+                }
+                else if (errorData.fecha) {
+                    setError(errorData.fecha[0]);
+                }
+                else if (errorData.detail) {
+                    setError(errorData.detail);
+                }
+                else {
+                    setError("Error al validar los datos. Revisa el formulario.");
+                }
             } else {
                 setError("Error de conexión con el servidor.");
             }
