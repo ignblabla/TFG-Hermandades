@@ -146,6 +146,36 @@ def create_puesto_service(usuario, data_validada):
     return puesto
 
 
+def update_puesto_service(usuario, puesto_id, data_validada):
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para editar puestos. Acción reservada a administradores.")
+
+    puesto = get_object_or_404(Puesto, pk=puesto_id)
+
+    acto_actual = puesto.acto
+    if not acto_actual.tipo_acto.requiere_papeleta:
+        raise ValidationError({
+            "acto": f"El acto '{acto_actual.nombre}' no admite la edición de puestos."
+        })
+    
+    nuevo_nombre = data_validada.get('nombre', puesto.nombre)
+
+    existe_duplicado = Puesto.objects.filter(
+        acto = acto_actual,
+        nombre = nuevo_nombre
+    ).exclude(pk=puesto_id).exists()
+
+    if existe_duplicado:
+        raise ValidationError({
+            "nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' dentro del acto '{acto_actual.nombre}'."]
+        })
+    
+    for attr, value in data_validada.items():
+        setattr(puesto, attr, value)
+
+    puesto.save()
+    return puesto
+
 # -----------------------------------------------------------------------------
 # SERVICES: TIPO DE PUESTO
 # -----------------------------------------------------------------------------

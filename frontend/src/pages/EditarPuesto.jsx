@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/CrearActo.css"; // Reutilizamos estilos para consistencia
+import { useNavigate, useParams } from "react-router-dom";
+import "../styles/CrearActo.css"; 
 import logoEscudo from '../assets/escudo.png';
 import { ArrowLeft } from "lucide-react";
 
-function CrearPuesto() {
-    // --- ESTADOS ---
+function EditarPuesto() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Estados para los selectores (Foreign Keys)
+    const { id } = useParams(); 
+    const isEditing = Boolean(id);
+
     const [listaActos, setListaActos] = useState([]);
     const [listaTiposPuesto, setListaTiposPuesto] = useState([]);
 
@@ -18,7 +19,6 @@ function CrearPuesto() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    // Form Data inicial
     const [formData, setFormData] = useState({
         nombre: "",
         numero_maximo_asignaciones: 1,
@@ -81,6 +81,27 @@ function CrearPuesto() {
                     setListaTiposPuesto(tiposData);
                 }
 
+                if (isEditing) {
+                    const puestoRes = await fetch(`http://127.0.0.1:8000/api/puestos/${id}/`, {
+                        headers: { "Authorization": `Bearer ${token}` }
+                    });
+
+                    if (puestoRes.ok) {
+                        const puestoData = await puestoRes.json();
+                        setFormData({
+                            nombre: puestoData.nombre,
+                            numero_maximo_asignaciones: puestoData.numero_maximo_asignaciones,
+                            acto: puestoData.acto, 
+                            tipo_puesto: puestoData.tipo_puesto, 
+                            lugar_citacion: puestoData.lugar_citacion || "",
+                            hora_citacion: puestoData.hora_citacion || "",
+                            disponible: puestoData.disponible
+                        });
+                    } else {
+                        setError("No se pudo cargar la información del puesto.");
+                    }
+                }
+
             } catch (err) {
                 console.error("Error cargando datos:", err);
                 localStorage.removeItem("access");
@@ -91,9 +112,8 @@ function CrearPuesto() {
         };
 
         fetchData();
-    }, [navigate]);
+    }, [navigate, id, isEditing]); 
 
-    // --- MANEJADORES ---
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -111,9 +131,15 @@ function CrearPuesto() {
 
         const token = localStorage.getItem("access");
 
+        const url = isEditing 
+            ? `http://127.0.0.1:8000/api/puestos/${id}/`
+            : "http://127.0.0.1:8000/api/puestos/";
+        
+        const method = isEditing ? "PUT" : "POST";
+
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/puestos/", {
-                method: "POST",
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
@@ -125,17 +151,16 @@ function CrearPuesto() {
 
             if (response.ok) {
                 setSuccess(true);
-                setTimeout(() => navigate("/home"), 2000); 
+                setTimeout(() => navigate("/agenda"), 1500); 
             } else {
-                // --- AQUÍ ESTÁ LA LÓGICA PERSONALIZADA ---
-                
-                // CASO 1: Error de Negocio (El acto no lleva papeleta)
                 if (data.acto) {
-                    // Django devuelve array: ["Mensaje..."], extraemos el texto
                     const msg = Array.isArray(data.acto) ? data.acto[0] : data.acto;
-                    // Lo guardamos tal cual, o le añadimos un prefijo si quieres
                     setError(`⚠️ ${msg}`); 
                 } 
+                else if (data.nombre) {
+                    const msg = Array.isArray(data.nombre) ? data.nombre[0] : data.nombre;
+                    setError(`⚠️ ${msg}`);
+                }
                 else if (data.hora_citacion) {
                     const msg = Array.isArray(data.hora_citacion) ? data.hora_citacion[0] : data.hora_citacion;
                     setError(`⚠️ ${msg}`);
@@ -143,13 +168,10 @@ function CrearPuesto() {
                 else if (data.detail) {
                     setError(data.detail);
                 }
-                // CASO 3: Errores en otros campos (ej. validación nombre)
                 else if (data.non_field_errors) {
                     setError(data.non_field_errors[0]);
                 }
-                // CASO 4: Fallback genérico
                 else {
-                    // Buscamos el primer error que encontremos en el objeto
                     const firstKey = Object.keys(data)[0];
                     const firstMsg = data[firstKey];
                     const msgTexto = Array.isArray(firstMsg) ? firstMsg[0] : firstMsg;
@@ -194,43 +216,20 @@ function CrearPuesto() {
                     <li><a href="#titulares">Titulares</a></li>
                     <li><a href="#agenda">Agenda</a></li>
                     <li><a href="#lunes-santo">Lunes Santo</a></li>
-                    <li><a href="#multimedia">Multimedia</a></li>
                     
                     <div className="nav-buttons-mobile">
-                        {user ? (
-                            <>
-                                <button className="btn-outline">
-                                    Hermano: {user.dni}
-                                </button>
-                                <button className="btn-purple" onClick={handleLogout}>
-                                    Cerrar Sesión
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
-                                <button className="btn-purple">Hazte Hermano</button>
-                            </>
-                        )}
+                        <button className="btn-outline">Hermano: {user.dni}</button>
+                        <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>
                     </div>
                 </ul>
 
                 <div className="nav-buttons-desktop">
-                    {user ? (
-                            <>
-                            <button className="btn-outline" onClick={() => navigate("/editar-perfil")} style={{cursor: 'pointer'}}>
-                                Hermano: {user.dni}
-                            </button>
-                            <button className="btn-purple" onClick={handleLogout}>
-                                Cerrar Sesión
-                            </button>
-                            </>
-                    ) : (
-                        <>
-                            <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
-                            <button className="btn-purple">Hazte Hermano</button>
-                        </>
-                    )}
+                    <button className="btn-outline" onClick={() => navigate("/editar-perfil")} style={{cursor: 'pointer'}}>
+                        Hermano: {user.dni}
+                    </button>
+                    <button className="btn-purple" onClick={handleLogout}>
+                        Cerrar Sesión
+                    </button>
                 </div>
             </nav>
 
@@ -239,23 +238,25 @@ function CrearPuesto() {
                 <div className="card-container-area">
                     <header className="content-header-area">
                         <div className="title-row-area">
-                            <h1>Crear Puesto / Papeleta</h1>
+                            <h1>{isEditing ? "Editar Puesto" : "Crear Puesto / Papeleta"}</h1>
                             <button className="btn-back-area" onClick={() => navigate(-1)}>
                                 <ArrowLeft size={16} /> Volver
                             </button>
                         </div>
                         <p className="description-area">
-                            Configure un puesto disponible para ser solicitado mediante papeleta de sitio.
+                            {isEditing 
+                                ? "Modifique los detalles del puesto. El acto asociado no se puede cambiar."
+                                : "Configure un puesto disponible para ser solicitado mediante papeleta de sitio."
+                            }
                         </p>
                     </header>
 
-                    {/* Feedback Messages */}
                     {error && <div style={{padding: '15px', backgroundColor: '#fee2e2', color: '#b91c1c', marginBottom: '1rem', borderRadius: '6px', border: '1px solid #fca5a5'}}>
                         <strong>Error:</strong> {error}
                     </div>}
                     
                     {success && <div style={{padding: '15px', backgroundColor: '#dcfce7', color: '#15803d', marginBottom: '1rem', borderRadius: '6px', border: '1px solid #86efac'}}>
-                        ¡Puesto creado con éxito!
+                        {isEditing ? "¡Puesto actualizado con éxito!" : "¡Puesto creado con éxito!"}
                     </div>}
 
                     <section className="form-card-acto">
@@ -294,7 +295,11 @@ function CrearPuesto() {
                                         <span className="icon-acto">📅</span>
                                         <select 
                                             id="acto" name="acto" 
-                                            required value={formData.acto} onChange={handleChange}
+                                            required 
+                                            value={formData.acto} 
+                                            onChange={handleChange}
+                                            disabled={isEditing} 
+                                            style={isEditing ? { backgroundColor: '#e5e7eb', cursor: 'not-allowed', opacity: 0.7 } : {}}
                                         >
                                             <option value="" disabled>Seleccione un acto</option>
                                             {listaActos.map(acto => (
@@ -302,12 +307,14 @@ function CrearPuesto() {
                                                     {acto.nombre} ({new Date(acto.fecha).toLocaleDateString()})
                                                 </option>
                                             ))}
-                                            {listaActos.length === 0 && (
-                                                <option disabled>No hay actos que requieran papeleta.</option>
-                                            )}
                                         </select>
                                     </div>
-                                    <small style={{color: '#666', fontSize: '0.8rem'}}>Solo actos que requieran papeleta.</small>
+                                    {/* Mensaje de ayuda visual si está deshabilitado */}
+                                    {isEditing && (
+                                        <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>
+                                            🔒 El acto no se puede modificar una vez creado.
+                                        </small>
+                                    )}
                                 </div>
 
                                 <div className="form-group-acto">
@@ -369,9 +376,13 @@ function CrearPuesto() {
                             </div>
 
                             <div className="form-actions-acto">
-                                <button type="button" className="btn-cancel-acto" onClick={() => navigate("/agenda")}>Cancelar</button>
+                                <button type="button" className="btn-cancel-acto" onClick={() => navigate(-1)}>Cancelar</button>
                                 <button type="submit" className="btn-save-acto" disabled={submitting}>
-                                    <span className="icon-save-acto">💾</span> {submitting ? "Creando..." : "Crear Puesto"}
+                                    <span className="icon-save-acto">💾</span> 
+                                    {submitting 
+                                        ? (isEditing ? "Guardando..." : "Creando...") 
+                                        : (isEditing ? "Guardar Cambios" : "Crear Puesto")
+                                    }
                                 </button>
                             </div>
                         </form>
@@ -382,4 +393,4 @@ function CrearPuesto() {
     );
 }
 
-export default CrearPuesto;
+export default EditarPuesto;

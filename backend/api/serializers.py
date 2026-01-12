@@ -157,6 +157,14 @@ class PuestoSerializer(serializers.ModelSerializer):
             'tipo_puesto'
         ]
 
+        extra_kwargs = {
+            'hora_citacion': {
+                'error_messages': {
+                    'invalid': 'El formato de hora es incorrecto. Por favor, use el formato HH:MM (ej. 20:30).'
+                }
+            }
+        }
+
     def validate_numero_maximo_asignaciones(self, value):
         """
         Validación de campo: El número de asignaciones debe ser positivo.
@@ -164,6 +172,16 @@ class PuestoSerializer(serializers.ModelSerializer):
         if value < 1:
             raise serializers.ValidationError("El número máximo de asignaciones debe ser al menos 1.")
         return value
+    
+
+class PuestoUpdateSerializer(PuestoSerializer):
+    """
+    Serializador específico para actualizaciones.
+    Hereda de PuestoSerializer para no repetir campos, pero
+    marca 'acto' como read_only para asegurar que no se modifica.
+    """
+    class Meta(PuestoSerializer.Meta):
+        read_only_fields = ['acto']
 
 
 class ActoSerializer(serializers.ModelSerializer):
