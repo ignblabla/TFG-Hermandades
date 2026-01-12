@@ -7,6 +7,9 @@ import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
 import AreaInteres from "./pages/AreasInteres"
+import CrearActo from "./pages/CrearActo"
+import CrearPuesto from "./pages/CrearPuesto"
+import EditarActo from "./pages/EditarActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -46,6 +49,30 @@ function App() {
           element={
             <ProtectedRoute>
               <AreaInteres />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/crear-acto"
+          element={
+            <ProtectedRoute>
+              <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/crear-puesto"
+          element={
+            <ProtectedRoute>
+              <CrearPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-acto/:id"
+          element={
+            <ProtectedRoute>
+              <EditarActo />
             </ProtectedRoute>
           }
         />

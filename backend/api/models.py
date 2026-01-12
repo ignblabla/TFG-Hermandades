@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -20,6 +21,40 @@ class AreaInteres(models.Model):
 
     def __str__(self):
         return self.get_nombre_area_display()
+    
+class CuerpoPertenencia(models.Model):
+    class NombreCuerpo(models.TextChoices):
+        COSTALEROS = 'COSTALEROS', 'Costaleros'
+        NAZARENOS = 'NAZARENOS', 'Nazarenos'
+        DIPUTADOS = 'DIPUTADOS', 'Diputados de tramo'
+        BRAZALETES = 'BRAZALETES', 'Brazaletes'
+        ACOLITOS = 'ACOLITOS', 'Acólitos'
+        CAPATACES = 'CAPATACES', 'Capataces'
+        SANITARIOS = 'SANITARIOS', 'Sanitarios'
+        PRIOSTÍA = 'PRIOSTIA', 'Priostía'
+        CARIDAD_ACCION_SOCIAL = 'CARIDAD_ACCION_SOCIAL', 'Caridad y Acción Social'
+        JUVENTUD = 'JUVENTUD', 'Juventud'
+        JUNTA_GOBIERNO = 'JUNTA_GOBIERNO', 'Junta de Gobierno'
+
+    nombre_cuerpo = models.CharField(max_length=50, choices=NombreCuerpo.choices, unique=True, verbose_name="Nombre del cuerpo")
+
+    def __str__(self):
+        return self.get_nombre_cuerpo_display()
+    
+class HermanoCuerpo(models.Model):
+    hermano = models.ForeignKey('Hermano', on_delete=models.CASCADE, related_name='pertenencias_cuerpos',verbose_name="Hermano")
+
+    cuerpo = models.ForeignKey(
+        CuerpoPertenencia, 
+        on_delete=models.PROTECT, 
+        related_name='integrantes',
+        verbose_name="Cuerpo de pertenencia"
+    )
+
+    anio_ingreso = models.PositiveIntegerField(verbose_name="Año de ingreso", help_text="Año en el que el hermano ingresó en este cuerpo específico")
+
+    def __str__(self):
+        return f"{self.hermano} en {self.cuerpo} desde {self.anio_ingreso}"
     
 
 class Hermano(AbstractUser):
@@ -65,6 +100,8 @@ class Hermano(AbstractUser):
     fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
     parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
 
+    esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
+
     areas_interes = models.ManyToManyField(
         AreaInteres,
         verbose_name="Áreas de interés",
@@ -72,11 +109,19 @@ class Hermano(AbstractUser):
         related_name="hermanos"
     )
 
+    cuerpos = models.ManyToManyField(CuerpoPertenencia,
+        through='HermanoCuerpo',
+        verbose_name="Cuerpos de pertenencia",
+        related_name="hermanos_miembros",
+        blank=True,
+        help_text="Colectivos a los que pertenece el hermano"
+    )
+
     first_name = None
     last_name = None
 
     USERNAME_FIELD = 'dni'
-    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email']
+    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'username', 'telefono', 'estado_civil']
 
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
@@ -106,6 +151,8 @@ class TipoActo(models.Model):
         TRIDUO = 'TRIDUO', 'Triduo'
         ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
         CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
+        PROCESION_EUCARISTICA = 'PROCESION_EUCARISTICA', 'Procesión Eucarística'
+        
 
     tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
     requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")
@@ -120,8 +167,33 @@ class Acto(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.fecha.year})"
+    
+    def clean(self):
+        super().clean()
+        # Nota: self.fecha puede ser None si hay error de formato previo, por eso el if
+        if self.fecha:
+            if self.fecha <= timezone.now():
+                raise ValidationError({'fecha': 'La fecha debe ser futura.'})
+            
+            if self.fecha.year != timezone.now().year:
+                raise ValidationError({'fecha': 'El acto debe ser en el año en curso.'})
 
     
+class TipoPuesto(models.Model):
+    """
+    Representa la categoría o tipología del puesto.
+    """
+    nombre_tipo = models.CharField(max_length=75, unique=True, verbose_name="Nombre del tipo de puesto")
+    solo_junta_gobierno = models.BooleanField(
+        default=False,
+        verbose_name="Solo para Junta de Gobierno",
+        help_text="Si se marca, este tipo de puesto estará restringido a miembros de la Junta de Gobierno."
+    )
+
+    def __str__(self):
+        return self.nombre_tipo
+
+
 class Puesto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
     numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones", default=1)
@@ -131,8 +203,10 @@ class Puesto(models.Model):
 
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='puestos_disponibles', verbose_name="Acto al que pertenece")
 
+    tipo_puesto = models.ForeignKey(TipoPuesto, on_delete=models.PROTECT, verbose_name="Tipo de puesto")
+
     def __str__(self):
-        return f"{self.nombre} - {self.acto.nombre}"
+        return f"{self.nombre} ({self.tipo_puesto.nombre_tipo}) - {self.acto.nombre}"
     
 
 class PapeletaSitio(models.Model):

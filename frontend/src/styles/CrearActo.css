@@ -1,0 +1,287 @@
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    --border-color: #e5e7eb;
+    --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.event-form-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row-acto {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.form-group-acto {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-bottom: 0.8rem;
+}
+
+.form-group-acto.full-width {
+    width: 100%;
+}
+
+.form-group-acto label {
+    display: block;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.70rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
+    text-transform: uppercase;
+}
+
+.input-with-icon-acto {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.icon-acto {
+    display: none; 
+}
+
+.form-group-acto input,
+.form-group-acto select,
+.form-group-acto textarea {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.4rem;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    background-color: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    height: 2.5rem;
+}
+
+.form-group-acto textarea {
+    height: auto;
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.form-group-acto input::placeholder,
+.form-group-acto textarea::placeholder {
+    color: #c1aecb;
+    font-weight: 400;
+}
+
+.form-group-acto input:focus,
+.form-group-acto select:focus,
+.form-group-acto textarea:focus {
+    border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 1px var(--burgundy-primary);
+}
+
+.form-group-acto select {
+    appearance: none;
+    /* He cambiado el 'fill' del SVG al color #666666 (var(--text-muted)) para que coincida */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+.form-group-acto input[type="datetime-local"] {
+    color: var(--text-main);
+}
+
+.form-group-acto input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.form-actions-acto {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bg-light); /* Separador sutil */
+}
+
+.btn-cancel-acto {
+    padding: 0 1.5rem;
+    height: 44px; /* Altura estándar táctil */
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.2s;
+}
+
+.btn-cancel-acto:hover {
+    color: var(--text-main);
+    border-color: #ccc;
+    background-color: var(--bg-light);
+}
+
+.btn-save-acto {
+    padding: 0 1.5rem;
+    height: 44px;
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-save-acto:hover {
+    background-color: var(--burgundy-dark);
+}
+
+.btn-save-acto:active {
+    transform: translateY(1px);
+}
+
+.icon-save-acto {
+    font-size: 1rem;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 1023px) {
+    html, body, #root {
+        overflow: auto;
+        height: auto;
+    }
+    
+    .site-wrapper {
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .main-container-area {
+        padding: 1rem;
+        height: auto;
+    }
+
+    .card-container-area {
+        height: auto;
+    }
+
+    .form-row-acto {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .form-actions-acto {
+        flex-direction: column-reverse;
+    }
+
+    .btn-save-acto, .btn-cancel-acto {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* --- MEDIA QUERY: ESCRITORIO Y PORTÁTILES (La clave para NO tener scroll) --- */
+@media (min-width: 1024px) {
+    .main-container-area {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2vh 2vw;
+        overflow: hidden;
+    }
+
+    .card-container-area {
+        width: 100%;
+        max-width: 1000px;
+        max-height: 100%; 
+        display: flex;
+        flex-direction: column;
+        background-color: var(--white);
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .form-card-acto {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .event-form-acto {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .content-header-area {
+        margin-bottom: 1rem;
+        flex-shrink: 0;
+    }
+
+    .form-group-acto {
+        margin-bottom: 0;
+    }
+
+    .form-group-acto.full-width:has(textarea), 
+    .form-group-acto.full-width:last-of-type { 
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100px;
+    }
+
+    .form-group-acto textarea {
+        flex: 1;
+        height: 100% !important;
+        resize: none;
+        min-height: 0;
+    }
+
+    .form-actions-acto {
+        margin-top: auto;
+        flex-shrink: 0;
+        padding-top: 1rem;
+    }
+}
+
+/* Ajuste para portátiles con poca altura (ej: 1366x768) */
+@media (min-width: 1024px) and (max-height: 800px) {
+    .card-container-area {
+        padding: 1.5rem;
+    }
+    .content-header-area h1 {
+        font-size: 1.5rem;
+    }
+    .nav-logo {
+        height: 35px;
+    }
+    .form-group-acto input, 
+    .form-group-acto select {
+        height: 2.2rem;
+    }
+}
