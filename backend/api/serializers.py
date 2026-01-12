@@ -258,3 +258,40 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
                 })
 
         return data
+    
+# -----------------------------------------------------------------------------
+# SERIALIZERS DE SELECCIÓN DE PUESTOS
+# -----------------------------------------------------------------------------
+
+class PreferenciaInputSerializer(serializers.Serializer):
+    puesto_id = serializers.IntegerField()
+    orden = serializers.IntegerField(min_value = 1)
+
+class CrearSolicitudPapeletaSerializer(serializers.Serializer):
+    acto_id = serializers.IntegerField()
+    preferencias = PreferenciaInputSerializer(many=True, allow_empty=False)
+
+    def validate_acto_id(self, value):
+        if not Acto.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("El acto especificado no existe.")
+        return value
+    
+    def validate(self, data):
+        """
+        Validaciones cruzadas:
+        1. Verificar que los puestos pertenezcan al acto.
+        2. Verificar que no haya puestos repetidos en la solicitud.
+        3. Verificar que el orden sea secuencial (1, 2, 3...).
+        """
+        acto_id = data['acto_id']
+        preferencias = data['preferencias']
+        puestos_ids = [p['puesto_id'] for p in preferencias]
+
+        if len(puestos_ids) != len(set(puestos_ids)):
+            raise serializers.ValidationError("No puedes solicitar el mismo puesto dos veces.")
+        
+        count_validos = Puesto.objects.filter(id__in=puestos_ids, acto_id=acto_id).count()
+        if count_validos != len(puestos_ids):
+            raise serializers.ValidationError("Uno o más puestos seleccionados no pertenecen al acto indicado o no existen.")
+        
+        return data

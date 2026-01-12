@@ -1,7 +1,9 @@
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Acto, Puesto, TipoPuesto
+from .models import Acto, PapeletaSitio, PreferenciaSolicitud, Puesto, TipoPuesto
+from django.db import transaction
+from django.db.models import Max
 
 # -----------------------------------------------------------------------------
 # SERVICES: ACTO
@@ -185,3 +187,72 @@ def get_tipos_puesto_service():
     Puede incluir lógica de filtrado si fuera necesaria en el futuro.
     """
     return TipoPuesto.objects.all()
+
+
+# -----------------------------------------------------------------------------
+# SERVICES: GESTIÓN PREFERENCIAS PAPELETAS
+# -----------------------------------------------------------------------------
+
+class SolicitudPapeletaService: # Asumo que está dentro de una clase por el @staticmethod
+    
+    @staticmethod
+    def crear_solicitud_sitio(hermano, validated_data):
+        """
+        Crea una papeleta de sitio y sus preferencias de forma atómica.
+        Calcula el número de papeleta secuencialmente.
+        """
+
+        acto_id = validated_data['acto_id']
+        preferencias_data = validated_data['preferencias']
+
+        # Validación inicial fuera de la transacción (lectura rápida)
+        # Nota: Usamos filter().exists() antes para fallar rápido si ya tiene papeleta
+        if PapeletaSitio.objects.filter(hermano=hermano, acto_id=acto_id).exists():
+            raise ValidationError("Ya has realizado una solicitud de papeleta para este acto.")
+
+        try:
+            with transaction.atomic():
+                # 1. BLOQUEO DE SEGURIDAD (CONCURRENCIA)
+                # Volvemos a obtener el acto pero con select_for_update().
+                # Esto bloquea este Acto en la BD hasta que termine la transacción.
+                # Evita que dos hermanos obtengan el mismo número si solicitan al mismo milisegundo.
+                acto_locked = Acto.objects.select_for_update().get(pk=acto_id)
+
+                # 2. CALCULAR SIGUIENTE NÚMERO DE PAPELETA
+                # Buscamos el número máximo actual para este acto
+                max_numero = PapeletaSitio.objects.filter(acto=acto_locked).aggregate(
+                    Max('numero_papeleta')
+                )['numero_papeleta__max']
+
+                # Si no hay papeletas, empezamos en 1, sino sumamos 1
+                nuevo_numero = (max_numero or 0) + 1
+
+                # 3. CREAR LA PAPELETA
+                papeleta = PapeletaSitio.objects.create(
+                    hermano=hermano,
+                    acto=acto_locked,
+                    anio=acto_locked.fecha.year,
+                    numero_papeleta=nuevo_numero,  # <--- Asignamos el número calculado
+                    codigo_verificacion=f"TMP-{hermano.id}-{acto_locked.id}-{nuevo_numero}",
+                    estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
+                )
+
+                # 4. CREAR LAS PREFERENCIAS
+                lista_preferencias = []
+                for pref in preferencias_data:
+                    puesto = Puesto.objects.get(pk=pref['puesto_id'])
+                    
+                    nueva_pref = PreferenciaSolicitud(
+                        papeleta=papeleta,
+                        puesto_solicitado=puesto,
+                        orden_prioridad=pref['orden']
+                    )
+                    lista_preferencias.append(nueva_pref)
+
+                PreferenciaSolicitud.objects.bulk_create(lista_preferencias)
+                
+                return papeleta
+        
+        except Exception as e:
+            # Es buena práctica relanzar la excepción para que la vista la capture
+            raise e

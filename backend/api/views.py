@@ -2,15 +2,16 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import PuestoUpdateSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import CrearSolicitudPapeletaSerializer, PuestoUpdateSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service
+from .services import SolicitudPapeletaService, create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service
 
 # Create your views here.
 
@@ -185,3 +186,48 @@ class TipoPuestoListView(APIView):
         tipos = get_tipos_puesto_service()
         serializer = TipoPuestoSerializer(tipos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+class SolicitarPapeletaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # 1. Validación de Entrada (Serializer)
+        serializer = CrearSolicitudPapeletaSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                # 2. Lógica de Negocio (Service)
+                papeleta = SolicitudPapeletaService.crear_solicitud_sitio(
+                    hermano=request.user, 
+                    validated_data=serializer.validated_data
+                )
+                
+                return Response({
+                    "mensaje": "Solicitud registrada correctamente",
+                    "papeleta_id": papeleta.id,
+                    "numero_papeleta": papeleta.numero_papeleta,
+                    "estado": papeleta.estado_papeleta
+                }, status=status.HTTP_201_CREATED)
+
+            except DjangoValidationError as e:
+                
+                error_msg = "Error de validación"
+                if hasattr(e, 'message'):
+                    error_msg = e.message
+                elif hasattr(e, 'messages'):
+                    error_msg = e.messages[0]
+                
+                return Response({"error": str(error_msg)}, status=status.HTTP_400_BAD_REQUEST)
+
+            except Exception as e:
+                print(f"Error interno en SolicitarPapeletaView: {str(e)}")
+                return Response(
+                    {"error": "Ha ocurrido un error interno al procesar su solicitud. Por favor, inténtelo de nuevo."}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

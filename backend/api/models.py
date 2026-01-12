@@ -227,5 +227,45 @@ class PapeletaSitio(models.Model):
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
 
+    numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
+
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+
+class PreferenciaSolicitud(models.Model):
+    papeleta = models.ForeignKey(
+        PapeletaSitio,
+        on_delete=models.CASCADE,
+        verbose_name="Papeleta asociada"
+    )
+
+    puesto_solicitado = models.ForeignKey(
+        Puesto,
+        on_delete=models.CASCADE,
+        verbose_name="Puesto solicitado"
+    )
+
+    orden_prioridad = models.PositiveIntegerField(
+        verbose_name="Orden de prioridad",
+    )
+
+    class Meta:
+        verbose_name = "Preferencia de puesto"
+        verbose_name_plural = "Preferencias de puesto"
+        ordering = ['orden_prioridad']
+        # Evita que un hermano pida el mismo puesto dos veces en la misma papeleta
+        # o que tenga dos 'opción 1'.
+        constraints = [
+            models.UniqueConstraint(
+                fields=['papeleta', 'puesto_solicitado'], 
+                name='unique_puesto_por_papeleta'
+            ),
+            models.UniqueConstraint(
+                fields=['papeleta', 'orden_prioridad'], 
+                name='unique_orden_por_papeleta'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.papeleta.hermano} - Opción {self.orden_prioridad}: {self.puesto_solicitado}"
