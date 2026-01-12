@@ -22,8 +22,8 @@ function CrearPuesto() {
     const [formData, setFormData] = useState({
         nombre: "",
         numero_maximo_asignaciones: 1,
-        acto: "", // ID del acto
-        tipo_puesto: "", // Nombre del tipo (Slug)
+        acto: "",
+        tipo_puesto: "",
         lugar_citacion: "",
         hora_citacion: "",
         disponible: true
@@ -31,7 +31,6 @@ function CrearPuesto() {
 
     const navigate = useNavigate();
 
-    // --- EFECTO DE CARGA INICIAL (Auth + Datos Auxiliares) ---
     useEffect(() => {
         const token = localStorage.getItem("access");
 
@@ -62,7 +61,8 @@ function CrearPuesto() {
                 });
                 if (actosRes.ok) {
                     const actosData = await actosRes.json();
-                    setListaActos(actosData);
+                    const actosFiltrados = actosData.filter(acto => acto.requiere_papeleta === true);
+                    setListaActos(actosFiltrados);
                 }
 
                 const tiposRes = await fetch("http://127.0.0.1:8000/api/tipos-puesto/", {
@@ -290,6 +290,9 @@ function CrearPuesto() {
                                                     {acto.nombre} ({new Date(acto.fecha).toLocaleDateString()})
                                                 </option>
                                             ))}
+                                            {listaActos.length === 0 && (
+                                                <option disabled>No hay actos que requieran papeleta.</option>
+                                            )}
                                         </select>
                                     </div>
                                     <small style={{color: '#666', fontSize: '0.8rem'}}>Solo actos que requieran papeleta.</small>

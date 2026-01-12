@@ -173,9 +173,11 @@ class ActoSerializer(serializers.ModelSerializer):
     )
     puestos_disponibles = PuestoSerializer(many=True, read_only=True)
 
+    requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
+
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'puestos_disponibles']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'puestos_disponibles', 'requiere_papeleta']
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO

@@ -123,15 +123,22 @@ def create_puesto_service(usuario, data_validada):
         
     Raises:
         PermissionDenied: Si el usuario no es administrador.
+        ValidationError: Si el acto no admite puestos o si ya existe un puesto con ese nombre.
     """
     if not getattr(usuario, 'esAdmin', False):
         raise PermissionDenied("No tienes permisos para crear puestos. Acción reservada a administradores.")
     
     acto = data_validada.get('acto')
+    nombre = data_validada.get('nombre')
 
     if acto and not acto.tipo_acto.requiere_papeleta:
         raise ValidationError({
             "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite la creación de puestos ni papeletas de sitio."
+        })
+    
+    if Puesto.objects.filter(acto=acto, nombre=nombre).exists():
+        raise ValidationError({
+            "nombre": [f"Ya existe un puesto con el nombre '{nombre}' dentro del acto '{acto.nombre}'."]
         })
     
     puesto = Puesto.objects.create(**data_validada)
