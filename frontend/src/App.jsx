@@ -10,6 +10,7 @@ import AreaInteres from "./pages/AreasInteres"
 import CrearActo from "./pages/CrearActo"
 import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
+import EditarPuesto from "./pages/EditarPuesto"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -73,6 +74,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditarActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-puesto/:id"
+          element={
+            <ProtectedRoute>
+              <EditarPuesto />
             </ProtectedRoute>
           }
         />
