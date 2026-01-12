@@ -12,7 +12,6 @@ from django.utils import timezone
 
 from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service
 
-
 # Create your views here.
 
 User = get_user_model()

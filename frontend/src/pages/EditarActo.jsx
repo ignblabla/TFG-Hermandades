@@ -26,10 +26,13 @@ function EditarActo() {
 
     const navigate = useNavigate();
 
+    const now = new Date();
+    const minDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const maxDate = `${now.getFullYear()}-12-31T23:59`;
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Verifico usuario y permisos
                 const userRes = await api.get("api/me/");
                 console.log("Datos del usuario:", userRes.data);
                 const userData = userRes.data;
@@ -72,7 +75,6 @@ function EditarActo() {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [id, navigate]);
 
@@ -103,13 +105,20 @@ function EditarActo() {
                 const errorData = err.response.data;
                 
                 if (errorData.non_field_errors) {
-                    setError(errorData.non_field_errors[0]);
+                    setError(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors);
                 }
-                else if (errorData.nombre) {
-                    setError(errorData.nombre[0]);
+                else if (errorData.tipo_acto) {
+                    const errorMsg = Array.isArray(errorData.tipo_acto) 
+                        ? errorData.tipo_acto[0] 
+                        : errorData.tipo_acto;
+                    
+                    setError(errorMsg); 
                 }
                 else if (errorData.fecha) {
-                    setError(errorData.fecha[0]);
+                    setError(Array.isArray(errorData.fecha) ? errorData.fecha[0] : errorData.fecha);
+                }
+                else if (errorData.nombre) {
+                    setError(Array.isArray(errorData.nombre) ? errorData.nombre[0] : errorData.nombre);
                 }
                 else if (errorData.detail) {
                     setError(errorData.detail);
@@ -272,6 +281,8 @@ function EditarActo() {
                                             id="fecha"
                                             name="fecha"
                                             required
+                                            min={minDate}
+                                            max={maxDate}
                                             value={formData.fecha}
                                             onChange={handleChange}
                                         />

@@ -23,37 +23,27 @@ function CrearActo() {
 
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const token = localStorage.getItem("access");
+    const now = new Date();
+    const minDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    const maxDate = `${now.getFullYear()}-12-31T23:59`;
 
-        if (token) {
-            fetch("http://127.0.0.1:8000/api/me/", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+    useEffect(() => {
+        api.get("api/me/")
+            .then(response => {
+                const data = response.data;
+                setUser(data);
+                if (!data.esAdmin) {
+                    alert("No tienes permisos de administrador.");
+                    navigate("/");
                 }
             })
-            .then(async response => {
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                    if (!data.esAdmin) {
-                        alert("No tienes permisos de administrador.");
-                        navigate("/");
-                    }
-                } else {
-                    localStorage.removeItem("access"); 
-                    setUser(null);
+            .catch(error => {
+                console.error("Error cargando usuario:", error);
+                if (!localStorage.getItem("access")) {
                     navigate("/login");
                 }
             })
-            .catch(error => console.error("Error:", error))
             .finally(() => setLoading(false));
-        } else {
-            setLoading(false);
-            navigate("/login");
-        }
     }, [navigate]);
 
     const handleChange = (e) => {
@@ -70,31 +60,23 @@ function CrearActo() {
         setError("");
         setSuccess(false);
 
-        const token = localStorage.getItem("access");
-
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/actos/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
+            await api.post("api/actos/", formData);
 
-            const data = await response.json();
+            setSuccess(true);
+            setFormData({ nombre: "", tipo_acto: "", fecha: "", descripcion: "" });
+            setTimeout(() => navigate("/home"), 2000);
 
-            if (response.ok) {
-                setSuccess(true);
-                setFormData({ nombre: "", tipo_acto: "", fecha: "", descripcion: "" });
-                setTimeout(() => navigate("/home"), 2000);
-            } else {
+        } catch (err) {
+            if (err.response && err.response.data) {
+                const data = err.response.data;
                 if (data.fecha) setError(data.fecha[0]);
+                else if (data.non_field_errors) setError(data.non_field_errors[0]);
                 else if (data.detail) setError(data.detail);
                 else setError("Error al crear el acto. Revise los datos.");
+            } else {
+                setError("Error de conexión con el servidor.");
             }
-        } catch (err) {
-            setError("Error de conexión con el servidor.");
         } finally {
             setSubmitting(false);
         }
@@ -244,6 +226,8 @@ function CrearActo() {
                                             id="fecha"
                                             name="fecha"
                                             required
+                                            min={minDate}
+                                            max={maxDate}
                                             value={formData.fecha}
                                             onChange={handleChange}
                                         />

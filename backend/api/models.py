@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -166,6 +167,16 @@ class Acto(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.fecha.year})"
+    
+    def clean(self):
+        super().clean()
+        # Nota: self.fecha puede ser None si hay error de formato previo, por eso el if
+        if self.fecha:
+            if self.fecha <= timezone.now():
+                raise ValidationError({'fecha': 'La fecha debe ser futura.'})
+            
+            if self.fecha.year != timezone.now().year:
+                raise ValidationError({'fecha': 'El acto debe ser en el año en curso.'})
 
     
 class TipoPuesto(models.Model):

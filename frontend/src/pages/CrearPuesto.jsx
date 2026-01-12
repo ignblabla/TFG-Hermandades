@@ -164,7 +164,6 @@ function CrearPuesto() {
 
     return (
         <div className="site-wrapper">
-            {/* --- NAVBAR (Idéntico a CrearActo) --- */}
             <nav className="navbar">
                 <div className="logo-container">
                     <img src={logoEscudo} alt="Escudo San Gonzalo" className="nav-logo" />
@@ -173,12 +172,53 @@ function CrearPuesto() {
                         <span>SEVILLA</span>
                     </div>
                 </div>
-                <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
-                
-                {/* ... (Resto de links del Navbar igual que en tu código) ... */}
-                 <div className="nav-buttons-desktop">
-                    <button className="btn-outline">Hermano: {user.dni}</button>
-                    <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>
+
+                <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+                    ☰
+                </button>
+
+                <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
+                    <li><a href="#hermandad">Hermandad</a></li>
+                    <li><a href="#titulares">Titulares</a></li>
+                    <li><a href="#agenda">Agenda</a></li>
+                    <li><a href="#lunes-santo">Lunes Santo</a></li>
+                    <li><a href="#multimedia">Multimedia</a></li>
+                    
+                    <div className="nav-buttons-mobile">
+                        {user ? (
+                            <>
+                                <button className="btn-outline">
+                                    Hermano: {user.dni}
+                                </button>
+                                <button className="btn-purple" onClick={handleLogout}>
+                                    Cerrar Sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
+                                <button className="btn-purple">Hazte Hermano</button>
+                            </>
+                        )}
+                    </div>
+                </ul>
+
+                <div className="nav-buttons-desktop">
+                    {user ? (
+                            <>
+                            <button className="btn-outline" onClick={() => navigate("/editar-perfil")} style={{cursor: 'pointer'}}>
+                                Hermano: {user.dni}
+                            </button>
+                            <button className="btn-purple" onClick={handleLogout}>
+                                Cerrar Sesión
+                            </button>
+                            </>
+                    ) : (
+                        <>
+                            <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
+                            <button className="btn-purple">Hazte Hermano</button>
+                        </>
+                    )}
                 </div>
             </nav>
 

@@ -7,6 +7,26 @@ from .models import Acto, Puesto, TipoPuesto
 # SERVICES: ACTO
 # -----------------------------------------------------------------------------
 
+def _validar_fecha_futura_anio_actual(fecha_acto):
+    """
+    Método auxiliar (privado) para reutilizar la lógica de validación temporal.
+    Valida:
+    1. Que la fecha sea futura (fecha y hora > ahora).
+    2. Que la fecha esté dentro del año actual.
+    """
+
+    ahora = timezone.now()
+
+    if fecha_acto.year != ahora.year:
+        raise ValidationError({
+            "fecha": f"Solo se permite programar actos para el año en curso ({ahora.year})."
+        })
+    
+    if fecha_acto <= ahora:
+        raise ValidationError({
+            "fecha": "La fecha y hora del acto deben ser posteriores al momento actual."
+        })
+
 def create_acto_service(usuario, data_validada):
     """
     Servicio para la gestión de creación de actos.
@@ -28,10 +48,8 @@ def create_acto_service(usuario, data_validada):
     nombre = data_validada.get('nombre')
     fecha_acto = data_validada.get('fecha')
 
-    anio_actual = timezone.now().year
 
-    if fecha_acto.year != anio_actual:
-        raise ValidationError({"fecha": f"Solo se permite crear actos para el año en curso ({anio_actual})."})
+    _validar_fecha_futura_anio_actual(fecha_acto)
     
     if Acto.objects.filter(nombre=nombre, fecha__date=fecha_acto.date()).exists():
         raise ValidationError({
@@ -59,14 +77,19 @@ def update_acto_service(usuario, acto_id, data_validada):
     
     acto = get_object_or_404(Acto, pk=acto_id)
 
-    if 'fecha' in data_validada:
-        nuevo_anio = data_validada['fecha'].year
-        anio_actual = timezone.now().year
-        if nuevo_anio != anio_actual:
-            raise ValidationError({"fecha": f"La fecha del acto debe ser del año en curso ({anio_actual})."})
-        
-    nuevo_nombre = data_validada.get('nombre', acto.nombre)
+    if 'tipo_acto' in data_validada:
+        nuevo_tipo = data_validada['tipo_acto']
+
+        if nuevo_tipo != acto.tipo_acto:
+            if acto.puestos_disponibles.exists():
+                raise ValidationError({
+                    "tipo_acto": "No se puede cambiar el 'Tipo de Acto' porque ya existen puestos configurados para este evento. Elimine los puestos primero si desea cambiar el tipo."
+                })
+
     nueva_fecha_entera = data_validada.get('fecha', acto.fecha)
+    nuevo_nombre = data_validada.get('nombre', acto.nombre)
+
+    _validar_fecha_futura_anio_actual(nueva_fecha_entera)
 
     nueva_fecha_dia = nueva_fecha_entera.date()
 
