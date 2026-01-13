@@ -11,6 +11,8 @@ function CrearActo() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [tiposActo, setTiposActo] = useState([]);
+
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
@@ -18,7 +20,9 @@ function CrearActo() {
         nombre: "",
         tipo_acto: "",
         fecha: "",
-        descripcion: ""
+        descripcion: "",
+        inicio_solicitud: "",
+        fin_solicitud: ""
     });
 
     const navigate = useNavigate();
@@ -28,19 +32,30 @@ function CrearActo() {
     const maxDate = `${now.getFullYear()}-12-31T23:59`;
 
     useEffect(() => {
-        api.get("api/me/")
-            .then(response => {
-                const data = response.data;
-                setUser(data);
-                if (!data.esAdmin) {
+        // Carga de Usuario
+        const fetchUser = api.get("api/me/");
+        // Carga de Tipos de Acto (Nueva llamada)
+        const fetchTipos = api.get("api/tipos-acto/");
+
+        Promise.all([fetchUser, fetchTipos])
+            .then(([resUser, resTipos]) => {
+                const userData = resUser.data;
+                setUser(userData);
+                if (!userData.esAdmin) {
                     alert("No tienes permisos de administrador.");
                     navigate("/");
                 }
+
+                setTiposActo(resTipos.data);
             })
             .catch(error => {
-                console.error("Error cargando usuario:", error);
-                if (!localStorage.getItem("access")) {
-                    navigate("/login");
+                console.error("Error cargando datos:", error);
+                if (error.response && error.response.status === 401) {
+                    if (!localStorage.getItem("access")) {
+                        navigate("/login");
+                    }
+                } else {
+                    setError("No se pudieron cargar los tipos de actos. Recargue la página.");
                 }
             })
             .finally(() => setLoading(false));
@@ -54,23 +69,49 @@ function CrearActo() {
         }));
     };
 
+    const requierePapeleta = () => {
+        if (!formData.tipo_acto) return false;
+        
+        const tipoSeleccionado = tiposActo.find(t => t.tipo === formData.tipo_acto);
+        return tipoSeleccionado ? tipoSeleccionado.requiere_papeleta : false;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
         setError("");
         setSuccess(false);
 
+        const payload = {
+            ...formData,
+            inicio_solicitud: formData.inicio_solicitud || null,
+            fin_solicitud: formData.fin_solicitud || null
+        };
+
+        if (requierePapeleta()) {
+            if (!payload.inicio_solicitud || !payload.fin_solicitud) {
+                setError("Para este tipo de acto es obligatorio indicar las fechas de solicitud de papeleta.");
+                setSubmitting(false);
+                return;
+            }
+        }
+
         try {
-            await api.post("api/actos/", formData);
+            await api.post("api/actos/", payload);
 
             setSuccess(true);
-            setFormData({ nombre: "", tipo_acto: "", fecha: "", descripcion: "" });
+            setFormData({ 
+                nombre: "", tipo_acto: "", fecha: "", descripcion: "", 
+                inicio_solicitud: "", fin_solicitud: "" 
+            });
             setTimeout(() => navigate("/home"), 2000);
 
         } catch (err) {
             if (err.response && err.response.data) {
                 const data = err.response.data;
-                if (data.fecha) setError(data.fecha[0]);
+                if (data.fecha) setError(`Fecha Acto: ${data.fecha[0]}`);
+                else if (data.inicio_solicitud) setError(`Inicio Solicitud: ${data.inicio_solicitud[0]}`);
+                else if (data.fin_solicitud) setError(`Fin Solicitud: ${data.fin_solicitud[0]}`);
                 else if (data.non_field_errors) setError(data.non_field_errors[0]);
                 else if (data.detail) setError(data.detail);
                 else setError("Error al crear el acto. Revise los datos.");
@@ -169,7 +210,6 @@ function CrearActo() {
                     {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#dc2626', marginBottom: '1rem', borderRadius: '4px'}}>{error}</div>}
                     {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px'}}>¡Acto creado correctamente! Redirigiendo...</div>}
 
-
                     <section className="form-card-acto">
                         <form className="event-form-acto" onSubmit={handleSubmit}>
                             
@@ -191,7 +231,7 @@ function CrearActo() {
                             </div>
 
                             <div className="form-row-acto">
-                                {/* CAMPO TIPO ACTO */}
+                                {/* CAMPO TIPO ACTO - AHORA DINÁMICO */}
                                 <div className="form-group-acto">
                                     <label htmlFor="tipo_acto">TIPO DE ACTO</label>
                                     <div className="input-with-icon-acto">
@@ -204,14 +244,14 @@ function CrearActo() {
                                             onChange={handleChange}
                                         >
                                             <option value="" disabled>Seleccione categoría</option>
-                                            <option value="ESTACION_PENITENCIA">Estación de Penitencia</option>
-                                            <option value="VIA_CRUCIS">Vía Crucis</option>
-                                            <option value="QUINARIO">Quinario</option>
-                                            <option value="TRIDUO">Triduo</option>
-                                            <option value="ROSARIO_AURORA">Rosario de la Aurora</option>
-                                            <option value="CABILDO_GENERAL">Cabildo General</option>
-                                            <option value="CABILDO_EXTRAORDINARIO">Cabildo Extraordinario</option>
-                                            <option value="CONVIVENCIA">Convivencia</option>
+                                            
+                                            {/* MAPEO DINÁMICO DESDE LA BASE DE DATOS */}
+                                            {tiposActo.map((tipo) => (
+                                                <option key={tipo.id} value={tipo.tipo}>
+                                                    {tipo.nombre_mostrar || tipo.tipo}
+                                                </option>
+                                            ))}
+                                            
                                         </select>
                                     </div>
                                 </div>
@@ -234,6 +274,46 @@ function CrearActo() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* SECCIÓN CONDICIONAL DINÁMICA */}
+                            {requierePapeleta() && (
+                                <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '20px'}}>
+                                    <div className="full-width" style={{marginBottom: '10px'}}>
+                                        <label style={{fontWeight: 'bold', color: '#4f46e5'}}>PLAZOS SOLICITUD PAPELETA</label>
+                                        <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>Este acto requiere reparto de papeletas. Indique las fechas de apertura y cierre de solicitudes web.</p>
+                                    </div>
+                                    
+                                    <div className="form-group-acto">
+                                        <label htmlFor="inicio_solicitud">INICIO SOLICITUDES</label>
+                                        <div className="input-with-icon-acto">
+                                            <span className="icon-acto">🔓</span>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="inicio_solicitud"
+                                                name="inicio_solicitud"
+                                                required
+                                                value={formData.inicio_solicitud}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group-acto">
+                                        <label htmlFor="fin_solicitud">FIN SOLICITUDES</label>
+                                        <div className="input-with-icon-acto">
+                                            <span className="icon-acto">🔒</span>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="fin_solicitud"
+                                                name="fin_solicitud"
+                                                required
+                                                value={formData.fin_solicitud}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* CAMPO DESCRIPCION */}
                             <div className="form-group-acto full-width">

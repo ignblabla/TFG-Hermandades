@@ -97,9 +97,11 @@ class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre_cuerpo']
 
 class TipoActoSerializer(serializers.ModelSerializer):
+    nombre_mostrar = serializers.CharField(source='get_tipo_display', read_only=True)
+
     class Meta:
         model = TipoActo
-        fields = ['id', 'tipo', 'requiere_papeleta']
+        fields = ['id', 'tipo', 'nombre_mostrar', 'requiere_papeleta']
 
 
 # -----------------------------------------------------------------------------
@@ -195,7 +197,8 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'puestos_disponibles', 'requiere_papeleta']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'puestos_disponibles', 'requiere_papeleta']
+
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO

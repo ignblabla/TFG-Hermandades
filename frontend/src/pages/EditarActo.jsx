@@ -14,6 +14,8 @@ function EditarActo() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [tiposActo, setTiposActo] = useState([]);
+
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
@@ -21,7 +23,9 @@ function EditarActo() {
         nombre: "",
         tipo_acto: "",
         fecha: "",
-        descripcion: ""
+        descripcion: "",
+        inicio_solicitud: "",
+        fin_solicitud: ""
     });
 
     const navigate = useNavigate();
@@ -30,11 +34,22 @@ function EditarActo() {
     const minDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     const maxDate = `${now.getFullYear()}-12-31T23:59`;
 
+    const formatDateTimeForInput = (isoString) => {
+        if (!isoString) return "";
+        return isoString.slice(0, 16);
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const userRes = await api.get("api/me/");
-                console.log("Datos del usuario:", userRes.data);
+                // Ejecutamos las 3 peticiones en paralelo para mayor velocidad
+                const [userRes, tiposRes, actoRes] = await Promise.all([
+                    api.get("api/me/"),
+                    api.get("api/tipos-acto/"),
+                    api.get(`api/actos/${id}/`)
+                ]);
+
+                // 1. Gestión de Usuario
                 const userData = userRes.data;
                 setUser(userData);
 
@@ -44,21 +59,20 @@ function EditarActo() {
                     return;
                 }
 
-                // 2. Obtengo los datos del acto existente
-                const actoRes = await api.get(`api/actos/${id}/`);
-                const actoData = actoRes.data;
+                // 2. Gestión de Tipos de Acto
+                setTiposActo(tiposRes.data);
 
-                // 3. Formateo la fecha para el input datetime-local
-                let fechaFormateada = "";
-                if (actoData.fecha) {
-                    fechaFormateada = actoData.fecha.slice(0, 16); 
-                }
+                // 3. Gestión de Datos del Acto (Pre-llenado)
+                const actoData = actoRes.data;
 
                 setFormData({
                     nombre: actoData.nombre,
-                    tipo_acto: actoData.tipo_acto,
-                    fecha: fechaFormateada,
-                    descripcion: actoData.descripcion || ""
+                    tipo_acto: actoData.tipo_acto, // Esto es el Slug (ej: 'ESTACION_PENITENCIA')
+                    fecha: formatDateTimeForInput(actoData.fecha),
+                    descripcion: actoData.descripcion || "",
+                    // Si son null, ponemos cadena vacía para que el input controlado de React no se queje
+                    inicio_solicitud: formatDateTimeForInput(actoData.inicio_solicitud),
+                    fin_solicitud: formatDateTimeForInput(actoData.fin_solicitud)
                 });
 
             } catch (err) {
@@ -69,12 +83,13 @@ function EditarActo() {
                 } else if (err.response && err.response.status === 404) {
                     setError("El acto que intentas editar no existe.");
                 } else {
-                    setError("Error al cargar la información.");
+                    setError("Error al cargar la información. Recargue la página.");
                 }
             } finally {
                 setLoading(false);
             }
         };
+
         fetchData();
     }, [id, navigate]);
 
@@ -87,6 +102,12 @@ function EditarActo() {
         }));
     };
 
+    const requierePapeleta = () => {
+        if (!formData.tipo_acto) return false;
+        const tipoSeleccionado = tiposActo.find(t => t.tipo === formData.tipo_acto);
+        return tipoSeleccionado ? tipoSeleccionado.requiere_papeleta : false;
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -94,8 +115,24 @@ function EditarActo() {
         setError("");
         setSuccess(false);
 
+        // Preparamos payload manejando nulos
+        const payload = {
+            ...formData,
+            inicio_solicitud: formData.inicio_solicitud || null,
+            fin_solicitud: formData.fin_solicitud || null
+        };
+
+        // Validación Frontend
+        if (requierePapeleta()) {
+            if (!payload.inicio_solicitud || !payload.fin_solicitud) {
+                setError("Para este tipo de acto es obligatorio indicar las fechas de solicitud de papeleta.");
+                setSubmitting(false);
+                return;
+            }
+        }
+
         try {
-            await api.put(`api/actos/${id}/`, formData);
+            await api.put(`api/actos/${id}/`, payload);
             setSuccess(true);
             setTimeout(() => navigate("/home"), 2000);
         } catch (err) {
@@ -108,14 +145,16 @@ function EditarActo() {
                     setError(Array.isArray(errorData.non_field_errors) ? errorData.non_field_errors[0] : errorData.non_field_errors);
                 }
                 else if (errorData.tipo_acto) {
-                    const errorMsg = Array.isArray(errorData.tipo_acto) 
-                        ? errorData.tipo_acto[0] 
-                        : errorData.tipo_acto;
-                    
-                    setError(errorMsg); 
+                    setError(`Tipo Acto: ${Array.isArray(errorData.tipo_acto) ? errorData.tipo_acto[0] : errorData.tipo_acto}`); 
                 }
                 else if (errorData.fecha) {
-                    setError(Array.isArray(errorData.fecha) ? errorData.fecha[0] : errorData.fecha);
+                    setError(`Fecha Acto: ${Array.isArray(errorData.fecha) ? errorData.fecha[0] : errorData.fecha}`);
+                }
+                else if (errorData.inicio_solicitud) {
+                    setError(`Inicio Solicitud: ${errorData.inicio_solicitud[0]}`);
+                }
+                else if (errorData.fin_solicitud) {
+                    setError(`Fin Solicitud: ${errorData.fin_solicitud[0]}`);
                 }
                 else if (errorData.nombre) {
                     setError(Array.isArray(errorData.nombre) ? errorData.nombre[0] : errorData.nombre);
@@ -209,7 +248,6 @@ function EditarActo() {
                 <div className="card-container-area">
                     <header className="content-header-area">
                         <div className="title-row-area">
-                            {/* Título cambiado para reflejar que es Edición */}
                             <h1>Editar Acto</h1>
                             <button className="btn-back-area" onClick={() => navigate(-1)}>
                                 <ArrowLeft size={16} /> Volver
@@ -220,8 +258,8 @@ function EditarActo() {
                         </p>
                     </header>
 
-                    {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#dc2626', marginBottom: '1rem', borderRadius: '4px'}}>{error}</div>}
-                    {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px'}}>¡Acto actualizado correctamente!</div>}
+                    {error && <div style={{padding: '10px', backgroundColor: '#fee2e2', color: '#dc2626', marginBottom: '1rem', borderRadius: '4px', border: '1px solid #fca5a5'}}>{error}</div>}
+                    {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px', border: '1px solid #bbf7d0'}}>¡Acto actualizado correctamente! Redirigiendo...</div>}
 
                     <section className="form-card-acto">
                         <form className="event-form-acto" onSubmit={handleSubmit}>
@@ -244,7 +282,7 @@ function EditarActo() {
                             </div>
 
                             <div className="form-row-acto">
-                                {/* CAMPO TIPO ACTO */}
+                                {/* CAMPO TIPO ACTO - DINÁMICO */}
                                 <div className="form-group-acto">
                                     <label htmlFor="tipo_acto">TIPO DE ACTO</label>
                                     <div className="input-with-icon-acto">
@@ -257,16 +295,11 @@ function EditarActo() {
                                             onChange={handleChange}
                                         >
                                             <option value="" disabled>Seleccione categoría</option>
-                                            {/* Asegúrate de que los 'value' coincidan con los Slugs del Backend */}
-                                            <option value="ESTACION_PENITENCIA">Estación de Penitencia</option>
-                                            <option value="VIA_CRUCIS">Vía Crucis</option>
-                                            <option value="QUINARIO">Quinario</option>
-                                            <option value="TRIDUO">Triduo</option>
-                                            <option value="ROSARIO_AURORA">Rosario de la Aurora</option>
-                                            <option value="CABILDO_GENERAL">Cabildo General</option>
-                                            <option value="CABILDO_EXTRAORDINARIO">Cabildo Extraordinario</option>
-                                            <option value="CONVIVENCIA">Convivencia</option>
-                                            <option value="PROCESION_EUCARISTICA">Procesión Eucarística</option>
+                                            {tiposActo.map((tipo) => (
+                                                <option key={tipo.id} value={tipo.tipo}>
+                                                    {tipo.nombre_mostrar || tipo.tipo}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
@@ -290,6 +323,48 @@ function EditarActo() {
                                 </div>
                             </div>
 
+                            {/* --- SECCIÓN CONDICIONAL: FECHAS DE PAPELETA --- */}
+                            {requierePapeleta() && (
+                                <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '20px'}}>
+                                    <div className="full-width" style={{marginBottom: '10px'}}>
+                                        <label style={{fontWeight: 'bold', color: '#4f46e5'}}>PLAZOS SOLICITUD PAPELETA</label>
+                                        <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
+                                            Este acto requiere reparto de papeletas. Puede modificar los plazos de solicitud.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="form-group-acto">
+                                        <label htmlFor="inicio_solicitud">INICIO SOLICITUDES</label>
+                                        <div className="input-with-icon-acto">
+                                            <span className="icon-acto">🔓</span>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="inicio_solicitud"
+                                                name="inicio_solicitud"
+                                                required
+                                                value={formData.inicio_solicitud}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group-acto">
+                                        <label htmlFor="fin_solicitud">FIN SOLICITUDES</label>
+                                        <div className="input-with-icon-acto">
+                                            <span className="icon-acto">🔒</span>
+                                            <input 
+                                                type="datetime-local" 
+                                                id="fin_solicitud"
+                                                name="fin_solicitud"
+                                                required
+                                                value={formData.fin_solicitud}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* CAMPO DESCRIPCION */}
                             <div className="form-group-acto full-width">
                                 <label htmlFor="descripcion">DESCRIPCIÓN DEL ACTO</label>
@@ -304,8 +379,7 @@ function EditarActo() {
                             </div>
 
                             <div className="form-actions-acto">
-                                {/* Botón cancelar redirige a Home o Agenda */}
-                                <button type="button" className="btn-cancel-acto" onClick={() => navigate("/home")}>Cancelar</button>
+                                <button type="button" className="btn-cancel-acto" onClick={() => navigate("/agenda")}>Cancelar</button>
                                 
                                 <button type="submit" className="btn-save-acto" disabled={submitting}>
                                     <span className="icon-save-acto">💾</span> {submitting ? "Guardando..." : "Actualizar Acto"}

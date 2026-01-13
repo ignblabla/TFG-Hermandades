@@ -1,13 +1,14 @@
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Acto, Puesto, TipoPuesto
+from .models import Acto, Puesto, TipoActo, TipoPuesto
+from django.db import transaction
 
 # -----------------------------------------------------------------------------
 # SERVICES: ACTO
 # -----------------------------------------------------------------------------
 
-def _validar_fecha_futura_anio_actual(fecha_acto):
+def _validar_integridad_fechas_acto(fecha_acto):
     """
     Método auxiliar (privado) para reutilizar la lógica de validación temporal.
     Valida:
@@ -26,81 +27,102 @@ def _validar_fecha_futura_anio_actual(fecha_acto):
         raise ValidationError({
             "fecha": "La fecha y hora del acto deben ser posteriores al momento actual."
         })
+    
 
+def _procesar_fechas_solicitud_papeleta(tipo_acto, fecha_acto, inicio_solicitud, fin_solicitud):
+    """
+    Aplica la lógica de negocio estricta para las fechas de solicitud de papeleta.
+    Retorna una tupla (inicio_procesado, fin_procesado).
+    """
+
+    if not tipo_acto.requiere_papeleta:
+        return None, None
+    
+    else:
+        if not inicio_solicitud:
+            raise ValidationError({"inicio_solicitud": "Este tipo de acto requiere especificar fecha de inicio de solicitud."})
+        if not fin_solicitud:
+            raise ValidationError({"fin_solicitud": "Este tipo de acto requiere especificar fecha de fin de solicitud."})
+        
+        if inicio_solicitud >= fin_solicitud:
+            raise ValidationError({"fin_solicitud": "La fecha de fin de solicitud debe ser posterior a la fecha de inicio."})
+        
+        if fecha_acto and fin_solicitud >= fecha_acto:
+            raise ValidationError({"fin_solicitud": "El periodo de solicitud debe finalizar antes de la fecha de celebración del acto."})
+        
+        return inicio_solicitud, fin_solicitud
+
+
+@transaction.atomic
 def create_acto_service(usuario, data_validada):
     """
-    Servicio para la gestión de creación de actos.
-    
-    Args:
-        usuario (User): El usuario que realiza la petición (request.user).
-        data_validada (dict): Diccionario con datos limpios provenientes del serializer.
-        
-    Returns:
-        Acto: La instancia del objeto Acto creado.
-    
-    Raises:
-        PermissionDenied: Si el usuario no es admin.
-        ValidationError: Si la fecha no corresponde al año actual.
+    Crea un acto aplicando toda la lógica de negocio.
     """
     if not getattr(usuario, 'esAdmin', False):
         raise PermissionDenied("No tienes permisos para crear actos. Contacta con Secretaría.")
     
     nombre = data_validada.get('nombre')
     fecha_acto = data_validada.get('fecha')
+    tipo_acto = data_validada.get('tipo_acto')
 
+    raw_inicio = data_validada.get('inicio_solicitud')
+    raw_fin = data_validada.get('fin_solicitud')
 
-    _validar_fecha_futura_anio_actual(fecha_acto)
-    
+    _validar_integridad_fechas_acto(fecha_acto)
+
     if Acto.objects.filter(nombre=nombre, fecha__date=fecha_acto.date()).exists():
-        raise ValidationError({
-            "non_field_errors": [f"Ya existe un acto con el nombre '{nombre}' para el día {fecha_acto.date().strftime('%d/%m/%Y')}."]
-        })
+        raise ValidationError({"non_field_errors": [f"Ya existe un acto con el nombre '{nombre}' para el día {fecha_acto.date().strftime('%d/%m/%Y')}."]})
     
+
+    inicio_final, fin_final = _procesar_fechas_solicitud_papeleta(tipo_acto, fecha_acto, raw_inicio, raw_fin)
+
+    data_validada['inicio_solicitud'] = inicio_final
+    data_validada['fin_solicitud'] = fin_final
+
     acto = Acto.objects.create(**data_validada)
     return acto
 
 
+@transaction.atomic
 def update_acto_service(usuario, acto_id, data_validada):
     """
-    Servicio para la actualización de un acto existente.
-    
-    Args:
-        usuario (User): Usuario que realiza la petición.
-        acto_id (int): ID del acto a actualizar.
-        data_validada (dict): Datos limpios del serializer.
-        
-    Returns:
-        Acto: La instancia actualizada.
+    Actualiza un acto, asegurando la coherencia del estado final.
     """
     if not getattr(usuario, 'esAdmin', False):
         raise PermissionDenied("No tienes permisos para editar actos. Contacta con Secretaría.")
     
     acto = get_object_or_404(Acto, pk=acto_id)
 
-    if 'tipo_acto' in data_validada:
-        nuevo_tipo = data_validada['tipo_acto']
+    nuevo_tipo = data_validada.get('tipo_acto', acto.tipo_acto)
 
-        if nuevo_tipo != acto.tipo_acto:
-            if acto.puestos_disponibles.exists():
-                raise ValidationError({
-                    "tipo_acto": "No se puede cambiar el 'Tipo de Acto' porque ya existen puestos configurados para este evento. Elimine los puestos primero si desea cambiar el tipo."
-                })
-
-    nueva_fecha_entera = data_validada.get('fecha', acto.fecha)
+    if nuevo_tipo != acto.tipo_acto:
+        if acto.puestos_disponibles.exists():
+            raise ValidationError({"tipo_acto": "No se puede cambiar el tipo de acto porque ya tiene puestos asignados. Elimínelos primero."})
+        
+    nueva_fecha = data_validada.get('fecha', acto.fecha)
     nuevo_nombre = data_validada.get('nombre', acto.nombre)
 
-    _validar_fecha_futura_anio_actual(nueva_fecha_entera)
-
-    nueva_fecha_dia = nueva_fecha_entera.date()
+    if 'fecha' in data_validada:
+        _validar_integridad_fechas_acto(nueva_fecha)
 
     existe_duplicado = Acto.objects.filter(
         nombre = nuevo_nombre,
-        fecha__date = nueva_fecha_dia
+        fecha__date = nueva_fecha.date()
     ).exclude(pk=acto_id).exists()
 
     if existe_duplicado:
-        raise ValidationError({"non_field_errors": [f"Ya existe otro acto con el nombre '{nuevo_nombre}' para el día {nueva_fecha_dia.strftime('%d/%m/%Y')}."]})
-        
+        raise ValidationError({"non_field_errors": [f"Ya existe otro acto con ese nombre en la fecha indicada."]})
+    
+    inicio_input = data_validada.get('inicio_solicitud', acto.inicio_solicitud)
+    fin_input = data_validada.get('fin_solicitud', acto.fin_solicitud)
+
+    inicio_final, fin_final = _procesar_fechas_solicitud_papeleta(
+        nuevo_tipo, nueva_fecha, inicio_input, fin_input
+    )
+
+    data_validada['inicio_solicitud'] = inicio_final
+    data_validada['fin_solicitud'] = fin_final
+
     for attr, value in data_validada.items():
         setattr(acto, attr, value)
 
@@ -111,64 +133,39 @@ def update_acto_service(usuario, acto_id, data_validada):
 # SERVICES: PUESTO
 # -----------------------------------------------------------------------------
 def create_puesto_service(usuario, data_validada):
-    """
-    Servicio para la creación de puestos en un acto.
-    
-    Args:
-        usuario (User): Usuario que realiza la petición.
-        data_validada (dict): Datos limpios del serializer.
-        
-    Returns:
-        Puesto: Instancia del puesto creado.
-        
-    Raises:
-        PermissionDenied: Si el usuario no es administrador.
-        ValidationError: Si el acto no admite puestos o si ya existe un puesto con ese nombre.
-    """
     if not getattr(usuario, 'esAdmin', False):
-        raise PermissionDenied("No tienes permisos para crear puestos. Acción reservada a administradores.")
+        raise PermissionDenied("No tienes permisos para crear puestos.")
     
     acto = data_validada.get('acto')
     nombre = data_validada.get('nombre')
 
-    if acto and not acto.tipo_acto.requiere_papeleta:
+    # Regla de Negocio: Solo actos que requieren papeleta pueden tener puestos
+    if not acto.tipo_acto.requiere_papeleta:
         raise ValidationError({
-            "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite la creación de puestos ni papeletas de sitio."
+            "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite puestos."
         })
     
     if Puesto.objects.filter(acto=acto, nombre=nombre).exists():
-        raise ValidationError({
-            "nombre": [f"Ya existe un puesto con el nombre '{nombre}' dentro del acto '{acto.nombre}'."]
-        })
+        raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nombre}' en este acto."]})
     
     puesto = Puesto.objects.create(**data_validada)
-
     return puesto
 
 
 def update_puesto_service(usuario, puesto_id, data_validada):
     if not getattr(usuario, 'esAdmin', False):
-        raise PermissionDenied("No tienes permisos para editar puestos. Acción reservada a administradores.")
+        raise PermissionDenied("No tienes permisos para editar puestos.")
 
     puesto = get_object_or_404(Puesto, pk=puesto_id)
-
-    acto_actual = puesto.acto
-    if not acto_actual.tipo_acto.requiere_papeleta:
-        raise ValidationError({
-            "acto": f"El acto '{acto_actual.nombre}' no admite la edición de puestos."
-        })
+    acto = puesto.acto
+    
+    if not acto.tipo_acto.requiere_papeleta:
+        raise ValidationError({"acto": "Este acto ya no admite la gestión de puestos."})
     
     nuevo_nombre = data_validada.get('nombre', puesto.nombre)
 
-    existe_duplicado = Puesto.objects.filter(
-        acto = acto_actual,
-        nombre = nuevo_nombre
-    ).exclude(pk=puesto_id).exists()
-
-    if existe_duplicado:
-        raise ValidationError({
-            "nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' dentro del acto '{acto_actual.nombre}'."]
-        })
+    if Puesto.objects.filter(acto=acto, nombre=nuevo_nombre).exclude(pk=puesto_id).exists():
+        raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' en este acto."]})
     
     for attr, value in data_validada.items():
         setattr(puesto, attr, value)
@@ -185,3 +182,11 @@ def get_tipos_puesto_service():
     Puede incluir lógica de filtrado si fuera necesaria en el futuro.
     """
     return TipoPuesto.objects.all()
+
+
+# -----------------------------------------------------------------------------
+# SERVICES: TIPO DE ACTO
+# -----------------------------------------------------------------------------
+def get_tipos_acto_service():
+    """Retorna todos los tipos de actos disponibles"""
+    return TipoActo.objects.all()

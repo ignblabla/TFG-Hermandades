@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import PuestoUpdateSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
 
-from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service
+from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -108,6 +108,17 @@ class ActoDetalleView(APIView):
         response_serializer = ActoSerializer(acto_actualizado)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
     
+    
+# -----------------------------------------------------------------------------
+# VIEWS: TIPOS DE ACTO
+# -----------------------------------------------------------------------------
+class TipoActoListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        tipos = get_tipos_acto_service()
+        serializer = TipoActoSerializer(tipos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # -----------------------------------------------------------------------------
 # VIEWS: PUESTO
