@@ -165,18 +165,13 @@ class Acto(models.Model):
 
     tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
 
+    inicio_solicitud = models.DateTimeField(verbose_name="Inicio solicitud papeletas", blank=True, null=True, help_text="Fecha y hora de apertura de solicitudes (solo si requiere papeleta)")
+    fin_solicitud = models.DateTimeField(verbose_name="Fin solicitud papeletas", blank=True, null=True, help_text="Fecha y hora de cierre de solicitudes (solo si requiere papeleta)")
+
+
     def __str__(self):
         return f"{self.nombre} ({self.fecha.year})"
-    
-    def clean(self):
-        super().clean()
-        # Nota: self.fecha puede ser None si hay error de formato previo, por eso el if
-        if self.fecha:
-            if self.fecha <= timezone.now():
-                raise ValidationError({'fecha': 'La fecha debe ser futura.'})
-            
-            if self.fecha.year != timezone.now().year:
-                raise ValidationError({'fecha': 'El acto debe ser en el año en curso.'})
+
 
     
 class TipoPuesto(models.Model):
