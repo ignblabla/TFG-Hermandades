@@ -152,7 +152,7 @@ class TipoActo(models.Model):
         ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
         CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
         PROCESION_EUCARISTICA = 'PROCESION_EUCARISTICA', 'Procesión Eucarística'
-        
+        PROCESION_EXTRAORDINARIA = 'PROCESION_EXTRAORDINARIA', 'Procesión Extraordinaria'        
 
     tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
     requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")
@@ -183,6 +183,12 @@ class TipoPuesto(models.Model):
         default=False,
         verbose_name="Solo para Junta de Gobierno",
         help_text="Si se marca, este tipo de puesto estará restringido a miembros de la Junta de Gobierno."
+    )
+
+    es_insignia = models.BooleanField(
+        default=False, 
+        verbose_name="¿Es Insignia?",
+        help_text="Marcar si este tipo de puesto se considera una insignia, vara o enser que requiere asignación específica."
     )
 
     def __str__(self):
