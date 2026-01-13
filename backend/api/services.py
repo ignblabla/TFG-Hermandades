@@ -1,7 +1,7 @@
 from django.utils import timezone
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError, NotFound
 from django.shortcuts import get_object_or_404
-from .models import Acto, Puesto, TipoActo, TipoPuesto
+from .models import Acto, PapeletaSitio, PreferenciaSolicitud, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
 
 # -----------------------------------------------------------------------------
@@ -183,10 +183,83 @@ def get_tipos_puesto_service():
     """
     return TipoPuesto.objects.all()
 
-
 # -----------------------------------------------------------------------------
 # SERVICES: TIPO DE ACTO
 # -----------------------------------------------------------------------------
 def get_tipos_acto_service():
     """Retorna todos los tipos de actos disponibles"""
     return TipoActo.objects.all()
+
+# -----------------------------------------------------------------------------
+# SERVICES: SOLICITUD PAPELETA
+# -----------------------------------------------------------------------------
+class SolicitudPapeletaService:
+    @staticmethod
+    def crear_solicitud(hermano, data_validada):
+        acto_id = data_validada['acto_id']
+        preferencias_data = data_validada['preferencias']
+
+        # Validación de la existencia del acto
+        try:
+            acto = Acto.objects.get(pk=acto_id)
+        except Acto.DoesNotExist:
+            raise NotFound(detail="El acto solicitado no existe")
+        
+        # Validación de las fechas
+        ahora = timezone.now()
+
+        if not acto.tipo_acto.requiere_papeleta:
+            raise ValidationError({"acto_id": "Este acto no requiere solicitud de papeleta."})
+        
+        if not (acto.inicio_solicitud and acto.fin_solicitud):
+            raise ValidationError({"acto_id": "El plazo de solicitud no está definido para este acto."})
+        
+        if ahora < acto.inicio_solicitud:
+            raise ValidationError({"non_field_errors": f"El plazo de solicitud aún no ha comenzado. Empieza el {acto.inicio_solicitud}."})
+        
+        if ahora > acto.fin_solicitud:
+            raise ValidationError({"non_field_errors": "El plazo de solicitud ha finalizado."})
+        
+        # Validación de una solicitud por acto y por hermano
+        if PapeletaSitio.objects.filter(hermano=hermano, acto=acto).exists():
+            raise ValidationError({"non_field_errors": "Ya has realizado una solicitud de papeleta para este acto."})
+        
+        # Validación coherencia de puestos
+        ids_solicitados = [p['puesto_id'] for p in preferencias_data]
+
+        contar_validos = Puesto.objects.filter(
+            id__in = ids_solicitados,
+            acto_id = acto_id,
+            disponible = True
+        ).count()
+
+        if contar_validos != len(ids_solicitados):
+            raise ValidationError({"preferencias": "Uno o más puestos solicitados no pertenecen a este acto o no están disponibles."})
+        
+        with transaction.atomic():
+            papeleta = PapeletaSitio.objects.create(
+                hermano = hermano,
+                acto = acto,
+                anio = acto.fecha.year,
+                estado_papeleta = PapeletaSitio.EstadoPapeleta.SOLICITADA,
+                codigo_verificacion=f"SOL-{acto.id}-{hermano.id}-{int(ahora.timestamp())}"
+            )
+
+            objetos_preferencias = [
+                PreferenciaSolicitud(
+                    papeleta = papeleta,
+                    puesto_solicitado_id = pref['puesto_id'],
+                    orden_prioridad = pref['orden']
+                ) for pref in preferencias_data
+            ]
+            PreferenciaSolicitud.objects.bulk_create(objetos_preferencias)
+
+            return papeleta
+        
+def get_actos_vigentes_service():
+    ahora = timezone.now()
+    return Acto.objects.filter(
+        tipo_acto__requiere_papeleta=True,
+        inicio_solicitud__lte=ahora,
+        fin_solicitud__gte=ahora
+    ).order_by('fecha')

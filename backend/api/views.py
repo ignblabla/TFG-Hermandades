@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import CrearSolicitudPapeletaSerializer, PapeletaSitioSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
 
-from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
+from .services import SolicitudPapeletaService, create_acto_service, get_actos_vigentes_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -195,4 +195,26 @@ class TipoPuestoListView(APIView):
     def get(self, request):
         tipos = get_tipos_puesto_service()
         serializer = TipoPuestoSerializer(tipos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# -----------------------------------------------------------------------------
+# VIEWS: SOLICITAR PAPELETA
+# -----------------------------------------------------------------------------
+class SolicitarPapeletaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        input_serializer = CrearSolicitudPapeletaSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        papeleta_creada = SolicitudPapeletaService.crear_solicitud(hermano = request.user, data_validada = input_serializer.validated_data)
+
+        output_serializer = PapeletaSitioSerializer(papeleta_creada)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED)
+    
+
+class ActosDisponiblesView(APIView):
+    def get(self, request):
+        actos_vigentes = get_actos_vigentes_service()
+        serializer = ActoSerializer(actos_vigentes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -11,6 +11,7 @@ import CrearActo from "./pages/CrearActo"
 import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
+import SolicitarPapeleta from "./pages/SolicitarPapeleta"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -82,6 +83,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditarPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-papeleta"
+          element={
+            <ProtectedRoute>
+              <SolicitarPapeleta />
             </ProtectedRoute>
           }
         />

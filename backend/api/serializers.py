@@ -249,8 +249,6 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             })
         
         if puesto and puesto.tipo_puesto.solo_junta_gobierno:
-            # Comprobamos si el hermano pertenece al cuerpo 'JUNTA_GOBIERNO'
-            # Usamos el related_name 'pertenencias_cuerpos' definido en HermanoCuerpo
             es_miembro_junta = hermano.pertenencias_cuerpos.filter(
                 cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
             ).exists()
@@ -261,3 +259,12 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
                 })
 
         return data
+    
+
+class PreferenciaInputSerializer(serializers.Serializer):
+    puesto_id = serializers.IntegerField()
+    orden = serializers.IntegerField(min_value = 1)
+
+class CrearSolicitudPapeletaSerializer(serializers.Serializer):
+    acto_id = serializers.IntegerField()
+    preferencias = PreferenciaInputSerializer(many=True, allow_empty=False)
