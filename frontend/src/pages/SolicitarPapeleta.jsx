@@ -140,13 +140,21 @@ function SolicitarPapeleta() {
             console.error(err);
             if (err.response && err.response.data) {
                 const data = err.response.data;
-                // Mapeo de errores del backend
-                if (data.non_field_errors) setError(data.non_field_errors[0]);
+
+                if (data.non_field_errors) {
+                    setError(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
+                }
                 else if (data.preferencias) {
                     setError(Array.isArray(data.preferencias) ? data.preferencias[0] : data.preferencias);
                 }
-                else if (data.detail) setError(data.detail);
-                else setError("Error al procesar la solicitud. Verifique los datos.");
+                else if (data.detail) {
+                    setError(data.detail);
+                }
+                else {
+                    const firstKey = Object.keys(data)[0];
+                    const msg = data[firstKey];
+                    setError(`${firstKey}: ${Array.isArray(msg) ? msg[0] : msg}`);
+                }
             } else {
                 setError("Error de conexión con el servidor.");
             }
