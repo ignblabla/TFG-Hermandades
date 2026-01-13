@@ -222,5 +222,16 @@ class PapeletaSitio(models.Model):
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
 
+    numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
+
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+
+class PreferenciaSolicitud(models.Model):
+    papeleta = models.ForeignKey(PapeletaSitio, on_delete=models.CASCADE, related_name="preferencias", verbose_name="Papeleta asociada")
+    puesto_solicitado = models.ForeignKey(Puesto, on_delete=models.CASCADE, related_name="solicitudes_preferencia", verbose_name="Puesto solicitado")
+    orden_prioridad = models.PositiveIntegerField(verbose_name="Orden de prioridad", help_text="1 para la primera opción, 2 para la segunda, etc.")
+
+    def __str__(self):
+        return f"{self.papeleta} - Puesto: {self.puesto_solicitado.nombre} (Prioridad: {self.orden_prioridad})"
