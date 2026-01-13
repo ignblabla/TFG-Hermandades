@@ -53,6 +53,46 @@ class HermanoCuerpo(models.Model):
 
     anio_ingreso = models.PositiveIntegerField(verbose_name="Año de ingreso", help_text="Año en el que el hermano ingresó en este cuerpo específico")
 
+    class Meta:
+        unique_together = ('hermano', 'cuerpo')
+
+    def clean(self):
+        super().clean()
+        
+        if not hasattr(self, 'hermano') or not hasattr(self, 'cuerpo'):
+            return
+
+        GRUPOS_EXCLUYENTES = [
+            CuerpoPertenencia.NombreCuerpo.COSTALEROS,
+            CuerpoPertenencia.NombreCuerpo.NAZARENOS,
+            CuerpoPertenencia.NombreCuerpo.DIPUTADOS,
+            CuerpoPertenencia.NombreCuerpo.BRAZALETES,
+            CuerpoPertenencia.NombreCuerpo.ACOLITOS,
+            CuerpoPertenencia.NombreCuerpo.CAPATACES,
+            CuerpoPertenencia.NombreCuerpo.SANITARIOS,
+        ]
+
+        nuevo_cuerpo_es_excluyente = self.cuerpo.nombre_cuerpo in GRUPOS_EXCLUYENTES
+
+        if nuevo_cuerpo_es_excluyente:
+            conflicto = HermanoCuerpo.objects.filter(
+                hermano=self.hermano,
+                cuerpo__nombre_cuerpo__in=GRUPOS_EXCLUYENTES
+            ).exclude(pk=self.pk)
+
+            if conflicto.exists():
+                cuerpo_existente = conflicto.first().cuerpo.get_nombre_cuerpo_display()
+                nuevo_cuerpo = self.cuerpo.get_nombre_cuerpo_display()
+                
+                raise ValidationError({
+                    'cuerpo': f"El hermano ya pertenece al cuerpo de '{cuerpo_existente}'. "
+                            f"No puede ser '{nuevo_cuerpo}' al mismo tiempo."
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.hermano} en {self.cuerpo} desde {self.anio_ingreso}"
     
@@ -89,16 +129,16 @@ class Hermano(AbstractUser):
     genero = models.CharField(max_length=10, choices=Genero.choices, default=Genero.MASCULINO, verbose_name="Género")
     estado_civil = models.CharField(max_length=10, choices=EstadoCivil.choices, verbose_name="Estado Civil")
 
-    direccion = models.CharField(max_length=255, verbose_name="Dirección postal", null=True, blank=True)
-    codigo_postal = models.CharField(max_length=5, validators=[cp_validator], verbose_name="Código postal", null=True, blank=True)
+    direccion = models.CharField(max_length=255, verbose_name="Dirección postal")
+    codigo_postal = models.CharField(max_length=5, validators=[cp_validator], verbose_name="Código postal")
 
-    localidad = models.CharField(max_length=100, verbose_name="Localidad", null=True, blank=True)
-    provincia = models.CharField(max_length=100, verbose_name="Provincia", null=True, blank=True)
-    comunidad_autonoma = models.CharField(max_length=100, verbose_name="Comunidad Autónoma", null=True, blank=True)
+    localidad = models.CharField(max_length=100, verbose_name="Localidad")
+    provincia = models.CharField(max_length=100, verbose_name="Provincia")
+    comunidad_autonoma = models.CharField(max_length=100, verbose_name="Comunidad Autónoma")
 
-    lugar_bautismo = models.CharField(max_length=100, verbose_name="Bautizado en", null=True, blank=True, help_text="Localidad o ciudad donde recibió el bautismo")
-    fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
-    parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
+    lugar_bautismo = models.CharField(max_length=100, verbose_name="Bautizado en", help_text="Localidad o ciudad donde recibió el bautismo")
+    fecha_bautismo = models.DateField(verbose_name="Fecha de bautismo")
+    parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo")
 
     esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
 
@@ -152,7 +192,7 @@ class TipoActo(models.Model):
         ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
         CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
         PROCESION_EUCARISTICA = 'PROCESION_EUCARISTICA', 'Procesión Eucarística'
-        
+        PROCESION_EXTRAORDINARIA = 'PROCESION_EXTRAORDINARIA', 'Procesión Extraordinaria'        
 
     tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
     requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")
@@ -183,6 +223,12 @@ class TipoPuesto(models.Model):
         default=False,
         verbose_name="Solo para Junta de Gobierno",
         help_text="Si se marca, este tipo de puesto estará restringido a miembros de la Junta de Gobierno."
+    )
+
+    es_insignia = models.BooleanField(
+        default=False, 
+        verbose_name="¿Es Insignia?",
+        help_text="Marcar si este tipo de puesto se considera una insignia, vara o enser que requiere asignación específica."
     )
 
     def __str__(self):
@@ -222,5 +268,18 @@ class PapeletaSitio(models.Model):
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
 
+    numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
+
+    es_solicitud_insignia = models.BooleanField(default=False, verbose_name="¿Es solicitud de insignia?", help_text="Indica si esta papeleta corresponde a una solicitud de vara, insignia o enser.")
+
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+
+class PreferenciaSolicitud(models.Model):
+    papeleta = models.ForeignKey(PapeletaSitio, on_delete=models.CASCADE, related_name="preferencias", verbose_name="Papeleta asociada")
+    puesto_solicitado = models.ForeignKey(Puesto, on_delete=models.CASCADE, related_name="solicitudes_preferencia", verbose_name="Puesto solicitado")
+    orden_prioridad = models.PositiveIntegerField(verbose_name="Orden de prioridad", help_text="1 para la primera opción, 2 para la segunda, etc.")
+
+    def __str__(self):
+        return f"{self.papeleta} - Puesto: {self.puesto_solicitado.nombre} (Prioridad: {self.orden_prioridad})"

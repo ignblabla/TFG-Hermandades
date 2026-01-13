@@ -1,9 +1,54 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
+from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
 from django.db import transaction
+from django.utils import timezone
 
 User = get_user_model()
+
+# -----------------------------------------------------------------------------
+# 1. GESTIÓN DE USUARIOS (HERMANOS) Y PERTENENCIAS
+# -----------------------------------------------------------------------------
+
+class AreaInteresSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AreaInteres
+        fields = ['id', 'nombre_area']
+
+
+class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CuerpoPertenencia
+        fields = ['id', 'nombre_cuerpo']
+
+
+class HermanoCuerpoSerializer(serializers.ModelSerializer):
+    """
+    Gestiona la pertenencia de un hermano a un cuerpo (ej. Costaleros, Nazarenos).
+    """
+    nombre_cuerpo = serializers.CharField(source='cuerpo.get_nombre_cuerpo_display', read_only=True)
+    cuerpo_slug = serializers.SlugRelatedField(
+        slug_field='nombre_cuerpo',
+        queryset=CuerpoPertenencia.objects.all(),
+        source='cuerpo',
+        write_only=True
+    )
+
+    class Meta:
+        model = HermanoCuerpo
+        fields = ['id', 'hermano', 'cuerpo_slug', 'nombre_cuerpo', 'anio_ingreso']
+        extra_kwargs = {
+            'hermano': {'read_only': True} 
+        }
+    
+    def validate_anio_ingreso(self, value):
+        anio_actual = timezone.now().year
+        if value > anio_actual:
+            raise serializers.ValidationError("El año de ingreso no puede ser futuro.")
+        if value < 1900:
+            raise serializers.ValidationError("El año de ingreso no es válido.")
+        return value
+    
 
 class UserSerializer(serializers.ModelSerializer):
     areas_interes = serializers.SlugRelatedField(
@@ -13,6 +58,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    pertenencias_cuerpos = HermanoCuerpoSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -20,7 +67,8 @@ class UserSerializer(serializers.ModelSerializer):
             "telefono", "fecha_nacimiento", "genero", "estado_civil", 
             "password", "direccion", "codigo_postal", "localidad", 
             "provincia", "comunidad_autonoma", "lugar_bautismo", 
-            "fecha_bautismo", "parroquia_bautismo", "areas_interes", "esAdmin"
+            "fecha_bautismo", "parroquia_bautismo", "areas_interes",
+            "pertenencias_cuerpos", "esAdmin"
         ]
 
         extra_kwargs = {
@@ -39,7 +87,6 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """
         Validación cruzada de campos.
-        Al ser creación, validamos directamente los datos de entrada.
         """
         fecha_nacimiento = data.get('fecha_nacimiento')
         fecha_bautismo = data.get('fecha_bautismo')
@@ -86,15 +133,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class AreaInteresSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AreaInteres
-        fields = ['id', 'nombre_area']
-
-class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CuerpoPertenencia
-        fields = ['id', 'nombre_cuerpo']
+# -----------------------------------------------------------------------------
+# 2. GESTIÓN DE ACTOS Y PUESTOS
+# -----------------------------------------------------------------------------
 
 class TipoActoSerializer(serializers.ModelSerializer):
     nombre_mostrar = serializers.CharField(source='get_tipo_display', read_only=True)
@@ -104,51 +145,16 @@ class TipoActoSerializer(serializers.ModelSerializer):
         fields = ['id', 'tipo', 'nombre_mostrar', 'requiere_papeleta']
 
 
-# -----------------------------------------------------------------------------
-# SERIALIZERS DE RELACIONES (HERMANO - CUERPO)
-# -----------------------------------------------------------------------------
-
-class HermanoCuerpoSerializer(serializers.ModelSerializer):
-    """
-    Gestiona la pertenencia de un hermano a un cuerpo (ej. Costaleros, Nazarenos).
-    """
-    nombre_cuerpo = serializers.CharField(source='cuerpo.get_nombre_cuerpo_display', read_only=True)
-    cuerpo_slug = serializers.SlugRelatedField(
-        slug_field='nombre_cuerpo',
-        queryset=CuerpoPertenencia.objects.all(),
-        source='cuerpo',
-        write_only=True
-    )
-
-    class Meta:
-        model = HermanoCuerpo
-        fields = ['id', 'hermano', 'cuerpo_slug', 'nombre_cuerpo', 'anio_ingreso']
-        extra_kwargs = {
-            'hermano': {'read_only': True} 
-        }
-    
-    def validate_anio_ingreso(self, value):
-        from django.utils import timezone
-        anio_actual = timezone.now().year
-        if value > anio_actual:
-            raise serializers.ValidationError("El año de ingreso no puede ser futuro.")
-        if value < 1900:
-            raise serializers.ValidationError("El año de ingreso no es válido.")
-        return value
-    
-# -----------------------------------------------------------------------------
-# SERIALIZERS DE GESTIÓN DE ACTOS Y PUESTOS
-# -----------------------------------------------------------------------------
-
 class TipoPuestoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoPuesto
-        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno']
+        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno', 'es_insignia']
+
 
 class PuestoSerializer(serializers.ModelSerializer):
-    tipo_puesto = serializers.SlugRelatedField(
-        slug_field='nombre_tipo',
-        queryset=TipoPuesto.objects.all()
+    tipo_puesto_detalle = TipoPuestoSerializer(source='tipo_puesto', read_only=True)
+    tipo_puesto_id = serializers.PrimaryKeyRelatedField(
+        queryset=TipoPuesto.objects.all(), source='tipo_puesto', write_only=True
     )
 
     class Meta:
@@ -156,32 +162,19 @@ class PuestoSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
             'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
-            'tipo_puesto'
+            'tipo_puesto_id', 'tipo_puesto_detalle'
         ]
-
         extra_kwargs = {
-            'hora_citacion': {
-                'error_messages': {
-                    'invalid': 'El formato de hora es incorrecto. Por favor, use el formato HH:MM (ej. 20:30).'
-                }
-            }
+            'hora_citacion': {'format': '%H:%M'}
         }
 
     def validate_numero_maximo_asignaciones(self, value):
-        """
-        Validación de campo: El número de asignaciones debe ser positivo.
-        """
         if value < 1:
             raise serializers.ValidationError("El número máximo de asignaciones debe ser al menos 1.")
         return value
     
 
 class PuestoUpdateSerializer(PuestoSerializer):
-    """
-    Serializador específico para actualizaciones.
-    Hereda de PuestoSerializer para no repetir campos, pero
-    marca 'acto' como read_only para asegurar que no se modifica.
-    """
     class Meta(PuestoSerializer.Meta):
         read_only_fields = ['acto']
 
@@ -191,28 +184,52 @@ class ActoSerializer(serializers.ModelSerializer):
         slug_field='tipo',
         queryset=TipoActo.objects.all()
     )
-    puestos_disponibles = PuestoSerializer(many=True, read_only=True)
 
+    puestos_disponibles = PuestoSerializer(many=True, read_only=True)
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'puestos_disponibles', 'requiere_papeleta']
-
+        fields = [
+            'id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 
+            'inicio_solicitud', 'fin_solicitud', 'puestos_disponibles', 
+            'requiere_papeleta'
+        ]
 
 # -----------------------------------------------------------------------------
-# SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO
+# 3. PROCESO DE SITIO (PAPELETAS Y PREFERENCIAS)
 # -----------------------------------------------------------------------------
+
+class PreferenciaSolicitudSerializer(serializers.ModelSerializer):
+    """
+    Gestiona las líneas de solicitud (ej: 1º Opción: Vara Dorada, 2º Opción: Manigueta).
+    """
+    nombre_puesto = serializers.CharField(source='puesto_solicitado.nombre', read_only=True)
+    
+    class Meta:
+        model = PreferenciaSolicitud
+        fields = ['id', 'papeleta', 'puesto_solicitado', 'nombre_puesto', 'orden_prioridad']
+        read_only_fields = ['papeleta']
+
+    def validate(self, data):
+        if data['orden_prioridad'] < 1:
+            raise serializers.ValidationError("El orden de prioridad debe ser 1 o superior.")
+        return data
 
 class PapeletaSitioSerializer(serializers.ModelSerializer):
     """
-    Este es un serializer crítico. Aquí validamos la integridad de la solicitud
-    antes de que pase a la capa de servicio.
+    Serializer principal para la gestión de Papeletas.
+    Se usa tanto para la solicitud (creación) como para la visualización.
     """
     nombre_hermano = serializers.CharField(source='hermano.nombre', read_only=True)
     apellidos_hermano = serializers.SerializerMethodField()
     nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
-    nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True)
+    
+    # Campo para ver el puesto asignado finalmente (puede ser null si está en solicitud)
+    nombre_puesto_asignado = serializers.CharField(source='puesto.nombre', read_only=True)
+    
+    # Nested Serializer para recibir/enviar las preferencias
+    preferencias = PreferenciaSolicitudSerializer(many=True, required=False)
 
     class Meta:
         model = PapeletaSitio
@@ -220,44 +237,69 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             'id', 'estado_papeleta', 'fecha_emision', 'codigo_verificacion', 
             'anio', 'hermano', 'nombre_hermano', 'apellidos_hermano',
             'acto', 'nombre_acto', 
-            'puesto', 'nombre_puesto'
+            'puesto', 'nombre_puesto_asignado', 'numero_papeleta',
+            'es_solicitud_insignia', 'preferencias'
         ]
-        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio']
+        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'numero_papeleta', 'estado_papeleta']
+        
+        # 'puesto' (asignado) debe ser read_only para el usuario normal, 
+        # pero editable para el administrador. Se puede controlar en View/Service.
+        # Aquí lo dejamos editable pero validaremos permisos en el Service.
 
     def get_apellidos_hermano(self, obj):
         return f"{obj.hermano.primer_apellido} {obj.hermano.segundo_apellido}"
 
     def validate(self, data):
         """
-        Validación de integridad de datos (Data Integrity).
-        La lógica de negocio compleja (ej. cálculo de antigüedad) va al Service,
-        pero la coherencia básica de los datos va aquí.
+        Validación de integridad de datos.
         """
-        puesto = data.get('puesto')
+        puesto_asignado = data.get('puesto') # Puesto FINAL asignado
         acto = data.get('acto')
         hermano = data.get('hermano')
-        
-        if puesto and acto:
-            if puesto.acto != acto:
+        es_insignia = data.get('es_solicitud_insignia', False)
+        preferencias_data = data.get('preferencias', [])
+
+        # 1. Validación de Puesto Asignado (si existe)
+        if puesto_asignado:
+            if puesto_asignado.acto != acto:
                 raise serializers.ValidationError({
-                    "puesto": "El puesto seleccionado no pertenece al acto indicado."
+                    "puesto": "El puesto asignado no pertenece al acto indicado."
                 })
 
-        if puesto and not puesto.disponible:
-            raise serializers.ValidationError({
-                "puesto": "El puesto seleccionado no está marcado como disponible."
-            })
-        
-        if puesto and puesto.tipo_puesto.solo_junta_gobierno:
-            # Comprobamos si el hermano pertenece al cuerpo 'JUNTA_GOBIERNO'
-            # Usamos el related_name 'pertenencias_cuerpos' definido en HermanoCuerpo
-            es_miembro_junta = hermano.pertenencias_cuerpos.filter(
-                cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
-            ).exists()
-
-            if not es_miembro_junta:
+            if not puesto_asignado.disponible:
                 raise serializers.ValidationError({
-                    "puesto": f"El puesto '{puesto.nombre}' ({puesto.tipo_puesto.nombre_tipo}) está reservado exclusivamente para miembros de la Junta de Gobierno."
+                    "puesto": "El puesto seleccionado no está marcado como disponible."
                 })
+            
+            # Validación de Junta de Gobierno
+            if puesto_asignado.tipo_puesto.solo_junta_gobierno:
+                es_miembro_junta = hermano.pertenencias_cuerpos.filter(
+                    cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
+                ).exists()
+
+                if not es_miembro_junta:
+                    raise serializers.ValidationError({
+                        "puesto": f"El puesto '{puesto_asignado.nombre}' está reservado para Junta de Gobierno."
+                    })
+
+        # 2. Validación cruzada: Si es solicitud de insignia, debe tener preferencias
+        # (Opcional, depende de tu regla de negocio)
+        if es_insignia and self.instance is None: # Solo al crear
+            # Si no hay preferencias en el payload, y marca insignia, warning.
+            # Pero como las preferencias van nested, a veces se validan post-save en el service.
+            pass
 
         return data
+    
+    def create(self, validated_data):
+        """
+        Sobrescribimos create para soportar la creación de Preferencias anidadas
+        si decidimos no usar un Servicio para esto (aunque recomiendo usar Service).
+        """
+        preferencias_data = validated_data.pop('preferencias', [])
+        papeleta = PapeletaSitio.objects.create(**validated_data)
+        
+        for pref_data in preferencias_data:
+            PreferenciaSolicitud.objects.create(papeleta=papeleta, **pref_data)
+            
+        return papeleta
