@@ -230,6 +230,8 @@ class PapeletaSitio(models.Model):
 
     numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
 
+    es_solicitud_insignia = models.BooleanField(default=False, verbose_name="¿Es solicitud de insignia?", help_text="Indica si esta papeleta corresponde a una solicitud de vara, insignia o enser.")
+
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
     
