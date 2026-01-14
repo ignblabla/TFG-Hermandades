@@ -68,6 +68,24 @@ class Hermano(AbstractUser):
         CASADO = 'CASADO', 'Casado'
         VIUDO = 'VIUDO', 'Viudo'
 
+    class Periodicidad(models.TextChoices):
+        TRIMESTRAL = 'TRIMESTRAL', 'Trimestral'
+        SEMESTRAL = 'SEMESTRAL', 'Semestral'
+        ANUAL = 'ANUAL', 'Anual'
+
+    class EstadoHermano(models.TextChoices):
+        ALTA = 'ALTA', 'Alta'
+        BAJA = 'BAJA', 'Baja'
+        PENDIENTE_INGRESO = 'PENDIENTE_INGRESO', 'Pendiente de ingreso'
+
+    class EstadoPago(models.TextChoices):
+        PAGADO = 'PAGADO', 'Pagado'
+        PENDIENTE = 'PENDIENTE', 'Pendiente'
+        DEVUELTO = 'DEVUELTO', 'Devuelto'
+        IMPAGADO = 'IMPAGADO', 'Impagado'
+        EXENTO = 'EXENTO', 'Exento'
+        BAJA_POR_IMPAGO = 'BAJA_POR_IMPAGO', 'Baja por impago'
+
     telefono_validator = RegexValidator(
         regex=r'^\d{9}$',
         message="El número de teléfono debe tener exactamente 9 dígitos numéricos."
@@ -76,6 +94,11 @@ class Hermano(AbstractUser):
     cp_validator = RegexValidator(
         regex=r'^\d{5}$',
         message="El código postal debe tener exactamente 5 dígitos numéricos."
+    )
+
+    iban_validator = RegexValidator(
+        regex=r'^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$',
+        message="El IBAN debe tener un formato válido (ej: ES00...). Debe comenzar por 2 letras y 2 números."
     )
 
     username = models.CharField(max_length=150, unique=True, blank=True, null=True)
@@ -100,6 +123,14 @@ class Hermano(AbstractUser):
     fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
     parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
 
+    iban = models.CharField(max_length=34, validators=[iban_validator], verbose_name="IBAN")
+    periodicidad = models.CharField(max_length=20, choices=Periodicidad.choices, default=Periodicidad.TRIMESTRAL, verbose_name="Periodicidad de cuota")
+    es_titular = models.BooleanField(default=True, verbose_name="¿Es titular de la cuenta?", help_text="Indica si el hermano es el titular de la cuenta bancaria aportada")
+    estado_pago = models.CharField(max_length=20, choices=EstadoPago.choices, default=EstadoPago.PENDIENTE, verbose_name="Estado de pagos")
+
+    numero_registro = models.PositiveIntegerField(unique=True, verbose_name="Número de registro", help_text="Número de registro en la hermandad", null=True, blank=True)
+    estado_hermano = models.CharField(max_length=20, choices=EstadoHermano.choices, default=EstadoHermano.PENDIENTE_INGRESO, verbose_name="Estado del hermano")
+
     esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
 
     areas_interes = models.ManyToManyField(
@@ -123,6 +154,11 @@ class Hermano(AbstractUser):
     USERNAME_FIELD = 'dni'
     REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'username', 'telefono', 'estado_civil']
 
+    @property
+    def esta_al_corriente(self):
+        """Retorna True si el hermano tiene derechos económicos vigentes."""
+        return self.estado_pago in [self.EstadoPago.PAGADO, self.EstadoPago.EXENTO]
+
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
     
@@ -133,6 +169,11 @@ class Hermano(AbstractUser):
                 raise ValidationError({
                     'fecha_bautismo': 'La fecha de bautismo no puede ser anterior a la fecha de nacimiento'
                 })
+        
+        # Validación extra opcional: Si está de ALTA, debería tener número de hermano (depende de tu lógica de negocio)
+        if self.estado_hermano == self.EstadoHermano.ALTA and not self.numero_registro:
+            raise ValidationError({'numero_hermano': 'Un hermano de Alta debe tener un número de registro asignado.'})
+            pass
     
     def save(self, *args, **kwargs):
         self.full_clean()
