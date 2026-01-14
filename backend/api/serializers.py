@@ -20,8 +20,13 @@ class UserSerializer(serializers.ModelSerializer):
             "telefono", "fecha_nacimiento", "genero", "estado_civil", 
             "password", "direccion", "codigo_postal", "localidad", 
             "provincia", "comunidad_autonoma", "lugar_bautismo", 
-            "fecha_bautismo", "parroquia_bautismo", "areas_interes", "esAdmin"
+            "fecha_bautismo", "parroquia_bautismo", "areas_interes",
+            "iban", "periodicidad", "es_titular", 
+            "estado_hermano", "estado_pago",
+            "numero_registro", "estado_hermano", "esAdmin",
         ]
+
+        read_only_fields = ["estado_hermano", "estado_pago", "numero_registro", "esAdmin"]
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -34,12 +39,14 @@ class UserSerializer(serializers.ModelSerializer):
             "lugar_bautismo": {"required": True}, 
             "fecha_bautismo": {"required": True},
             "parroquia_bautismo": {"required": True},
+            "iban": {"required": True},
+            "periodicidad": {"required": True},
+            "es_titular": {"required": True},
         }
 
     def validate(self, data):
         """
         Validación cruzada de campos.
-        Al ser creación, validamos directamente los datos de entrada.
         """
         fecha_nacimiento = data.get('fecha_nacimiento')
         fecha_bautismo = data.get('fecha_bautismo')
@@ -50,6 +57,16 @@ class UserSerializer(serializers.ModelSerializer):
                     "fecha_bautismo": "La fecha de bautismo no puede ser anterior a la fecha de nacimiento."
                 })
         return data
+    
+    def validate_iban(self, value):
+        """
+        Sanitización del IBAN:
+        El usuario puede escribir 'ES00 1234...' con espacios.
+        Aquí lo limpiamos antes de que llegue al modelo para que el RegexValidator no falle.
+        """
+        if value:
+            return value.replace(" ", "").upper()
+        return value
     
     
     

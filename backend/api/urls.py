@@ -1,9 +1,13 @@
 from django.urls import path
+
+from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from . import views
 from .views import TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
+    path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),
+    path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
     path("actos/", ActoListCreateView.as_view(), name="crear-acto"),
     path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),

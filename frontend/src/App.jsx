@@ -11,6 +11,7 @@ import CrearActo from "./pages/CrearActo"
 import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
+import HazteHermano from "./pages/HazteHermano"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -29,6 +30,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/hazte-hermano" element={<HazteHermano />} />
         <Route
           path="/home"
           element={
