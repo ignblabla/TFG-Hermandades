@@ -115,20 +115,6 @@ class Cuota(models.Model):
 
     observaciones = models.TextField(blank=True, null=True)
 
-    class Meta:
-        # Restricción: Un hermano solo puede tener una cuota ordinaria por año
-        constraints = [
-            models.UniqueConstraint(
-                fields=['hermano', 'anio', 'tipo'], 
-                condition=models.Q(tipo='ORDINARIA'),
-                name='unica_cuota_ordinaria_por_anio'
-            )
-        ]
-        indexes = [
-            models.Index(fields=['hermano', 'anio']),
-            models.Index(fields=['estado']),
-        ]
-
     def __str__(self):
         return f"{self.anio} - {self.tipo} - {self.hermano}"
 
