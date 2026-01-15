@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
+
     
 class AreaInteres(models.Model):
     class NombreArea(models.TextChoices):
@@ -57,6 +59,80 @@ class HermanoCuerpo(models.Model):
         return f"{self.hermano} en {self.cuerpo} desde {self.anio_ingreso}"
     
 
+class DatosBancarios(models.Model):
+    iban_validator = RegexValidator(
+        regex=r'^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$',
+        message="El IBAN debe tener un formato válido (ej: ES00...). Debe comenzar por 2 letras y 2 números."
+    )
+
+    class Periodicidad(models.TextChoices):
+        TRIMESTRAL = 'TRIMESTRAL', 'Trimestral'
+        SEMESTRAL = 'SEMESTRAL', 'Semestral'
+        ANUAL = 'ANUAL', 'Anual'
+
+    hermano = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='datos_bancarios', verbose_name="Hermano titular")
+
+    iban = models.CharField(max_length=34, validators=[iban_validator], verbose_name="IBAN")
+    es_titular = models.BooleanField(default=True, verbose_name="¿Es titular?")
+    titular_cuenta = models.CharField(max_length=150, verbose_name="Nombre del titular", blank=True, null=True, help_text="Rellenar solo si el hermano no es el titular")
+
+    periodicidad = models.CharField(max_length=20, choices=Periodicidad.choices, default=Periodicidad.ANUAL, verbose_name="Periodicidad de cobro")
+
+    def __str__(self):
+        return f"Datos bancarios de {self.hermano}"
+    
+
+class Cuota(models.Model):
+    class TipoCuota(models.TextChoices):
+        ORDINARIA = 'ORDINARIA', 'Cuota de Hermano'
+        INGRESO = 'INGRESO', 'Cuota de Ingreso/Alta'
+        EXTRAORDINARIA = 'EXTRAORDINARIA', 'Cuota Extraordinaria'
+
+    class EstadoCuota(models.TextChoices):
+        PENDIENTE = 'PENDIENTE', 'Pendiente de pago'
+        EN_REMESA = 'EN_REMESA', 'Enviada al banco (Remesa)'
+        PAGADA = 'PAGADA', 'Pagada'
+        DEVUELTA = 'DEVUELTA', 'Devuelta por el banco'
+        EXENTO = 'EXENTO', 'Exento de pago'
+
+    class MetodoPago(models.TextChoices):
+        DOMICILIACION = 'DOMICILIACION', 'Domiciliación Bancaria'
+        TRANSFERENCIA = 'TRANSFERENCIA', 'Transferencia'
+
+    hermano = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='cuotas', verbose_name="Hermano")
+
+    anio = models.PositiveIntegerField(verbose_name="Ejercicio / Año")
+    tipo = models.CharField(max_length=20, choices=TipoCuota.choices, default=TipoCuota.ORDINARIA)
+    descripcion = models.CharField(max_length=100, help_text="Ej: Cuota 2024")
+
+    fecha_emision = models.DateField(auto_now_add=True, verbose_name="Fecha de emisión")
+    fecha_pago = models.DateField(null=True, blank=True, verbose_name="Fecha de pago")
+
+    importe = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)], verbose_name="Importe (€)")
+
+    estado = models.CharField(max_length=20, choices=EstadoCuota.choices, default=EstadoCuota.PENDIENTE)
+    metodo_pago = models.CharField(max_length=20, choices=MetodoPago.choices, default=MetodoPago.DOMICILIACION)
+
+    observaciones = models.TextField(blank=True, null=True)
+
+    class Meta:
+        # Restricción: Un hermano solo puede tener una cuota ordinaria por año
+        constraints = [
+            models.UniqueConstraint(
+                fields=['hermano', 'anio', 'tipo'], 
+                condition=models.Q(tipo='ORDINARIA'),
+                name='unica_cuota_ordinaria_por_anio'
+            )
+        ]
+        indexes = [
+            models.Index(fields=['hermano', 'anio']),
+            models.Index(fields=['estado']),
+        ]
+
+    def __str__(self):
+        return f"{self.anio} - {self.tipo} - {self.hermano}"
+
+
 class Hermano(AbstractUser):
     class Genero(models.TextChoices):
         MASCULINO = 'MASCULINO', 'Masculino'
@@ -68,23 +144,10 @@ class Hermano(AbstractUser):
         CASADO = 'CASADO', 'Casado'
         VIUDO = 'VIUDO', 'Viudo'
 
-    class Periodicidad(models.TextChoices):
-        TRIMESTRAL = 'TRIMESTRAL', 'Trimestral'
-        SEMESTRAL = 'SEMESTRAL', 'Semestral'
-        ANUAL = 'ANUAL', 'Anual'
-
     class EstadoHermano(models.TextChoices):
         ALTA = 'ALTA', 'Alta'
         BAJA = 'BAJA', 'Baja'
         PENDIENTE_INGRESO = 'PENDIENTE_INGRESO', 'Pendiente de ingreso'
-
-    class EstadoPago(models.TextChoices):
-        PAGADO = 'PAGADO', 'Pagado'
-        PENDIENTE = 'PENDIENTE', 'Pendiente'
-        DEVUELTO = 'DEVUELTO', 'Devuelto'
-        IMPAGADO = 'IMPAGADO', 'Impagado'
-        EXENTO = 'EXENTO', 'Exento'
-        BAJA_POR_IMPAGO = 'BAJA_POR_IMPAGO', 'Baja por impago'
 
     telefono_validator = RegexValidator(
         regex=r'^\d{9}$',
@@ -94,11 +157,6 @@ class Hermano(AbstractUser):
     cp_validator = RegexValidator(
         regex=r'^\d{5}$',
         message="El código postal debe tener exactamente 5 dígitos numéricos."
-    )
-
-    iban_validator = RegexValidator(
-        regex=r'^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$',
-        message="El IBAN debe tener un formato válido (ej: ES00...). Debe comenzar por 2 letras y 2 números."
     )
 
     username = models.CharField(max_length=150, unique=True, blank=True, null=True)
@@ -114,7 +172,6 @@ class Hermano(AbstractUser):
 
     direccion = models.CharField(max_length=255, verbose_name="Dirección postal", null=True, blank=True)
     codigo_postal = models.CharField(max_length=5, validators=[cp_validator], verbose_name="Código postal", null=True, blank=True)
-
     localidad = models.CharField(max_length=100, verbose_name="Localidad", null=True, blank=True)
     provincia = models.CharField(max_length=100, verbose_name="Provincia", null=True, blank=True)
     comunidad_autonoma = models.CharField(max_length=100, verbose_name="Comunidad Autónoma", null=True, blank=True)
@@ -122,11 +179,6 @@ class Hermano(AbstractUser):
     lugar_bautismo = models.CharField(max_length=100, verbose_name="Bautizado en", null=True, blank=True, help_text="Localidad o ciudad donde recibió el bautismo")
     fecha_bautismo = models.DateField(null=True, blank=True, verbose_name="Fecha de bautismo")
     parroquia_bautismo = models.CharField(max_length=150, verbose_name="Parroquia de bautismo", null=True, blank=True)
-
-    iban = models.CharField(max_length=34, validators=[iban_validator], verbose_name="IBAN")
-    periodicidad = models.CharField(max_length=20, choices=Periodicidad.choices, default=Periodicidad.TRIMESTRAL, verbose_name="Periodicidad de cuota")
-    es_titular = models.BooleanField(default=True, verbose_name="¿Es titular de la cuenta?", help_text="Indica si el hermano es el titular de la cuenta bancaria aportada")
-    estado_pago = models.CharField(max_length=20, choices=EstadoPago.choices, default=EstadoPago.PENDIENTE, verbose_name="Estado de pagos")
 
     numero_registro = models.PositiveIntegerField(unique=True, verbose_name="Número de registro", help_text="Número de registro en la hermandad", null=True, blank=True)
     estado_hermano = models.CharField(max_length=20, choices=EstadoHermano.choices, default=EstadoHermano.PENDIENTE_INGRESO, verbose_name="Estado del hermano")
@@ -158,8 +210,10 @@ class Hermano(AbstractUser):
 
     @property
     def esta_al_corriente(self):
-        """Retorna True si el hermano tiene derechos económicos vigentes."""
-        return self.estado_pago in [self.EstadoPago.PAGADO, self.EstadoPago.EXENTO]
+        """Retorna True si el hermano NO tiene ninguna cuota pendiente o devuelta."""
+        estados_deuda = ['PENDIENTE', 'DEVUELTA']
+        tiene_deuda = self.cuotas.filter(estado__in=estados_deuda).exists()
+        return not tiene_deuda
     
     @property
     def antiguedad_anios(self):

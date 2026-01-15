@@ -75,7 +75,7 @@ function HazteHermano() {
         let isValid = true;
 
         const checkRequired = (field, label) => {
-            if (!formData[field] || formData[field].trim() === "") {
+            if (!formData[field] || formData[field].toString().trim() === "") {
                 errors[field] = `El campo ${label || field} es obligatorio.`;
                 isValid = false;
             }
@@ -124,7 +124,7 @@ function HazteHermano() {
         if (validateStep(currentStep)) {
             setGeneralError("");
             setCurrentStep(prev => prev + 1);
-            window.scrollTo(0, 0); // Subir arriba al cambiar de paso
+            window.scrollTo(0, 0); 
         } else {
             setGeneralError("Por favor, complete los campos obligatorios antes de continuar.");
         }
@@ -136,29 +136,57 @@ function HazteHermano() {
         window.scrollTo(0, 0);
     };
 
+    // --- AQUÍ ESTÁ EL CAMBIO IMPORTANTE ---
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // Validar último paso (aunque es opcional, por si acaso)
         
         setSubmitting(true);
         setGeneralError("");
         setFieldErrors({});
 
         try {
-            const { confirmPassword, ...payload } = formData;
+            // 1. Desestructuramos el estado plano para separar datos personales de bancarios
+            const { 
+                iban, 
+                periodicidad, 
+                es_titular, 
+                confirmPassword, // Lo eliminamos para no enviarlo
+                ...datosPersonales // Aquí queda dni, nombre, areas_interes, etc.
+            } = formData;
+
+            // 2. Construimos el JSON anidado que espera el Backend
+            const payload = {
+                ...datosPersonales,
+                datos_bancarios: {
+                    iban: iban,
+                    periodicidad: periodicidad,
+                    es_titular: es_titular
+                }
+            };
+
             await api.post("api/hermanos/registro/", payload);
             setSuccess(true);
             setTimeout(() => navigate("/login"), 5000);
+
         } catch (err) {
             if (err.response && err.response.data) {
                 const data = err.response.data;
-                setFieldErrors(data);
+                
+                // 3. Aplanamos los errores para la UI
+                // Si el backend devuelve { datos_bancarios: { iban: ["Error"] } }
+                // Nosotros queremos que fieldErrors tenga { iban: ["Error"] } para que el InputField lo pinte rojo.
+                let erroresParaUI = { ...data };
+
+                if (data.datos_bancarios) {
+                    erroresParaUI = { ...erroresParaUI, ...data.datos_bancarios };
+                }
+
+                setFieldErrors(erroresParaUI);
+
                 if (data.detail) setGeneralError(data.detail);
                 else if (data.non_field_errors) setGeneralError(data.non_field_errors[0]);
-                else setGeneralError("Error en la solicitud. Revise los datos.");
+                else setGeneralError("Error en la solicitud. Revise los datos marcados en rojo.");
                 
-                // Si hay error en un campo de un paso anterior, podrías lógica para volver, 
-                // pero por simplicidad mostramos el mensaje general.
             } else {
                 setGeneralError("Error de conexión. Inténtelo más tarde.");
             }
@@ -167,7 +195,7 @@ function HazteHermano() {
         }
     };
 
-    // --- RENDERIZADO DE PASOS ---
+    // --- RENDERIZADO DE PASOS (Igual que antes) ---
     
     const stepsConfig = [
         { id: 1, title: "Personales", icon: <User size={18}/> },
@@ -251,7 +279,7 @@ function HazteHermano() {
                                             <InputField label="Segundo Apellido" name="segundo_apellido" value={formData.segundo_apellido} onChange={handleChange} error={fieldErrors.segundo_apellido} required />
                                         </div>
                                         
-                                        {/* Fila 3: Fecha nacimiento, Género y Estado Civil (AHORA EN 3 COLUMNAS) */}
+                                        {/* Fila 3: Fecha nacimiento, Género y Estado Civil */}
                                         <div className="full-width-col three-cols-row">
                                             <div className="form-group-custom">
                                                 <label>Fecha de Nacimiento *</label>
