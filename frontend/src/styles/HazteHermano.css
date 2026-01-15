@@ -1,63 +1,236 @@
-
-
-.card-wide {
-    max-width: 1200px;
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff; /* Un tono muy suave para fondos seleccionados */
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    --border-color: #e5e7eb;
+    --error-color: #dc2626;
+    --success-color: #16a34a;
+    --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-.alert-box {
-    padding: 15px;
+/* =========================================
+   ESTRUCTURA PRINCIPAL (Heredada de CrearActo)
+   ========================================= */
+
+.site-wrapper {
+    min-height: 100vh;
+    background-color: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-family);
+}
+
+.main-container-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centrado vertical en escritorio */
+    padding: 2rem 1rem;
+}
+
+.card-container-area {
+    background-color: var(--white);
     border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px; /* Ancho estándar */
+    display: flex;
+    flex-direction: column;
 }
 
-.alert-box.error {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border: 1px solid #fca5a5;
+/* Clase específica para el Wizard que necesita más anchura */
+.card-wide {
+    max-width: 900px;
 }
+
+/* Header del contenido (Títulos y botón volver) */
+.content-header-area {
+    margin-bottom: 2rem;
+}
+
+.title-row-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.title-row-area h1 {
+    font-size: 1.5rem;
+    color: var(--burgundy-primary);
+    margin: 0;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.description-area {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.btn-back-area {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+}
+
+.btn-back-area:hover {
+    color: var(--text-main);
+    background-color: var(--bg-light);
+}
+
+/* =========================================
+   WIZARD PROGRESS (Barra de Pasos)
+   ========================================= */
+
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+    padding: 0 10px;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+/* Línea conectora */
+.step-line {
+    position: absolute;
+    top: 20px; /* Mitad del círculo (40px / 2) */
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: var(--border-color);
+    z-index: -1;
+    transition: background-color 0.4s ease;
+}
+
+.step-item:last-child .step-line {
+    display: none;
+}
+
+/* Círculo del paso */
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-light);
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.step-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Estados del Wizard */
+.step-item.active .step-circle {
+    background-color: var(--white);
+    border-color: var(--burgundy-primary);
+    color: var(--burgundy-primary);
+    box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.1);
+    transform: scale(1.1);
+}
+
+.step-item.active .step-title {
+    color: var(--burgundy-primary);
+    font-weight: 700;
+}
+
+.step-item.completed .step-circle {
+    background-color: var(--burgundy-primary);
+    border-color: var(--burgundy-primary);
+    color: var(--white);
+}
+
+.step-item.completed .step-line {
+    background-color: var(--burgundy-primary);
+}
+
+/* =========================================
+   FORMULARIOS E INPUTS (Estilo CrearActo)
+   ========================================= */
 
 .register-form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 1.5rem;
 }
 
 .form-section-title {
     font-size: 1.1rem;
-    font-weight: 700;
-    color: #4f46e5; /* Morado Hermandad */
-    border-bottom: 2px solid #e0e7ff;
-    padding-bottom: 8px;
-    margin-top: 10px;
+    color: var(--burgundy-primary);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.5rem;
 }
 
+/* Grid System para los inputs */
 .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas por defecto */
-    gap: 20px;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
 }
 
 .full-width-col {
-    grid-column: 1 / -1;
+    grid-column: span 2;
 }
 
-/* INPUTS Y LABELS CUSTOM */
+.three-cols-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* Estilo de Inputs (Idéntico a CrearActo) */
 .form-group-custom {
     display: flex;
     flex-direction: column;
-    gap: 6px;
 }
 
 .form-group-custom label {
-    font-size: 0.85rem;
+    display: block;
+    font-size: 0.70rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--text-main);
+    margin-bottom: 0.3rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .input-wrapper {
@@ -66,95 +239,248 @@
     align-items: center;
 }
 
-.input-wrapper input,
-.input-wrapper select {
+.form-group-custom input,
+.form-group-custom select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    transition: all 0.2s;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.4rem;
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+    color: var(--text-main);
+    background-color: var(--white);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    height: 2.5rem;
 }
 
-.input-wrapper input.with-icon {
-    padding-left: 35px;
-}
-
+/* Iconos dentro de inputs */
 .input-icon {
     position: absolute;
     left: 10px;
-    color: #9ca3af;
+    color: var(--text-muted);
+    pointer-events: none;
     display: flex;
     align-items: center;
 }
 
-.input-wrapper input:focus,
-.input-wrapper select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    outline: none;
+.form-group-custom input.with-icon {
+    padding-left: 2.2rem;
 }
 
+/* Placeholders */
+.form-group-custom input::placeholder {
+    color: #c1aecb; /* Mismo tono morado claro que CrearActo */
+}
+
+/* Focus States */
+.form-group-custom input:focus,
+.form-group-custom select:focus {
+    border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 1px var(--burgundy-primary);
+}
+
+/* Errores */
 .input-wrapper.has-error input {
-    border-color: #ef4444;
+    border-color: var(--error-color);
+    background-color: #fff5f5;
 }
 
 .error-text {
-    font-size: 0.8rem;
-    color: #ef4444;
-    margin-top: 2px;
+    font-size: 0.75rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
 }
 
-/* ÁREAS DE INTERÉS - GRID DE TARJETAS */
+.alert-box {
+    padding: 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+.alert-box.error {
+    background-color: #fee2e2;
+    color: var(--error-color);
+    border: 1px solid #fecaca;
+}
+
+/* Checkbox personalizado */
+.checkbox-group label {
+    font-size: 0.9rem !important;
+    text-transform: none !important;
+    font-weight: normal !important;
+    color: var(--text-main) !important;
+}
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    height: auto;
+    margin-right: 10px;
+    accent-color: var(--burgundy-primary);
+}
+
+/* =========================================
+   AREAS DE INTERES (Tarjetas seleccionables)
+   ========================================= */
+
 .areas-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .area-card {
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
     cursor: pointer;
     transition: all 0.2s;
-    background: #fff;
+    background-color: var(--white);
     font-size: 0.9rem;
-    color: #4b5563;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 500;
 }
 
 .area-card:hover {
-    border-color: #6366f1;
-    background-color: #f5f3ff;
+    background-color: var(--bg-light);
+    border-color: #ccc;
 }
 
 .area-card.selected {
-    background-color: #e0e7ff;
-    border-color: #4f46e5;
-    color: #312e81;
+    border-color: var(--burgundy-primary);
+    background-color: var(--burgundy-light);
+    color: var(--burgundy-primary);
     font-weight: 600;
+    box-shadow: 0 2px 4px rgba(128, 0, 32, 0.1);
 }
 
 .small-desc {
-    font-size: 0.9rem;
-    color: #6b7280;
-    margin-top: -15px;
-    margin-bottom: 10px;
-    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
 }
 
-.btn-large {
-    padding: 12px 30px;
-    font-size: 1rem;
+/* =========================================
+   BOTONERA (Actions)
+   ========================================= */
+
+.wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--bg-light);
 }
 
-/* RESPONSIVE */
+/* Botón Siguiente / Guardar (Estilo .btn-save-acto) */
+.btn-purple, .btn-save-acto {
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0 1.5rem;
+    height: 44px;
+    font-weight: 600;
+    font-family: var(--font-family);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-purple:hover, .btn-save-acto:hover {
+    background-color: var(--burgundy-dark);
+}
+
+.btn-next {
+    margin-left: auto; /* Empujar a la derecha */
+}
+
+/* Botón Anterior / Cancelar (Estilo .btn-cancel-acto) */
+.btn-outline-acto, .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-radius: 0.5rem;
+    padding: 0 1.5rem;
+    height: 44px;
+    font-weight: 500;
+    font-family: var(--font-family);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.btn-outline-acto:hover, .btn-outline:hover {
+    color: var(--text-main);
+    border-color: #ccc;
+    background-color: var(--bg-light);
+}
+
+/* =========================================
+   RESPONSIVIDAD
+   ========================================= */
+
 @media (max-width: 768px) {
+    .main-container-area {
+        padding: 1rem;
+        height: auto; /* Permitir scroll en móvil */
+        align-items: flex-start;
+    }
+
+    .card-container-area {
+        padding: 1.5rem;
+    }
+
+    /* En móvil, los inputs van en una sola columna */
     .form-grid {
-        grid-template-columns: 1fr; /* Una columna en móvil */
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
-    .areas-grid {
-        grid-template-columns: 1fr 1fr;
+    
+    .full-width-col {
+        grid-column: span 1;
     }
+
+    /* Ocultar títulos de pasos si no caben */
+    .step-title {
+        display: none;
+    }
+
+    .wizard-progress {
+        margin-bottom: 1.5rem;
+    }
+    
+    .wizard-actions {
+        flex-direction: column-reverse; /* Botón principal arriba en móvil */
+        gap: 1rem;
+    }
+    
+    .btn-next, .btn-outline-acto {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+    }
+
+    .three-cols-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* Animación de entrada suave para los pasos */
+.step-anim {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

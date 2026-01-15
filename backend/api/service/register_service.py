@@ -22,6 +22,8 @@ def create_hermano_solicitud_service(data_validada):
     data_validada['estado_pago'] = User.EstadoPago.PENDIENTE
     data_validada['numero_registro'] = None
     data_validada['esAdmin'] = False
+    data_validada['fecha_ingreso_corporacion'] = None
+    data_validada['fecha_baja_corporacion'] = None
 
     hermano = User(**data_validada)
     hermano.set_password(password)
@@ -48,6 +50,10 @@ def activar_hermano_service(admin_user, hermano_id):
 
     hermano.estado_hermano = User.EstadoHermano.ALTA
     hermano.numero_registro = siguiente_numero
+
+    hermano.fecha_ingreso_corporacion = timezone.now().date()
+
+    hermano.fecha_baja_corporacion = None
 
     hermano.estado_pago = User.EstadoPago.PAGADO
 

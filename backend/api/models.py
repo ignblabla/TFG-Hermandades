@@ -130,6 +130,8 @@ class Hermano(AbstractUser):
 
     numero_registro = models.PositiveIntegerField(unique=True, verbose_name="Número de registro", help_text="Número de registro en la hermandad", null=True, blank=True)
     estado_hermano = models.CharField(max_length=20, choices=EstadoHermano.choices, default=EstadoHermano.PENDIENTE_INGRESO, verbose_name="Estado del hermano")
+    fecha_ingreso_corporacion = models.DateField(null=True, blank=True, verbose_name="Fecha de ingreso", help_text="Fecha oficial de admisión en la nómina de la Hermandad.")
+    fecha_baja_corporacion = models.DateField(null=True, blank=True, verbose_name="Fecha de baja",help_text="Fecha en la que se hizo efectiva la baja (si procede).")
 
     esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
 
@@ -158,6 +160,16 @@ class Hermano(AbstractUser):
     def esta_al_corriente(self):
         """Retorna True si el hermano tiene derechos económicos vigentes."""
         return self.estado_pago in [self.EstadoPago.PAGADO, self.EstadoPago.EXENTO]
+    
+    @property
+    def antiguedad_anios(self):
+        """Calcula la antigüedad en años para listados simples."""
+        if not self.fecha_ingreso_corporacion:
+            return 0
+        today = timezone.now().date()
+        return today.year - self.fecha_ingreso_corporacion.year - (
+            (today.month, today.day) < (self.fecha_ingreso_corporacion.month, self.fecha_ingreso_corporacion.day)
+        )
 
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
@@ -174,6 +186,17 @@ class Hermano(AbstractUser):
         if self.estado_hermano == self.EstadoHermano.ALTA and not self.numero_registro:
             raise ValidationError({'numero_hermano': 'Un hermano de Alta debe tener un número de registro asignado.'})
             pass
+
+        if self.fecha_ingreso_corporacion and self.fecha_baja_corporacion:
+            if self.fecha_baja_corporacion < self.fecha_ingreso_corporacion:
+                raise ValidationError({
+                    'fecha_baja_corporacion': 'La fecha de baja no puede ser anterior a la fecha de ingreso.'
+                })
+
+        if self.estado_hermano == self.EstadoHermano.BAJA and not self.fecha_baja_corporacion:
+            raise ValidationError({
+                'fecha_baja_corporacion': 'Si el estado es BAJA, debe indicar la fecha de la misma.'
+            })
     
     def save(self, *args, **kwargs):
         self.full_clean()

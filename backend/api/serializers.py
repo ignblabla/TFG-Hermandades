@@ -13,6 +13,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    antiguedad_anios = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -24,9 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
             "iban", "periodicidad", "es_titular", 
             "estado_hermano", "estado_pago",
             "numero_registro", "estado_hermano", "esAdmin",
+            "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios"
         ]
 
-        read_only_fields = ["estado_hermano", "estado_pago", "numero_registro", "esAdmin"]
+        read_only_fields = ["estado_hermano", "estado_pago", "numero_registro", "esAdmin", "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios"]
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -101,6 +104,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.areas_interes.set(areas_data)
 
         return instance
+
+
+class HermanoManagementSerializer(UserSerializer):
+    """
+    NUEVO: Serializador exclusivo para el rol ADMIN/SECRETARIA.
+    Hereda de UserSerializer pero desbloquea los campos administrativos.
+    Usar este serializador solo en vistas protegidas con IsAdminUser.
+    """
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ["antiguedad_anios"]
 
 
 class AreaInteresSerializer(serializers.ModelSerializer):
