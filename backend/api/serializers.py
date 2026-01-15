@@ -1,9 +1,54 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
+from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
 from django.db import transaction
 
 User = get_user_model()
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS FINANCIEROS (NUEVOS)
+# -----------------------------------------------------------------------------
+
+class DatosBancariosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DatosBancarios
+        fields = ['id', 'iban', 'es_titular', 'titular_cuenta', 'periodicidad']
+        extra_kwargs = {
+            "iban": {"required": True},
+            "periodicidad": {"required": True}
+        }
+
+    def validate_iban(self, value):
+        """
+        Sanitización del IBAN: Eliminar espacios y pasar a mayúsculas
+        antes de validar con el Regex del modelo.
+        """
+        if value:
+            return value.replace(" ", "").upper()
+        return value
+    
+
+class CuotaSerializer(serializers.ModelSerializer):
+    """
+    Historial de pagos. Generalmente es de solo lectura desde la API de perfil,
+    ya que los pagos se generan por procesos (Service) o pasarelas.
+    """
+    estado_display = serializers.CharField(source='get_estado_display', read_only=True)
+    tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
+
+    class Meta:
+        model = Cuota
+        fields = [
+            'id', 'anio', 'tipo', 'tipo_display', 'descripcion', 
+            'importe', 'estado', 'estado_display', 
+            'fecha_emision', 'fecha_pago', 'metodo_pago'
+        ]
+        read_only_fields = fields
+
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS DE USUARIO (HERMANO) - ACTUALIZADO
+# -----------------------------------------------------------------------------
 
 class UserSerializer(serializers.ModelSerializer):
     areas_interes = serializers.SlugRelatedField(
@@ -13,6 +58,13 @@ class UserSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    antiguedad_anios = serializers.IntegerField(read_only=True)
+    esta_al_corriente = serializers.BooleanField(read_only=True)
+
+    datos_bancarios = DatosBancariosSerializer(required=False)
+
+    historial_cuotas = CuotaSerializer(source='cuotas', many=True, read_only=True)
+
     class Meta:
         model = User
         fields = [
@@ -21,12 +73,18 @@ class UserSerializer(serializers.ModelSerializer):
             "password", "direccion", "codigo_postal", "localidad", 
             "provincia", "comunidad_autonoma", "lugar_bautismo", 
             "fecha_bautismo", "parroquia_bautismo", "areas_interes",
-            "iban", "periodicidad", "es_titular", 
-            "estado_hermano", "estado_pago",
+            # Nuevos campos anidados:
+            "datos_bancarios", "historial_cuotas", "esta_al_corriente",
+            # Campos de gestión:
             "numero_registro", "estado_hermano", "esAdmin",
+            "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios"
         ]
 
-        read_only_fields = ["estado_hermano", "estado_pago", "numero_registro", "esAdmin"]
+        read_only_fields = [
+            "estado_hermano", "numero_registro", "esAdmin", 
+            "fecha_ingreso_corporacion", "fecha_baja_corporacion", 
+            "antiguedad_anios", "esta_al_corriente", "historial_cuotas"
+        ]
 
         extra_kwargs = {
             "password": {"write_only": True},
@@ -69,7 +127,6 @@ class UserSerializer(serializers.ModelSerializer):
         return value
     
     
-    
 class UserUpdateSerializer(serializers.ModelSerializer):
     areas_interes = serializers.SlugRelatedField(
         many=True,
@@ -78,11 +135,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    datos_bancarios = DatosBancariosSerializer(required=False)
+
     class Meta:
         model = User
         fields = [
             "telefono", "direccion", "codigo_postal", "localidad", 
-            "provincia", "comunidad_autonoma", "estado_civil", "areas_interes"
+            "provincia", "comunidad_autonoma", "estado_civil", "areas_interes",
+            "datos_bancarios"
         ]
 
     def update(self, instance, validated_data):
@@ -101,6 +161,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.areas_interes.set(areas_data)
 
         return instance
+
+
+class HermanoManagementSerializer(UserSerializer):
+    """
+    NUEVO: Serializador exclusivo para el rol ADMIN/SECRETARIA.
+    Hereda de UserSerializer pero desbloquea los campos administrativos.
+    Usar este serializador solo en vistas protegidas con IsAdminUser.
+    """
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ["antiguedad_anios"]
 
 
 class AreaInteresSerializer(serializers.ModelSerializer):

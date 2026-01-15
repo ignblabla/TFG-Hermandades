@@ -1,3 +1,4 @@
+from django.db import DatabaseError
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import generics, status
@@ -12,19 +13,49 @@ from api.service.register_service import create_hermano_solicitud_service, activ
 # -----------------------------------------------------------------------------
 
 class HermanoCreateView(APIView):
+    """
+    Vista pública para la solicitud de alta de nuevos hermanos.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = UserSerializer(data = request.data)
+        # 1. CAPA DE VALIDACIÓN (Serializer)
+        # El serializer verifica que el DNI sea único, que el IBAN tenga formato, etc.
+        serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         try:
-            nuevo_hermano = create_hermano_solicitud_service(data_validada = serializer.validated_data)
+            # 2. CAPA DE NEGOCIO (Service)
+            # Pasamos una copia de los datos validados para no mutar el objeto original del serializer
+            # El servicio se encarga de la transacción atómica (Hermano + Banco)
+            nuevo_hermano = create_hermano_solicitud_service(
+                data_validada=serializer.validated_data.copy() 
+            )
+
+            # 3. RESPUESTA
+            # Serializamos el objeto creado para devolverlo al Frontend
+            # Usamos el mismo serializer para mantener coherencia en el formato
             response_serializer = UserSerializer(nuevo_hermano)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            # Errores de lógica de negocio (ej. "Ya existe una solicitud pendiente")
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
+        except DatabaseError:
+            # Errores de infraestructura
+            return Response(
+                {"detail": "Error temporal en el servidor de base de datos. Inténtelo más tarde."}, 
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+            
         except Exception as e:
-            return Response({"detail": f"Error procesando la solicitud: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            # Fallback para errores no controlados
+            # En producción, aquí deberías loguear el error (print(e) o usar logger)
+            return Response(
+                {"detail": "Ocurrió un error inesperado procesando su solicitud."}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
         
 
 class AprobarAltaHermanoView(APIView):
