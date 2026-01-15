@@ -32,9 +32,6 @@ def create_hermano_solicitud_service(data_validada):
     hermano.set_password(password)
     hermano.save()
 
-    if areas_interes:
-        hermano.areas_interes.set(areas_interes)
-
     if datos_bancarios_data:
         # Creamos la instancia vinculada usando el hermano recién creado
         DatosBancarios.objects.create(hermano=hermano, **datos_bancarios_data)

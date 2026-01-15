@@ -29,8 +29,6 @@ function HazteHermano() {
         lugar_bautismo: "", fecha_bautismo: "", parroquia_bautismo: "",
         // Paso 4
         iban: "", periodicidad: "TRIMESTRAL", es_titular: true,
-        // Paso 5
-        areas_interes: [] 
     });
 
     const areasOptions = [
@@ -202,7 +200,6 @@ function HazteHermano() {
         { id: 2, title: "Contacto", icon: <MapPin size={18}/> },
         { id: 3, title: "Sacramentales", icon: <Church size={18}/> },
         { id: 4, title: "Bancarios", icon: <CreditCard size={18}/> },
-        { id: 5, title: "Intereses", icon: <Calendar size={18}/> },
     ];
 
     if (success) {
@@ -353,28 +350,7 @@ function HazteHermano() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* PASO 5: AREAS */}
-                            {currentStep === 5 && (
-                                <div className="step-anim">
-                                    <div className="form-section-title">Áreas de Interés (Opcional)</div>
-                                    <p className="small-desc">Marque las áreas en las que le gustaría colaborar con la Hermandad.</p>
-                                    <div className="areas-grid">
-                                        {areasOptions.map(option => (
-                                            <label key={option.value} className={`area-card ${formData.areas_interes.includes(option.value) ? 'selected' : ''}`}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    value={option.value}
-                                                    checked={formData.areas_interes.includes(option.value)}
-                                                    onChange={() => handleAreaChange(option.value)}
-                                                    style={{display: 'none'}}
-                                                />
-                                                {option.label}
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                
 
                             {/* --- BOTONERA DE NAVEGACIÓN --- */}
                             <div className="wizard-actions">
