@@ -53,27 +53,27 @@ def create_hermano_solicitud_service(data_validada):
     return hermano
 
 
-# @transaction.atomic
-# def activar_hermano_service(admin_user, hermano_id):
-#     if not getattr(admin_user, 'esAdmin', False):
-#         raise PermissionDenied("Solo los administradores pueden dar de alta a un hermano.")
+@transaction.atomic
+def activar_hermano_service(admin_user, hermano_id):
+    if not getattr(admin_user, 'esAdmin', False):
+        raise PermissionDenied("Solo los administradores pueden dar de alta a un hermano.")
     
-#     hermano = get_object_or_404(User, pk=hermano_id)
+    hermano = get_object_or_404(User, pk=hermano_id)
 
-#     if hermano.estado_hermano == User.EstadoHermano.ALTA:
-#         raise ValidationError({"estado_hermano": "El hermano ya está de alta."})
+    if hermano.estado_hermano == User.EstadoHermano.ALTA:
+        raise ValidationError({"estado_hermano": "El hermano ya está de alta."})
     
-#     max_num = User.objects.aggregate(models.Max('numero_registro'))['numero_registro__max']
-#     siguiente_numero = 1 if max_num is None else max_num + 1
+    max_num = User.objects.aggregate(models.Max('numero_registro'))['numero_registro__max']
+    siguiente_numero = 1 if max_num is None else max_num + 1
 
-#     hermano.estado_hermano = User.EstadoHermano.ALTA
-#     hermano.numero_registro = siguiente_numero
+    hermano.estado_hermano = User.EstadoHermano.ALTA
+    hermano.numero_registro = siguiente_numero
 
-#     hermano.fecha_ingreso_corporacion = timezone.now().date()
+    hermano.fecha_ingreso_corporacion = timezone.now().date()
 
-#     hermano.fecha_baja_corporacion = None
+    hermano.fecha_baja_corporacion = None
 
-#     hermano.estado_pago = User.EstadoPago.PAGADO
+    hermano.estado_pago = User.EstadoPago.PAGADO
 
-#     hermano.save()
-#     return hermano
+    hermano.save()
+    return hermano
