@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
+from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
 from django.db import transaction
 
 User = get_user_model()
@@ -230,7 +230,7 @@ class HermanoCuerpoSerializer(serializers.ModelSerializer):
 class TipoPuestoSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoPuesto
-        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno']
+        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno', 'es_insignia']
 
 class PuestoSerializer(serializers.ModelSerializer):
     tipo_puesto = serializers.SlugRelatedField(
@@ -238,13 +238,16 @@ class PuestoSerializer(serializers.ModelSerializer):
         queryset=TipoPuesto.objects.all()
     )
 
+    es_insignia = serializers.BooleanField(source='tipo_puesto.es_insignia', read_only=True)
+
     class Meta:
         model = Puesto
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
             'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
-            'tipo_puesto'
+            'tipo_puesto', 'es_insignia'
         ]
+        
 
         extra_kwargs = {
             'hora_citacion': {
@@ -304,7 +307,8 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
     class Meta:
         model = PapeletaSitio
         fields = [
-            'id', 'estado_papeleta', 'fecha_emision', 'codigo_verificacion', 
+            'id', 'estado_papeleta', 'es_solicitud_insignia',
+            'fecha_solicitud', 'fecha_emision', 'codigo_verificacion', 
             'anio', 'hermano', 'nombre_hermano', 'apellidos_hermano',
             'acto', 'nombre_acto', 
             'puesto', 'nombre_puesto'
@@ -348,3 +352,140 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
                 })
 
         return data
+    
+
+
+
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS PARA SOLICITUD DE INSIGNIAS Y PAPELETAS
+# -----------------------------------------------------------------------------
+
+class PreferenciaSolicitudSerializer(serializers.ModelSerializer):
+    nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True)
+    tipo_puesto_nombre = serializers.CharField(source='puesto.tipo_puesto.nombre_tipo', read_only=True)
+    es_insignia = serializers.BooleanField(source='puesto.tipo_puesto.es_insignia', read_only=True)
+
+    puesto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Puesto.objects.filter(disponible=True),
+        source='puesto',
+        write_only=True
+    )
+
+    class Meta:
+        model = PreferenciaSolicitud
+        fields = ['id', 'puesto_id', 'nombre_puesto', 'tipo_puesto_nombre', 'orden_prioridad', 'es_insignia']
+
+        def validate(self, data):
+            puesto = data.get('puesto')
+            
+            if puesto and not puesto.disponible:
+                raise serializers.ValidationError(f"El puesto {puesto.nombre} ya no está disponible.")
+                
+            return data
+        
+
+class SolicitudInsigniaSerializer(serializers.ModelSerializer):
+    """
+    Serializador Transaccional: Recibe la intención de sacar papeleta y
+    una lista de preferencias de puestos/insignias.
+    """
+    # Nested Serializer para recibir la lista de opciones (Ej: [Vara, Cirio, Manigueta])
+    preferencias = PreferenciaSolicitudSerializer(many=True)
+    
+    # Campos informativos del hermano y acto
+    nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
+    
+    # Input field para el ID del acto (necesario al crear la solicitud)
+    acto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Acto.objects.all(), 
+        source='acto', 
+        write_only=True
+    )
+
+    class Meta:
+        model = PapeletaSitio
+        fields = [
+            'id', 'acto_id', 'fecha_solicitud', 'nombre_acto', 'anio', 
+            'fecha_emision', 'estado_papeleta', 'es_solicitud_insignia',
+            'preferencias'
+        ]
+        read_only_fields = ['id', 'anio', 'fecha_emision', 'estado_papeleta', 'fecha_solicitud', 'es_solicitud_insignia']
+
+    def validate_preferencias(self, value):
+        """
+        Validación de lógica de conjunto (Set Logic):
+        1. No puede haber puestos repetidos.
+        2. El orden de prioridad debe ser secuencial (1, 2, 3...).
+        """
+        if not value:
+            raise serializers.ValidationError("Debe indicar al menos una preferencia de sitio.")
+
+        puestos_vistos = set()
+        ordenes_vistos = []
+
+        for item in value:
+            puesto = item['puesto']
+            orden = item['orden_prioridad']
+
+            if not puesto.tipo_puesto.es_insignia:
+                raise serializers.ValidationError(
+                    f"El puesto '{puesto.nombre}' no es una insignia válida para esta solicitud."
+                )
+
+            # 1. Chequeo de duplicados
+            if puesto.id in puestos_vistos:
+                raise serializers.ValidationError(f"El puesto '{puesto.nombre}' está repetido en sus preferencias.")
+            puestos_vistos.add(puesto.id)
+            
+            ordenes_vistos.append(orden)
+
+        # 2. Chequeo de secuencia (opcional, pero recomendado para UI limpia)
+        ordenes_vistos.sort()
+        expected_sequence = list(range(1, len(ordenes_vistos) + 1))
+        if ordenes_vistos != expected_sequence:
+            raise serializers.ValidationError("El orden de prioridad debe ser consecutivo (1, 2, 3...) sin saltos.")
+
+        return value
+
+    def validate(self, data):
+        """
+        Validación cruzada Acto vs Puestos solicitados.
+        """
+        acto = data.get('acto')
+        preferencias = data.get('preferencias')
+        
+        # Validar que todos los puestos solicitados pertenecen al acto indicado
+        for item in preferencias:
+            puesto = item['puesto']
+            if puesto.acto.id != acto.id:
+                raise serializers.ValidationError({
+                    "preferencias": f"El puesto '{puesto.nombre}' no pertenece al acto '{acto.nombre}'."
+                })
+            
+        return data
+    
+
+    def create(self, validated_data):
+        """
+        Sobrescribimos create para manejar la escritura de campos anidados (preferencias).
+        """
+        # 1. Extraemos los datos anidados de la lista 'preferencias'
+        preferencias_data = validated_data.pop('preferencias')
+
+        # 2. Usamos una transacción atómica: O se guarda todo, o no se guarda nada.
+        with transaction.atomic():
+            # 3. Creamos la instancia del Padre (PapeletaSitio)
+            # validated_data ya contiene el resto de datos limpios y el 'hermano' (si lo pasas en el save del servicio)
+            papeleta = PapeletaSitio.objects.create(**validated_data)
+
+            # 4. Iteramos sobre los hijos y los creamos vinculándolos al padre
+            for preferencia_item in preferencias_data:
+                # preferencia_item es un diccionario con {'puesto': objeto_puesto, 'orden_prioridad': int}
+                PreferenciaSolicitud.objects.create(
+                    papeleta=papeleta,
+                    puesto_solicitado=preferencia_item['puesto'],
+                    orden_prioridad=preferencia_item['orden_prioridad']
+                )
+
+        return papeleta

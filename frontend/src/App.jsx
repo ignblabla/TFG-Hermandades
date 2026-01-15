@@ -12,6 +12,7 @@ import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
+import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -60,6 +61,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-insignia"
+          element={
+            <ProtectedRoute>
+              <CrearSolicitudInsignia />
             </ProtectedRoute>
           }
         />

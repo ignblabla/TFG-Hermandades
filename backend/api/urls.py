@@ -1,6 +1,7 @@
 from django.urls import path
 
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
+from api.view.solicitud_papeleta_insignia_view import SolicitarInsigniaView
 from . import views
 from .views import TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
@@ -14,4 +15,6 @@ urlpatterns = [
     path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
     path("tipos-puesto/", TipoPuestoListView.as_view(), name="lista-tipos-puesto"),
     path("tipos-acto/", TipoActoListView.as_view(), name="lista-tipos-acto"),
+
+    path("papeletas/solicitar-insignia/", SolicitarInsigniaView.as_view(), name="solicitar-insignia"),
 ]

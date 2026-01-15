@@ -7,7 +7,9 @@ from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 
-    
+# -----------------------------------------------------------------------------
+# ENTIDAD: AREA DE INTERÉS
+# -----------------------------------------------------------------------------
 class AreaInteres(models.Model):
     class NombreArea(models.TextChoices):
         CARIDAD = 'CARIDAD', 'Caridad'
@@ -24,6 +26,9 @@ class AreaInteres(models.Model):
     def __str__(self):
         return self.get_nombre_area_display()
     
+# -----------------------------------------------------------------------------
+# ENTIDAD: CUERPO DE PERTENENCIA
+# -----------------------------------------------------------------------------
 class CuerpoPertenencia(models.Model):
     class NombreCuerpo(models.TextChoices):
         COSTALEROS = 'COSTALEROS', 'Costaleros'
@@ -43,6 +48,9 @@ class CuerpoPertenencia(models.Model):
     def __str__(self):
         return self.get_nombre_cuerpo_display()
     
+# -----------------------------------------------------------------------------
+# ENTIDAD: HERMANO - CUERPO
+# -----------------------------------------------------------------------------    
 class HermanoCuerpo(models.Model):
     hermano = models.ForeignKey('Hermano', on_delete=models.CASCADE, related_name='pertenencias_cuerpos',verbose_name="Hermano")
 
@@ -58,7 +66,9 @@ class HermanoCuerpo(models.Model):
     def __str__(self):
         return f"{self.hermano} en {self.cuerpo} desde {self.anio_ingreso}"
     
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: DATOS BANCARIOS
+# -----------------------------------------------------------------------------
 class DatosBancarios(models.Model):
     iban_validator = RegexValidator(
         regex=r'^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$',
@@ -81,7 +91,9 @@ class DatosBancarios(models.Model):
     def __str__(self):
         return f"Datos bancarios de {self.hermano}"
     
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: CUOTA
+# -----------------------------------------------------------------------------
 class Cuota(models.Model):
     class TipoCuota(models.TextChoices):
         ORDINARIA = 'ORDINARIA', 'Cuota de Hermano'
@@ -118,7 +130,9 @@ class Cuota(models.Model):
     def __str__(self):
         return f"{self.anio} - {self.tipo} - {self.hermano}"
 
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: HERMANO
+# -----------------------------------------------------------------------------
 class Hermano(AbstractUser):
     class Genero(models.TextChoices):
         MASCULINO = 'MASCULINO', 'Masculino'
@@ -244,7 +258,9 @@ class Hermano(AbstractUser):
             self.username = self.dni
         super().save(*args, **kwargs)
 
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: TIPO DE ACTO
+# -----------------------------------------------------------------------------
 class TipoActo(models.Model):
     class OpcionesTipo(models.TextChoices):
         ESTACION_PENITENCIA = 'ESTACION_PENITENCIA', 'Estación de Penitencia'
@@ -256,12 +272,15 @@ class TipoActo(models.Model):
         ROSARIO_AURORA = 'ROSARIO_AURORA', 'Rosario de la Aurora'
         CONVIVENCIA = 'CONVIVENCIA', 'Convivencia'
         PROCESION_EUCARISTICA = 'PROCESION_EUCARISTICA', 'Procesión Eucarística'
+        PROCESION_EXTRAORDINARIA = 'PROCESION_EXTRAORDINARIA', 'Procesión Extraordinaria'
         
 
     tipo = models.CharField(max_length=50, choices=OpcionesTipo.choices, unique=True, verbose_name="Tipo de Acto")
     requiere_papeleta = models.BooleanField(default=False, verbose_name='¿Requiere papeleta?', help_text="Marcar si este tipo de acto implica reparto de papeletas de sitio")
     
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: ACTO
+# -----------------------------------------------------------------------------
 class Acto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
@@ -276,8 +295,9 @@ class Acto(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.fecha.year})"
 
-
-    
+# -----------------------------------------------------------------------------
+# ENTIDAD: TIPO DE PUESTO
+# -----------------------------------------------------------------------------
 class TipoPuesto(models.Model):
     """
     Representa la categoría o tipología del puesto.
@@ -288,11 +308,18 @@ class TipoPuesto(models.Model):
         verbose_name="Solo para Junta de Gobierno",
         help_text="Si se marca, este tipo de puesto estará restringido a miembros de la Junta de Gobierno."
     )
+    es_insignia = models.BooleanField(
+        default=False, 
+        verbose_name="¿Es insignia?", 
+        help_text="Marcar si este puesto se considera una insignia o vara."
+    )
 
     def __str__(self):
         return self.nombre_tipo
 
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: PUESTO
+# -----------------------------------------------------------------------------
 class Puesto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
     numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones", default=1)
@@ -307,7 +334,9 @@ class Puesto(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.tipo_puesto.nombre_tipo}) - {self.acto.nombre}"
     
-
+# -----------------------------------------------------------------------------
+# ENTIDAD: PAPELETA DE SITIO
+# -----------------------------------------------------------------------------
 class PapeletaSitio(models.Model):
     class EstadoPapeleta(models.TextChoices):
         NO_SOLICITADA = 'NO_SOLICITADA', 'No solicitada'
@@ -318,7 +347,8 @@ class PapeletaSitio(models.Model):
         ANULADA = 'ANULADA', 'Anulada'
 
     estado_papeleta = models.CharField(max_length=20, choices=EstadoPapeleta.choices, default=EstadoPapeleta.NO_SOLICITADA, verbose_name="Estado")
-    fecha_emision = models.DateField(auto_now_add=True, verbose_name="Fecha de emisión")
+    fecha_solicitud = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de solicitud", help_text="Fecha y hora exacta en la que el Hermano realizó la solicitud")
+    fecha_emision = models.DateField(null=True, blank=True, verbose_name="Fecha de emisión")
     codigo_verificacion = models.CharField(max_length=100, verbose_name="Código de verificación", help_text="Código único para validad la autenticidad")
     anio = models.PositiveIntegerField(verbose_name="Año")
 
@@ -326,5 +356,19 @@ class PapeletaSitio(models.Model):
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
 
+    numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
+    es_solicitud_insignia = models.BooleanField(default=False, verbose_name="¿Es solicitud de insignia?")
+
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+# -----------------------------------------------------------------------------
+# ENTIDAD: PREFERENCIA SOLICITUD
+# -----------------------------------------------------------------------------
+class PreferenciaSolicitud(models.Model):
+    papeleta = models.ForeignKey(PapeletaSitio, on_delete=models.CASCADE, related_name="preferencias", verbose_name="Papeleta asociada")
+    puesto_solicitado = models.ForeignKey(Puesto, on_delete=models.CASCADE, related_name="solicitudes_preferencia", verbose_name="Puesto solicitado")
+    orden_prioridad = models.PositiveIntegerField(verbose_name="Orden de prioridad", help_text="1 para la primera opción, 2 para la segunda, etc.")
+
+    def __str__(self):
+        return f"{self.papeleta} - Puesto: {self.puesto_solicitado.nombre} (Prioridad: {self.orden_prioridad})"
