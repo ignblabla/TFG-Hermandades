@@ -294,22 +294,16 @@ function CrearActo() {
                             {/* SECCIÓN CONDICIONAL DINÁMICA */}
                             {requierePapeleta() && (
                                 <>
-                                    {/* BLOQUE INSIGNIAS */}
-                                    <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '10px'}}>
-                                        <div className="full-width" style={{marginBottom: '10px'}}>
-                                            <label style={{fontWeight: 'bold', color: '#4f46e5'}}>1. SOLICITUD DE INSIGNIAS</label>
-                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>Fechas para solicitud de Varas, Insignias y puestos asignados.</p>
-                                        </div>
-                                        
+                                    <div className="form-row-acto">
                                         <div className="form-group-acto">
-                                            <label htmlFor="inicio_solicitud">INICIO (INSIGNIAS)</label>
+                                            <label htmlFor="inicio_solicitud">FECHA INICIO SOLICITUD INSIGNIAS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔓</span>
                                                 <input 
                                                     type="datetime-local" 
                                                     id="inicio_solicitud"
                                                     name="inicio_solicitud"
-                                                    required // Asumo requerido si hay papeleta
+                                                    required
                                                     value={formData.inicio_solicitud}
                                                     onChange={handleChange}
                                                 />
@@ -317,7 +311,7 @@ function CrearActo() {
                                         </div>
 
                                         <div className="form-group-acto">
-                                            <label htmlFor="fin_solicitud">FIN (INSIGNIAS)</label>
+                                            <label htmlFor="fin_solicitud">FECHA FIN SOLICITUD INSIGNIAS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔒</span>
                                                 <input 
@@ -330,25 +324,16 @@ function CrearActo() {
                                                 />
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* BLOQUE CIRIOS / GENERAL */}
-                                    <div className="form-row-acto" style={{backgroundColor: '#f3f4f6', padding: '15px', borderRadius: '8px', border: '1px solid #d1d5db', marginBottom: '20px'}}>
-                                        <div className="full-width" style={{marginBottom: '10px'}}>
-                                            <label style={{fontWeight: 'bold', color: '#059669'}}>2. SOLICITUD DE CIRIOS</label>
-                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>Fechas para solicitud de papeletas de sitio generales (Cirios).</p>
-                                        </div>
-                                        
                                         <div className="form-group-acto">
-                                            <label htmlFor="inicio_solicitud_cirios">INICIO (CIRIOS)</label>
+                                            <label htmlFor="inicio_solicitud_cirios">FECHA INICIO SOLICITUD CIRIOS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🕯️</span>
                                                 <input 
                                                     type="datetime-local" 
                                                     id="inicio_solicitud_cirios"
                                                     name="inicio_solicitud_cirios"
-                                                    // No pongo 'required' estricto en HTML por si quieres dejarlo vacío, 
-                                                    // pero lo lógico sería validarlo.
+                                                    required
                                                     value={formData.inicio_solicitud_cirios}
                                                     onChange={handleChange}
                                                 />
@@ -356,13 +341,14 @@ function CrearActo() {
                                         </div>
 
                                         <div className="form-group-acto">
-                                            <label htmlFor="fin_solicitud_cirios">FIN (CIRIOS)</label>
+                                            <label htmlFor="fin_solicitud_cirios">FECHA FIN SOLICITUD CIRIOS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔒</span>
                                                 <input 
                                                     type="datetime-local" 
                                                     id="fin_solicitud_cirios"
                                                     name="fin_solicitud_cirios"
+                                                    required
                                                     value={formData.fin_solicitud_cirios}
                                                     onChange={handleChange}
                                                 />

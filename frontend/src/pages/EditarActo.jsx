@@ -277,7 +277,6 @@ function EditarActo() {
                     <section className="form-card-acto">
                         <form className="event-form-acto" onSubmit={handleSubmit}>
                             
-                            {/* CAMPO NOMBRE */}
                             <div className="form-group-acto full-width">
                                 <label htmlFor="nombre">NOMBRE DEL ACTO</label>
                                 <div className="input-with-icon-acto">
@@ -295,7 +294,6 @@ function EditarActo() {
                             </div>
 
                             <div className="form-row-acto">
-                                {/* CAMPO TIPO ACTO - DINÁMICO */}
                                 <div className="form-group-acto">
                                     <label htmlFor="tipo_acto">TIPO DE ACTO</label>
                                     <div className="input-with-icon-acto">
@@ -317,7 +315,6 @@ function EditarActo() {
                                     </div>
                                 </div>
 
-                                {/* CAMPO FECHA */}
                                 <div className="form-group-acto">
                                     <label htmlFor="fecha">FECHA Y HORA</label>
                                     <div className="input-with-icon-acto">
@@ -336,20 +333,11 @@ function EditarActo() {
                                 </div>
                             </div>
 
-                            {/* --- SECCIÓN CONDICIONAL: FECHAS DE PAPELETA --- */}
                             {requierePapeleta() && (
                                 <>
-                                    {/* BLOQUE 1: INSIGNIAS */}
-                                    <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '10px'}}>
-                                        <div className="full-width" style={{marginBottom: '10px'}}>
-                                            <label style={{fontWeight: 'bold', color: '#4f46e5'}}>1. SOLICITUD DE INSIGNIAS</label>
-                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
-                                                Plazos para solicitud de Varas e Insignias.
-                                            </p>
-                                        </div>
-                                        
+                                    <div className="form-row-acto">
                                         <div className="form-group-acto">
-                                            <label htmlFor="inicio_solicitud">INICIO (INSIGNIAS)</label>
+                                            <label htmlFor="inicio_solicitud">FECHA INICIO SOLICITUD INSIGNIAS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔓</span>
                                                 <input 
@@ -364,7 +352,7 @@ function EditarActo() {
                                         </div>
 
                                         <div className="form-group-acto">
-                                            <label htmlFor="fin_solicitud">FIN (INSIGNIAS)</label>
+                                            <label htmlFor="fin_solicitud">FECHA FIN SOLICITUD INSIGNIAS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔒</span>
                                                 <input 
@@ -377,19 +365,9 @@ function EditarActo() {
                                                 />
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* BLOQUE 2: CIRIOS / GENERAL */}
-                                    <div className="form-row-acto" style={{backgroundColor: '#f3f4f6', padding: '15px', borderRadius: '8px', border: '1px solid #d1d5db', marginBottom: '20px'}}>
-                                        <div className="full-width" style={{marginBottom: '10px'}}>
-                                            <label style={{fontWeight: 'bold', color: '#059669'}}>2. SOLICITUD DE CIRIOS</label>
-                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
-                                                Plazos para solicitud de papeletas de sitio generales (Cirios).
-                                            </p>
-                                        </div>
-                                        
                                         <div className="form-group-acto">
-                                            <label htmlFor="inicio_solicitud_cirios">INICIO (CIRIOS)</label>
+                                            <label htmlFor="inicio_solicitud_cirios">FECHA INICIO SOLICITUD CIRIOS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🕯️</span>
                                                 <input 
@@ -403,7 +381,7 @@ function EditarActo() {
                                         </div>
 
                                         <div className="form-group-acto">
-                                            <label htmlFor="fin_solicitud_cirios">FIN (CIRIOS)</label>
+                                            <label htmlFor="fin_solicitud_cirios">FECHA FIN SOLICITUD CIRIOS</label>
                                             <div className="input-with-icon-acto">
                                                 <span className="icon-acto">🔒</span>
                                                 <input 
@@ -419,7 +397,6 @@ function EditarActo() {
                                 </>
                             )}
 
-                            {/* CAMPO DESCRIPCION */}
                             <div className="form-group-acto full-width">
                                 <label htmlFor="descripcion">DESCRIPCIÓN DEL ACTO</label>
                                 <textarea 
