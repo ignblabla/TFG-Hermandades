@@ -11,8 +11,9 @@ function HazteHermano() {
     
     // --- ESTADO DEL WIZARD ---
     const [currentStep, setCurrentStep] = useState(1);
-    const totalSteps = 5;
+    const totalSteps = 4;
 
+    const [user, setUser] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [generalError, setGeneralError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
@@ -20,11 +21,11 @@ function HazteHermano() {
 
     const [formData, setFormData] = useState({
         // Paso 1
-        dni: "", email: "", password: "", confirmPassword: "",
         nombre: "", primer_apellido: "", segundo_apellido: "",
         fecha_nacimiento: "", genero: "MASCULINO", estado_civil: "SOLTERO",
+        dni: "", password: "", confirmPassword: "",
         // Paso 2
-        telefono: "", direccion: "", codigo_postal: "", localidad: "", provincia: "", comunidad_autonoma: "",
+        email: "", telefono: "", direccion: "", codigo_postal: "", localidad: "", provincia: "", comunidad_autonoma: "",
         // Paso 3
         lugar_bautismo: "", fecha_bautismo: "", parroquia_bautismo: "",
         // Paso 4
@@ -80,12 +81,11 @@ function HazteHermano() {
         };
 
         if (step === 1) {
-            checkRequired("dni", "DNI");
-            checkRequired("email", "Email");
             checkRequired("nombre", "Nombre");
             checkRequired("primer_apellido", "Primer Apellido");
             checkRequired("segundo_apellido", "Segundo Apellido");
             checkRequired("fecha_nacimiento", "Fecha Nacimiento");
+            checkRequired("dni", "DNI");
             checkRequired("password", "Contraseña");
             checkRequired("confirmPassword", "Repetir Contraseña");
 
@@ -96,6 +96,7 @@ function HazteHermano() {
         }
 
         if (step === 2) {
+            checkRequired("email", "Email");
             checkRequired("telefono", "Teléfono");
             checkRequired("direccion", "Dirección");
             checkRequired("codigo_postal", "C.P.");
@@ -222,146 +223,499 @@ function HazteHermano() {
         <div className="site-wrapper">
             <nav className="navbar">
                 <div className="logo-container">
-                    <img src={logoEscudo} alt="Escudo" className="nav-logo" />
+                    <img src={logoEscudo} alt="Escudo San Gonzalo" className="nav-logo" />
                     <div className="logo-text">
                         <h4>Hermandad de San Gonzalo</h4>
-                        <span>SOLICITUD DE INGRESO</span>
+                        <span>SEVILLA</span>
                     </div>
                 </div>
-                <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
+
+                <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+                    ☰
+                </button>
+
+                <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
+                    <li><a href="#hermandad">Hermandad</a></li>
+                    <li><a href="#titulares">Titulares</a></li>
+                    <li><a href="#agenda">Agenda</a></li>
+                    <li><a href="#lunes-santo">Lunes Santo</a></li>
+                    <li><a href="#multimedia">Multimedia</a></li>
+                    
+                    <div className="nav-buttons-mobile">
+                        {user ? (
+                            <>
+                                <button className="btn-outline">
+                                    Hermano: {user.dni}
+                                </button>
+                                <button className="btn-purple" onClick={handleLogout}>
+                                    Cerrar Sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
+                                <button className="btn-purple">Hazte Hermano</button>
+                            </>
+                        )}
+                    </div>
+                </ul>
+
                 <div className="nav-buttons-desktop">
-                    <button className="btn-outline" onClick={() => navigate("/")}>Cancelar</button>
+                    {user ? (
+                            <>
+                            <button className="btn-outline" onClick={() => navigate("/editar-perfil")} style={{cursor: 'pointer'}}>
+                                Hermano: {user.dni}
+                            </button>
+                            <button className="btn-purple" onClick={handleLogout}>
+                                Cerrar Sesión
+                            </button>
+                            </>
+                    ) : (
+                        <>
+                            <button className="btn-outline" onClick={() => navigate("/login")}>Acceso Hermano</button>
+                            <button className="btn-purple">Hazte Hermano</button>
+                        </>
+                    )}
                 </div>
             </nav>
 
             <main className="main-container-area">
-                <div className="card-container-area card-wide">
-                    
-                    {/* --- HEADER DEL WIZARD (PROGRESO) --- */}
-                    <div className="wizard-progress">
+                <div className="card-container-area">
+                    <header className="content-header-area">
+                        <div className="title-row-area">
+                            <h1>Solicitud de nuevo ingreso</h1>
+                            <button className="btn-back-area" onClick={() => navigate(-1)}>
+                                <ArrowLeft size={16} /> Volver
+                            </button>
+                        </div>
+                        <p className="description-area">
+                            Complete los detalles para solicitar su ingreso como hermano.
+                        </p>
+                    </header>
+
+                    <div className="wizard-progress" style={{marginBottom: '20px'}}>
                         {stepsConfig.map((step, index) => (
                             <div key={step.id} className={`step-item ${currentStep === step.id ? 'active' : ''} ${currentStep > step.id ? 'completed' : ''}`}>
                                 <div className="step-circle">
-                                    {currentStep > step.id ? <Check size={16}/> : step.icon}
+                                    {currentStep > step.id ? <Check size={16}/> : step.id}
                                 </div>
-                                <span className="step-title">{step.title}</span>
+                                <span className="step-title" style={{fontSize:'0.8rem'}}>{step.title}</span>
                                 {index < stepsConfig.length - 1 && <div className="step-line"></div>}
                             </div>
                         ))}
                     </div>
 
-                    <div className="wizard-content">
-                        {generalError && (
-                            <div className="alert-box error" style={{marginBottom: '20px'}}>
-                                {generalError}
-                            </div>
-                        )}
-
-                        <form className="register-form" onSubmit={handleSubmit}>
-                            
-                            {/* PASO 1: DATOS PERSONALES */}
+                    {success && <div style={{padding: '10px', backgroundColor: '#dcfce7', color: '#16a34a', marginBottom: '1rem', borderRadius: '4px'}}>¡Solicitud de insignia creada correctamente! Redirigiendo...</div>}
+                    
+                    <section className="form-card-acto">
+                        <form className="event-form-acto" onSubmit={handleSubmit}>
                             {currentStep === 1 && (
-                                <div className="step-anim">
-                                    <div className="form-section-title">Datos Personales y Acceso</div>
-                                    <div className="form-grid">
-                                        
-                                        {/* Fila 1: DNI y Email */}
-                                        <InputField label="DNI (Usuario)" name="dni" value={formData.dni} onChange={handleChange} error={fieldErrors.dni} required placeholder="12345678A" />
-                                        <InputField label="Email" name="email" type="email" value={formData.email} onChange={handleChange} error={fieldErrors.email} required />
-                                        
-                                        {/* Fila 2: Nombre y Apellidos (3 columnas) */}
-                                        <div className="full-width-col three-cols-row">
-                                            <InputField label="Nombre" name="nombre" value={formData.nombre} onChange={handleChange} error={fieldErrors.nombre} required />
-                                            <InputField label="Primer Apellido" name="primer_apellido" value={formData.primer_apellido} onChange={handleChange} error={fieldErrors.primer_apellido} required />
-                                            <InputField label="Segundo Apellido" name="segundo_apellido" value={formData.segundo_apellido} onChange={handleChange} error={fieldErrors.segundo_apellido} required />
-                                        </div>
-                                        
-                                        {/* Fila 3: Fecha nacimiento, Género y Estado Civil */}
-                                        <div className="full-width-col three-cols-row">
-                                            <div className="form-group-custom">
-                                                <label>Fecha de Nacimiento *</label>
-                                                <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleChange} className={fieldErrors.fecha_nacimiento ? 'input-error' : ''} />
-                                                {fieldErrors.fecha_nacimiento && <span className="error-text">{fieldErrors.fecha_nacimiento}</span>}
+                                <>
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="nombre">NOMBRE</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="nombre"
+                                                    name="nombre"
+                                                    required
+                                                    placeholder="Nombre"
+                                                    value={formData.nombre}
+                                                    onChange={handleChange}
+                                                />
                                             </div>
-
-                                            <SelectField label="Género" name="genero" value={formData.genero} onChange={handleChange} options={[{value: 'MASCULINO', label: 'Masculino'}, {value: 'FEMENINO', label: 'Femenino'}]} />
-                                            
-                                            <SelectField label="Estado Civil" name="estado_civil" value={formData.estado_civil} onChange={handleChange} options={[{value: 'SOLTERO', label: 'Soltero'}, {value: 'CASADO', label: 'Casado'}, {value: 'SEPARADO', label: 'Separado'}, {value: 'VIUDO', label: 'Viudo'}]} />
+                                            {fieldErrors.nombre && <small className="error-message" style={{color: 'red'}}>{fieldErrors.nombre}</small>}
                                         </div>
-                                        
-                                        {/* Fila 4: Contraseñas */}
-                                        <InputField label="Contraseña" name="password" type="password" value={formData.password} onChange={handleChange} error={fieldErrors.password} required icon={<Lock size={14}/>}/>
-                                        <InputField label="Repetir Contraseña" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} error={fieldErrors.confirmPassword} required icon={<Lock size={14}/>}/>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="primer_apellido">PRIMER APELLIDO</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="primer_apellido"
+                                                    name="primer_apellido"
+                                                    required
+                                                    placeholder="Primer Apellido"
+                                                    value={formData.primer_apellido}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.primer_apellido && <small className="error-message" style={{color: 'red'}}>{fieldErrors.primer_apellido}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="segundo_apellido">SEGUNDO APELLIDO</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="segundo_apellido"
+                                                    name="segundo_apellido"
+                                                    required
+                                                    placeholder="Segundo Apellido"
+                                                    value={formData.segundo_apellido}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.segundo_apellido && <small className="error-message" style={{color: 'red'}}>{fieldErrors.segundo_apellido}</small>}
+                                        </div>
                                     </div>
-                                </div>
+
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fecha_nacimiento">FECHA DE NACIMIENTO</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="date" 
+                                                    id="fecha_nacimiento"
+                                                    name="fecha_nacimiento"
+                                                    required
+                                                    value={formData.fecha_nacimiento}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.fecha_nacimiento && <small className="error-message" style={{color: 'red'}}>{fieldErrors.fecha_nacimiento}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="genero">GÉNERO</label>
+                                            <div className="input-with-icon-acto">
+
+                                                <select
+                                                    id="genero"
+                                                    name="genero"
+                                                    required
+                                                    value={formData.genero}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="" disabled>Seleccione una opción</option>
+                                                    <option value="MASCULINO">Masculino</option>
+                                                    <option value="FEMENINO">Femenino</option>
+                                                </select>
+                                            </div>
+                                            {fieldErrors.genero && <small className="error-message" style={{color: 'red'}}>{fieldErrors.genero}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="estado_civil">ESTADO CIVIL</label>
+                                            <div className="input-with-icon-acto">
+                                                <select
+                                                    id="estado_civil"
+                                                    name="estado_civil"
+                                                    required
+                                                    value={formData.estado_civil}
+                                                    onChange={handleChange}
+                                                >
+                                                    <option value="" disabled>Seleccione una opción</option>
+                                                    <option value="SOLTERO">Soltero</option>
+                                                    <option value="CASADO">Casado</option>
+                                                    <option value="SEPARADO">Separado</option>
+                                                    <option value="VIUDO">Viudo</option>
+                                                </select>
+                                            </div>
+                                            {fieldErrors.estado_civil && <small className="error-message" style={{color: 'red'}}>{fieldErrors.estado_civil}</small>}
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="dni">DNI (USUARIO)</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="dni"
+                                                    name="dni"
+                                                    required
+                                                    placeholder="12345678A"
+                                                    value={formData.dni}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.dni && <small className="error-message" style={{color: 'red'}}>{fieldErrors.dni}</small>}
+                                        </div>
+                                        <div className="form-group-acto">
+                                            <label htmlFor="password">CONTRASEÑA</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="password" 
+                                                    id="password"
+                                                    name="password"
+                                                    required
+                                                    placeholder="********"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.password && <small className="error-message" style={{color: 'red'}}>{fieldErrors.password}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="confirmPassword">REPETIR CONTRASEÑA</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="password" 
+                                                    id="confirmPassword"
+                                                    name="confirmPassword"
+                                                    required
+                                                    placeholder="********"
+                                                    value={formData.confirmPassword}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.confirmPassword && <small className="error-message" style={{color: 'red'}}>{fieldErrors.confirmPassword}</small>}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
-                            {/* PASO 2: CONTACTO */}
                             {currentStep === 2 && (
-                                <div className="step-anim">
-                                    <div className="form-section-title">Dirección y Contacto</div>
-                                    <div className="form-grid">
-                                        <InputField label="Teléfono Móvil" name="telefono" value={formData.telefono} onChange={handleChange} error={fieldErrors.telefono} required icon={<Phone size={14}/>} placeholder="600000000"/>
-                                        <div className="full-width-col">
-                                            <InputField label="Dirección Postal" name="direccion" value={formData.direccion} onChange={handleChange} error={fieldErrors.direccion} required placeholder="C/ Ejemplo, 1, 1ºA"/>
+                                <>
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="email">EMAIL</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="email" 
+                                                    id="email"
+                                                    name="email"
+                                                    required
+                                                    placeholder="ejemplo@correo.com"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.email && <small className="error-message" style={{color: 'red'}}>{fieldErrors.email}</small>}
                                         </div>
-                                        <InputField label="Código Postal" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} error={fieldErrors.codigo_postal} required maxLength={5}/>
-                                        <InputField label="Localidad" name="localidad" value={formData.localidad} onChange={handleChange} error={fieldErrors.localidad} required />
-                                        <InputField label="Provincia" name="provincia" value={formData.provincia} onChange={handleChange} error={fieldErrors.provincia} required />
-                                        <InputField label="Comunidad Autónoma" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} error={fieldErrors.comunidad_autonoma} required />
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="telefono">TELÉFONO MÓVIL</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="tel" 
+                                                    id="telefono"
+                                                    name="telefono"
+                                                    required
+                                                    placeholder="600000000"
+                                                    maxLength={9}
+                                                    value={formData.telefono}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.telefono && <small className="error-message" style={{color: 'red'}}>{fieldErrors.telefono}</small>}
+                                        </div>
                                     </div>
-                                </div>
+
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="direccion">DIRECCIÓN POSTAL</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="direccion"
+                                                    name="direccion"
+                                                    required
+                                                    placeholder="C/ Ejemplo, 1, 1ºA"
+                                                    value={formData.direccion}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.direccion && <small className="error-message" style={{color: 'red'}}>{fieldErrors.direccion}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="localidad">LOCALIDAD</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="localidad"
+                                                    name="localidad"
+                                                    required
+                                                    placeholder="Localidad"
+                                                    value={formData.localidad}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.localidad && <small className="error-message" style={{color: 'red'}}>{fieldErrors.localidad}</small>}
+                                        </div>
+                                    </div>
+
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="codigo_postal">CÓDIGO POSTAL</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="codigo_postal"
+                                                    name="codigo_postal"
+                                                    required
+                                                    maxLength={5}
+                                                    placeholder="00000"
+                                                    value={formData.codigo_postal}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.codigo_postal && <small className="error-message" style={{color: 'red'}}>{fieldErrors.codigo_postal}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="provincia">PROVINCIA</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="provincia"
+                                                    name="provincia"
+                                                    required
+                                                    placeholder="Provincia"
+                                                    value={formData.provincia}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.provincia && <small className="error-message" style={{color: 'red'}}>{fieldErrors.provincia}</small>}
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="comunidad_autonoma">COMUNIDAD AUTÓNOMA</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="comunidad_autonoma"
+                                                    name="comunidad_autonoma"
+                                                    required
+                                                    placeholder="Comunidad Autónoma"
+                                                    value={formData.comunidad_autonoma}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.comunidad_autonoma && <small className="error-message" style={{color: 'red'}}>{fieldErrors.comunidad_autonoma}</small>}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
-                            {/* PASO 3: RELIGIOSOS */}
                             {currentStep === 3 && (
-                                <div className="step-anim">
-                                    <div className="form-section-title">Datos Sacramentales</div>
-                                    <div className="form-grid">
-                                        <div className="form-group-custom">
-                                            <label>Fecha de Bautismo *</label>
-                                            <input type="date" name="fecha_bautismo" value={formData.fecha_bautismo} onChange={handleChange} className={fieldErrors.fecha_bautismo ? 'input-error' : ''} />
-                                            {fieldErrors.fecha_bautismo && <span className="error-text">{fieldErrors.fecha_bautismo}</span>}
+                                <>
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fecha_bautismo">FECHA DE BAUTISMO</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="date" 
+                                                    id="fecha_bautismo"
+                                                    name="fecha_bautismo"
+                                                    required
+                                                    value={formData.fecha_bautismo}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.fecha_bautismo && <small className="error-message" style={{color: 'red'}}>{fieldErrors.fecha_bautismo}</small>}
                                         </div>
-                                        <InputField label="Lugar (Localidad)" name="lugar_bautismo" value={formData.lugar_bautismo} onChange={handleChange} error={fieldErrors.lugar_bautismo} required />
-                                        <div className="full-width-col">
-                                            <InputField label="Parroquia" name="parroquia_bautismo" value={formData.parroquia_bautismo} onChange={handleChange} error={fieldErrors.parroquia_bautismo} required placeholder="Parroquia de..."/>
+
+                                        {/* --- CAMPO LUGAR (LOCALIDAD) --- */}
+                                        <div className="form-group-acto">
+                                            <label htmlFor="lugar_bautismo">LUGAR (LOCALIDAD)</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="lugar_bautismo"
+                                                    name="lugar_bautismo"
+                                                    required
+                                                    placeholder="Localidad"
+                                                    value={formData.lugar_bautismo}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.lugar_bautismo && <small className="error-message" style={{color: 'red'}}>{fieldErrors.lugar_bautismo}</small>}
                                         </div>
                                     </div>
-                                </div>
+
+                                    <div className="form-group-acto full-width">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="parroquia_bautismo">PARROQUIA</label>
+                                            <div className="input-with-icon-acto">
+                                                <input 
+                                                    type="text" 
+                                                    id="parroquia_bautismo"
+                                                    name="parroquia_bautismo"
+                                                    required
+                                                    placeholder="Parroquia de..."
+                                                    value={formData.parroquia_bautismo}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                            {fieldErrors.parroquia_bautismo && <small className="error-message" style={{color: 'red'}}>{fieldErrors.parroquia_bautismo}</small>}
+                                        </div>
+                                    </div>
+                                </>
                             )}
 
-                            {/* PASO 4: BANCARIOS */}
                             {currentStep === 4 && (
-                                <div className="step-anim">
-                                    <div className="form-section-title">Datos Bancarios</div>
-                                    <div className="form-grid">
-                                        <div className="full-width-col">
-                                            <InputField label="IBAN" name="iban" value={formData.iban} onChange={handleChange} error={fieldErrors.iban} required placeholder="ES00 0000 0000 0000 0000 0000" />
+                                <>
+                                    <div className="form-group-acto full-width">
+                                        <label htmlFor="iban">IBAN</label>
+                                        <div className="input-with-icon-acto">
+                                            <input 
+                                            type="text" 
+                                            id="iban"
+                                            name="iban"
+                                            required
+                                            placeholder="ESXX XXXX XXXX XXXX XXXX"
+                                            value={formData.iban || ''} 
+                                            onChange={handleChange}
+                                            />
                                         </div>
-                                        <SelectField label="Periodicidad Cuota" name="periodicidad" value={formData.periodicidad} onChange={handleChange} options={[{value: 'TRIMESTRAL', label: 'Trimestral'}, {value: 'SEMESTRAL', label: 'Semestral'}, {value: 'ANUAL', label: 'Anual'}]} />
-                                        
-                                        <div className="form-group-custom checkbox-group">
-                                            <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
-                                                <input type="checkbox" name="es_titular" checked={formData.es_titular} onChange={handleChange} />
-                                                <span>Confirmo que soy el titular de la cuenta bancaria.</span>
+                                    {fieldErrors.iban && (<small className="error-message" style={{color: 'red'}}>{fieldErrors.iban}</small>)}
+                                    </div>
+
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="periodicidad">PERIODICIDAD CUOTA</label>
+                                            <div className="input-with-icon-acto">
+                                            <select
+                                                id="periodicidad"
+                                                name="periodicidad"
+                                                value={formData.periodicidad}
+                                                onChange={handleChange}
+                                            >
+                                                <option value="TRIMESTRAL">Trimestral</option>
+                                                <option value="SEMESTRAL">Semestral</option>
+                                                <option value="ANUAL">Anual</option>
+                                            </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label>¿Eres el titular de la cuenta?</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px' }}>
+                                            <input 
+                                                type="checkbox" 
+                                                id="es_titular"
+                                                name="es_titular" 
+                                                checked={formData.es_titular} 
+                                                onChange={handleChange} 
+                                                style={{ width: 'auto', margin: 0 }}
+                                            />
+                                            <label htmlFor="es_titular" style={{ fontSize: '0.9rem', fontWeight: 'normal', margin: 0, cursor: 'pointer' }}>
+                                                Confirmo que soy el titular de la cuenta bancaria.
                                             </label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                
+                                </>
+                                )}
 
-                            {/* --- BOTONERA DE NAVEGACIÓN --- */}
-                            <div className="wizard-actions">
-                                {currentStep > 1 && (
-                                    <button type="button" className="btn-outline-acto" onClick={handlePrev}>
+
+                            <div className="wizard-actions" style={{marginTop: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                
+                                {currentStep > 1 ? (
+                                    <button type="button" className="btn-outline-acto" onClick={handlePrev} style={{display: 'flex', alignItems: 'center', gap: '5px'}}>
                                         <ChevronLeft size={16}/> Anterior
                                     </button>
+                                ) : (
+                                    <div></div> /* Espaciador vacío para mantener el layout flex */
                                 )}
                                 
                                 {currentStep < totalSteps ? (
-                                    <button type="button" className="btn-purple btn-next" onClick={handleNext}>
+                                    <button type="button" className="btn-purple btn-next" onClick={handleNext} style={{display: 'flex', alignItems: 'center', gap: '5px'}}>
                                         Siguiente <ChevronRight size={16}/>
                                     </button>
                                 ) : (
@@ -370,9 +724,8 @@ function HazteHermano() {
                                     </button>
                                 )}
                             </div>
-
                         </form>
-                    </div>
+                    </section>
                 </div>
             </main>
         </div>
