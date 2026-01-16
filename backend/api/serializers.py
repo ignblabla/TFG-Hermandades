@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
 from django.db import transaction
@@ -285,10 +286,24 @@ class ActoSerializer(serializers.ModelSerializer):
 
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
 
+    en_plazo_insignias = serializers.SerializerMethodField()
+    en_plazo_cirios = serializers.SerializerMethodField()
+
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'puestos_disponibles', 'requiere_papeleta']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta']
 
+    def get_en_plazo_insignias(self, obj):
+        ahora = timezone.now()
+        if obj.inicio_solicitud and obj.fin_solicitud:
+            return obj.inicio_solicitud <= ahora <= obj.fin_solicitud
+        return False
+    
+    def get_en_plazo_cirios(self, obj):
+        ahora = timezone.now()
+        if obj.inicio_solicitud_cirios and obj.fin_solicitud_cirios:
+            return obj.inicio_solicitud_cirios <= ahora <= obj.fin_solicitud_cirios
+        return False
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO
@@ -489,3 +504,44 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
                 )
 
         return papeleta
+    
+
+
+
+
+class SolicitudCirioSerializer(serializers.Serializer):
+    acto = serializers.PrimaryKeyRelatedField(
+        queryset = Acto.objects.all(),
+        source='acto',
+        write_only=True,
+        required=True
+    )
+
+    puesto = serializers.PrimaryKeyRelatedField(
+        queryset=Puesto.objects.filter(disponible=True),
+        source='puesto',
+        write_only=True,
+        required=True
+    )
+
+    id_papeleta = serializers.IntegerField(read_only=True, source='id')
+    fecha_solicitud = serializers.DateTimeField(read_only=True)
+    mensaje = serializers.CharField(read_only=True, default="Solicitud registrada correctamente.")
+
+    def validate(self, data):
+        """
+        Validación cruzada Acto - Puesto
+        """
+        acto = data.get('acto')
+        puesto = data.get('puesto')
+
+        if not acto.tipo_acto.requiere_papeleta:
+            raise serializers.ValidationError({"acto_id": "Este acto no requiere solicitud de papeleta de sitio."})
+
+        if puesto.acto.id != acto.id:
+            raise serializers.ValidationError({"puesto_id": f"El puesto {puesto.nombre} no pertenece al acto {acto.nombre}."})
+
+        if "CIRIO" not in puesto.tipo_puesto.nombre_tipo.upper():
+            raise serializers.ValidationError({"puesto_id": "El puesto seleccionado no es de tipo CIRIO."})
+
+        return data

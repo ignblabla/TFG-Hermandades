@@ -291,6 +291,26 @@ class Acto(models.Model):
     inicio_solicitud = models.DateTimeField(verbose_name="Inicio solicitud papeletas", blank=True, null=True, help_text="Fecha y hora de apertura de solicitudes (solo si requiere papeleta)")
     fin_solicitud = models.DateTimeField(verbose_name="Fin solicitud papeletas", blank=True, null=True, help_text="Fecha y hora de cierre de solicitudes (solo si requiere papeleta)")
 
+    inicio_solicitud_cirios = models.DateTimeField(verbose_name="Inicio solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de apertura de solicitudes de papeletas de sitio generales")
+    fin_solicitud_cirios = models.DateTimeField(verbose_name="Fin solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de cierre de solicitudes de papeletas de sitio generales")
+
+    def clean(self):
+        super().clean()
+
+        if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
+            if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
+                raise ValidationError({'fin_solicitud_cirios': 'La fecha de fin de solicitud de cirios debe ser posterior a la de inicio.'})
+            
+        if self.fin_solicitud and self.inicio_solicitud_cirios:
+            if self.inicio_solicitud_cirios <= self.fin_solicitud:
+                raise ValidationError({'inicio_solicitud_cirios': (
+                        f'La solicitud de cirios no puede empezar antes o al mismo tiempo que termina la de insignias. '
+                        f'Insignias termina el {self.fin_solicitud.strftime("%d/%m/%Y %H:%M")}.'
+                    )})
+            
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.nombre} ({self.fecha.year})"
@@ -379,7 +399,7 @@ class PapeletaSitio(models.Model):
     estado_papeleta = models.CharField(max_length=20, choices=EstadoPapeleta.choices, default=EstadoPapeleta.NO_SOLICITADA, verbose_name="Estado")
     fecha_solicitud = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de solicitud", help_text="Fecha y hora exacta en la que el Hermano realizó la solicitud")
     fecha_emision = models.DateField(null=True, blank=True, verbose_name="Fecha de emisión")
-    codigo_verificacion = models.CharField(max_length=100, verbose_name="Código de verificación", help_text="Código único para validad la autenticidad")
+    codigo_verificacion = models.CharField(null=True, blank=True, max_length=100, verbose_name="Código de verificación", help_text="Código único para validad la autenticidad")
     anio = models.PositiveIntegerField(verbose_name="Año")
 
     hermano = models.ForeignKey(Hermano, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Hermano solicitante")
