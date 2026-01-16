@@ -25,7 +25,9 @@ function EditarActo() {
         fecha: "",
         descripcion: "",
         inicio_solicitud: "",
-        fin_solicitud: ""
+        fin_solicitud: "",
+        inicio_solicitud_cirios: "",
+        fin_solicitud_cirios: ""
     });
 
     const navigate = useNavigate();
@@ -72,7 +74,10 @@ function EditarActo() {
                     descripcion: actoData.descripcion || "",
                     // Si son null, ponemos cadena vacía para que el input controlado de React no se queje
                     inicio_solicitud: formatDateTimeForInput(actoData.inicio_solicitud),
-                    fin_solicitud: formatDateTimeForInput(actoData.fin_solicitud)
+                    fin_solicitud: formatDateTimeForInput(actoData.fin_solicitud),
+
+                    inicio_solicitud_cirios: formatDateTimeForInput(actoData.inicio_solicitud_cirios),
+                    fin_solicitud_cirios: formatDateTimeForInput(actoData.fin_solicitud_cirios)
                 });
 
             } catch (err) {
@@ -119,7 +124,9 @@ function EditarActo() {
         const payload = {
             ...formData,
             inicio_solicitud: formData.inicio_solicitud || null,
-            fin_solicitud: formData.fin_solicitud || null
+            fin_solicitud: formData.fin_solicitud || null,
+            inicio_solicitud_cirios: formData.inicio_solicitud_cirios || null,
+            fin_solicitud_cirios: formData.fin_solicitud_cirios || null
         };
 
         // Validación Frontend
@@ -155,6 +162,12 @@ function EditarActo() {
                 }
                 else if (errorData.fin_solicitud) {
                     setError(`Fin Solicitud: ${errorData.fin_solicitud[0]}`);
+                }
+                else if (errorData.inicio_solicitud_cirios) {
+                    setError(`Inicio Cirios: ${errorData.inicio_solicitud_cirios[0]}`);
+                }
+                else if (errorData.fin_solicitud_cirios) {
+                    setError(`Fin Cirios: ${errorData.fin_solicitud_cirios[0]}`);
                 }
                 else if (errorData.nombre) {
                     setError(Array.isArray(errorData.nombre) ? errorData.nombre[0] : errorData.nombre);
@@ -325,44 +338,85 @@ function EditarActo() {
 
                             {/* --- SECCIÓN CONDICIONAL: FECHAS DE PAPELETA --- */}
                             {requierePapeleta() && (
-                                <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '20px'}}>
-                                    <div className="full-width" style={{marginBottom: '10px'}}>
-                                        <label style={{fontWeight: 'bold', color: '#4f46e5'}}>PLAZOS SOLICITUD PAPELETA</label>
-                                        <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
-                                            Este acto requiere reparto de papeletas. Puede modificar los plazos de solicitud.
-                                        </p>
-                                    </div>
-                                    
-                                    <div className="form-group-acto">
-                                        <label htmlFor="inicio_solicitud">INICIO SOLICITUDES</label>
-                                        <div className="input-with-icon-acto">
-                                            <span className="icon-acto">🔓</span>
-                                            <input 
-                                                type="datetime-local" 
-                                                id="inicio_solicitud"
-                                                name="inicio_solicitud"
-                                                required
-                                                value={formData.inicio_solicitud}
-                                                onChange={handleChange}
-                                            />
+                                <>
+                                    {/* BLOQUE 1: INSIGNIAS */}
+                                    <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '10px'}}>
+                                        <div className="full-width" style={{marginBottom: '10px'}}>
+                                            <label style={{fontWeight: 'bold', color: '#4f46e5'}}>1. SOLICITUD DE INSIGNIAS</label>
+                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
+                                                Plazos para solicitud de Varas e Insignias.
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="form-group-acto">
+                                            <label htmlFor="inicio_solicitud">INICIO (INSIGNIAS)</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔓</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="inicio_solicitud"
+                                                    name="inicio_solicitud"
+                                                    required
+                                                    value={formData.inicio_solicitud}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fin_solicitud">FIN (INSIGNIAS)</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔒</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="fin_solicitud"
+                                                    name="fin_solicitud"
+                                                    required
+                                                    value={formData.fin_solicitud}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="form-group-acto">
-                                        <label htmlFor="fin_solicitud">FIN SOLICITUDES</label>
-                                        <div className="input-with-icon-acto">
-                                            <span className="icon-acto">🔒</span>
-                                            <input 
-                                                type="datetime-local" 
-                                                id="fin_solicitud"
-                                                name="fin_solicitud"
-                                                required
-                                                value={formData.fin_solicitud}
-                                                onChange={handleChange}
-                                            />
+                                    {/* BLOQUE 2: CIRIOS / GENERAL */}
+                                    <div className="form-row-acto" style={{backgroundColor: '#f3f4f6', padding: '15px', borderRadius: '8px', border: '1px solid #d1d5db', marginBottom: '20px'}}>
+                                        <div className="full-width" style={{marginBottom: '10px'}}>
+                                            <label style={{fontWeight: 'bold', color: '#059669'}}>2. SOLICITUD DE CIRIOS</label>
+                                            <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>
+                                                Plazos para solicitud de papeletas de sitio generales (Cirios).
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="form-group-acto">
+                                            <label htmlFor="inicio_solicitud_cirios">INICIO (CIRIOS)</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🕯️</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="inicio_solicitud_cirios"
+                                                    name="inicio_solicitud_cirios"
+                                                    value={formData.inicio_solicitud_cirios}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fin_solicitud_cirios">FIN (CIRIOS)</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔒</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="fin_solicitud_cirios"
+                                                    name="fin_solicitud_cirios"
+                                                    value={formData.fin_solicitud_cirios}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </>
                             )}
 
                             {/* CAMPO DESCRIPCION */}
