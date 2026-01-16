@@ -322,7 +322,7 @@ class TipoPuesto(models.Model):
 # -----------------------------------------------------------------------------
 class Puesto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
-    numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones", default=1)
+    numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones (Cupo total)", default=1)
     disponible = models.BooleanField(default=True, verbose_name="¿Está disponible?")
     lugar_citacion = models.CharField(max_length=150, verbose_name="Lugar de citación", blank=True, null=True)
     hora_citacion = models.TimeField(verbose_name="Hora de citación", blank=True, null=True)
@@ -333,6 +333,35 @@ class Puesto(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.tipo_puesto.nombre_tipo}) - {self.acto.nombre}"
+    
+    @property
+    def cantidad_ocupada(self):
+        """
+        Calcula dinámicamente cuántas papeletas tienen asignado este puesto.
+        Filtramos para contar solo las que están realmente asignadas (EMITIDA, RECOGIDA, LEIDA).
+        """
+        estados_ocupados = ['EMITIDA', 'RECOGIDA', 'LEIDA']
+        
+        return self.papeletas_asignadas.filter(
+            estado_papeleta__in=estados_ocupados
+        ).count()
+
+    @property
+    def plazas_disponibles(self):
+        """
+        Retorna el número de huecos libres.
+        """
+        calculo = self.numero_maximo_asignaciones - self.cantidad_ocupada
+        return max(0, calculo)
+
+    @property
+    def porcentaje_ocupacion(self):
+        """
+        Útil para barras de progreso en el Frontend (React)
+        """
+        if self.numero_maximo_asignaciones == 0:
+            return 100
+        return int((self.cantidad_ocupada / self.numero_maximo_asignaciones) * 100)
     
 # -----------------------------------------------------------------------------
 # ENTIDAD: PAPELETA DE SITIO
@@ -345,6 +374,7 @@ class PapeletaSitio(models.Model):
         RECOGIDA = 'RECOGIDA', 'Recogida'
         LEIDA = 'LEIDA', 'Leída'
         ANULADA = 'ANULADA', 'Anulada'
+        NO_ASIGNADA = 'NO_ASIGNADA', 'No asignada'
 
     estado_papeleta = models.CharField(max_length=20, choices=EstadoPapeleta.choices, default=EstadoPapeleta.NO_SOLICITADA, verbose_name="Estado")
     fecha_solicitud = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de solicitud", help_text="Fecha y hora exacta en la que el Hermano realizó la solicitud")

@@ -12,6 +12,7 @@ import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
+import GestionReparto from "./pages/GestionReparto"
 import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
 import ProtectedRoute from "./components/ProtectedRoute"
 
@@ -61,6 +62,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestionar-reparto/:id"
+          element={
+            <ProtectedRoute>
+              <GestionReparto />
             </ProtectedRoute>
           }
         />
