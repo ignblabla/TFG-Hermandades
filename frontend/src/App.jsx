@@ -14,6 +14,8 @@ import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import GestionReparto from "./pages/GestionReparto"
 import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
+import SolicitarCirio from "./pages/SolicitarCirio"
+import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -74,10 +76,26 @@ function App() {
           }
         />
         <Route
+          path="/gestionar-reparto-cirios/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoCirios />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/solicitar-insignia"
           element={
             <ProtectedRoute>
               <CrearSolicitudInsignia />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-cirio" 
+          element={
+            <ProtectedRoute>
+              <SolicitarCirio />
             </ProtectedRoute>
           }
         />

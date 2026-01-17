@@ -22,7 +22,9 @@ function CrearActo() {
         fecha: "",
         descripcion: "",
         inicio_solicitud: "",
-        fin_solicitud: ""
+        fin_solicitud: "",
+        inicio_solicitud_cirios: "",
+        fin_solicitud_cirios: ""
     });
 
     const navigate = useNavigate();
@@ -85,15 +87,24 @@ function CrearActo() {
         const payload = {
             ...formData,
             inicio_solicitud: formData.inicio_solicitud || null,
-            fin_solicitud: formData.fin_solicitud || null
+            fin_solicitud: formData.fin_solicitud || null,
+            inicio_solicitud_cirios: formData.inicio_solicitud_cirios || null,
+            fin_solicitud_cirios: formData.fin_solicitud_cirios || null
         };
 
         if (requierePapeleta()) {
             if (!payload.inicio_solicitud || !payload.fin_solicitud) {
-                setError("Para este tipo de acto es obligatorio indicar las fechas de solicitud de papeleta.");
+                setError("Debe indicar las fechas para solicitud de Insignias.");
                 setSubmitting(false);
                 return;
             }
+            
+            if (!payload.inicio_solicitud_cirios || !payload.fin_solicitud_cirios) {
+                setError("Debe indicar las fechas para solicitud de Cirios.");
+                setSubmitting(false);
+                return;
+            }
+            
         }
 
         try {
@@ -110,8 +121,13 @@ function CrearActo() {
             if (err.response && err.response.data) {
                 const data = err.response.data;
                 if (data.fecha) setError(`Fecha Acto: ${data.fecha[0]}`);
+
                 else if (data.inicio_solicitud) setError(`Inicio Solicitud: ${data.inicio_solicitud[0]}`);
                 else if (data.fin_solicitud) setError(`Fin Solicitud: ${data.fin_solicitud[0]}`);
+
+                else if (data.inicio_solicitud_cirios) setError(`Inicio Cirios: ${data.inicio_solicitud_cirios[0]}`);
+                else if (data.fin_solicitud_cirios) setError(`Fin Cirios: ${data.fin_solicitud_cirios[0]}`);
+
                 else if (data.non_field_errors) setError(data.non_field_errors[0]);
                 else if (data.detail) setError(data.detail);
                 else setError("Error al crear el acto. Revise los datos.");
@@ -277,42 +293,69 @@ function CrearActo() {
 
                             {/* SECCIÓN CONDICIONAL DINÁMICA */}
                             {requierePapeleta() && (
-                                <div className="form-row-acto" style={{backgroundColor: '#f9fafb', padding: '15px', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '20px'}}>
-                                    <div className="full-width" style={{marginBottom: '10px'}}>
-                                        <label style={{fontWeight: 'bold', color: '#4f46e5'}}>PLAZOS SOLICITUD PAPELETA</label>
-                                        <p style={{fontSize: '0.85rem', color: '#6b7280', margin: '0'}}>Este acto requiere reparto de papeletas. Indique las fechas de apertura y cierre de solicitudes web.</p>
-                                    </div>
-                                    
-                                    <div className="form-group-acto">
-                                        <label htmlFor="inicio_solicitud">INICIO SOLICITUDES</label>
-                                        <div className="input-with-icon-acto">
-                                            <span className="icon-acto">🔓</span>
-                                            <input 
-                                                type="datetime-local" 
-                                                id="inicio_solicitud"
-                                                name="inicio_solicitud"
-                                                required
-                                                value={formData.inicio_solicitud}
-                                                onChange={handleChange}
-                                            />
+                                <>
+                                    <div className="form-row-acto">
+                                        <div className="form-group-acto">
+                                            <label htmlFor="inicio_solicitud">FECHA INICIO SOLICITUD INSIGNIAS</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔓</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="inicio_solicitud"
+                                                    name="inicio_solicitud"
+                                                    required
+                                                    value={formData.inicio_solicitud}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="form-group-acto">
-                                        <label htmlFor="fin_solicitud">FIN SOLICITUDES</label>
-                                        <div className="input-with-icon-acto">
-                                            <span className="icon-acto">🔒</span>
-                                            <input 
-                                                type="datetime-local" 
-                                                id="fin_solicitud"
-                                                name="fin_solicitud"
-                                                required
-                                                value={formData.fin_solicitud}
-                                                onChange={handleChange}
-                                            />
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fin_solicitud">FECHA FIN SOLICITUD INSIGNIAS</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔒</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="fin_solicitud"
+                                                    name="fin_solicitud"
+                                                    required
+                                                    value={formData.fin_solicitud}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="inicio_solicitud_cirios">FECHA INICIO SOLICITUD CIRIOS</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🕯️</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="inicio_solicitud_cirios"
+                                                    name="inicio_solicitud_cirios"
+                                                    required
+                                                    value={formData.inicio_solicitud_cirios}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-acto">
+                                            <label htmlFor="fin_solicitud_cirios">FECHA FIN SOLICITUD CIRIOS</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🔒</span>
+                                                <input 
+                                                    type="datetime-local" 
+                                                    id="fin_solicitud_cirios"
+                                                    name="fin_solicitud_cirios"
+                                                    required
+                                                    value={formData.fin_solicitud_cirios}
+                                                    onChange={handleChange}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </>
                             )}
 
                             {/* CAMPO DESCRIPCION */}

@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
-from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto)
+from .models import (AreaInteres, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
 
 User = get_user_model()
@@ -245,9 +246,10 @@ class PuestoSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
             'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
-            'tipo_puesto', 'es_insignia'
+            'tipo_puesto', 'es_insignia', 'cortejo_cristo', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion'
         ]
         
+        read_only_fields = ['cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
 
         extra_kwargs = {
             'hora_citacion': {
@@ -273,7 +275,18 @@ class PuestoUpdateSerializer(PuestoSerializer):
     marca 'acto' como read_only para asegurar que no se modifica.
     """
     class Meta(PuestoSerializer.Meta):
-        read_only_fields = ['acto']
+        read_only_fields = ['acto', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
+
+
+class TramoSerializer(serializers.ModelSerializer):
+    """
+    Serializa la estructura de un tramo dentro de la cofradía.
+    """
+    paso_display = serializers.CharField(source='get_paso_display', read_only=True)
+    
+    class Meta:
+        model = Tramo
+        fields = ['id', 'nombre', 'numero_orden', 'paso', 'paso_display', 'acto', 'numero_maximo_cirios']
 
 
 class ActoSerializer(serializers.ModelSerializer):
@@ -283,12 +296,28 @@ class ActoSerializer(serializers.ModelSerializer):
     )
     puestos_disponibles = PuestoSerializer(many=True, read_only=True)
 
+    tramos = TramoSerializer(many=True, read_only=True)
+
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
+
+    en_plazo_insignias = serializers.SerializerMethodField()
+    en_plazo_cirios = serializers.SerializerMethodField()
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'puestos_disponibles', 'requiere_papeleta']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta']
 
+    def get_en_plazo_insignias(self, obj):
+        ahora = timezone.now()
+        if obj.inicio_solicitud and obj.fin_solicitud:
+            return obj.inicio_solicitud <= ahora <= obj.fin_solicitud
+        return False
+    
+    def get_en_plazo_cirios(self, obj):
+        ahora = timezone.now()
+        if obj.inicio_solicitud_cirios and obj.fin_solicitud_cirios:
+            return obj.inicio_solicitud_cirios <= ahora <= obj.fin_solicitud_cirios
+        return False
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO
@@ -304,6 +333,16 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
     nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
     nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True)
 
+    tramo_display = serializers.CharField(source='tramo.__str__', read_only=True)
+    
+    tramo_id = serializers.PrimaryKeyRelatedField(
+        queryset=Tramo.objects.all(), 
+        source='tramo', 
+        write_only=True, 
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = PapeletaSitio
         fields = [
@@ -311,9 +350,9 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             'fecha_solicitud', 'fecha_emision', 'codigo_verificacion', 
             'anio', 'hermano', 'nombre_hermano', 'apellidos_hermano',
             'acto', 'nombre_acto', 
-            'puesto', 'nombre_puesto'
+            'puesto', 'nombre_puesto', 'tramo_display', 'tramo_id'
         ]
-        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio']
+        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display']
 
     def get_apellidos_hermano(self, obj):
         return f"{obj.hermano.primer_apellido} {obj.hermano.segundo_apellido}"
@@ -327,6 +366,7 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
         puesto = data.get('puesto')
         acto = data.get('acto')
         hermano = data.get('hermano')
+        tramo = data.get('tramo')
         
         if puesto and acto:
             if puesto.acto != acto:
@@ -349,6 +389,12 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             if not es_miembro_junta:
                 raise serializers.ValidationError({
                     "puesto": f"El puesto '{puesto.nombre}' ({puesto.tipo_puesto.nombre_tipo}) está reservado exclusivamente para miembros de la Junta de Gobierno."
+                })
+            
+        if tramo and acto:
+            if tramo.acto != acto:
+                raise serializers.ValidationError({
+                    "tramo_id": f"El tramo {tramo} no pertenece al acto {acto.nombre}."
                 })
 
         return data
@@ -479,9 +525,7 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
             # validated_data ya contiene el resto de datos limpios y el 'hermano' (si lo pasas en el save del servicio)
             papeleta = PapeletaSitio.objects.create(**validated_data)
 
-            # 4. Iteramos sobre los hijos y los creamos vinculándolos al padre
             for preferencia_item in preferencias_data:
-                # preferencia_item es un diccionario con {'puesto': objeto_puesto, 'orden_prioridad': int}
                 PreferenciaSolicitud.objects.create(
                     papeleta=papeleta,
                     puesto_solicitado=preferencia_item['puesto'],
@@ -489,3 +533,42 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
                 )
 
         return papeleta
+    
+
+
+
+
+class SolicitudCirioSerializer(serializers.Serializer):
+    acto = serializers.PrimaryKeyRelatedField(
+        queryset = Acto.objects.all(),
+        write_only=True,
+        required=True
+    )
+
+    puesto = serializers.PrimaryKeyRelatedField(
+        queryset=Puesto.objects.filter(disponible=True),
+        write_only=True,
+        required=True
+    )
+
+    id_papeleta = serializers.IntegerField(read_only=True, source='id')
+    fecha_solicitud = serializers.DateTimeField(read_only=True)
+    mensaje = serializers.CharField(read_only=True, default="Solicitud registrada correctamente.")
+
+    def validate(self, data):
+        """
+        Validación cruzada Acto - Puesto
+        """
+        acto = data.get('acto')
+        puesto = data.get('puesto')
+
+        if not acto.tipo_acto.requiere_papeleta:
+            raise serializers.ValidationError({"acto_id": "Este acto no requiere solicitud de papeleta de sitio."})
+
+        if puesto.acto.id != acto.id:
+            raise serializers.ValidationError({"puesto_id": f"El puesto {puesto.nombre} no pertenece al acto {acto.nombre}."})
+
+        if "CIRIO" not in puesto.tipo_puesto.nombre_tipo.upper():
+            raise serializers.ValidationError({"puesto_id": "El puesto seleccionado no es de tipo CIRIO."})
+
+        return data
