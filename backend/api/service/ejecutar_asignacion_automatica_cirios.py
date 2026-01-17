@@ -1,7 +1,8 @@
+import uuid # <--- 1. IMPORTAMOS LIBRERÍA UUID
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import F
+from django.db.models import F, Max 
 
 from ..models import Acto, PapeletaSitio, Tramo, Puesto
 
@@ -21,7 +22,7 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
 
     # Validamos que el plazo de solicitud haya terminado
     if not acto.fin_solicitud_cirios:
-        raise ValidationError("El acto no tiene configurada fecha de fin de solicitud.")
+         raise ValidationError("El acto no tiene configurada fecha de fin de solicitud.")
     
     if ahora <= acto.fin_solicitud_cirios:
         raise ValidationError(f"Aún no ha finalizado el plazo de solicitudes (Termina: {acto.fin_solicitud_cirios}). No se puede realizar el reparto.")
@@ -30,8 +31,8 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
     with transaction.atomic():
         
         # --- PASO PREVIO: LIMPIEZA ---
-        # Reseteamos asignaciones previas de CIRIOS (no insignias) para permitir re-ejecución
-        # Ponemos estado en SOLICITADA, quitamos tramo y número.
+        # Reseteamos asignaciones previas para permitir re-ejecución.
+        # Importante: Limpiamos también fecha de emisión y código para regenerarlos nuevos.
         papeletas_a_resetear = PapeletaSitio.objects.filter(
             acto=acto,
             es_solicitud_insignia=False
@@ -40,23 +41,30 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
         papeletas_a_resetear.update(
             tramo=None,
             numero_papeleta=None,
+            fecha_emision=None,        # <--- Limpiamos fecha
+            codigo_verificacion=None,  # <--- Limpiamos código
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
         )
 
+        # --- CÁLCULO DEL INICIO DEL CONTADOR ---
+        max_papeleta_existente = PapeletaSitio.objects.filter(
+            acto=acto
+        ).aggregate(Max('numero_papeleta'))['numero_papeleta__max']
+
+        if max_papeleta_existente is None:
+            contador_global_papeleta = 1
+        else:
+            contador_global_papeleta = max_papeleta_existente + 1
+
         # --- ALGORITMO DE REPARTO ---
         
-        # Definimos los dos flujos de asignación
         flujos = [
             {'nombre': 'CRISTO', 'cortejo_bool': True, 'paso_enum': Tramo.PasoCortejo.CRISTO},
             {'nombre': 'VIRGEN', 'cortejo_bool': False, 'paso_enum': Tramo.PasoCortejo.VIRGEN},
         ]
 
-        contador_global_papeleta = 1 # El número de papeleta suele ser único por acto, independientemente del paso
-
         for flujo in flujos:
-            # A. Obtener Candidatos (Papeletas)
-            # Filtramos por Acto, No Insignia, y el tipo de puesto elegido (Cristo/Virgen)
-            # ORDENACIÓN CLAVE: Fecha ingreso ascendente (más antiguo primero)
+            # A. Obtener Candidatos
             candidatos = PapeletaSitio.objects.filter(
                 acto=acto,
                 es_solicitud_insignia=False,
@@ -68,58 +76,51 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
                 'hermano__fecha_nacimiento'
             )
 
-            # B. Obtener Tramos Disponibles (Cubos)
-            # Ordenamos por numero_orden DESCENDENTE. 
-            # Asumimos que el Tramo con número más alto es el más cercano al paso (donde van los antiguos).
-            # Ejemplo: Tramo 8 (Antiguos) -> Tramo 7 -> ... -> Tramo 1 (Nuevos/Niños)
+            # B. Obtener Tramos Disponibles
             tramos = Tramo.objects.filter(
                 acto=acto,
                 paso=flujo['paso_enum']
             ).order_by('-numero_orden')
 
             if not tramos.exists() and candidatos.exists():
-                # Log de advertencia o error si hay gente pero no tramos
                 continue 
 
-            # C. Lógica de Asignación (Filling Logic)
+            # C. Lógica de Asignación
             iterator_tramos = iter(tramos)
             tramo_actual = next(iterator_tramos, None)
             
-            # Control de capacidad en memoria para no hacer queries en cada iteración
             cupo_actual_llenado = 0 
 
             for papeleta in candidatos:
                 asignado = False
                 
                 while tramo_actual and not asignado:
-                    # Chequeamos capacidad del tramo actual
                     capacidad_tramo = tramo_actual.numero_maximo_cirios
                     
                     if cupo_actual_llenado < capacidad_tramo:
-                        # HAY SITIO EN ESTE TRAMO
+                        # --- ASIGNACIÓN DE DATOS ---
                         papeleta.tramo = tramo_actual
                         papeleta.numero_papeleta = contador_global_papeleta
-                        papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA # O asignada
+                        papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA
+                        papeleta.fecha_emision = ahora.date()
+                        papeleta.codigo_verificacion = uuid.uuid4().hex[:8].upper() 
+
                         papeleta.save()
+                        # ---------------------------
                         
                         cupo_actual_llenado += 1
-                        contador_global_papeleta += 1
+                        contador_global_papeleta += 1 
                         asignado = True
                     else:
-                        # TRAMO LLENO -> PASAR AL SIGUIENTE (ANTERIOR EN ORDEN)
+                        # Tramo lleno, pasamos al siguiente
                         try:
                             tramo_actual = next(iterator_tramos)
-                            cupo_actual_llenado = 0 # Reseteamos contador para el nuevo tramo
+                            cupo_actual_llenado = 0 
                         except StopIteration:
-                            # NO HAY MÁS TRAMOS DISPONIBLES
-                            # Opción A: Dejar sin asignar (se queda en tramo=None)
-                            # Opción B: Forzar en el último tramo aunque exceda aforo (comentado)
                             tramo_actual = None
                             break
                 
                 if not asignado and not tramo_actual:
-                    # Lógica de desborde: No caben más hermanos en la cofradía
-                    # Podrías marcar estado como 'LISTA_ESPERA' o similar.
                     pass
 
     return True
