@@ -384,6 +384,25 @@ class Puesto(models.Model):
         return int((self.cantidad_ocupada / self.numero_maximo_asignaciones) * 100)
     
 # -----------------------------------------------------------------------------
+# ENTIDAD: TRAMO
+# -----------------------------------------------------------------------------
+class Tramo(models.Model):
+    class PasoCortejo(models.TextChoices):
+        CRISTO = 'CRISTO', 'Paso de Cristo / Misterio'
+        VIRGEN = 'VIRGEN', 'Paso de Virgen / Palio'
+
+    nombre = models.CharField(max_length=100, verbose_name="Nombre identificativo", help_text="Ej: Tramo 3 - Senatus")
+    numero_orden = models.PositiveIntegerField(verbose_name="Número de orden", help_text="Orden posición en la calle (1, 2, 3...)")
+
+    paso = models.CharField(max_length=20, choices=PasoCortejo.choices, default=PasoCortejo.CRISTO, verbose_name="Cortejo")
+    numero_maximo_cirios = models.PositiveIntegerField(verbose_name="Aforo Máximo (Cirios)", default=0, help_text="Número máximo de nazarenos (cirios) que caben en este tramo por inventario o logística.")
+
+    acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='tramos', verbose_name="Acto")
+
+    def __str__(self):
+        return f"{self.numero_orden}º Tramo {self.get_paso_display()} - {self.nombre}"
+
+# -----------------------------------------------------------------------------
 # ENTIDAD: PAPELETA DE SITIO
 # -----------------------------------------------------------------------------
 class PapeletaSitio(models.Model):
@@ -405,6 +424,7 @@ class PapeletaSitio(models.Model):
     hermano = models.ForeignKey(Hermano, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Hermano solicitante")
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
+    tramo = models.ForeignKey(Tramo, on_delete=models.SET_NULL, related_name="nazarenos", verbose_name="Tramo asignado", null=True, blank=True)
 
     numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
     es_solicitud_insignia = models.BooleanField(default=False, verbose_name="¿Es solicitud de insignia?")
@@ -422,3 +442,4 @@ class PreferenciaSolicitud(models.Model):
 
     def __str__(self):
         return f"{self.papeleta} - Puesto: {self.puesto_solicitado.nombre} (Prioridad: {self.orden_prioridad})"
+    
