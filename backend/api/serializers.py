@@ -286,7 +286,7 @@ class TramoSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Tramo
-        fields = ['id', 'nombre', 'numero_orden', 'paso', 'paso_display', 'color_cera', 'acto', 'numero_maximo_cirios']
+        fields = ['id', 'nombre', 'numero_orden', 'paso', 'paso_display', 'acto', 'numero_maximo_cirios']
 
 
 class ActoSerializer(serializers.ModelSerializer):
