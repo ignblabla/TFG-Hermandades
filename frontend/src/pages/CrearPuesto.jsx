@@ -26,7 +26,8 @@ function CrearPuesto() {
         tipo_puesto: "",
         lugar_citacion: "",
         hora_citacion: "",
-        disponible: true
+        disponible: true,
+        cortejo_cristo: true
     });
 
     const navigate = useNavigate();
@@ -352,6 +353,22 @@ function CrearPuesto() {
                                         />
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="form-group-acto full-width" style={{marginTop: '10px'}}>
+                                <label style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: '#f9fafb'}}>
+                                    <input 
+                                        type="checkbox" 
+                                        name="cortejo_cristo" 
+                                        checked={formData.cortejo_cristo} 
+                                        onChange={handleChange}
+                                        style={{width: '20px', height: '20px', accentColor: '#4f46e5'}}
+                                    />
+                                    <div>
+                                        <span style={{display: 'block', fontWeight: 'bold', color: '#374151'}}>¿Pertenece al Cortejo del Cristo?</span>
+                                        <span style={{fontSize: '0.85rem', color: '#6b7280'}}>Marcado: Cristo / Misterio. Desmarcado: Virgen / Palio.</span>
+                                    </div>
+                                </label>
                             </div>
 
                             {/* FILA 4: Checkbox Disponible */}

@@ -246,7 +246,7 @@ class PuestoSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
             'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
-            'tipo_puesto', 'es_insignia', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion'
+            'tipo_puesto', 'es_insignia', 'cortejo_cristo', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion'
         ]
         
         read_only_fields = ['cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
@@ -525,9 +525,7 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
             # validated_data ya contiene el resto de datos limpios y el 'hermano' (si lo pasas en el save del servicio)
             papeleta = PapeletaSitio.objects.create(**validated_data)
 
-            # 4. Iteramos sobre los hijos y los creamos vinculándolos al padre
             for preferencia_item in preferencias_data:
-                # preferencia_item es un diccionario con {'puesto': objeto_puesto, 'orden_prioridad': int}
                 PreferenciaSolicitud.objects.create(
                     papeleta=papeleta,
                     puesto_solicitado=preferencia_item['puesto'],
