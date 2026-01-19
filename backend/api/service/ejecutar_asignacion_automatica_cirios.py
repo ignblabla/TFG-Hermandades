@@ -1,4 +1,5 @@
-import uuid # <--- 1. IMPORTAMOS LIBRERÍA UUID
+import uuid 
+import math 
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -8,119 +9,115 @@ from ..models import Acto, PapeletaSitio, Tramo, Puesto
 
 def ejecutar_asignacion_automatica_cirios(acto_id: int):
     """
-    Asigna tramos y números de papeleta a las solicitudes de cirio
-    basándose en la antigüedad del hermano y la capacidad de los tramos.
+    Asigna tramos y números de papeleta equilibrando la carga (Reparto Equitativo)
+    y utiliza bulk_update para optimizar el rendimiento en BBDD.
     """
-    
-    # 1. Obtención y validación del Acto
+
     try:
         acto = Acto.objects.get(id=acto_id)
-    except Acto.DoesNotExist:
+    except:
         raise ValidationError("El acto especificado no existe.")
-
+    
     ahora = timezone.now()
 
-    # Validamos que el plazo de solicitud haya terminado
-    if not acto.fin_solicitud_cirios:
-         raise ValidationError("El acto no tiene configurada fecha de fin de solicitud.")
+    if not acto.inicio_solicitud_cirios:
+        raise ValidationError("El acto no tiene configurada fecha de fin de solicitud.")
     
     if ahora <= acto.fin_solicitud_cirios:
-        raise ValidationError(f"Aún no ha finalizado el plazo de solicitudes (Termina: {acto.fin_solicitud_cirios}). No se puede realizar el reparto.")
-
-    # 2. Ejecución Transaccional (Todo o nada)
+        raise ValidationError(f"Aún no ha finalizado el plazo (Termina: {acto.fin_solicitud_cirios}).")
+    
     with transaction.atomic():
-        
-        # --- PASO PREVIO: LIMPIEZA ---
-        # Reseteamos asignaciones previas para permitir re-ejecución.
-        # Importante: Limpiamos también fecha de emisión y código para regenerarlos nuevos.
-        papeletas_a_resetear = PapeletaSitio.objects.filter(
+        PapeletaSitio.objects.filter(
             acto=acto,
             es_solicitud_insignia=False
-        ).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA)
-        
-        papeletas_a_resetear.update(
+        ).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).update(
             tramo=None,
             numero_papeleta=None,
-            fecha_emision=None,        # <--- Limpiamos fecha
-            codigo_verificacion=None,  # <--- Limpiamos código
+            fecha_emision=None,
+            codigo_verificacion=None,
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
         )
 
-        # --- CÁLCULO DEL INICIO DEL CONTADOR ---
         max_papeleta_existente = PapeletaSitio.objects.filter(
             acto=acto
         ).aggregate(Max('numero_papeleta'))['numero_papeleta__max']
 
-        if max_papeleta_existente is None:
-            contador_global_papeleta = 1
-        else:
-            contador_global_papeleta = max_papeleta_existente + 1
+        contador_global_papeleta = 1 if max_papeleta_existente is None else max_papeleta_existente + 1
 
-        # --- ALGORITMO DE REPARTO ---
-        
+        papeletas_para_actualizar = []
+
         flujos = [
             {'nombre': 'CRISTO', 'cortejo_bool': True, 'paso_enum': Tramo.PasoCortejo.CRISTO},
             {'nombre': 'VIRGEN', 'cortejo_bool': False, 'paso_enum': Tramo.PasoCortejo.VIRGEN},
         ]
 
         for flujo in flujos:
-            # A. Obtener Candidatos
-            candidatos = PapeletaSitio.objects.filter(
+            qs_candidatos = PapeletaSitio.objects.filter(
                 acto=acto,
-                es_solicitud_insignia=False,
+                es_solicitud_insignia = False,
                 puesto__cortejo_cristo=flujo['cortejo_bool'],
                 estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
             ).select_related('hermano').order_by(
                 'hermano__fecha_ingreso_corporacion', 
-                'hermano__numero_registro', 
+                'hermano__numero_registro',
                 'hermano__fecha_nacimiento'
             )
 
-            # B. Obtener Tramos Disponibles
-            tramos = Tramo.objects.filter(
+            lista_candidatos = list(qs_candidatos)
+            total_candidatos_pendientes = len(lista_candidatos)
+            index_candidato_actual = 0
+
+            qs_tramos = Tramo.objects.filter(
                 acto=acto,
                 paso=flujo['paso_enum']
             ).order_by('-numero_orden')
+            
+            lista_tramos = list(qs_tramos)
+            total_tramos = len(lista_tramos)
 
-            if not tramos.exists() and candidatos.exists():
+            if total_tramos == 0 or total_candidatos_pendientes == 0:
                 continue 
 
-            # C. Lógica de Asignación
-            iterator_tramos = iter(tramos)
-            tramo_actual = next(iterator_tramos, None)
-            
-            cupo_actual_llenado = 0 
+            for i, tramo_actual in enumerate(lista_tramos):
+                if total_candidatos_pendientes <= 0:
+                    break
 
-            for papeleta in candidatos:
-                asignado = False
+                tramos_restantes = total_tramos - i
                 
-                while tramo_actual and not asignado:
-                    capacidad_tramo = tramo_actual.numero_maximo_cirios
+                cupo_ideal = math.ceil(total_candidatos_pendientes / tramos_restantes)
+                cantidad_a_asignar = min(cupo_ideal, tramo_actual.numero_maximo_cirios)
+
+                batch_hermanos = lista_candidatos[index_candidato_actual : index_candidato_actual + cantidad_a_asignar]
+
+                fecha_hoy = ahora.date()
+                
+                for papeleta in batch_hermanos:
+                    papeleta.tramo = tramo_actual
+                    papeleta.numero_papeleta = contador_global_papeleta
+                    papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA
+                    papeleta.fecha_emision = fecha_hoy
+                    papeleta.codigo_verificacion = uuid.uuid4().hex[:32].upper()
                     
-                    if cupo_actual_llenado < capacidad_tramo:
-                        # --- ASIGNACIÓN DE DATOS ---
-                        papeleta.tramo = tramo_actual
-                        papeleta.numero_papeleta = contador_global_papeleta
-                        papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA
-                        papeleta.fecha_emision = ahora.date()
-                        papeleta.codigo_verificacion = uuid.uuid4().hex[:8].upper() 
+                    papeletas_para_actualizar.append(papeleta)
+                    
+                    contador_global_papeleta += 1
 
-                        papeleta.save()
-                        # ---------------------------
-                        
-                        cupo_actual_llenado += 1
-                        contador_global_papeleta += 1 
-                        asignado = True
-                    else:
-                        # Tramo lleno, pasamos al siguiente
-                        try:
-                            tramo_actual = next(iterator_tramos)
-                            cupo_actual_llenado = 0 
-                        except StopIteration:
-                            tramo_actual = None
-                            break
-                
-                if not asignado and not tramo_actual:
-                    pass
+                cantidad_asignada_real = len(batch_hermanos)
+                index_candidato_actual += cantidad_asignada_real
+                total_candidatos_pendientes -= cantidad_asignada_real
+
+        # --- PERSISTENCIA MASIVA (BULK UPDATE) ---
+        if papeletas_para_actualizar:
+            PapeletaSitio.objects.bulk_update(
+                papeletas_para_actualizar, 
+                fields=[
+                    'tramo', 
+                    'numero_papeleta', 
+                    'estado_papeleta', 
+                    'fecha_emision', 
+                    'codigo_verificacion'
+                ],
+                batch_size=1000
+            )
 
     return True
