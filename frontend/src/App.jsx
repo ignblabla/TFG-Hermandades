@@ -16,6 +16,7 @@ import GestionReparto from "./pages/GestionReparto"
 import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
 import SolicitarCirio from "./pages/SolicitarCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
+import AdminDashboard from "./pages/Admin/Dashboard"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -96,6 +97,14 @@ function App() {
           element={
             <ProtectedRoute>
               <SolicitarCirio />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/panel-administracion" 
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
