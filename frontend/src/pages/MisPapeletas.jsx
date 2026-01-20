@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // Tu wrapper de axios
-import "../styles/MisPapeletas.css"; // Nuevo archivo de estilos sugerido abajo
+import api from "../api"; 
+import "../styles/MisPapeletas.css"; 
 import logoEscudo from '../assets/escudo.png';
-import { ArrowLeft, FileText, Calendar, MapPin, CheckCircle, Clock, AlertCircle, Download } from "lucide-react";
+import { ArrowLeft, FileText, CheckCircle, Clock, AlertCircle, Download, Calendar } from "lucide-react";
 
 function MisPapeletas() {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -17,11 +17,9 @@ function MisPapeletas() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Cargar Usuario
                 const resUser = await api.get("api/me/");
                 setUser(resUser.data);
 
-                // 2. Cargar Historial de Papeletas (Endpoint nuevo)
                 const resPapeletas = await api.get("api/papeletas/mis-papeletas/");
                 setPapeletas(resPapeletas.data);
 
@@ -48,26 +46,24 @@ function MisPapeletas() {
         window.location.href = "/";
     };
 
-    // Función auxiliar para formatear fecha
     const formatearFecha = (fechaISO) => {
         if (!fechaISO) return "Fecha por determinar";
         const fecha = new Date(fechaISO);
         return fecha.toLocaleDateString('es-ES', { 
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit' 
+            day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' 
         });
     };
 
-    // Función para obtener estilos según estado
     const getEstadoBadge = (estado) => {
         switch (estado) {
             case 'SOLICITADA':
-                return { class: 'badge-warning', icon: <Clock size={14} />, text: 'Solicitada - Pendiente de Reparto' };
+                return { class: 'badge-warning', icon: <Clock size={14} />, text: 'Solicitada' };
             case 'EMITIDA':
-                return { class: 'badge-info', icon: <AlertCircle size={14} />, text: 'Emitida - Pendiente de Pago/Retirada' };
+                return { class: 'badge-info', icon: <AlertCircle size={14} />, text: 'Emitida' };
             case 'RECOGIDA':
-                return { class: 'badge-success', icon: <CheckCircle size={14} />, text: 'Recogida - Activa' };
+                return { class: 'badge-success', icon: <CheckCircle size={14} />, text: 'Recogida' };
             case 'LEIDA':
-                return { class: 'badge-success', icon: <CheckCircle size={14} />, text: 'Completada (Leída)' };
+                return { class: 'badge-success', icon: <CheckCircle size={14} />, text: 'Completada' };
             case 'ANULADA':
                 return { class: 'badge-danger', icon: <AlertCircle size={14} />, text: 'Anulada' };
             default:
@@ -79,7 +75,6 @@ function MisPapeletas() {
 
     return (
         <div className="site-wrapper">
-            {/* --- NAVBAR (Reutilizada para consistencia) --- */}
             <nav className="navbar">
                 <div className="logo-container">
                     <img src={logoEscudo} alt="Escudo San Gonzalo" className="nav-logo" />
@@ -88,34 +83,24 @@ function MisPapeletas() {
                         <span>SEVILLA</span>
                     </div>
                 </div>
-
                 <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
-
                 <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
                     <li><a href="/home">Inicio</a></li>
                     <li><a href="/agenda">Agenda</a></li>
                     <div className="nav-buttons-mobile">
-                        {user && (
-                            <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>
-                        )}
+                        {user && <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>}
                     </div>
                 </ul>
-
                 <div className="nav-buttons-desktop">
                     {user && (
                         <>
-                            <button className="btn-outline" onClick={() => navigate("/perfil")}>
-                                Hermano: {user.dni}
-                            </button>
-                            <button className="btn-purple" onClick={handleLogout}>
-                                Cerrar Sesión
-                            </button>
+                            <button className="btn-outline" onClick={() => navigate("/perfil")}>Hermano: {user.dni}</button>
+                            <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>
                         </>
                     )}
                 </div>
             </nav>
 
-            {/* --- MAIN CONTENT --- */}
             <main className="main-container-area">
                 <div className="card-container-area full-width-card">
                     <header className="content-header-area">
@@ -126,7 +111,7 @@ function MisPapeletas() {
                             </button>
                         </div>
                         <p className="description-area">
-                            Consulta el estado de tus solicitudes y accede a tus papeletas históricas.
+                            Consulta el historial detallado de tus solicitudes y asignaciones.
                         </p>
                     </header>
 
@@ -135,82 +120,91 @@ function MisPapeletas() {
                     {papeletas.length === 0 && !error ? (
                         <div className="empty-state">
                             <FileText size={48} color="#cbd5e1" />
-                            <p>No tienes papeletas de sitio solicitadas ni históricas.</p>
+                            <p>No hay registros de papeletas.</p>
                             <button className="btn-purple mt-4" onClick={() => navigate("/agenda")}>
                                 Ver Actos Disponibles
                             </button>
                         </div>
                     ) : (
-                        <div className="papeletas-grid">
-                            {papeletas.map((papeleta) => {
-                                const estadoInfo = getEstadoBadge(papeleta.estado_papeleta);
-                                
-                                return (
-                                    <article key={papeleta.id} className="papeleta-card">
-                                        <div className="papeleta-header">
-                                            <span className="papeleta-year">{papeleta.anio}</span>
-                                            <div className={`status-badge ${estadoInfo.class}`}>
-                                                {estadoInfo.icon}
-                                                <span>{estadoInfo.text}</span>
-                                            </div>
-                                        </div>
-                                        
-                                        <h3 className="acto-title">{papeleta.nombre_acto}</h3>
+                        // --- CAMBIO PRINCIPAL: TABLA EN LUGAR DE CARDS ---
+                        <div className="table-responsive">
+                            <table className="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{width: '60px'}}>Año</th>
+                                        <th>Acto / Fecha</th>
+                                        <th>Detalle Sitio</th>
+                                        <th style={{width: '120px'}}>Estado</th>
+                                        <th style={{width: '140px'}}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {papeletas.map((papeleta) => {
+                                        const estadoInfo = getEstadoBadge(papeleta.estado_papeleta);
+                                        const tieneSitio = papeleta.nombre_puesto; 
+                                        const puedeDescargar = papeleta.estado_papeleta === 'EMITIDA' || papeleta.estado_papeleta === 'RECOGIDA';
 
-                                        <div className="papeleta-body">
-                                            {/* Si ya tiene sitio asignado (EMITIDA/RECOGIDA) */}
-                                            {papeleta.nombre_puesto ? (
-                                                <div className="asignacion-box">
-                                                    <div className="asignacion-row">
-                                                        <span className="label">Puesto:</span>
-                                                        <span className="value highlight">{papeleta.nombre_puesto}</span>
+                                        return (
+                                            <tr key={papeleta.id}>
+                                                <td className="text-center font-bold text-muted">{papeleta.anio}</td>
+                                                
+                                                <td>
+                                                    <div className="fw-bold">{papeleta.nombre_acto}</div>
+                                                    <div className="text-small text-muted flex-center">
+                                                        <Calendar size={12} style={{marginRight: '4px'}}/> 
+                                                        {formatearFecha(papeleta.fecha_acto)}
                                                     </div>
-                                                    {papeleta.tramo_display && (
-                                                        <div className="asignacion-row">
-                                                            <span className="label">Ubicación:</span>
-                                                            <span className="value"><MapPin size={14}/> {papeleta.tramo_display}</span>
-                                                        </div>
-                                                    )}
-                                                    {papeleta.numero_papeleta && (
-                                                        <div className="asignacion-row">
-                                                            <span className="label">Nº Papeleta:</span>
-                                                            <span className="value font-mono">{papeleta.numero_papeleta}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                /* Si aún es SOLICITADA, mostramos lo que pidió */
-                                                <div className="preferencias-box">
-                                                    <h4>Solicitud registrada:</h4>
-                                                    <ul>
-                                                        {papeleta.preferencias && papeleta.preferencias.map((pref) => (
-                                                            <li key={pref.id}>
-                                                                <span className="pref-orden">{pref.orden_prioridad}º</span> 
-                                                                {pref.nombre_puesto}
-                                                            </li>
-                                                        ))}
-                                                        {(!papeleta.preferencias || papeleta.preferencias.length === 0) && (
-                                                            <li>Solicitud general (Cirio)</li>
-                                                        )}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
+                                                </td>
 
-                                        <div className="papeleta-footer">
-                                            {(papeleta.estado_papeleta === 'EMITIDA' || papeleta.estado_papeleta === 'RECOGIDA') ? (
-                                                <button className="btn-action primary">
-                                                    <Download size={16} /> Descargar Digital
-                                                </button>
-                                            ) : (
-                                                <button className="btn-action disabled" disabled>
-                                                    Pendiente de asignación
-                                                </button>
-                                            )}
-                                        </div>
-                                    </article>
-                                );
-                            })}
+                                                {/* DETALLE DEL SITIO */}
+                                                <td>
+                                                    {tieneSitio ? (
+                                                        <div className="info-cell-assigned">
+                                                            <span className="puesto-highlight">{papeleta.nombre_puesto}</span>
+                                                            {papeleta.tramo_display && <span className="tramo-text">{papeleta.tramo_display}</span>}
+                                                            {papeleta.numero_papeleta && <span className="numero-badge">#{papeleta.numero_papeleta}</span>}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="info-cell-requested">
+                                                            <span className="pref-label">Solicitado:</span>
+                                                            <ul className="pref-list-inline">
+                                                                {papeleta.preferencias && papeleta.preferencias.length > 0 ? (
+                                                                    papeleta.preferencias.map(pref => (
+                                                                        <li key={pref.id}>
+                                                                            <span className="pref-number">{pref.orden_prioridad}</span> {pref.nombre_puesto}
+                                                                        </li>
+                                                                    ))
+                                                                ) : (
+                                                                    <li>Cirio (Solicitud General)</li>
+                                                                )}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                {/* ESTADO */}
+                                                <td>
+                                                    <div className={`status-badge ${estadoInfo.class}`}>
+                                                        {estadoInfo.icon}
+                                                        <span>{estadoInfo.text}</span>
+                                                    </div>
+                                                </td>
+
+                                                {/* ACCIONES */}
+                                                <td>
+                                                    {puedeDescargar ? (
+                                                        <button className="btn-table-action">
+                                                            <Download size={16} /> PDF
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-muted text-small">-</span>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
                     )}
                 </div>
