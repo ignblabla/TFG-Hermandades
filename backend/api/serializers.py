@@ -380,8 +380,6 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             })
         
         if puesto and puesto.tipo_puesto.solo_junta_gobierno:
-            # Comprobamos si el hermano pertenece al cuerpo 'JUNTA_GOBIERNO'
-            # Usamos el related_name 'pertenencias_cuerpos' definido en HermanoCuerpo
             es_miembro_junta = hermano.pertenencias_cuerpos.filter(
                 cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
             ).exists()
@@ -399,10 +397,6 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
 
         return data
     
-
-
-
-
 # -----------------------------------------------------------------------------
 # SERIALIZERS PARA SOLICITUD DE INSIGNIAS Y PAPELETAS
 # -----------------------------------------------------------------------------
@@ -429,6 +423,22 @@ class PreferenciaSolicitudSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(f"El puesto {puesto.nombre} ya no está disponible.")
                 
             return data
+        
+
+class MisPapeletasSerializer(PapeletaSitioSerializer):
+    """
+    Serializer de lectura para que el hermano vea sus propias papeletas.
+    Hereda de PapeletaSitioSerializer pero añade las preferencias solicitadas
+    para que el usuario recuerde qué pidió (Vara, Manigueta, etc.).
+    """
+    preferencias = PreferenciaSolicitudSerializer(many=True, read_only=True)
+    
+    # Campos calculados extra para el frontend
+    nombre_tipo_acto = serializers.CharField(source='acto.tipo_acto.nombre_tipo', read_only=True)
+    fecha_acto = serializers.DateTimeField(source='acto.fecha', read_only=True)
+
+    class Meta(PapeletaSitioSerializer.Meta):
+        fields = PapeletaSitioSerializer.Meta.fields + ['preferencias', 'nombre_tipo_acto', 'fecha_acto']
         
 
 class SolicitudInsigniaSerializer(serializers.ModelSerializer):

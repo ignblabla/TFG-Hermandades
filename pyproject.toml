@@ -15,5 +15,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "python-dotenv>=1.2.1",
     "pytz>=2025.2",
+    "qrcode[pil]>=8.2",
+    "reportlab>=4.4.9",
     "sqlparse>=0.5.5",
 ]

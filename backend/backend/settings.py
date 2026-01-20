@@ -32,6 +32,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
+FRONTEND_URL = "http://localhost:5173"
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
