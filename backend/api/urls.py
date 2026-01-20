@@ -9,7 +9,7 @@ from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from . import views
 
-from .views import HermanoListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import HermanoAdminDetailView, HermanoListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -35,4 +35,5 @@ urlpatterns = [
 
     #URLS PANEL DE ADMINISTRACIÓN
     path("hermanos/listado/", HermanoListView.as_view(), name="listado-hermanos"),
+    path("hermanos/<int:pk>/gestion/", HermanoAdminDetailView.as_view(), name="gestion-hermano-detalle"),
 ]

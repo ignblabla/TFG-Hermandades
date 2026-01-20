@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import HermanoAdminUpdateSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
 from .serializers import HermanoListSerializer
-from .services import get_todos_hermanos_service
+from .services import get_detalle_hermano_admin_service, get_todos_hermanos_service, update_hermano_admin_service
 from .pagination import StandardResultsSetPagination
 from rest_framework import generics
 
@@ -217,3 +217,46 @@ class HermanoListView(APIView):
         
         serializer = HermanoListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class HermanoAdminDetailView(APIView):
+    """
+    Vista para que un Administrador vea y edite el detalle de un hermano.
+    soporta GET, PUT (total) y PATCH (parcial).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        hermano = get_detalle_hermano_admin_service(usuario_solicitante=request.user, hermano_id=pk)
+        serializer = HermanoAdminUpdateSerializer(hermano)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk):
+        hermano = get_object_or_404(User, pk=pk)
+        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        hermano_actualizado = update_hermano_admin_service(
+            usuario_solicitante = request.user,
+            hermano_id = pk,
+            data_validada =serializer.validated_data
+        )
+
+        return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)
+    
+    def patch(self, request, pk):
+        """
+        Actualización parcial: Solo actualiza los campos enviados en el JSON.
+        Ideal para cambiar estados rápidos o corregir erratas.
+        """
+        hermano = get_object_or_404(User, pk=pk)
+        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        hermano_actualizado = update_hermano_admin_service(
+            usuario_solicitante=request.user,
+            hermano_id=pk,
+            data_validada=serializer.validated_data
+        )
+
+        return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)

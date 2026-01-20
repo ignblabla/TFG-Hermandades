@@ -198,8 +198,49 @@ def get_tipos_acto_service():
 # -----------------------------------------------------------------------------
 # SERVICES DEL PANEL DE ADMINISTRACIÓN
 # -----------------------------------------------------------------------------
+#Función para administrador
 def get_todos_hermanos_service(usuario_solicitante):
     if not getattr(usuario_solicitante, 'esAdmin', False):
         raise PermissionDenied("Acceso denegado. Se requieren permisos de Administrador para consultar el censo.")
     
     return User.objects.all().order_by(F('numero_registro').asc(nulls_last=True))
+
+@transaction.atomic
+def get_detalle_hermano_admin_service(usuario_solicitante, hermano_id):
+    User = get_user_model()
+    """Permite al administrador ver el detalle completo de un hermano para editarlo."""
+    if not getattr(usuario_solicitante, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos de Administrador.")
+    
+    hermano = get_object_or_404(User, pk=hermano_id)
+    return hermano
+
+
+@transaction.atomic
+def update_hermano_admin_service(usuario_solicitante, hermano_id, data_validada):
+    """Lógica de negocio para editar un hermano.
+    Restricción: Solo se pueden editar hermanos con estado 'ALTA' o nulo/vacío."""
+
+    if not getattr(usuario_solicitante, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos de Administrador para editar usuarios.")
+    
+    hermano = get_object_or_404(User, pk=hermano_id)
+
+    estados_permitidos = [User.EstadoHermano.ALTA, None, '']
+
+    if hermano.estado_hermano not in estados_permitidos:
+        raise ValidationError({
+            "non_field_errors": [
+                f"No se pueden editar los datos del hermano {hermano.dni} porque su estado es '{hermano.get_estado_hermano_display()}'. Solo se permiten modificaciones en estado ALTA."
+            ]
+        })
+    
+    for attr, value in data_validada.items():
+        setattr(hermano, attr, value)
+    
+    nuevo_estado = data_validada.get('estado_hermano')
+    if nuevo_estado == User.EstadoHermano.BAJA and not data_validada.get('fecha_baja_corporacion'):
+        hermano.fecha_baja_corporacion = timezone.now().date()
+
+    hermano.save()
+    return hermano

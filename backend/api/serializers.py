@@ -609,3 +609,33 @@ class HermanoListSerializer(serializers.ModelSerializer):
 
     def get_nombre_completo(self, obj):
         return f"{obj.nombre} {obj.primer_apellido} {obj.segundo_apellido}".strip()
+    
+
+class HermanoAdminUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'dni', 
+            'nombre', 
+            'primer_apellido', 
+            'segundo_apellido',
+            'telefono', 
+            'email',
+            'fecha_nacimiento', 
+            'genero', 
+            'estado_civil',
+            'direccion', 
+            'codigo_postal', 
+            'localidad', 
+            'provincia', 
+            'comunidad_autonoma',
+            'lugar_bautismo', 
+            'fecha_bautismo', 
+            'parroquia_bautismo',
+            'numero_registro', 
+            'estado_hermano', 
+            'fecha_ingreso_corporacion', 
+            'fecha_baja_corporacion',
+            'esAdmin',
+        ]

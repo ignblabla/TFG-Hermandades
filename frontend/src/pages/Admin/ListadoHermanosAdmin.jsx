@@ -157,7 +157,12 @@ function ListadoHermanos() {
                                     <tbody>
                                         {hermanos.length > 0 ? (
                                             hermanos.map((hermano) => (
-                                                <tr key={hermano.id}>
+                                                <tr 
+                                                    key={hermano.id}
+                                                    onClick={() => navigate(`/admin/hermanos/editar/${hermano.id}`)}
+                                                    style={{ cursor: 'pointer' }}
+                                                    className="fila-interactiva" 
+                                                >
                                                     <td><span className="badge-reg">{hermano.numero_registro || "-"}</span></td>
                                                     <td>{hermano.dni}</td>
                                                     <td className="fw-bold">
