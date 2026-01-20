@@ -18,6 +18,7 @@ import SolicitarCirio from "./pages/SolicitarCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 import MisPapeletas from "./pages/MisPapeletas"
+import ValidarAcceso from "./pages/ValidarAcceso";
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -69,6 +70,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
         <Route
           path="/mis-papeletas"
           element={

@@ -1,24 +1,33 @@
 import io
 import qrcode
+from django.conf import settings  # <--- IMPORTANTE: Necesario para acceder a FRONTEND_URL
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
 from django.utils.timezone import now
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.shortcuts import get_object_or_404
+
+from api.models import PapeletaSitio
 
 def generar_pdf_papeleta(papeleta):
     """
     Genera un archivo PDF en memoria (BytesIO) con los datos de la papeleta
-    y un código QR de verificación.
+    y un código QR de verificación que apunta a la URL de validación.
     """
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
     # --- 1. Generación del Código QR ---
-    # El contenido del QR puede ser el código de verificación o una URL de validación
-    qr_content = f"ID:{papeleta.id}|VERIF:{papeleta.codigo_verificacion}|HERMANO:{papeleta.hermano.dni}"
+    # CAMBIO: El QR ahora es un enlace al Frontend para validación automática
+    # Estructura: DOMINIO/validar-acceso/:id_papeleta/:codigo_verificacion
+    
+    # Asegúrate de tener FRONTEND_URL en tu settings.py (ej: "http://192.168.1.35:5173")
+    url_validacion = f"{settings.FRONTEND_URL}/validar-acceso/{papeleta.id}/{papeleta.codigo_verificacion}"
+    
     qr = qrcode.QRCode(box_size=10, border=1)
-    qr.add_data(qr_content)
+    qr.add_data(url_validacion)
     qr.make(fit=True)
     img_qr = qr.make_image(fill_color="black", back_color="white")
 
@@ -80,3 +89,42 @@ def generar_pdf_papeleta(papeleta):
     # Rebobinar el buffer para que esté listo para lectura
     buffer.seek(0)
     return buffer
+
+
+
+
+def validar_acceso_papeleta(papeleta_id, codigo_verificacion, usuario_escaneador):
+    """
+    Valida la papeleta y cambia el estado a LEIDA.
+    """
+    # 1. Seguridad: Solo admins o diputados pueden validar (ajusta según tu lógica)
+    if not usuario_escaneador.is_staff and not usuario_escaneador.esAdmin:
+        raise PermissionDenied("No tienes permisos para validar accesos.")
+
+    # 2. Buscar papeleta
+    papeleta = get_object_or_404(PapeletaSitio, pk=papeleta_id)
+
+    # 3. Verificar código de seguridad (evita que alguien cambie el ID en la URL manualmente)
+    if str(papeleta.codigo_verificacion) != str(codigo_verificacion):
+        raise ValidationError("El código de verificación no es válido.")
+
+    # 4. Validar estado actual
+    if papeleta.estado_papeleta == PapeletaSitio.EstadoPapeleta.LEIDA:
+        return {
+            "status": "warning", 
+            "mensaje": f"Esta papeleta YA FUE LEÍDA anteriormente ({papeleta.fecha_emision}).",
+            "papeleta": papeleta
+        }
+
+    if papeleta.estado_papeleta not in [PapeletaSitio.EstadoPapeleta.EMITIDA, PapeletaSitio.EstadoPapeleta.RECOGIDA]:
+        raise ValidationError(f"La papeleta no está activa (Estado: {papeleta.estado_papeleta}).")
+
+    # 5. ACTUALIZAR ESTADO
+    papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.LEIDA
+    papeleta.save()
+
+    return {
+        "status": "success",
+        "mensaje": "Acceso Correcto. Papeleta marcada como LEÍDA.",
+        "papeleta": papeleta
+    }
