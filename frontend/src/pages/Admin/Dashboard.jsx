@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../../styles/Admin/Dashboard.css';
+import { DashboardStats } from '../../components/DashboardCard';
 
 function AdminDashboard() {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,10 +51,8 @@ function AdminDashboard() {
 
     return (
         <div>
-            {/* Sidebar */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
-                    {/* Icono estándar bx, clase estructural icon-dashboard */}
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
                     <i 
@@ -64,7 +63,6 @@ function AdminDashboard() {
                 </div>
                 <ul className="nav-list-dashboard">
                     <li>
-                        {/* Iconos estándar bx */}
                         <i className="bx bx-search" onClick={toggleSidebar}></i>
                         <input type="text" placeholder="Search..." />
                         <span className="tooltip-dashboard">Search</span>
@@ -142,6 +140,7 @@ function AdminDashboard() {
                 <div className="text-dashboard">Panel de administración</div>
                 <div style={{padding: '0 18px'}}>
                     <p>Bienvenido al panel de control, {user.nombre || "Administrador"}.</p>
+                    <DashboardStats />
                 </div>
             </section>
         </div>
