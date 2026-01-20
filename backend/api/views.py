@@ -9,6 +9,10 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
+from .serializers import HermanoListSerializer
+from .services import get_todos_hermanos_service
+from .pagination import StandardResultsSetPagination
+from rest_framework import generics
 
 from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
 
@@ -195,4 +199,21 @@ class TipoPuestoListView(APIView):
     def get(self, request):
         tipos = get_tipos_puesto_service()
         serializer = TipoPuestoSerializer(tipos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+# -----------------------------------------------------------------------------
+# VIEWS DEL PANEL DE ADMINISTRACIÓN
+# -----------------------------------------------------------------------------
+class HermanoListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        queryset = get_todos_hermanos_service(usuario_solicitante=request.user)
+        paginator = StandardResultsSetPagination()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        if page is not None:
+            serializer = HermanoListSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        
+        serializer = HermanoListSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

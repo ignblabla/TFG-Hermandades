@@ -582,3 +582,28 @@ class SolicitudCirioSerializer(serializers.Serializer):
             raise serializers.ValidationError({"puesto_id": "El puesto seleccionado no es de tipo CIRIO."})
 
         return data
+    
+# -----------------------------------------------------------------------------
+# SERIALIZERS DEL PANEL DE ADMINISTRACIÓN
+# -----------------------------------------------------------------------------
+class HermanoListSerializer(serializers.ModelSerializer):
+    nombre_completo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'numero_registro', 
+            'dni', 
+            'nombre', 
+            'primer_apellido', 
+            'segundo_apellido', 
+            'nombre_completo',
+            'estado_hermano', 
+            'telefono', 
+            'email',
+            'esAdmin'
+        ]
+
+    def get_nombre_completo(self, obj):
+        return f"{obj.nombre} {obj.primer_apellido} {obj.segundo_apellido}".strip()
