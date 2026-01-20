@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../styles/ListadoHermanos.css";
-import "../../styles/Admin/Dashboard.css";
 import SideBarMenu from "../../components/SideBarMenu";
 
 import { 
@@ -149,8 +148,10 @@ function ListadoHermanos() {
                                             <th>DNI</th>
                                             <th>Apellidos y Nombre</th>
                                             <th>Teléfono</th>
+                                            <th>Dirección</th>
+                                            <th>F. Nacimiento</th>
+                                            <th>Antigüedad</th> 
                                             <th>Estado</th>
-                                            <th>Perfil</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -163,6 +164,20 @@ function ListadoHermanos() {
                                                         {hermano.primer_apellido} {hermano.segundo_apellido}, {hermano.nombre}
                                                     </td>
                                                     <td>{hermano.telefono}</td>
+
+                                                    <td>{hermano.direccion || "-"}</td>
+                                                    
+                                                    <td>
+                                                        {hermano.fecha_nacimiento 
+                                                            ? new Date(hermano.fecha_nacimiento).toLocaleDateString() 
+                                                            : "-"}
+                                                    </td>
+                                                    <td>
+                                                        {hermano.fecha_ingreso_corporacion 
+                                                            ? new Date(hermano.fecha_ingreso_corporacion).toLocaleDateString() 
+                                                            : "-"}
+                                                    </td>
+
                                                     <td>
                                                         {hermano.estado_hermano === 'ALTA' ? (
                                                             <span className="status-badge success"><UserCheck size={14}/> Alta</span>
@@ -170,14 +185,11 @@ function ListadoHermanos() {
                                                             <span className="status-badge error"><UserX size={14}/> Baja</span>
                                                         )}
                                                     </td>
-                                                    <td>
-                                                        {hermano.esAdmin && <span className="admin-tag">ADMIN</span>}
-                                                    </td>
                                                 </tr>
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="text-center">No se encontraron hermanos.</td>
+                                                <td colSpan="8" className="text-center">No se encontraron hermanos.</td>
                                             </tr>
                                         )}
                                     </tbody>

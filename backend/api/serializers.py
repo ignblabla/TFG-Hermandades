@@ -602,7 +602,9 @@ class HermanoListSerializer(serializers.ModelSerializer):
             'estado_hermano', 
             'telefono', 
             'email',
-            'esAdmin'
+            'fecha_ingreso_corporacion',
+            'fecha_nacimiento',
+            'direccion'
         ]
 
     def get_nombre_completo(self, obj):

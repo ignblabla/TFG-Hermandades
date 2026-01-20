@@ -1,24 +1,29 @@
-/* Reutilizamos variables del CSS anterior si existen, o definimos defaults */
 :root {
-    --primary-purple: #6b4c9a;
-    --primary-dark: #4a3b69;
-    --bg-light: #f8f9fa;
-    --text-dark: #333;
-    --border-color: #e2e8f0;
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    
+    --border-color: #e5e7eb;
+    --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Contenedor más ancho para la tabla */
 .card-container-listado {
-    background: white;
+    background: var(--white);
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     padding: 2rem;
     width: 100%;
-    max-width: 1200px; /* Más ancho que el formulario normal */
+    max-width: 1200px;
     margin: 0 auto;
+    font-family: var(--font-family);
 }
 
-/* Tabla */
 .table-responsive {
     overflow-x: auto;
     margin-top: 1.5rem;
@@ -31,15 +36,15 @@
 }
 
 .hermanos-table thead tr {
-    background-color: #f8f9fa;
+    background-color: var(--bg-light);
     text-align: left;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--burgundy-primary);
 }
 
 .hermanos-table th {
     padding: 1rem;
-    font-weight: 600;
-    color: #555;
+    font-weight: 700;
+    color: var(--burgundy-primary);
     text-transform: uppercase;
     font-size: 0.8rem;
     letter-spacing: 0.5px;
@@ -48,21 +53,22 @@
 .hermanos-table td {
     padding: 1rem;
     border-bottom: 1px solid var(--border-color);
-    color: var(--text-dark);
+    color: var(--text-main);
 }
 
 .hermanos-table tr:hover {
-    background-color: #fcfcfc;
+    background-color: var(--burgundy-light);
+    transition: background-color 0.2s ease;
 }
 
-/* Badges y Decoración */
 .badge-reg {
-    background-color: #edf2f7;
+    background-color: var(--bg-light);
     padding: 4px 8px;
     border-radius: 4px;
     font-family: monospace;
     font-weight: bold;
-    color: #4a5568;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
 }
 
 .fw-bold {
@@ -75,8 +81,9 @@
     gap: 4px;
     padding: 4px 10px;
     border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
 .status-badge.success {
@@ -89,18 +96,11 @@
     color: #991b1b;
 }
 
-.admin-tag {
-    background-color: var(--primary-purple);
-    color: white;
-    font-size: 0.7rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
 .loading-state {
     padding: 3rem;
     text-align: center;
-    color: #888;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 /* Paginación */
@@ -115,7 +115,7 @@
 
 .page-info {
     font-size: 0.9rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .pagination-controls {
@@ -128,27 +128,29 @@
     align-items: center;
     gap: 6px;
     padding: 8px 16px;
-    background-color: white;
+    background-color: var(--white);
     border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
     font-size: 0.9rem;
+    color: var(--text-main);
 }
 
 .btn-pagination:hover:not(:disabled) {
-    background-color: #f1f5f9;
-    border-color: #cbd5e1;
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border-color: var(--burgundy-primary);
 }
 
 .btn-pagination:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    background-color: var(--bg-light);
 }
 
-/* Iconos y textos auxiliares */
 .text-purple {
-    color: var(--primary-purple);
+    color: var(--burgundy-primary) !important;
 }
 
 .text-center {

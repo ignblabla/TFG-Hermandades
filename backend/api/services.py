@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.db.models import F
 
 User = get_user_model()
 
@@ -201,4 +202,4 @@ def get_todos_hermanos_service(usuario_solicitante):
     if not getattr(usuario_solicitante, 'esAdmin', False):
         raise PermissionDenied("Acceso denegado. Se requieren permisos de Administrador para consultar el censo.")
     
-    return User.objects.all().order_by('primer_apellido', 'segundo_apellido', 'nombre')
+    return User.objects.all().order_by(F('numero_registro').asc(nulls_last=True))
