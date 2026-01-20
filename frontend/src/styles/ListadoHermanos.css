@@ -42,7 +42,7 @@
 }
 
 .hermanos-table th {
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     font-weight: 700;
     color: var(--burgundy-primary);
     text-transform: uppercase;
@@ -51,7 +51,7 @@
 }
 
 .hermanos-table td {
-    padding: 1rem;
+    padding: 0.5rem 1rem;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-main);
 }
