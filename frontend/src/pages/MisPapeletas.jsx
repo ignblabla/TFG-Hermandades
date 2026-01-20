@@ -46,6 +46,37 @@ function MisPapeletas() {
         window.location.href = "/";
     };
 
+    // --- NUEVA FUNCIÓN: GESTIONAR DESCARGA DE PDF ---
+    const handleDownloadPDF = async (papeletaId, anio) => {
+        try {
+            // Solicitamos al servidor el archivo indicando que es un BLOB (binario)
+            const response = await api.get(`api/papeletas/${papeletaId}/descargar/`, {
+                responseType: 'blob', 
+            });
+
+            // Creamos una URL temporal en el navegador para el blob recibido
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            
+            // Creamos un elemento <a> invisible para forzar la descarga
+            const link = document.createElement('a');
+            link.href = url;
+            // Definimos el nombre del archivo que se descargará
+            link.setAttribute('download', `Papeleta_SanGonzalo_${anio}.pdf`);
+            
+            // Lo añadimos al DOM, hacemos clic y lo eliminamos
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            
+            // Liberamos la memoria del navegador
+            window.URL.revokeObjectURL(url);
+
+        } catch (err) {
+            console.error("Error descargando PDF:", err);
+            alert("Hubo un error al generar el documento. Por favor, inténtelo de nuevo más tarde.");
+        }
+    };
+
     const formatearFecha = (fechaISO) => {
         if (!fechaISO) return "Fecha por determinar";
         const fecha = new Date(fechaISO);
@@ -126,7 +157,6 @@ function MisPapeletas() {
                             </button>
                         </div>
                     ) : (
-                        // --- CAMBIO PRINCIPAL: TABLA EN LUGAR DE CARDS ---
                         <div className="table-responsive">
                             <table className="custom-table">
                                 <thead>
@@ -142,7 +172,7 @@ function MisPapeletas() {
                                     {papeletas.map((papeleta) => {
                                         const estadoInfo = getEstadoBadge(papeleta.estado_papeleta);
                                         const tieneSitio = papeleta.nombre_puesto; 
-                                        const puedeDescargar = papeleta.estado_papeleta === 'EMITIDA' || papeleta.estado_papeleta === 'RECOGIDA';
+                                        const puedeDescargar = papeleta.estado_papeleta === 'EMITIDA' || papeleta.estado_papeleta === 'RECOGIDA' || papeleta.estado_papeleta === 'LEIDA';
 
                                         return (
                                             <tr key={papeleta.id}>
@@ -193,7 +223,11 @@ function MisPapeletas() {
                                                 {/* ACCIONES */}
                                                 <td>
                                                     {puedeDescargar ? (
-                                                        <button className="btn-table-action">
+                                                        <button 
+                                                            className="btn-table-action"
+                                                            onClick={() => handleDownloadPDF(papeleta.id, papeleta.anio)}
+                                                            title="Descargar PDF"
+                                                        >
                                                             <Download size={16} /> PDF
                                                         </button>
                                                     ) : (
