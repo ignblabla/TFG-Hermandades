@@ -5,6 +5,7 @@ from api.view.solicitud_papeleta_insignia_view import SolicitarInsigniaView
 from api.view.reparto_insignia_view import EjecutarRepartoView
 from api.view.solicitar_cirio_view import SolicitarCirioView
 from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
+from api.view.ConsultaPapeletasView import MisPapeletasListView
 from . import views
 
 from .views import TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -25,4 +26,6 @@ urlpatterns = [
 
     path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
     path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
+
+    path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
 ]
