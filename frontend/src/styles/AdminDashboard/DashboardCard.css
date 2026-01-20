@@ -1,0 +1,93 @@
+:root {
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #7e7290;
+    --color-success: #22c55e;
+    --color-danger: #ef4444;
+    --color-accent: #d946ef;
+    --color-bg-card: #ffffff;
+    --color-border-card: #e9e4f0;
+    
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    
+    --font-size-title: 0.875rem;
+    --font-size-value: 2rem;
+    --font-size-indicator: 0.75rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+    width: 100%;
+    padding: var(--spacing-md);
+    box-sizing: border-box;
+}
+
+.dashboard-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--burgundy-primary); 
+    border-radius: 0.5rem;
+    padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(128, 0, 32, 0.1);
+    border-color: var(--burgundy-primary);
+}
+
+
+.dashboard-card__title {
+    color: var(--text-muted);
+    font-size: var(--font-size-title);
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.dashboard-card__content {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+}
+
+.dashboard-card__value {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-value);
+    font-weight: 700;
+    line-height: 1;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* =========================================
+   MEDIA QUERIES (Responsive Breakpoints)
+   ========================================= */
+
+@media (min-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+    }
+}
+
+@media (min-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1200px) {
+    .dashboard-grid {
+        gap: 2rem;
+    }
+}
