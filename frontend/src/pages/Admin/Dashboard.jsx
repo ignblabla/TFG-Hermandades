@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../../styles/Admin/Dashboard.css';
+import { DashboardStats } from '../../components/AdminDashboard/DashboardCard';
 
 function AdminDashboard() {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,10 +51,8 @@ function AdminDashboard() {
 
     return (
         <div>
-            {/* Sidebar */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
-                    {/* Icono estándar bx, clase estructural icon-dashboard */}
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
                     <i 
@@ -64,7 +63,6 @@ function AdminDashboard() {
                 </div>
                 <ul className="nav-list-dashboard">
                     <li>
-                        {/* Iconos estándar bx */}
                         <i className="bx bx-search" onClick={toggleSidebar}></i>
                         <input type="text" placeholder="Search..." />
                         <span className="tooltip-dashboard">Search</span>
@@ -72,16 +70,16 @@ function AdminDashboard() {
                     <li>
                         <a href="#">
                             <i className="bx bx-grid-alt"></i>
-                            <span className="link_name-dashboard">Dashboard</span>
+                            <span className="link_name-dashboard">Panel de administración</span>
                         </a>
-                        <span className="tooltip-dashboard">Dashboard</span>
+                        <span className="tooltip-dashboard">Panel de administración</span>
                     </li>
                     <li>
                         <a href="#">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Usuarios</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Usuarios</span>
                     </li>
                     <li>
                         <a href="#">
@@ -142,6 +140,7 @@ function AdminDashboard() {
                 <div className="text-dashboard">Panel de administración</div>
                 <div style={{padding: '0 18px'}}>
                     <p>Bienvenido al panel de control, {user.nombre || "Administrador"}.</p>
+                    <DashboardStats/>
                 </div>
             </section>
         </div>
