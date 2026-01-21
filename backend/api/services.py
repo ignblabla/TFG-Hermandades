@@ -207,3 +207,20 @@ def get_listado_hermanos_service(usuario_solicitante):
     
     hermanos = User.objects.all().order_by('numero_registro')
     return hermanos
+
+@transaction.atomic
+def update_hermano_por_admin_service(usuario_solicitante, hermano_id, data_validada):
+    if not getattr(usuario_solicitante, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para editar los datos de otros hermanos.")
+    
+    hermano = get_object_or_404(User, pk=hermano_id)
+
+    for attr, value in data_validada.items():
+        if attr == 'password':
+            if value:
+                hermano.set_password(value)
+        else:
+            setattr(hermano, attr, value)
+    
+    hermano.save()
+    return hermano

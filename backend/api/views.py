@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import HermanoListadoSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import HermanoAdminUpdateSerializer, HermanoListadoSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
 
-from .services import create_acto_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
+from .services import create_acto_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -225,3 +225,56 @@ class HermanoListView(APIView):
                 {"detail": "Error al recuperar el listado.", "error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+class HermanoAdminDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        if not getattr(request.user, 'esAdmin', False):
+            return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
+        
+        hermano = get_object_or_404(User, pk=pk)
+        serializer = HermanoAdminUpdateSerializer(hermano)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def put(self, request, pk):
+        """
+        Actualización completa (requiere enviar todos los campos obligatorios).
+        """
+        hermano = get_object_or_404(User, pk=pk)
+
+        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            hermano_actualizado = update_hermano_por_admin_service(
+                usuario_solicitante=request.user,
+                hermano_id=pk,
+                data_validada=serializer.validated_data
+            )
+            return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)
+        
+        except PermissionDenied as e:
+            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        
+
+    def patch(self, request, pk):
+        """
+        Actualización parcial (solo los campos enviados).
+        """
+        hermano = get_object_or_404(User, pk=pk)
+
+        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            hermano_actualizado = update_hermano_por_admin_service(
+                usuario_solicitante=request.user,
+                hermano_id=pk,
+                data_validada=serializer.validated_data
+            )
+            return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)
+        
+        except PermissionDenied as e:
+            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
