@@ -133,6 +133,17 @@
     box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
 }
 
+.form-help-text {
+    color: #64748b;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+input[type="password"] {
+    letter-spacing: 0.1em;
+}
+
 /* SECCIÓN ADMIN DIFERENCIADA */
 .admin-section {
     background-color: #f8fafc;
@@ -148,10 +159,55 @@
 
 .checkbox-group {
     display: flex;
-    justify-content: center;
-    flex-direction: column;
+    justify-content: flex-start;
     grid-column: 1 / -1;
-    margin-top: 10px;
+    margin-top: 15px;
+    padding: 10px 0;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.checkbox-group input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    margin: 0;
+    position: relative;
+    background-color: white;
+    transition: all 0.2s ease;
+    display: grid;
+    place-content: center;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+    background-color: var(--burgundy-primary);
+    border-color: var(--burgundy-primary);
+}
+
+.checkbox-group input[type="checkbox"]:checked::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.checkbox-group label:hover {
+    color: var(--burgundy-primary);
 }
 
 /* BOTONES DE ACCIÓN */

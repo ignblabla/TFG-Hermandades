@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
 import '../styles/AdminEdicionHermano.css'; // Crearemos este CSS abajo
-import { ArrowLeft, Save, User, MapPin, Calendar, ShieldAlert } from "lucide-react";
+import { ArrowLeft, Save, User, MapPin, Calendar, ShieldAlert, Lock } from "lucide-react";
 
 function AdminEditarHermano() {
     const { id } = useParams();
@@ -19,7 +19,7 @@ function AdminEditarHermano() {
     const [currentUser, setCurrentUser] = useState(null);
     const [formData, setFormData] = useState({
         dni: '', nombre: '', primer_apellido: '', segundo_apellido: '',
-        email: '', telefono: '', 
+        email: '', telefono: '', password: '',
         fecha_nacimiento: '', genero: 'MASCULINO', estado_civil: 'SOLTERO',
         direccion: '', codigo_postal: '', localidad: '', provincia: '', comunidad_autonoma: '',
         lugar_bautismo: '', fecha_bautismo: '', parroquia_bautismo: '',
@@ -53,6 +53,7 @@ function AdminEditarHermano() {
                     const data = resHermano.data;
                     setFormData({
                         ...data,
+                        password: '',
                         segundo_apellido: data.segundo_apellido || '',
                         email: data.email || '',
                         direccion: data.direccion || '',
@@ -99,16 +100,16 @@ function AdminEditarHermano() {
 
         const payload = { ...formData };
 
+        if (!payload.password || payload.password.trim() === "") {
+            delete payload.password;
+        }
+
         const dateFields = [
             'fecha_nacimiento', 
             'fecha_bautismo', 
             'fecha_ingreso_corporacion', 
             'fecha_baja_corporacion'
         ];
-
-        if (!payload.password) {
-            delete payload.password;
-        }
 
         dateFields.forEach(field => {
             if (payload[field] === "") {
@@ -119,6 +120,8 @@ function AdminEditarHermano() {
         try {
             await api.put(`api/hermanos/${id}/gestion/`, payload);
             setSuccessMsg("Datos actualizados correctamente.");
+
+            setFormData(prev => ({ ...prev, password: '' }));
             
             window.scrollTo(0, 0);
             
@@ -244,6 +247,19 @@ function AdminEditarHermano() {
                                             <option value="VIUDO">Viudo/a</option>
                                         </select>
                                     </div>
+
+                                    <div className="form-group">
+                                        <label>NUEVA CONTRASEÑA</label>
+                                        <input 
+                                            type="password" 
+                                            name="password" 
+                                            value={formData.password} 
+                                            onChange={handleChange} 
+                                            placeholder="Dejar vacío para mantener actual"
+                                            autoComplete="new-password"
+                                        />
+                                        <small className="form-help-text">* Rellenar solo si se desea cambiar</small>
+                                    </div>
                                 </div>
                             </div>
 
@@ -324,13 +340,12 @@ function AdminEditarHermano() {
                                     </div>
                                     
                                     <div className="form-group checkbox-group">
-                                        <label style={{cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                        <label>
                                             <input 
                                                 type="checkbox" 
                                                 name="esAdmin" 
                                                 checked={formData.esAdmin} 
                                                 onChange={handleChange}
-                                                style={{width: '20px', height: '20px'}}
                                             />
                                             <span>Otorgar permisos de Administrador</span>
                                         </label>
