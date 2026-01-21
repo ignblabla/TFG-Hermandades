@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'
 import '../styles/AdminListadoHermanos.css';
-import { ArrowLeft, ChevronLeft, ChevronRight, Search, UserCheck, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, UserCheck, Users } from "lucide-react";
 
 function AdminListadoHermanos() {
     const [isOpen, setIsOpen] = useState(false);
@@ -98,6 +98,10 @@ function AdminListadoHermanos() {
 
     const handleNext = () => {
         if (page < totalPages) setPage(page + 1);
+    };
+
+    const irAlDetalle = (id) => {
+        navigate(`/gestion/hermanos/${id}`);
     };
 
     if (loading && !user) return <div className="site-wrapper loading-screen">Cargando censo...</div>;
@@ -239,7 +243,7 @@ function AdminListadoHermanos() {
                                     <tbody>
                                         {hermanos.length > 0 ? (
                                             hermanos.map((hermano) => (
-                                                <tr key={hermano.id}>
+                                                <tr key={hermano.id} onClick={() => irAlDetalle(hermano.id)} style={{borderBottom: '1px solid #f1f5f9', cursor: 'pointer'}} className="row-hover">
                                                     <td><span className="badge-reg">{hermano.numero_registro || "-"}</span></td>
                                                     <td>{hermano.dni}</td>
                                                     <td className="fw-bold">

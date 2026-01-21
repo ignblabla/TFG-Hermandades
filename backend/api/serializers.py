@@ -609,3 +609,52 @@ class HermanoListadoSerializer(serializers.ModelSerializer):
             'fecha_nacimiento',
             'esAdmin'
         ]
+
+class HermanoAdminUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializador independiente para la edición completa por parte del Administrador.
+    """
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'username', 
+            'password',
+            'dni', 
+            'nombre', 
+            'primer_apellido', 
+            'segundo_apellido', 
+            'email',
+            'telefono', 
+            'fecha_nacimiento', 
+            'genero', 
+            'estado_civil', 
+            'direccion', 
+            'codigo_postal', 
+            'localidad', 
+            'provincia', 
+            'comunidad_autonoma', 
+            'lugar_bautismo', 
+            'fecha_bautismo', 
+            'parroquia_bautismo',
+            'numero_registro', 
+            'estado_hermano', 
+            'fecha_ingreso_corporacion', 
+            'fecha_baja_corporacion', 
+            'esAdmin'
+        ]
+
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+        }
+
+    def validate(self, data):
+        """
+        Validaciones necesarias antes de pasar al servicio.
+        """
+        if 'fecha_ingreso_corporacion' in data and 'fecha_baja_corporacion' in data:
+            ingreso = data['fecha_ingreso_corporacion']
+            baja = data['fecha_baja_corporacion']
+            if ingreso and baja and baja < ingreso:
+                raise serializers.ValidationError("La fecha de baja no puede ser anterior a la de ingreso.")
+        return data

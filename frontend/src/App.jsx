@@ -20,6 +20,7 @@ import AdminDashboard from "./pages/Admin/Dashboard"
 import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminListadoHermanos from "./pages/AdminListadoHermanos"
+import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -151,6 +152,14 @@ function App() {
               <AdminListadoHermanos />
             </ProtectedRoute>
           }
+        />
+        <Route 
+          path="/gestion/hermanos/:id" 
+          element={
+            <ProtectedRoute>
+              <AdminEditarHermano />
+            </ProtectedRoute>
+          } 
         />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
