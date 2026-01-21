@@ -595,14 +595,17 @@ class HermanoListadoSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 
-            'numero_registro', 
-            'dni', 
-            'nombre', 
-            'primer_apellido', 
-            'segundo_apellido', 
-            'estado_hermano', 
-            'telefono', 
-            'email', 
+            'id',
+            'numero_registro',
+            'dni',
+            'nombre',
+            'primer_apellido',
+            'segundo_apellido',
+            'estado_hermano',
+            'telefono',
+            'email',
+            'direccion',
+            'fecha_ingreso_corporacion',
+            'fecha_nacimiento',
             'esAdmin'
         ]

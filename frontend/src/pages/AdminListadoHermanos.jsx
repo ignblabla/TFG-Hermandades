@@ -21,6 +21,16 @@ function AdminListadoHermanos() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRegistros, setTotalRegistros] = useState(0);
 
+    const formatearFecha = (fechaString) => {
+        if (!fechaString) return "-";
+        const fecha = new Date(fechaString);
+        return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
     useEffect(() => {
         let isMounted = true; 
 
@@ -33,10 +43,6 @@ function AdminListadoHermanos() {
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
                 }
-
-                console.log("DATOS USUARIO:", userData);
-                console.log("ES ADMIN?:", userData?.esAdmin);
-                console.log("TIPO DE DATO:", typeof userData?.esAdmin);
 
                 if (!userData.esAdmin) {
                     setAccesoDenegado(true);
@@ -222,6 +228,9 @@ function AdminListadoHermanos() {
                                             <th>Nº Reg.</th>
                                             <th>DNI</th>
                                             <th>Apellidos y Nombre</th>
+                                            <th>F. Nacimiento</th>
+                                            <th>F. Ingreso</th>
+                                            <th>Dirección</th>
                                             <th>Teléfono</th>
                                             <th>Estado</th>
                                             <th>Perfil</th>
@@ -235,6 +244,11 @@ function AdminListadoHermanos() {
                                                     <td>{hermano.dni}</td>
                                                     <td className="fw-bold">
                                                         {hermano.primer_apellido} {hermano.segundo_apellido}, {hermano.nombre}
+                                                    </td>
+                                                    <td>{formatearFecha(hermano.fecha_nacimiento)}</td>
+                                                    <td>{formatearFecha(hermano.fecha_ingreso_corporacion)}</td>
+                                                    <td className="cell-direccion" title={hermano.direccion}>
+                                                        {hermano.direccion || "-"}
                                                     </td>
                                                     <td>{hermano.telefono}</td>
                                                     <td>

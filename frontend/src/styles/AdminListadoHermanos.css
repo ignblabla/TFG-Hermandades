@@ -56,6 +56,13 @@
     color: var(--text-main);
 }
 
+.cell-direccion {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .hermanos-table tr:hover {
     background-color: var(--burgundy-light);
     transition: background-color 0.2s ease;
