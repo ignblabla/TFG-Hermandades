@@ -12,6 +12,7 @@ function AdminListadoHermanos() {
     const [loading, setLoading] = useState(true);
     const [nextUrl, setNextUrl] = useState(null);
     const [prevUrl, setPrevUrl] = useState(null);
+    const [accesoDenegado, setAccesoDenegado] = useState(false);
 
     const navigate = useNavigate();
 
@@ -21,6 +22,8 @@ function AdminListadoHermanos() {
     const [totalRegistros, setTotalRegistros] = useState(0);
 
     useEffect(() => {
+        let isMounted = true; 
+
         const fetchData = async () => {
             setLoading(true);
             try {
@@ -28,39 +31,48 @@ function AdminListadoHermanos() {
                 if (!userData) {
                     const resUser = await api.get("api/me/");
                     userData = resUser.data;
-                    setUser(userData);
+                    if (isMounted) setUser(userData);
                 }
 
+                console.log("DATOS USUARIO:", userData);
+                console.log("ES ADMIN?:", userData?.esAdmin);
+                console.log("TIPO DE DATO:", typeof userData?.esAdmin);
+
                 if (!userData.esAdmin) {
-                    alert("Acceso denegado. Solo administradores.");
-                    navigate("/home");
+                    setAccesoDenegado(true);
+                    setLoading(false);
                     return;
                 }
 
                 const resListado = await api.get(`api/hermanos/listado/?page=${page}`);
                 
-                setHermanos(resListado.data.results);
-                setTotalRegistros(resListado.data.count);
-
-                setNextUrl(resListado.data.next);
-                setPrevUrl(resListado.data.previous);
-                
-                const pageSize = 20; 
-                setTotalPages(Math.ceil(resListado.data.count / pageSize));
+                if (isMounted) {
+                    setHermanos(resListado.data.results);
+                    setTotalRegistros(resListado.data.count);
+                    
+                    setNextUrl(resListado.data.next);
+                    setPrevUrl(resListado.data.previous);
+                    
+                    const pageSize = 20; 
+                    setTotalPages(Math.ceil(resListado.data.count / pageSize));
+                }
 
             } catch (err) {
-                console.error("Error cargando listado:", err);
+                console.error("Error:", err);
                 if (err.response && err.response.status === 401) {
                     navigate("/login");
                 } else {
-                    setError("No se pudo cargar el listado de hermanos.");
+                    if (isMounted) setError("No se pudo cargar el listado.");
                 }
             } finally {
-                setLoading(false);
+                if (isMounted) setLoading(false);
             }
         };
 
         fetchData();
+        return () => {
+            isMounted = false;
+        };
     }, [page, navigate]);
 
     const toggleSidebar = () => {
@@ -83,6 +95,16 @@ function AdminListadoHermanos() {
     };
 
     if (loading && !user) return <div className="site-wrapper loading-screen">Cargando censo...</div>;
+
+    if (accesoDenegado) {
+        return (
+            <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
+                <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
+                <p>Esta sección es exclusiva para la Secretaría.</p>
+                <button onClick={() => navigate("/home")} className="btn-purple">Volver al inicio</button>
+            </div>
+        );
+    }
 
     return (
         <div>
