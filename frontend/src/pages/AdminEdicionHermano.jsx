@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
 import '../styles/AdminEdicionHermano.css'; // Crearemos este CSS abajo
-import { ArrowLeft, Save, User, MapPin, Calendar, ShieldAlert, Lock } from "lucide-react";
+import { Save, User, MapPin, Calendar, ShieldAlert, CheckCircle } from "lucide-react";
 
 function AdminEditarHermano() {
     const { id } = useParams();
@@ -31,7 +31,6 @@ function AdminEditarHermano() {
     // --- EFECTO DE CARGA ---
     useEffect(() => {
         let isMounted = true;
-
         const fetchAllData = async () => {
             try {
                 let user = currentUser;
@@ -80,6 +79,15 @@ function AdminEditarHermano() {
         fetchAllData();
         return () => { isMounted = false; };
     }, [id, navigate]);
+
+    useEffect(() => {
+        if (successMsg) {
+            const timer = setTimeout(() => {
+                setSuccessMsg("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMsg]);
 
     // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
@@ -150,30 +158,86 @@ function AdminEditarHermano() {
 
     return (
         <div>
-            {/* --- SIDEBAR (Reutilizado) --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
                 </div>
                 <ul className="nav-list-dashboard">
                     <li>
-                        <a href="#" onClick={() => navigate("/hermanos/listado")}>
-                            <i className="bx bx-grid-alt"></i>
-                            <span className="link_name-dashboard">Volver al Censo</span>
-                        </a>
-                        <span className="tooltip-dashboard">Censo</span>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
                     </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-grid-alt"></i>
+                            <span className="link_name-dashboard">Dashboard</span>
+                        </a>
+                        <span className="tooltip-dashboard">Dashboard</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
-                            <img src="/profile.jpeg" alt="profile" />
+                            <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre}` : "Admin"}</div>
-                                <div className="designation-dashboard">Secretaría</div>
+                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i className="bx bx-log-out" id="log_out" onClick={handleLogout} style={{cursor: 'pointer'}}></i>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
                     </li>
                 </ul>
             </div>
@@ -181,64 +245,52 @@ function AdminEditarHermano() {
             {/* --- CONTENIDO PRINCIPAL --- */}
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Edición de Hermano</div>
-
-                <div className="edit-container-wrapper">
-                    <div className="card-edit-form">
-                        
-                        {/* HEADER */}
-                        <div className="form-header">
-                            <div className="header-left">
-                                <button className="btn-back" onClick={() => navigate("/hermanos/listado")}>
-                                    <ArrowLeft size={18} />
-                                </button>
-                                <div>
-                                    <h2>{formData.nombre} {formData.primer_apellido}</h2>
-                                    <span className="header-subtitle">Nº Registro: {formData.numero_registro || "Sin asignar"}</span>
-                                </div>
+                <div style={{ padding: '0 20px 40px 20px' }}>
+                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
+                        {error && (
+                            <div className="alert-banner-edicion error-edicion">
+                                <AlertCircle size={20} />
+                                <span>{error}</span>
                             </div>
-                            <div className="header-right">
-                                {formData.esAdmin && <span className="badge-admin-large">ADMINISTRADOR</span>}
+                        )}
+                        {successMsg && (
+                            <div className="alert-banner-edicion success-edicion">
+                                <CheckCircle size={20} />
+                                <span>{successMsg}</span>
                             </div>
-                        </div>
-
-                        {/* MENSAJES */}
-                        {error && <div className="alert alert-error">{error}</div>}
-                        {successMsg && <div className="alert alert-success">{successMsg}</div>}
-
+                        )}
                         <form onSubmit={handleSubmit}>
-                            
-                            {/* GRUPO 1: DATOS PERSONALES */}
-                            <div className="form-section">
-                                <h3 className="section-title"><User size={18}/> Datos Personales</h3>
-                                <div className="form-grid">
-                                    <div className="form-group">
+                            <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><User size={18}/> Datos personales</h3>
+                                <div className="form-grid-edicion grid-4-edicion">
+                                    <div className="form-group-edicion">
                                         <label>Nombre</label>
                                         <input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required />
                                     </div>
-                                    <div className="form-group">
-                                        <label>Primer Apellido</label>
+                                    <div className="form-group-edicion">
+                                        <label>Primer apellido</label>
                                         <input type="text" name="primer_apellido" value={formData.primer_apellido} onChange={handleChange} required />
                                     </div>
-                                    <div className="form-group">
-                                        <label>Segundo Apellido</label>
+                                    <div className="form-group-edicion">
+                                        <label>Segundo apellido</label>
                                         <input type="text" name="segundo_apellido" value={formData.segundo_apellido} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>DNI</label>
                                         <input type="text" name="dni" value={formData.dni} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
-                                        <label>F. Nacimiento</label>
+                                    <div className="form-group-edicion">
+                                        <label>Fecha de nacimiento</label>
                                         <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento || ''} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Género</label>
                                         <select name="genero" value={formData.genero} onChange={handleChange}>
                                             <option value="MASCULINO">Masculino</option>
                                             <option value="FEMENINO">Femenino</option>
                                         </select>
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Estado Civil</label>
                                         <select name="estado_civil" value={formData.estado_civil} onChange={handleChange}>
                                             <option value="SOLTERO">Soltero/a</option>
@@ -247,81 +299,78 @@ function AdminEditarHermano() {
                                             <option value="VIUDO">Viudo/a</option>
                                         </select>
                                     </div>
-
-                                    <div className="form-group">
-                                        <label>NUEVA CONTRASEÑA</label>
+                                    <div className="form-group-edicion">
+                                        <label>Nueva Contraseña</label>
                                         <input 
-                                            type="password" 
-                                            name="password" 
-                                            value={formData.password} 
-                                            onChange={handleChange} 
-                                            placeholder="Dejar vacío para mantener actual"
-                                            autoComplete="new-password"
+                                            type="password" name="password" value={formData.password} 
+                                            onChange={handleChange} placeholder="Opcional" autoComplete="new-password"
                                         />
-                                        <small className="form-help-text">* Rellenar solo si se desea cambiar</small>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* GRUPO 2: CONTACTO Y DIRECCIÓN */}
-                            <div className="form-section">
-                                <h3 className="section-title"><MapPin size={18}/> Contacto y Dirección</h3>
-                                <div className="form-grid">
-                                    <div className="form-group full-width">
+                            <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><MapPin size={18}/> Dirección y contacto</h3>
+                                <div className="form-grid-edicion grid-6-mixed-edicion">
+                                    <div className="form-group-edicion span-3-edicion">
                                         <label>Dirección Postal</label>
                                         <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion span-3-edicion">
                                         <label>Localidad</label>
                                         <input type="text" name="localidad" value={formData.localidad} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+
+                                    <div className="form-group-edicion span-2-edicion">
                                         <label>C. Postal</label>
                                         <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion span-2-edicion">
                                         <label>Provincia</label>
                                         <input type="text" name="provincia" value={formData.provincia} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion span-2-edicion">
+                                        <label>Comunidad Autónoma</label>
+                                        <input type="text" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} />
+                                    </div>
+
+                                    <div className="form-group-edicion span-3-edicion">
                                         <label>Teléfono</label>
                                         <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} required />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion span-3-edicion">
                                         <label>Email</label>
                                         <input type="email" name="email" value={formData.email} onChange={handleChange} required />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* GRUPO 3: DATOS ECLESIÁSTICOS */}
-                            <div className="form-section">
-                                <h3 className="section-title"><Calendar size={18}/> Datos Eclesiásticos</h3>
-                                <div className="form-grid">
-                                    <div className="form-group">
+                            <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><Calendar size={18}/> Datos Eclesiásticos</h3>
+                                <div className="form-grid-edicion grid-3-edicion">
+                                    <div className="form-group-edicion">
                                         <label>Fecha Bautismo</label>
                                         <input type="date" name="fecha_bautismo" value={formData.fecha_bautismo || ''} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Lugar Bautismo</label>
                                         <input type="text" name="lugar_bautismo" value={formData.lugar_bautismo} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group full-width">
+                                    <div className="form-group-edicion">
                                         <label>Parroquia</label>
                                         <input type="text" name="parroquia_bautismo" value={formData.parroquia_bautismo} onChange={handleChange} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* GRUPO 4: GESTIÓN INTERNA (SOLO ADMIN) */}
-                            <div className="form-section admin-section">
-                                <h3 className="section-title admin-title"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
-                                <div className="form-grid">
-                                    <div className="form-group">
+                            <div className="form-section-edicion admin-section-edicion">
+                                <h3 className="section-title-edicion admin-title-edicion"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
+                                <div className="form-grid-edicion">
+                                    <div className="form-group-edicion">
                                         <label>Nº Registro Hermandad</label>
                                         <input type="number" name="numero_registro" value={formData.numero_registro} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Estado</label>
                                         <select name="estado_hermano" value={formData.estado_hermano} onChange={handleChange} 
                                             style={{borderColor: formData.estado_hermano === 'ALTA' ? 'green' : 'red'}}>
@@ -330,16 +379,16 @@ function AdminEditarHermano() {
                                             <option value="PENDIENTE_INGRESO">Pendiente de Ingreso</option>
                                         </select>
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Fecha Ingreso</label>
                                         <input type="date" name="fecha_ingreso_corporacion" value={formData.fecha_ingreso_corporacion || ''} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group">
+                                    <div className="form-group-edicion">
                                         <label>Fecha Baja</label>
                                         <input type="date" name="fecha_baja_corporacion" value={formData.fecha_baja_corporacion || ''} onChange={handleChange} />
                                     </div>
                                     
-                                    <div className="form-group checkbox-group">
+                                    <div className="form-group-edicion checkbox-group">
                                         <label>
                                             <input 
                                                 type="checkbox" 
@@ -353,14 +402,13 @@ function AdminEditarHermano() {
                                 </div>
                             </div>
 
-                            <div className="form-actions">
-                                <button type="button" className="btn-cancel" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
-                                <button type="submit" className="btn-save" disabled={saving}>
+                            <div className="form-actions-edicion">
+                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
+                                <button type="submit" className="btn-save-edicion" disabled={saving}>
                                     <Save size={18} />
                                     {saving ? "Guardando..." : "Guardar Cambios"}
                                 </button>
                             </div>
-
                         </form>
                     </div>
                 </div>

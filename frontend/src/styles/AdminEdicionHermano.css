@@ -1,274 +1,247 @@
-/* Heredamos variables del root si ya existen, si no definimos locales */
 :root {
     --burgundy-primary: #800020;
-    --border-color: #e5e7eb;
-    --bg-light: #f4f7f6;
+    --border-color: #e2e8f0;
+    --bg-light: #f8fafc;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --focus-ring: rgba(128, 0, 32, 0.15);
 }
 
-.edit-container-wrapper {
-    padding: 0 20px 40px 20px;
-    display: flex;
-    justify-content: center;
-}
-
-.card-edit-form {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    padding: 2rem;
+/* SISTEMA DE GRID RESPONSIVE */
+.form-grid-edicion {
+    display: grid;
+    gap: 1.25rem;
     width: 100%;
-    max-width: 1000px; /* Un poco más estrecho que el listado para enfocar */
 }
 
-/* HEADER */
-.form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1.5rem;
+/* PANTALLAS GRANDES (Desktop) */
+@media (min-width: 1024px) {
+    .grid-4-edicion {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .grid-3-edicion {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* TABLETS (2 Columnas para todo) */
+@media (max-width: 1023px) and (min-width: 640px) {
+    .grid-4-edicion, .grid-3-edicion {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* MÓVILES (1 Columna) */
+@media (max-width: 639px) {
+    .grid-4-edicion, .grid-3-edicion {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1024px) {
+    .span-2-edicion {
+        grid-column: span 2;
+    }
+}
+
+/* ESTILOS DE LOS INPUTS Y LABELS */
+.form-section-edicion {
     margin-bottom: 2rem;
 }
 
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.header-left h2 {
-    margin: 0;
-    color: #1e293b;
-    font-size: 1.5rem;
-}
-
-.header-subtitle {
-    color: #64748b;
-    font-size: 0.9rem;
-}
-
-.btn-back {
-    background: #f1f5f9;
-    border: none;
-    padding: 8px;
-    border-radius: 50%;
-    cursor: pointer;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.btn-back:hover {
-    background: #e2e8f0;
-    color: var(--burgundy-primary);
-}
-
-.badge-admin-large {
-    background-color: #e0e7ff;
-    color: #3730a3;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    border: 1px solid #c7d2fe;
-}
-
-/* SECCIONES DEL FORMULARIO */
-.form-section {
-    margin-bottom: 2.5rem;
-}
-
-.section-title {
+.section-title-edicion {
     font-size: 1.1rem;
+    font-weight: 700;
     color: var(--burgundy-primary);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 2px solid #fce7f3; /* Rosa muy claro */
-    padding-bottom: 0.5rem;
-    width: fit-content;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.full-width {
-    grid-column: 1 / -1;
-}
-
-.form-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    text-transform: uppercase;
-}
-
-.form-group input, 
-.form-group select {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.95rem;
-    color: #1e293b;
-    background-color: #fff;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus, 
-.form-group select:focus {
-    outline: none;
-    border-color: var(--burgundy-primary);
-    box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
-}
-
-.form-help-text {
-    color: #64748b;
-    font-size: 0.75rem;
-    margin-top: 4px;
-    font-style: italic;
-}
-
-input[type="password"] {
-    letter-spacing: 0.1em;
-}
-
-/* SECCIÓN ADMIN DIFERENCIADA */
-.admin-section {
-    background-color: #f8fafc;
-    padding: 1.5rem;
-    border-radius: 8px;
-    border: 1px dashed #cbd5e1;
-}
-
-.admin-title {
-    color: #0f172a;
-    border-bottom-color: #cbd5e1;
-}
-
-.checkbox-group {
-    display: flex;
-    justify-content: flex-start;
-    grid-column: 1 / -1;
-    margin-top: 15px;
-    padding: 10px 0;
-}
-
-.checkbox-group label {
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     gap: 10px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #334155;
+    border-bottom: 2px solid #fce7f3;
+    padding-bottom: 0.75rem;
+    width: 100%;
+}
+
+.form-group-edicion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group-edicion label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
     text-transform: uppercase;
-    user-select: none;
+    letter-spacing: 0.05em;
 }
 
-.checkbox-group input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    margin: 0;
-    position: relative;
-    background-color: white;
+.form-group-edicion input, 
+.form-group-edicion select {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: #fff;
     transition: all 0.2s ease;
-    display: grid;
-    place-content: center;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.checkbox-group input[type="checkbox"]:checked {
-    background-color: var(--burgundy-primary);
+.form-group-edicion input:focus, 
+.form-group-edicion select:focus {
+    outline: none;
     border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
-.checkbox-group input[type="checkbox"]:checked::before {
-    content: "";
-    width: 10px;
-    height: 10px;
-    background-color: white;
-    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+.form-group-edicion input:hover, 
+.form-group-edicion select:hover {
+    border-color: #cbd5e1;
 }
 
-.checkbox-group label:hover {
-    color: var(--burgundy-primary);
+/* ESTILOS DE GESTIÓN INTERNA (ADMIN) */
+.admin-section-edicion {
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+    padding: 1.5rem;
 }
 
-/* BOTONES DE ACCIÓN */
-.form-actions {
+.admin-title-edicion {
+    border-bottom-color: #fda4af;
+    margin-bottom: 1.5rem;
+}
+
+/* BOTONES */
+.form-actions-edicion {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-top: 3rem;
     padding-top: 2rem;
     border-top: 1px solid var(--border-color);
 }
 
-.btn-cancel {
-    padding: 10px 20px;
+.btn-cancel-edicion {
+    padding: 0.75rem 1.5rem;
     background: white;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    color: #64748b;
-    cursor: pointer;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-muted);
     font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
-.btn-save {
-    padding: 10px 24px;
+.btn-cancel-edicion:hover {
+    background: #f1f5f9;
+    color: var(--text-dark);
+}
+
+.btn-save-edicion {
+    padding: 0.75rem 2rem;
     background: var(--burgundy-primary);
     color: white;
     border: none;
-    border-radius: 6px;
-    cursor: pointer;
+    border-radius: 8px;
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.2s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(128, 0, 32, 0.2);
+    transition: all 0.2s;
 }
 
-.btn-save:hover {
-    background: #4d0013;
+.btn-save-edicion:hover {
+    background-color: #600018;
+    transform: translateY(-1px);
 }
 
-.btn-save:disabled {
+.btn-save-edicion:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    transform: none;
 }
 
-/* ALERTAS */
-.alert {
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1.5rem;
-    font-size: 0.9rem;
+.alert-banner-edicion {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
 }
 
-.alert-error {
-    background-color: #fee2e2;
+/* Estilo para Errores */
+.alert-banner-edicion.error-edicion {
+    background-color: #fef2f2;
     color: #991b1b;
     border: 1px solid #fecaca;
 }
 
-.alert-success {
-    background-color: #dcfce7;
+/* Estilo para Éxito */
+.alert-banner-edicion.success-edicion {
+    background-color: #f0fdf4;
     color: #166534;
     border: 1px solid #bbf7d0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid-6-mixed-edicion {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .grid-6-mixed-edicion .span-3-edicion {
+        grid-column: span 3;
+    }
+
+    .grid-6-mixed-edicion .span-2-edicion {
+        grid-column: span 2;
+    }
+}
+
+/* PANTALLAS MEDIANAS (Tablets) */
+@media (max-width: 1023px) and (min-width: 640px) {
+    .grid-6-mixed-edicion {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-6-mixed-edicion .span-3-edicion,
+    .grid-6-mixed-edicion .span-2-edicion {
+        grid-column: auto;
+    }
+    
+    .grid-6-mixed-edicion .span-3-edicion:last-child {
+        grid-column: span 2;
+    }
+}
+
+/* MÓVILES */
+@media (max-width: 639px) {
+    .grid-6-mixed-edicion {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid-6-mixed-edicion .span-3-edicion,
+    .grid-6-mixed-edicion .span-2-edicion {
+        grid-column: auto;
+    }
 }
