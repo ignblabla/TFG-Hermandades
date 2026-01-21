@@ -1,177 +1,158 @@
-/* Reutilizamos variables y estructura base del proyecto, 
-   pero añadimos especificidad para el listado */
-
-.card-container-listado {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    padding: 2rem;
-    width: 100%;
-    max-width: 1200px; /* Más ancho que el formulario de crear acto */
-    margin: 0 auto;
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    
+    --border-color: #e5e7eb;
+    --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* --- TABLA --- */
+.card-container-listado {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: var(--font-family);
+}
+
 .table-responsive {
-    overflow-x: auto; /* Scroll horizontal en móbiles */
+    overflow-x: auto;
     margin-top: 1.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
 }
 
 .hermanos-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.95rem;
-    min-width: 800px; /* Fuerza el scroll si es menor */
 }
 
-.hermanos-table thead {
-    background-color: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
+.hermanos-table thead tr {
+    background-color: var(--bg-light);
+    text-align: left;
+    border-bottom: 2px solid var(--burgundy-primary);
 }
 
 .hermanos-table th {
-    text-align: left;
-    padding: 1rem;
-    font-weight: 600;
-    color: #475569;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    color: var(--burgundy-primary);
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
 }
 
 .hermanos-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    vertical-align: middle;
-}
-
-.hermanos-table tr:last-child td {
-    border-bottom: none;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
 }
 
 .hermanos-table tr:hover {
-    background-color: #f8fafc; /* Efecto hover filas */
+    background-color: var(--burgundy-light);
+    transition: background-color 0.2s ease;
+}
+
+.badge-reg {
+    background-color: var(--bg-light);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
 }
 
 .fw-bold {
     font-weight: 600;
-    color: #6d28d9; /* Color morado hermandad */
 }
 
-/* --- BADGES (Etiquetas de estado) --- */
-.badge {
-    padding: 0.25rem 0.6rem;
-    border-radius: 9999px;
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
 }
 
-.status-alta {
-    background-color: #dcfce7;
-    color: #166534;
+.status-badge.success {
+    background-color: #d1fae5;
+    color: #065f46;
 }
 
-.status-baja {
+.status-badge.error {
     background-color: #fee2e2;
     color: #991b1b;
 }
 
-.status-pendiente_ingreso {
-    background-color: #fef9c3;
-    color: #854d0e;
+.loading-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
-.badge-admin {
-    background-color: #e0e7ff;
-    color: #3730a3;
-    border: 1px solid #c7d2fe;
-}
-
-/* --- BOTONES DE ACCIÓN --- */
-.btn-icon-action {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #64748b;
-    padding: 6px;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.btn-icon-action:hover {
-    background-color: #f1f5f9;
-    color: #6d28d9;
-}
-
-/* --- PAGINACIÓN --- */
-.pagination-container {
+/* Paginación */
+.pagination-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     padding-top: 1rem;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border-color);
 }
 
-.pagination-info {
-    color: #64748b;
+.page-info {
     font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
 .pagination-controls {
     display: flex;
-    gap: 0.5rem;
+    gap: 10px;
 }
 
 .btn-pagination {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #e2e8f0;
-    background-color: white;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: #475569;
     cursor: pointer;
-    font-size: 0.9rem;
     transition: all 0.2s;
+    font-size: 0.9rem;
+    color: var(--text-main);
 }
 
 .btn-pagination:hover:not(:disabled) {
-    border-color: #6d28d9;
-    color: #6d28d9;
-    background-color: #f5f3ff;
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border-color: var(--burgundy-primary);
 }
 
 .btn-pagination:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: #f8fafc;
+    background-color: var(--bg-light);
 }
 
-/* --- ERROR BANNER --- */
-.error-banner {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    border: 1px solid #fecaca;
+.text-purple {
+    color: var(--burgundy-primary) !important;
 }
 
-.text-muted {
-    color: #cbd5e1;
-}
-
-.loading-screen {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-size: 1.2rem;
-    color: #64748b;
+.text-center {
+    text-align: center;
 }

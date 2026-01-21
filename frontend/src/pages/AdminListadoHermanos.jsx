@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'
 import '../styles/AdminListadoHermanos.css';
-import { ArrowLeft, ChevronLeft, ChevronRight, Search, UserCheck, UserX } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Search, UserCheck, Users } from "lucide-react";
 
 function AdminListadoHermanos() {
     const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +10,8 @@ function AdminListadoHermanos() {
     const [error, setError] = useState("");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [nextUrl, setNextUrl] = useState(null);
+    const [prevUrl, setPrevUrl] = useState(null);
 
     const navigate = useNavigate();
 
@@ -39,6 +41,9 @@ function AdminListadoHermanos() {
                 
                 setHermanos(resListado.data.results);
                 setTotalRegistros(resListado.data.count);
+
+                setNextUrl(resListado.data.next);
+                setPrevUrl(resListado.data.previous);
                 
                 const pageSize = 20; 
                 setTotalPages(Math.ceil(resListado.data.count / pageSize));
@@ -69,11 +74,11 @@ function AdminListadoHermanos() {
         navigate("/login");
     };
 
-    const handlePrevPage = () => {
+    const handlePrev = () => {
         if (page > 1) setPage(page - 1);
     };
 
-    const handleNextPage = () => {
+    const handleNext = () => {
         if (page < totalPages) setPage(page + 1);
     };
 
@@ -166,110 +171,97 @@ function AdminListadoHermanos() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Panel de administración</div>
-                <div style={{padding: '0 18px'}}>
-                    <p>Bienvenido al panel de control, {user.nombre || "Administrador"}.</p>
-                </div>
-                <main className="main-container-area">
-                    <div className="card-container-listado"> {/* Clase CSS específica para tabla ancha */}
+                
+                <div className="text-dashboard">Gestión de Usuarios</div>
+
+                <div style={{ padding: '0 20px 40px 20px' }}>
+                    
+                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         
                         <header className="content-header-area">
                             <div className="title-row-area">
-                                <h1>Censo de Hermanos</h1>
-                                <button className="btn-back-area" onClick={() => navigate(-1)}>
-                                    <ArrowLeft size={16} /> Volver
-                                </button>
+                                <div style={{display:'flex', alignItems:'center', gap: '10px'}}>
+                                    <Users size={28} className="text-purple" />
+                                    <h2>Censo de Hermanos</h2>
+                                </div>
                             </div>
                             <p className="description-area">
-                                Listado general de la nómina de hermanos. Total registros: <strong>{totalRegistros}</strong>.
+                                Total registros encontrados: <strong>{totalRegistros}</strong>
                             </p>
                         </header>
 
-                        {error && <div className="error-banner">{error}</div>}
-
-                        {/* --- TABLA DE DATOS --- */}
                         <div className="table-responsive">
-                            <table className="hermanos-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nº Reg.</th>
-                                        <th>DNI</th>
-                                        <th>Apellidos</th>
-                                        <th>Nombre</th>
-                                        <th>Teléfono</th>
-                                        <th>Estado</th>
-                                        <th>Rol</th>
-                                        <th style={{textAlign: 'center'}}>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {hermanos.length > 0 ? (
-                                        hermanos.map((hermano) => (
-                                            <tr key={hermano.id}>
-                                                <td className="fw-bold">#{hermano.numero_registro || "-"}</td>
-                                                <td>{hermano.dni}</td>
-                                                <td>{hermano.primer_apellido} {hermano.segundo_apellido}</td>
-                                                <td>{hermano.nombre}</td>
-                                                <td>{hermano.telefono}</td>
-                                                <td>
-                                                    <span className={`badge status-${hermano.estado_hermano?.toLowerCase()}`}>
-                                                        {hermano.estado_hermano}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {hermano.esAdmin ? (
-                                                        <span className="badge badge-admin" title="Administrador">Admin</span>
-                                                    ) : (
-                                                        <span className="text-muted">-</span>
-                                                    )}
-                                                </td>
-                                                <td style={{textAlign: 'center'}}>
-                                                    <button 
-                                                        className="btn-icon-action" 
-                                                        title="Ver detalle"
-                                                        onClick={() => navigate(`/hermanos/${hermano.id}`)}
-                                                    >
-                                                        <Search size={18} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                            {loading ? (
+                                <div className="loading-state">Cargando censo...</div>
+                            ) : (
+                                <table className="hermanos-table">
+                                    <thead>
                                         <tr>
-                                            <td colSpan="8" className="text-center">No se encontraron hermanos.</td>
+                                            <th>Nº Reg.</th>
+                                            <th>DNI</th>
+                                            <th>Apellidos y Nombre</th>
+                                            <th>Teléfono</th>
+                                            <th>Estado</th>
+                                            <th>Perfil</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {hermanos.length > 0 ? (
+                                            hermanos.map((hermano) => (
+                                                <tr key={hermano.id}>
+                                                    <td><span className="badge-reg">{hermano.numero_registro || "-"}</span></td>
+                                                    <td>{hermano.dni}</td>
+                                                    <td className="fw-bold">
+                                                        {hermano.primer_apellido} {hermano.segundo_apellido}, {hermano.nombre}
+                                                    </td>
+                                                    <td>{hermano.telefono}</td>
+                                                    <td>
+                                                        {hermano.estado_hermano === 'ALTA' ? (
+                                                            <span className="status-badge success"><UserCheck size={14}/> Alta</span>
+                                                        ) : (
+                                                            <span className="status-badge error"><UserX size={14}/> Baja</span>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {hermano.esAdmin && <span className="admin-tag">ADMIN</span>}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="6" className="text-center">No se encontraron hermanos.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            )}
                         </div>
 
-                        {/* --- PAGINACIÓN --- */}
-                        <div className="pagination-container">
-                            <span className="pagination-info">
-                                Página <strong>{page}</strong> de <strong>{totalPages}</strong>
+                        <footer className="pagination-footer">
+                            <span className="page-info">
+                                Página {page} de {totalPages}
                             </span>
-                            
                             <div className="pagination-controls">
                                 <button 
                                     className="btn-pagination" 
-                                    onClick={handlePrevPage} 
-                                    disabled={page === 1}
+                                    onClick={handlePrev} 
+                                    disabled={!prevUrl || loading}
                                 >
-                                    <ChevronLeft size={20} /> Anterior
+                                    <ChevronLeft size={16} /> Anterior
                                 </button>
-
+                                
                                 <button 
                                     className="btn-pagination" 
-                                    onClick={handleNextPage} 
-                                    disabled={page === totalPages}
+                                    onClick={handleNext} 
+                                    disabled={!nextUrl || loading}
                                 >
-                                    Siguiente <ChevronRight size={20} />
+                                    Siguiente <ChevronRight size={16} />
                                 </button>
                             </div>
-                        </div>
+                        </footer>
 
                     </div>
-                </main>
+                </div>
             </section>
         </div>
     );
