@@ -2,15 +2,17 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import HermanoListadoSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto
 from django.utils import timezone
+from .pagination import StandardResultsSetPagination
+from rest_framework.exceptions import PermissionDenied
 
-from .services import create_acto_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
+from .services import create_acto_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -196,3 +198,30 @@ class TipoPuestoListView(APIView):
         tipos = get_tipos_puesto_service()
         serializer = TipoPuestoSerializer(tipos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# -----------------------------------------------------------------------------
+# VIEWS: PANEL PARA ADMINISTRADORES
+# -----------------------------------------------------------------------------
+class HermanoListView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+
+    def get(self, request):
+        try:
+            queryset_hermanos = get_listado_hermanos_service(usuario_solicitante=request.user)
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(queryset_hermanos, request)
+            if page is not None:
+                serializer = HermanoListadoSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            
+            serializer = HermanoListadoSerializer(queryset_hermanos, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except PermissionDenied as e:
+            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        except Exception as e:
+            return Response(
+                {"detail": "Error al recuperar el listado.", "error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -582,3 +582,27 @@ class SolicitudCirioSerializer(serializers.Serializer):
             raise serializers.ValidationError({"puesto_id": "El puesto seleccionado no es de tipo CIRIO."})
 
         return data
+    
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS PARA PANEL DE ADMINISTRADOR
+# -----------------------------------------------------------------------------
+class HermanoListadoSerializer(serializers.ModelSerializer):
+    """
+    Serializador ligero exclusivo para el listado de administración.
+    Solo devuelve los campos solicitados para la tabla de gestión.
+    """
+    class Meta:
+        model = User
+        fields = [
+            'id', 
+            'numero_registro', 
+            'dni', 
+            'nombre', 
+            'primer_apellido', 
+            'segundo_apellido', 
+            'estado_hermano', 
+            'telefono', 
+            'email', 
+            'esAdmin'
+        ]

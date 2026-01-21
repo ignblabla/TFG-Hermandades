@@ -3,6 +3,9 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from .models import Acto, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # -----------------------------------------------------------------------------
 # SERVICES: ACTO
@@ -190,3 +193,17 @@ def get_tipos_puesto_service():
 def get_tipos_acto_service():
     """Retorna todos los tipos de actos disponibles"""
     return TipoActo.objects.all()
+
+# -----------------------------------------------------------------------------
+# SERVICES: PANEL DE ADMINISTRADOR
+# -----------------------------------------------------------------------------
+def get_listado_hermanos_service(usuario_solicitante):
+    """
+    Retorna el listado completo de hermanos.
+    Regla de Negocio: Solo accesible por administradores.
+    """
+    if not getattr(usuario_solicitante, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para visualizar el listado de hermanos.")
+    
+    hermanos = User.objects.all().order_by('numero_registro')
+    return hermanos

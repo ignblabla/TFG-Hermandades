@@ -19,6 +19,7 @@ import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
+import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -140,6 +141,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditarPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/censo"
+          element={
+            <ProtectedRoute>
+              <AdminListadoHermanos />
             </ProtectedRoute>
           }
         />
