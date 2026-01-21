@@ -365,7 +365,7 @@ function AdminEditarHermano() {
 
                             <div className="form-section-edicion admin-section-edicion">
                                 <h3 className="section-title-edicion admin-title-edicion"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
-                                <div className="form-grid-edicion">
+                                <div className="form-grid-edicion grid-4-edicion">
                                     <div className="form-group-edicion">
                                         <label>Nº Registro Hermandad</label>
                                         <input type="number" name="numero_registro" value={formData.numero_registro} onChange={handleChange} />
@@ -387,18 +387,17 @@ function AdminEditarHermano() {
                                         <label>Fecha Baja</label>
                                         <input type="date" name="fecha_baja_corporacion" value={formData.fecha_baja_corporacion || ''} onChange={handleChange} />
                                     </div>
-                                    
-                                    <div className="form-group-edicion checkbox-group">
-                                        <label>
-                                            <input 
-                                                type="checkbox" 
-                                                name="esAdmin" 
-                                                checked={formData.esAdmin} 
-                                                onChange={handleChange}
-                                            />
-                                            <span>Otorgar permisos de Administrador</span>
-                                        </label>
-                                    </div>
+                                </div>
+                                <div className="form-group-edicion checkbox-group-edicion">
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="esAdmin" 
+                                            checked={formData.esAdmin} 
+                                            onChange={handleChange}
+                                        />
+                                        <span>Otorgar permisos de Administrador</span>
+                                    </label>
                                 </div>
                             </div>
 

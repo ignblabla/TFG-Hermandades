@@ -193,6 +193,70 @@
     border: 1px solid #bbf7d0;
 }
 
+.checkbox-group-edicion label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 0;
+    user-select: none;
+    margin-top: 5px;
+}
+
+/* ESTILO DEL TEXTO */
+.checkbox-group-edicion label span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    transition: color 0.2s ease;
+}
+
+/* NUEVO: El hover solo cambia el color de las letras */
+.checkbox-group-edicion label:hover span {
+    color: var(--burgundy-primary);
+}
+
+
+.checkbox-group-edicion input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10;
+    background-color: white;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 0;
+}
+
+/* Estado marcado */
+.checkbox-group-edicion input[type="checkbox"]:checked {
+    background-color: var(--burgundy-primary);
+    border-color: var(--burgundy-primary);
+}
+
+/* El tick dentro del checkbox */
+.checkbox-group-edicion input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-group-edicion input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    outline: none;
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
