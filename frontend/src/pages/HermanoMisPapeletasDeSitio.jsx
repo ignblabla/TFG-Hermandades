@@ -1,23 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; // Asegúrate de que tu instancia de axios está aquí
-import '../styles/AdminListadoHermanos.css'; // Reutilizamos estilos
+import api from '../api'; 
+import '../styles/AdminListadoHermanos.css'; 
+// Añadimos Download a los iconos importados
 import { 
     ChevronLeft, 
     ChevronRight, 
-    Scroll, // Icono para papeleta/pergamino
+    Scroll, 
     MapPin, 
     Calendar,
-    Clock
+    Clock,
+    Download,
+    AlertCircle
 } from "lucide-react";
 
 function MisPapeletas() {
-    const [isOpen, setIsOpen] = useState(false); // Sidebar state
+    const [isOpen, setIsOpen] = useState(false); 
     
     // Estados de datos
     const [user, setUser] = useState(null);
     const [papeletas, setPapeletas] = useState([]);
     const [loading, setLoading] = useState(true);
+    // Estado para feedback de descarga (opcional, para evitar múltiples clics)
+    const [downloadingId, setDownloadingId] = useState(null);
     
     // Estados de paginación
     const [page, setPage] = useState(1);
@@ -39,8 +44,38 @@ function MisPapeletas() {
 
     const formatearHora = (horaString) => {
         if (!horaString) return "-";
-        // Si viene HH:MM:SS, cortamos los segundos
         return horaString.substring(0, 5);
+    };
+
+    // --- NUEVA LÓGICA: DESCARGAR PDF ---
+    const handleDownloadPDF = async (papeletaId, anio) => {
+        setDownloadingId(papeletaId);
+        try {
+            // Solicitamos el BLOB al endpoint que configuraste en Django
+            const response = await api.get(`api/papeletas/${papeletaId}/descargar/`, {
+                responseType: 'blob', 
+            });
+
+            // Creamos url temporal
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            
+            // Link invisible para descarga
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Papeleta_SanGonzalo_${anio}.pdf`);
+            
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            
+            window.URL.revokeObjectURL(url);
+
+        } catch (err) {
+            console.error("Error descargando PDF:", err);
+            alert("No se pudo descargar el documento. Inténtelo más tarde.");
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
     // --- EFECTO DE CARGA ---
@@ -50,7 +85,6 @@ function MisPapeletas() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 1. Cargar Usuario (para la sidebar y verificar sesión)
                 let userData = user;
                 if (!userData) {
                     const resUser = await api.get("api/me/");
@@ -58,8 +92,6 @@ function MisPapeletas() {
                     if (isMounted) setUser(userData);
                 }
 
-                // 2. Cargar Papeletas
-                // NOTA: Usamos el endpoint que definimos en urls.py
                 const resListado = await api.get(`api/papeletas/mis-papeletas/?page=${page}`);
                 
                 if (isMounted) {
@@ -68,7 +100,6 @@ function MisPapeletas() {
                     setNextUrl(resListado.data.next);
                     setPrevUrl(resListado.data.previous);
                     
-                    // Calculamos páginas totales (PageSize definido en backend como 20)
                     const pageSize = 20; 
                     setTotalPages(Math.ceil(resListado.data.count / pageSize));
                 }
@@ -84,7 +115,6 @@ function MisPapeletas() {
         };
 
         fetchData();
-
         return () => { isMounted = false; };
     }, [page, navigate]);
 
@@ -103,7 +133,6 @@ function MisPapeletas() {
 
     // --- RENDERIZADO CONDICIONAL DE SITIO ---
     const renderSitio = (papeleta) => {
-        // Lógica visual basada en tus campos del Serializer
         if (papeleta.es_insignia) {
             return (
                 <span className="badge-insignia">
@@ -111,7 +140,6 @@ function MisPapeletas() {
                 </span>
             );
         } else {
-            // Es Cirio
             if (!papeleta.nombre_tramo) return <span className="text-muted">Sin asignar</span>;
             return (
                 <span>
@@ -140,7 +168,7 @@ function MisPapeletas() {
 
     return (
         <div>
-            {/* --- SIDEBAR (Mismo código que AdminListadoHermanos) --- */}
+            {/* --- SIDEBAR --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -148,7 +176,6 @@ function MisPapeletas() {
                     <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
                 </div>
                 <ul className="nav-list-dashboard">
-                    {/* ... (Aquí irían tus enlaces de navegación habituales) ... */}
                     <li>
                          <a href="#" onClick={() => navigate("/dashboard")}>
                             <i className="bx bx-grid-alt"></i>
@@ -156,7 +183,6 @@ function MisPapeletas() {
                         </a>
                         <span className="tooltip-dashboard">Inicio</span>
                     </li>
-                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
                             <img src="/profile.jpeg" alt="profile" /> 
@@ -201,60 +227,90 @@ function MisPapeletas() {
                                             <th>Sitio / Puesto</th>
                                             <th>Citación</th>
                                             <th>Estado</th>
+                                            {/* COLUMNA NUEVA */}
+                                            <th>Acciones</th> 
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {papeletas.length > 0 ? (
-                                            papeletas.map((papeleta) => (
-                                                <tr key={papeleta.id} className="row-hover">
-                                                    
-                                                    {/* AÑO */}
-                                                    <td style={{fontWeight: 'bold', color: '#555'}}>{papeleta.anio}</td>
-                                                    
-                                                    {/* ACTO */}
-                                                    <td>
-                                                        <div style={{display:'flex', flexDirection:'column'}}>
-                                                            <span style={{fontWeight:'600'}}>{papeleta.nombre_acto}</span>
-                                                            <span style={{fontSize:'0.85em', color:'#888'}}>
-                                                                <Calendar size={12} style={{marginRight:'4px'}}/>
-                                                                {formatearFecha(papeleta.fecha_acto)}
-                                                            </span>
-                                                        </div>
-                                                    </td>
-
-                                                    {/* SITIO (Lógica Insignia vs Cirio) */}
-                                                    <td>
-                                                        {renderSitio(papeleta)}
-                                                    </td>
-
-                                                    {/* CITACIÓN */}
-                                                    <td>
-                                                        {papeleta.lugar_citacion ? (
-                                                            <div style={{fontSize:'0.9em'}}>
-                                                                <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
-                                                                    <MapPin size={14} className="text-muted"/> 
-                                                                    {papeleta.lugar_citacion}
-                                                                </div>
-                                                                {papeleta.hora_citacion && (
-                                                                    <div style={{display:'flex', alignItems:'center', gap:'5px', marginTop:'2px'}}>
-                                                                        <Clock size={14} className="text-muted"/> 
-                                                                        {formatearHora(papeleta.hora_citacion)}
-                                                                    </div>
-                                                                )}
+                                            papeletas.map((papeleta) => {
+                                                // Lógica para saber si puede descargar
+                                                const puedeDescargar = ['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(papeleta.estado_papeleta);
+                                                
+                                                return (
+                                                    <tr key={papeleta.id} className="row-hover">
+                                                        {/* AÑO */}
+                                                        <td style={{fontWeight: 'bold', color: '#555'}}>{papeleta.anio}</td>
+                                                        
+                                                        {/* ACTO */}
+                                                        <td>
+                                                            <div style={{display:'flex', flexDirection:'column'}}>
+                                                                <span style={{fontWeight:'600'}}>{papeleta.nombre_acto}</span>
+                                                                <span style={{fontSize:'0.85em', color:'#888'}}>
+                                                                    <Calendar size={12} style={{marginRight:'4px'}}/>
+                                                                    {formatearFecha(papeleta.fecha_acto)}
+                                                                </span>
                                                             </div>
-                                                        ) : (
-                                                            <span className="text-muted">-</span>
-                                                        )}
-                                                    </td>
+                                                        </td>
 
-                                                    {/* ESTADO */}
-                                                    <td>{renderEstado(papeleta.estado_papeleta)}</td>
-                                                </tr>
-                                            ))
+                                                        {/* SITIO */}
+                                                        <td>{renderSitio(papeleta)}</td>
+
+                                                        {/* CITACIÓN */}
+                                                        <td>
+                                                            {papeleta.lugar_citacion ? (
+                                                                <div style={{fontSize:'0.9em'}}>
+                                                                    <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
+                                                                        <MapPin size={14} className="text-muted"/> 
+                                                                        {papeleta.lugar_citacion}
+                                                                    </div>
+                                                                    {papeleta.hora_citacion && (
+                                                                        <div style={{display:'flex', alignItems:'center', gap:'5px', marginTop:'2px'}}>
+                                                                            <Clock size={14} className="text-muted"/> 
+                                                                            {formatearHora(papeleta.hora_citacion)}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-muted">-</span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* ESTADO */}
+                                                        <td>{renderEstado(papeleta.estado_papeleta)}</td>
+
+                                                        {/* ACCIONES (BOTÓN DESCARGA) */}
+                                                        <td>
+                                                            {puedeDescargar ? (
+                                                                <button 
+                                                                    className="btn-download-action"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation(); // Evita clicks indeseados si la fila es clickable
+                                                                        handleDownloadPDF(papeleta.id, papeleta.anio);
+                                                                    }}
+                                                                    disabled={downloadingId === papeleta.id}
+                                                                    title="Descargar PDF con código QR"
+                                                                >
+                                                                    {downloadingId === papeleta.id ? (
+                                                                        <span className="loader-dots">...</span>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Download size={16} /> 
+                                                                            <span>PDF</span>
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-muted text-small" style={{fontSize: '0.8em'}}>No disponible</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
                                         ) : (
                                             <tr>
-                                                <td colSpan="5" className="text-center" style={{padding: '40px'}}>
-                                                    No tienes papeletas de sitio registradas en el histórico.
+                                                <td colSpan="6" className="text-center" style={{padding: '40px'}}>
+                                                    No tienes papeletas de sitio registradas.
                                                 </td>
                                             </tr>
                                         )}

@@ -1,23 +1,49 @@
-/* Badge para insignias (para destacarlas visualmente) */
-.badge-insignia {
-    background-color: #f3e8ff; /* Tono morado muy suave */
-    color: #6b21a8; /* Morado oscuro */
-    padding: 4px 10px;
-    border-radius: 12px;
+/* Botón de acción para descarga */
+.btn-download-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #fff;
+    border: 1px solid #d8b4fe; /* Borde morado suave */
+    color: #6b21a8; /* Texto morado */
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-weight: 600;
-    font-size: 0.9em;
-    border: 1px solid #d8b4fe;
-    display: inline-block;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-/* Colores de estado para las papeletas */
-.status-badge.purple { background-color: #e9d5ff; color: #581c87; } /* Recogida */
-.status-badge.info { background-color: #dbeafe; color: #1e40af; }   /* Leída */
-.status-badge.neutral { background-color: #f1f5f9; color: #64748b; } /* No solicitada */
-.status-badge.warning { background-color: #fef3c7; color: #92400e; } /* Solicitada */
+.btn-download-action:hover {
+    background-color: #f3e8ff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(107, 33, 168, 0.15);
+}
 
-/* Ajuste sutil para texto secundario */
-.text-muted {
-    color: #94a3b8;
-    font-style: italic;
+.btn-download-action:active {
+    transform: translateY(0);
+}
+
+.btn-download-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loader simple para cuando se clica descargar */
+.loader-dots {
+    animation: blink 1.4s infinite both;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
+/* Ajuste para la columna de Acciones en la tabla */
+.hermanos-table th:last-child,
+.hermanos-table td:last-child {
+    text-align: center;
 }
