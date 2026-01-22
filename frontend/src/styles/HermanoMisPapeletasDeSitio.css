@@ -1,0 +1,23 @@
+/* Badge para insignias (para destacarlas visualmente) */
+.badge-insignia {
+    background-color: #f3e8ff; /* Tono morado muy suave */
+    color: #6b21a8; /* Morado oscuro */
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+    border: 1px solid #d8b4fe;
+    display: inline-block;
+}
+
+/* Colores de estado para las papeletas */
+.status-badge.purple { background-color: #e9d5ff; color: #581c87; } /* Recogida */
+.status-badge.info { background-color: #dbeafe; color: #1e40af; }   /* Leída */
+.status-badge.neutral { background-color: #f1f5f9; color: #64748b; } /* No solicitada */
+.status-badge.warning { background-color: #fef3c7; color: #92400e; } /* Solicitada */
+
+/* Ajuste sutil para texto secundario */
+.text-muted {
+    color: #94a3b8;
+    font-style: italic;
+}

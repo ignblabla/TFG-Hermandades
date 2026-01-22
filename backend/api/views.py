@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import HermanoAdminUpdateSerializer, HermanoListadoSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
 
-from .services import create_acto_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
+from .services import create_acto_service, get_historial_papeletas_hermano_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -278,3 +278,30 @@ class HermanoAdminDetailView(APIView):
         
         except PermissionDenied as e:
             return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        
+# -----------------------------------------------------------------------------
+# VIEWS: CONSULTA EL HISTÓRICO DE PAPELETAS DE SITIO (NO ADMIN)
+# -----------------------------------------------------------------------------
+class MisPapeletasListView(APIView):
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+
+    def get(self, request):
+        try:
+            queryset = get_historial_papeletas_hermano_service(usuario=request.user)
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(queryset, request, view=self)
+
+            if page is not None:
+                serializer = HistorialPapeletaSerializer(page, many=True)
+                return paginator.get_paginated_response(serializer.data)
+
+            serializer = HistorialPapeletaSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error en MisPapeletasListView: {str(e)}")
+            return Response(
+                {"detail": "Error al recuperar el historial de papeletas."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

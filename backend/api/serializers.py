@@ -658,3 +658,37 @@ class HermanoAdminUpdateSerializer(serializers.ModelSerializer):
             if ingreso and baja and baja < ingreso:
                 raise serializers.ValidationError("La fecha de baja no puede ser anterior a la de ingreso.")
         return data
+    
+# -----------------------------------------------------------------------------
+# SERIALIZERS PARA CONSULTAR EL HISTÓRICO DE PAPELETAS DE SITIO (NO ADMIN)
+# -----------------------------------------------------------------------------
+class HistorialPapeletaSerializer(serializers.ModelSerializer):
+    nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
+    fecha_acto = serializers.DateTimeField(source='acto.fecha', read_only=True)
+
+    nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True, allow_null=True)
+    nombre_tramo = serializers.CharField(source='tramo.nombre', read_only=True, allow_null=True)
+    numero_tramo = serializers.IntegerField(source='tramo.numero_orden', read_only=True, allow_null=True)
+
+    es_insignia = serializers.BooleanField(source='puesto.tipo_puesto.es_insignia', read_only=True, default=False)
+
+    lugar_citacion = serializers.CharField(source='puesto.lugar_citacion', read_only=True, allow_null=True)
+    hora_citacion = serializers.TimeField(source='puesto.hora_citacion', read_only=True, allow_null=True)
+
+    class Meta:
+        model = PapeletaSitio
+        fields = [
+            'id', 
+            'estado_papeleta', 
+            'fecha_solicitud', 
+            'fecha_emision', 
+            'anio',
+            'nombre_acto',
+            'fecha_acto',
+            'nombre_puesto',
+            'nombre_tramo',
+            'numero_tramo',
+            'es_insignia',
+            'lugar_citacion',
+            'hora_citacion'
+        ]
