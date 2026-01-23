@@ -17,10 +17,11 @@ import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
 import SolicitarCirio from "./pages/SolicitarCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
-import MisPapeletas from "./pages/MisPapeletas"
+// import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
+import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -73,14 +74,14 @@ function App() {
           }
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
-        <Route
+        {/* <Route
           path="/mis-papeletas"
           element={
             <ProtectedRoute>
               <MisPapeletas />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/gestionar-reparto/:id"
           element={
@@ -160,6 +161,14 @@ function App() {
               <AdminEditarHermano />
             </ProtectedRoute>
           } 
+        />
+        <Route
+          path="/mis-papeletas-de-sitio"
+          element={
+            <ProtectedRoute>
+              <MisPapeletas />
+            </ProtectedRoute>
+          }
         />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />

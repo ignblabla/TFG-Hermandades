@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Acto, Puesto, TipoActo, TipoPuesto
+from .models import Acto, PapeletaSitio, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
 from django.contrib.auth import get_user_model
 
@@ -224,3 +224,19 @@ def update_hermano_por_admin_service(usuario_solicitante, hermano_id, data_valid
     
     hermano.save()
     return hermano
+
+# -----------------------------------------------------------------------------
+# SERVICES: CONSULTA EL HISTÓRICO DE PAPELETAS DE SITIO (NO ADMIN)
+# -----------------------------------------------------------------------------
+def get_historial_papeletas_hermano_service(usuario):
+    """
+    Recupera el histórico de papeletas de un hermano específico.
+    """
+    if not usuario or not usuario.is_authenticated:
+        raise PermissionDenied("Usuario no identificado")
+    
+    queryset = PapeletaSitio.objects.filter(
+        hermano=usuario
+    ).select_related('acto', 'puesto', 'puesto__tipo_puesto', 'tramo').order_by('-anio', '-acto__fecha')
+
+    return queryset

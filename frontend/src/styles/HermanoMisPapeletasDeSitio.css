@@ -1,0 +1,96 @@
+.papeletas-table th:last-child,
+.papeletas-table td:last-child {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.papeletas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.papeletas-table thead tr {
+    background-color: var(--bg-light);
+    text-align: center;
+    border-bottom: 2px solid var(--burgundy-primary);
+}
+
+.papeletas-table th {
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    color: var(--burgundy-primary);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.papeletas-table td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* --- ESTILO DEL BOTÓN PDF --- */
+.btn-download-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background-color: #fff;
+    border: 1px solid #7e22ce;
+    color: #7e22ce;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.btn-download-action:hover {
+    background-color: #f3e8ff;
+    border-color: #6b21a8;
+    color: #6b21a8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(126, 34, 206, 0.15);
+}
+
+.btn-download-action:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.btn-download-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+    color: #9ca3af;
+    background-color: #f9fafb;
+    transform: none;
+    box-shadow: none;
+}
+
+.loader-dots {
+    animation: blink 1.4s infinite both;
+}
+
+@keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+}
+
+.cell-nombre-acto {
+    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
