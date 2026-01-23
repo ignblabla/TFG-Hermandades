@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+from .serializers import ActoCreateSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,8 +11,9 @@ from .models import Acto, Puesto
 from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .services import create_acto_service, get_historial_papeletas_hermano_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
+from .services import crear_acto_service, create_acto_service, get_historial_papeletas_hermano_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -305,3 +306,28 @@ class MisPapeletasListView(APIView):
                 {"detail": "Error al recuperar el historial de papeletas."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+# -----------------------------------------------------------------------------
+# VIEWS: CREAR ACTO
+# -----------------------------------------------------------------------------
+class CrearActoView(APIView):
+    def post(self, request):
+        serializer = ActoCreateSerializer(data=request.data)
+
+        if serializer.is_valid():
+            try:
+                acto = crear_acto_service(request.user, serializer.validated_data)
+                return Response(
+                    ActoCreateSerializer(acto).data,
+                    status=status.HTTP_201_CREATED
+                )
+            except DjangoValidationError as e:
+                if hasattr(e, 'message_dict'):
+                    return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
+            except PermissionDenied as e:
+                return Response({'detail': str(e)}, status=status.HTTP_403_FORBIDDEN)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            

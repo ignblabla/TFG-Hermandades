@@ -22,6 +22,7 @@ import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
+import AdminCreacionActo from "./pages/AdminCreacionActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -146,6 +147,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/censo"
           element={
@@ -162,6 +164,15 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route
+          path="/admin/crear-acto"
+          element={
+            <ProtectedRoute>
+              <AdminCreacionActo />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/mis-papeletas-de-sitio"
           element={

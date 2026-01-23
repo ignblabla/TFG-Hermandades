@@ -240,3 +240,87 @@ def get_historial_papeletas_hermano_service(usuario):
     ).select_related('acto', 'puesto', 'puesto__tipo_puesto', 'tramo').order_by('-anio', '-acto__fecha')
 
     return queryset
+
+# -----------------------------------------------------------------------------
+# SERVICES: CREAR ACTO
+# -----------------------------------------------------------------------------
+def _validar_fechas_acto(data):
+    tipo_acto = data.get('tipo_acto')
+    modalidad = data.get('modalidad', Acto.ModalidadReparto.TRADICIONAL)
+    fecha_acto = data.get('fecha')
+    
+    if not tipo_acto.requiere_papeleta:
+        data['inicio_solicitud'] = None
+        data['fin_solicitud'] = None
+        data['inicio_solicitud_cirios'] = None
+        data['fin_solicitud_cirios'] = None
+        return data
+
+    inicio_insignias = data.get('inicio_solicitud')
+    fin_insignias = data.get('fin_solicitud')
+    inicio_cirios = data.get('inicio_solicitud_cirios')
+    fin_cirios = data.get('fin_solicitud_cirios')
+
+    errors = {}
+
+    if fecha_acto:
+        if inicio_insignias and inicio_insignias >= fecha_acto:
+            errors['inicio_solicitud'] = (
+                f"El inicio de solicitud de insignias debe ser anterior a la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+        
+        if fin_insignias and fin_insignias >= fecha_acto:
+            errors['fin_solicitud'] = (
+                f"El fin de solicitud de insignias debe finalizar antes de la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+        if inicio_cirios and inicio_cirios >= fecha_acto:
+            errors['inicio_solicitud_cirios'] = (
+                f"El inicio de solicitud de cirios debe ser anterior a la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+        if fin_cirios and fin_cirios >= fecha_acto:
+            errors['fin_solicitud_cirios'] = (
+                f"El fin de solicitud de cirios debe finalizar antes de la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+    if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
+        errors['fin_solicitud'] = "La fecha de fin de insignias debe ser posterior al inicio."
+
+    if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
+        errors['fin_solicitud_cirios'] = "La fecha de fin de cirios debe ser posterior al inicio."
+
+    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
+        if fin_insignias and inicio_cirios:
+            if inicio_cirios <= fin_insignias:
+                errors['inicio_solicitud_cirios'] = (
+                    f"En modalidad Tradicional, los cirios no pueden empezar antes "
+                    f"de que terminen las insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
+                )
+        
+        if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
+            errors['inicio_solicitud'] = "El reparto de insignias debe comenzar antes que el de cirios."
+
+    if errors:
+        raise ValidationError(errors)
+    
+    return data
+
+@transaction.atomic
+def crear_acto_service(usuario_solicitante, data_validada):
+    if not getattr(usuario_solicitante, "esAdmin", False):
+        raise PermissionDenied("No tienes permisos para crear actos. Se requiere ser Administrador.")
+    
+    nombre = data_validada.get('nombre')
+    fecha = data_validada.get('fecha')
+    if Acto.objects.filter(nombre=nombre, fecha__date=fecha.date()).exists():
+        raise ValidationError(f"Ya existe el acto '{nombre}' en esa fecha.")
+    
+    data_limpia = _validar_fechas_acto(data_validada)
+
+    nuevo_acto = Acto.objects.create(**data_limpia)
+    return nuevo_acto
