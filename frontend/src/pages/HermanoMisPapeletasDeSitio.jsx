@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
-import '../styles/AdminListadoHermanos.css'; 
-// Añadimos Download a los iconos importados
-import { 
-    ChevronLeft, 
-    ChevronRight, 
-    Scroll, 
-    MapPin, 
-    Calendar,
-    Clock,
-    Download,
-    AlertCircle
-} from "lucide-react";
+import '../styles/HermanoMisPapeletasDeSitio.css'; 
+import { ChevronLeft, ChevronRight, Scroll, Download } from "lucide-react";
 
 function MisPapeletas() {
     const [isOpen, setIsOpen] = useState(false); 
@@ -21,7 +11,6 @@ function MisPapeletas() {
     const [user, setUser] = useState(null);
     const [papeletas, setPapeletas] = useState([]);
     const [loading, setLoading] = useState(true);
-    // Estado para feedback de descarga (opcional, para evitar múltiples clics)
     const [downloadingId, setDownloadingId] = useState(null);
     
     // Estados de paginación
@@ -47,29 +36,21 @@ function MisPapeletas() {
         return horaString.substring(0, 5);
     };
 
-    // --- NUEVA LÓGICA: DESCARGAR PDF ---
+    // --- DESCARGAR PDF ---
     const handleDownloadPDF = async (papeletaId, anio) => {
         setDownloadingId(papeletaId);
         try {
-            // Solicitamos el BLOB al endpoint que configuraste en Django
             const response = await api.get(`api/papeletas/${papeletaId}/descargar/`, {
                 responseType: 'blob', 
             });
-
-            // Creamos url temporal
             const url = window.URL.createObjectURL(new Blob([response.data]));
-            
-            // Link invisible para descarga
             const link = document.createElement('a');
             link.href = url;
             link.setAttribute('download', `Papeleta_SanGonzalo_${anio}.pdf`);
-            
             document.body.appendChild(link);
             link.click();
             link.parentNode.removeChild(link);
-            
             window.URL.revokeObjectURL(url);
-
         } catch (err) {
             console.error("Error descargando PDF:", err);
             alert("No se pudo descargar el documento. Inténtelo más tarde.");
@@ -81,7 +62,6 @@ function MisPapeletas() {
     // --- EFECTO DE CARGA ---
     useEffect(() => {
         let isMounted = true; 
-
         const fetchData = async () => {
             setLoading(true);
             try {
@@ -99,11 +79,9 @@ function MisPapeletas() {
                     setTotalRegistros(resListado.data.count);
                     setNextUrl(resListado.data.next);
                     setPrevUrl(resListado.data.previous);
-                    
                     const pageSize = 20; 
                     setTotalPages(Math.ceil(resListado.data.count / pageSize));
                 }
-
             } catch (err) {
                 console.error("Error cargando papeletas:", err);
                 if (err.response && err.response.status === 401) {
@@ -113,21 +91,18 @@ function MisPapeletas() {
                 if (isMounted) setLoading(false);
             }
         };
-
         fetchData();
         return () => { isMounted = false; };
     }, [page, navigate]);
 
     // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
-
     const handleLogout = () => {
         localStorage.removeItem("user_data");
         localStorage.removeItem("access");
         setUser(null);
         navigate("/login");
     };
-
     const handlePrev = () => { if (prevUrl) setPage(page - 1); };
     const handleNext = () => { if (nextUrl) setPage(page + 1); };
 
@@ -160,7 +135,6 @@ function MisPapeletas() {
             'SOLICITADA': 'warning',
             'NO_SOLICITADA': 'neutral'
         }[estado] || 'neutral';
-
         return <span className={`status-badge ${estadoClass}`}>{estado}</span>;
     };
 
@@ -173,36 +147,90 @@ function MisPapeletas() {
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
                 </div>
                 <ul className="nav-list-dashboard">
                     <li>
-                         <a href="#" onClick={() => navigate("/dashboard")}>
-                            <i className="bx bx-grid-alt"></i>
-                            <span className="link_name-dashboard">Inicio</span>
-                        </a>
-                        <span className="tooltip-dashboard">Inicio</span>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
                     </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-grid-alt"></i>
+                            <span className="link_name-dashboard">Dashboard</span>
+                        </a>
+                        <span className="tooltip-dashboard">Dashboard</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
-                            <img src="/profile.jpeg" alt="profile" /> 
+                            <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{user ? `${user.nombre} ${user.primer_apellido}` : "Hermano"}</div>
-                                <div className="designation-dashboard">Hermano</div>
+                                <div className="name-dashboard">{user ? `${user.nombre} ${user.primer_apellido}` : "Usuario"}</div>
+                                <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i className="bx bx-log-out" id="log_out" onClick={handleLogout} style={{cursor: 'pointer'}}></i>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
                     </li>
                 </ul>
             </div>
 
-            {/* --- CONTENIDO PRINCIPAL --- */}
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Histórico de Sitios</div>
-
+                <div className="text-dashboard">Histórico de papeletas de sitio</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
-                        
                         <header className="content-header-area">
                             <div className="title-row-area">
                                 <div style={{display:'flex', alignItems:'center', gap: '10px'}}>
@@ -211,81 +239,61 @@ function MisPapeletas() {
                                 </div>
                             </div>
                             <p className="description-area">
-                                Has realizado estación de penitencia o participado en <strong>{totalRegistros}</strong> actos.
+                                Número total de papeletas de sitio encontradas: <strong>{totalRegistros}</strong>
                             </p>
                         </header>
 
                         <div className="table-responsive">
                             {loading ? (
-                                <div className="loading-state">Cargando datos...</div>
+                                <div className="loading-state">Cargando censo...</div>
                             ) : (
-                                <table className="hermanos-table">
+                                <table className="papeletas-table">
                                     <thead>
                                         <tr>
                                             <th>Año</th>
                                             <th>Acto</th>
+                                            <th>Fecha acto</th>
                                             <th>Sitio / Puesto</th>
-                                            <th>Citación</th>
+                                            <th>Lugar</th>
+                                            <th>Hora</th>
+                                            <th>Fecha emisión</th>
                                             <th>Estado</th>
-                                            {/* COLUMNA NUEVA */}
-                                            <th>Acciones</th> 
+                                            <th>Acciones</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         {papeletas.length > 0 ? (
                                             papeletas.map((papeleta) => {
-                                                // Lógica para saber si puede descargar
                                                 const puedeDescargar = ['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(papeleta.estado_papeleta);
                                                 
                                                 return (
-                                                    <tr key={papeleta.id} className="row-hover">
-                                                        {/* AÑO */}
-                                                        <td style={{fontWeight: 'bold', color: '#555'}}>{papeleta.anio}</td>
-                                                        
-                                                        {/* ACTO */}
+                                                    <tr key={papeleta.id} style={{borderBottom: '1px solid #f1f5f9', cursor: 'pointer'}} className="row-hover">
+                                                        <td>{papeleta.anio}</td>
+                                                        <td className="cell-nombre-acto" title={papeleta.nombre_acto}>
+                                                            {papeleta.nombre_acto || ""}
+                                                        </td>
+                                                        <td><div>{formatearFecha(papeleta.fecha_acto)}</div></td>
+
+                                                        <td className="cell-nombre-acto">{renderSitio(papeleta)}</td>
+
+                                                        <td className="cell-nombre-acto" title={papeleta.lugar_citacion}>
+                                                            {papeleta.lugar_citacion ? (<div>{papeleta.lugar_citacion}</div>) : (<span className="text-muted">-</span>)}
+                                                        </td>
+                                                        <td>{papeleta.hora_citacion ? (<div>{formatearHora(papeleta.hora_citacion)}</div>) : (<span className="text-muted">-</span>)}
+                                                        </td>
                                                         <td>
-                                                            <div style={{display:'flex', flexDirection:'column'}}>
-                                                                <span style={{fontWeight:'600'}}>{papeleta.nombre_acto}</span>
-                                                                <span style={{fontSize:'0.85em', color:'#888'}}>
-                                                                    <Calendar size={12} style={{marginRight:'4px'}}/>
-                                                                    {formatearFecha(papeleta.fecha_acto)}
-                                                                </span>
-                                                            </div>
+                                                            <div>{papeleta.fecha_emision ? (<>{formatearFecha(papeleta.fecha_emision)}</>) : '-'}</div>
                                                         </td>
 
-                                                        {/* SITIO */}
-                                                        <td>{renderSitio(papeleta)}</td>
-
-                                                        {/* CITACIÓN */}
-                                                        <td>
-                                                            {papeleta.lugar_citacion ? (
-                                                                <div style={{fontSize:'0.9em'}}>
-                                                                    <div style={{display:'flex', alignItems:'center', gap:'5px'}}>
-                                                                        <MapPin size={14} className="text-muted"/> 
-                                                                        {papeleta.lugar_citacion}
-                                                                    </div>
-                                                                    {papeleta.hora_citacion && (
-                                                                        <div style={{display:'flex', alignItems:'center', gap:'5px', marginTop:'2px'}}>
-                                                                            <Clock size={14} className="text-muted"/> 
-                                                                            {formatearHora(papeleta.hora_citacion)}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-muted">-</span>
-                                                            )}
-                                                        </td>
-
-                                                        {/* ESTADO */}
                                                         <td>{renderEstado(papeleta.estado_papeleta)}</td>
 
-                                                        {/* ACCIONES (BOTÓN DESCARGA) */}
                                                         <td>
                                                             {puedeDescargar ? (
                                                                 <button 
                                                                     className="btn-download-action"
                                                                     onClick={(e) => {
-                                                                        e.stopPropagation(); // Evita clicks indeseados si la fila es clickable
+                                                                        e.stopPropagation();
                                                                         handleDownloadPDF(papeleta.id, papeleta.anio);
                                                                     }}
                                                                     disabled={downloadingId === papeleta.id}
@@ -309,7 +317,7 @@ function MisPapeletas() {
                                             })
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="text-center" style={{padding: '40px'}}>
+                                                <td colSpan="9" className="text-center" style={{padding: '40px'}}>
                                                     No tienes papeletas de sitio registradas.
                                                 </td>
                                             </tr>
@@ -318,33 +326,6 @@ function MisPapeletas() {
                                 </table>
                             )}
                         </div>
-
-                        {/* --- PAGINACIÓN --- */}
-                        {totalRegistros > 0 && (
-                            <footer className="pagination-footer">
-                                <span className="page-info">
-                                    Página {page} de {totalPages}
-                                </span>
-                                <div className="pagination-controls">
-                                    <button 
-                                        className="btn-pagination" 
-                                        onClick={handlePrev} 
-                                        disabled={!prevUrl || loading}
-                                    >
-                                        <ChevronLeft size={16} /> Anterior
-                                    </button>
-                                    
-                                    <button 
-                                        className="btn-pagination" 
-                                        onClick={handleNext} 
-                                        disabled={!nextUrl || loading}
-                                    >
-                                        Siguiente <ChevronRight size={16} />
-                                    </button>
-                                </div>
-                            </footer>
-                        )}
-
                     </div>
                 </div>
             </section>
