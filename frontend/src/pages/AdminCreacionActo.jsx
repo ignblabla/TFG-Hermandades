@@ -6,6 +6,10 @@ import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle 
 
 function AdminCreacionActo() {
     const navigate = useNavigate();
+
+    const currentYear = new Date().getFullYear();
+    const minDate = `${currentYear}-01-01T00:00`;
+    const maxDate = `${currentYear}-12-31T23:59`;
     
     const [isOpen, setIsOpen] = useState(false); // Sidebar
     const [loading, setLoading] = useState(true);
@@ -272,7 +276,7 @@ function AdminCreacionActo() {
                                             name="nombre" 
                                             value={formData.nombre} 
                                             onChange={handleChange} 
-                                            placeholder="Ej: Estación de Penitencia 2024"
+                                            placeholder={`Ej: Estación de Penitencia ${currentYear}`}
                                             required 
                                         />
                                     </div>
@@ -295,13 +299,15 @@ function AdminCreacionActo() {
                                     </div>
 
                                     <div className="form-group-edicion">
-                                        <label>Fecha y Hora *</label>
+                                        <label>Fecha y Hora * ({currentYear})</label>
                                         <input 
                                             type="datetime-local" 
                                             name="fecha" 
                                             value={formData.fecha} 
-                                            onChange={handleChange} 
-                                            required 
+                                            onChange={handleChange}
+                                            min={minDate} 
+                                            max={maxDate}
+                                            required
                                         />
                                     </div>
 
@@ -356,6 +362,8 @@ function AdminCreacionActo() {
                                                     name="inicio_solicitud" 
                                                     value={formData.inicio_solicitud || ''} 
                                                     onChange={handleChange} 
+                                                    min={minDate} 
+                                                    max={maxDate}
                                                 />
                                             </div>
                                             <div className="form-group-edicion">
@@ -364,7 +372,9 @@ function AdminCreacionActo() {
                                                     type="datetime-local" 
                                                     name="fin_solicitud" 
                                                     value={formData.fin_solicitud || ''} 
-                                                    onChange={handleChange} 
+                                                    onChange={handleChange}
+                                                    min={minDate} 
+                                                    max={maxDate}
                                                 />
                                             </div>
                                         </div>
@@ -382,6 +392,8 @@ function AdminCreacionActo() {
                                                             name="inicio_solicitud_cirios" 
                                                             value={formData.inicio_solicitud_cirios || ''} 
                                                             onChange={handleChange} 
+                                                            min={minDate} 
+                                                            max={maxDate}
                                                         />
                                                     </div>
                                                     <div className="form-group-edicion">
@@ -390,7 +402,9 @@ function AdminCreacionActo() {
                                                             type="datetime-local" 
                                                             name="fin_solicitud_cirios" 
                                                             value={formData.fin_solicitud_cirios || ''} 
-                                                            onChange={handleChange} 
+                                                            onChange={handleChange}
+                                                            min={minDate} 
+                                                            max={maxDate}
                                                         />
                                                     </div>
                                                 </div>
