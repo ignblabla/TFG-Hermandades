@@ -282,9 +282,14 @@ class TipoActo(models.Model):
 # ENTIDAD: ACTO
 # -----------------------------------------------------------------------------
 class Acto(models.Model):
+    class ModalidadReparto(models.TextChoices):
+        TRADICIONAL = 'TRADICIONAL', 'Tradicional (Fases separadas: Insignias luego Cirios)'
+        UNIFICADO = 'UNIFICADO', 'Unificado / Express (Todo en un plazo)'
+
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
     fecha = models.DateTimeField(verbose_name="Fecha y hora")
+    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, default=ModalidadReparto.TRADICIONAL, verbose_name="Modalidad de reparto")
 
     tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
 
@@ -428,7 +433,8 @@ class PapeletaSitio(models.Model):
     tramo = models.ForeignKey(Tramo, on_delete=models.SET_NULL, related_name="nazarenos", verbose_name="Tramo asignado", null=True, blank=True)
 
     numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
-    es_solicitud_insignia = models.BooleanField(default=False, verbose_name="¿Es solicitud de insignia?")
+    es_solicitud_insignia = models.BooleanField(default=False, null=True, blank=True, verbose_name="¿Es solicitud de insignia?")
+    solicita_cirio_si_denegado = models.BooleanField(default=True, null=True, blank=True, verbose_name="¿Desea cirio si no obtiene insignia?", help_text="Si el hermano solicita insignia y no se le asigna por antigüedad, ¿desea salir de nazareno/cirio?")
 
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"

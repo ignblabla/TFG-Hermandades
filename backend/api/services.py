@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, PapeletaSitio, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 User = get_user_model()
 
@@ -240,3 +241,195 @@ def get_historial_papeletas_hermano_service(usuario):
     ).select_related('acto', 'puesto', 'puesto__tipo_puesto', 'tramo').order_by('-anio', '-acto__fecha')
 
     return queryset
+
+# -----------------------------------------------------------------------------
+# SERVICES: CREAR ACTO
+# -----------------------------------------------------------------------------
+def _validar_fechas_acto(data):
+    tipo_acto = data.get('tipo_acto')
+    modalidad = data.get('modalidad', Acto.ModalidadReparto.TRADICIONAL)
+    fecha_acto = data.get('fecha')
+    
+    if not tipo_acto.requiere_papeleta:
+        data['inicio_solicitud'] = None
+        data['fin_solicitud'] = None
+        data['inicio_solicitud_cirios'] = None
+        data['fin_solicitud_cirios'] = None
+        return data
+
+    inicio_insignias = data.get('inicio_solicitud')
+    fin_insignias = data.get('fin_solicitud')
+    inicio_cirios = data.get('inicio_solicitud_cirios')
+    fin_cirios = data.get('fin_solicitud_cirios')
+
+    errors = {}
+
+    if fecha_acto:
+        if inicio_insignias and inicio_insignias >= fecha_acto:
+            errors['inicio_solicitud'] = (
+                f"El inicio de solicitud de insignias debe ser anterior a la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+        
+        if fin_insignias and fin_insignias >= fecha_acto:
+            errors['fin_solicitud'] = (
+                f"El fin de solicitud de insignias debe finalizar antes de la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+        if inicio_cirios and inicio_cirios >= fecha_acto:
+            errors['inicio_solicitud_cirios'] = (
+                f"El inicio de solicitud de cirios debe ser anterior a la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+        if fin_cirios and fin_cirios >= fecha_acto:
+            errors['fin_solicitud_cirios'] = (
+                f"El fin de solicitud de cirios debe finalizar antes de la fecha del acto "
+                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+            )
+
+    if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
+        errors['fin_solicitud'] = "La fecha de fin de insignias debe ser posterior al inicio."
+
+    if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
+        errors['fin_solicitud_cirios'] = "La fecha de fin de cirios debe ser posterior al inicio."
+
+    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
+        if fin_insignias and inicio_cirios:
+            if inicio_cirios <= fin_insignias:
+                errors['inicio_solicitud_cirios'] = (
+                    f"En modalidad Tradicional, los cirios no pueden empezar antes "
+                    f"de que terminen las insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
+                )
+        
+        if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
+            errors['inicio_solicitud'] = "El reparto de insignias debe comenzar antes que el de cirios."
+
+    if errors:
+        raise ValidationError(errors)
+    
+    return data
+
+@transaction.atomic
+def crear_acto_service(usuario_solicitante, data_validada):
+    if not getattr(usuario_solicitante, "esAdmin", False):
+        raise PermissionDenied("No tienes permisos para crear actos. Se requiere ser Administrador.")
+    
+    nombre = data_validada.get('nombre')
+    fecha = data_validada.get('fecha')
+    if Acto.objects.filter(nombre=nombre, fecha__date=fecha.date()).exists():
+        raise ValidationError(f"Ya existe el acto '{nombre}' en esa fecha.")
+    
+    data_limpia = _validar_fechas_acto(data_validada)
+
+    nuevo_acto = Acto.objects.create(**data_limpia)
+    return nuevo_acto
+
+# -----------------------------------------------------------------------------
+# SERVICES: ACTUALIZAR ACTO
+# -----------------------------------------------------------------------------
+def _validar_cambio_fecha(acto: Acto, nueva_fecha):
+    if acto.fecha == nueva_fecha:
+        return
+
+    now = timezone.now()
+    fecha_limite = acto.inicio_solicitud
+
+    if fecha_limite and now >= fecha_limite:
+        raise ValidationError({
+            'fecha': (
+                f"No se puede modificar la fecha del acto porque el plazo de solicitud ya ha comenzado "
+                f"({fecha_limite.strftime('%d/%m/%Y %H:%M')})."
+            )
+        })
+        
+def _validar_coherencia_fechas(acto, data):
+    fecha_acto = data.get('fecha', acto.fecha)
+    inicio_insignias = data.get('inicio_solicitud', acto.inicio_solicitud)
+    fin_insignias = data.get('fin_solicitud', acto.fin_solicitud)
+    inicio_cirios = data.get('inicio_solicitud_cirios', acto.inicio_solicitud_cirios)
+    fin_cirios = data.get('fin_solicitud_cirios', acto.fin_solicitud_cirios)
+
+    modalidad = data.get('modalidad', acto.modalidad)
+    tipo_acto = data.get('tipo_acto', acto.tipo_acto)
+    
+    data_final = data.copy()
+
+    if not tipo_acto.requiere_papeleta:
+        data_final['inicio_solicitud'] = None
+        data_final['fin_solicitud'] = None
+        data_final['inicio_solicitud_cirios'] = None
+        data_final['fin_solicitud_cirios'] = None
+        return data_final
+
+    errores = {}
+
+    if fecha_acto:
+        if inicio_insignias and inicio_insignias >= fecha_acto:
+            errores['inicio_solicitud'] = f"El inicio de insignias debe ser anterior al acto ({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
+        
+        if fin_insignias and fin_insignias >= fecha_acto:
+            errores['fin_solicitud'] = f"El fin de insignias debe ser anterior al acto."
+
+        if inicio_cirios and inicio_cirios >= fecha_acto:
+            errores['inicio_solicitud_cirios'] = f"El inicio de cirios debe ser anterior al acto."
+
+        if fin_cirios and fin_cirios >= fecha_acto:
+            errores['fin_solicitud_cirios'] = f"El fin de cirios debe ser anterior al acto."
+
+    if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
+        errores['fin_solicitud'] = "La fecha fin de insignias debe ser posterior a su fecha de inicio."
+    
+    if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
+        errores['fin_solicitud_cirios'] = "La fecha fin de cirios debe ser posterior a su fecha de inicio."
+
+    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
+        if fin_insignias and inicio_cirios:
+            if inicio_cirios <= fin_insignias:
+                errores['inicio_solicitud_cirios'] = (
+                    f"En reparto Tradicional, el plazo de cirios no puede comenzar "
+                    f"hasta que finalice el de insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
+                )
+
+        if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
+            errores['inicio_solicitud'] = "El reparto de insignias debe comenzar antes que el de cirios."
+
+    if errores:
+        raise DjangoValidationError(errores)
+    
+    return data_final
+    
+
+@transaction.atomic
+def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
+    if not getattr(usuario_solicitante, "esAdmin", False):
+        raise PermissionDenied("No tienes permisos para editar actos. Se requiere ser Administrador.")
+    
+    try:
+        acto = Acto.objects.select_related('tipo_acto').get(pk=acto_id)
+    except Acto.DoesNotExist:
+        raise ValidationError({"detail": "El acto solicitado no existe."})
+    
+    nuevo_nombre = data_validada.get('nombre', acto.nombre)
+    nueva_fecha = data_validada.get('fecha', acto.fecha)
+    nuevo_tipo = data_validada.get('tipo_acto', acto.tipo_acto)
+
+    if Acto.objects.filter(nombre=nuevo_nombre, fecha__date=nueva_fecha.date()).exclude(pk=acto.id).exists():
+        raise ValidationError(f"Ya existe otro acto llamado '{nuevo_nombre}' en esa fecha.")
+    
+    if nuevo_tipo != acto.tipo_acto:
+        if acto.puestos_disponibles.exists():
+            raise ValidationError({
+                'tipo_acto': "No se puede cambiar el Tipo de Acto porque ya existen puestos generados. Elimine los puestos primero."
+            })
+        
+    _validar_cambio_fecha(acto, nueva_fecha)
+
+    data_limpia = _validar_coherencia_fechas(acto, data_validada)
+
+    for campo, valor in data_limpia.items():
+        setattr(acto, campo, valor)
+    
+    acto.save()
+    return acto

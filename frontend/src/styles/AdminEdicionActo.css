@@ -1,0 +1,34 @@
+.input-disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+
+.textarea-standard {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-family: inherit;
+}
+
+.subsection-title {
+    margin: 15px 0 10px;
+    color: #4b5563;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.info-box-blue {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #eff6ff;
+    border-radius: 6px;
+    border-left: 4px solid #3b82f6;
+    font-size: 0.85rem;
+    color: #1e40af;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
