@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/CrearActo.css";
 import logoEscudo from '../assets/escudo.png'; 
-import { ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertCircle, Link as LinkIcon, Info } from "lucide-react";
 
 function SolicitarCirio() {
     // --- ESTADOS ---
@@ -17,6 +17,7 @@ function SolicitarCirio() {
     // Selección del usuario
     const [selectedActoId, setSelectedActoId] = useState("");
     const [selectedPuestoId, setSelectedPuestoId] = useState("");
+    const [numeroVinculado, setNumeroVinculado] = useState(""); 
 
     // Estados de formulario
     const [submitting, setSubmitting] = useState(false);
@@ -30,19 +31,14 @@ function SolicitarCirio() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Cargar Usuario
                 const resUser = await api.get("api/me/");
                 setUser(resUser.data);
 
-                // 2. Cargar Actos
                 const resActos = await api.get("api/actos/");
                 const now = new Date();
                 
-                // FILTRO: Solo actos que requieran papeleta Y estén en plazo de CIRIOS
                 const actosValidos = resActos.data.filter(acto => {
                     if (!acto.requiere_papeleta) return false;
-                    
-                    // Verificación de fechas nulas y rango
                     if (!acto.inicio_solicitud_cirios || !acto.fin_solicitud_cirios) return false;
 
                     const inicio = new Date(acto.inicio_solicitud_cirios);
@@ -66,11 +62,11 @@ function SolicitarCirio() {
 
     // --- MANEJADORES ---
 
-    // 1. Al cambiar de acto, buscamos los puestos tipo CIRIO
     const handleActoChange = async (e) => {
         const actoId = e.target.value;
         setSelectedActoId(actoId);
-        setSelectedPuestoId(""); // Reset puesto
+        setSelectedPuestoId(""); 
+        setNumeroVinculado(""); 
         setPuestosCirio([]);
         setError("");
         setSuccess(false);
@@ -81,16 +77,13 @@ function SolicitarCirio() {
             setLoading(true);
             const res = await api.get(`api/actos/${actoId}/`);
             
-            // LÓGICA DE NEGOCIO FRONTEND:
-            // Filtramos los puestos disponibles que sean de tipo "CIRIO"
-            // (El backend también valida esto, pero filtramos aquí para UX)
             const ciriosDisponibles = res.data.puestos_disponibles.filter(p => {
                 const nombreTipo = p.tipo_puesto.toUpperCase() || "";
                 return p.disponible === true && nombreTipo.includes("CIRIO");
             });
 
             if (ciriosDisponibles.length === 0) {
-                setError("No hay cupo de cirios disponible para este acto o no se han configurado puestos de tipo 'Cirio'.");
+                setError("No hay cupo de cirios disponible para este acto.");
             }
 
             setPuestosCirio(ciriosDisponibles);
@@ -101,7 +94,7 @@ function SolicitarCirio() {
         }
     };
 
-    // 2. Enviar Solicitud
+    // --- SUBMIT SIMPLIFICADO (UNA SOLA LLAMADA) ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -114,32 +107,38 @@ function SolicitarCirio() {
         setError("");
         setSuccess(false);
 
+        // Preparamos el payload unificado
+        // Si numeroVinculado está vacío, enviamos null o simplemente no lo enviamos
         const payload = {
             acto: selectedActoId,
-            puesto: selectedPuestoId
+            puesto: selectedPuestoId,
+            numero_registro_vinculado: numeroVinculado ? parseInt(numeroVinculado) : null
         };
 
         try {
+            // UNA SOLA LLAMADA AL BACKEND
+            // El backend se encarga de crear Y vincular en la misma transacción atomic
             const res = await api.post("api/papeletas/solicitar-cirio/", payload);
-            setSuccess(true);
-            setSuccessData(res.data);
             
-            // Limpiar formulario pero mantener el éxito visible un momento
+            setSuccess(true);
+            setSuccessData(res.data); // El backend ya devuelve el mensaje completo ("...vinculada con éxito")
+            
+            // Limpiar formulario
             setSelectedActoId("");
             setSelectedPuestoId("");
+            setNumeroVinculado("");
             setPuestosCirio([]);
             
-            // Redirección automática opcional
-            setTimeout(() => navigate("/home"), 4000); 
+            setTimeout(() => navigate("/mis-papeletas-de-sitio"), 4000); 
 
         } catch (err) {
             if (err.response && err.response.data) {
                 const data = err.response.data;
-                // Manejar errores del backend (ej: "Ya tienes solicitud", "Cuerpo incorrecto")
+                // Si falla la vinculación, el backend devuelve error 400 y NO crea la papeleta
+                // Mostramos el error directamente al usuario
                 if (data.detail) setError(data.detail);
                 else if (data.non_field_errors) setError(data.non_field_errors[0]);
-                else if (data.acto) setError(`Error en el acto: ${data.acto}`);
-                else if (data.puesto) setError(`Error en el puesto: ${data.puesto}`);
+                else if (data.numero_registro_vinculado) setError(`Error en vinculación: ${data.numero_registro_vinculado[0]}`);
                 else setError("No se pudo procesar la solicitud. Revise los datos.");
             } else {
                 setError("Error de conexión con el servidor.");
@@ -158,7 +157,6 @@ function SolicitarCirio() {
 
     return (
         <div className="site-wrapper">
-            {/* --- NAVBAR --- */}
             <nav className="navbar">
                 <div className="logo-container">
                     <img src={logoEscudo} alt="Escudo" className="nav-logo" />
@@ -169,7 +167,6 @@ function SolicitarCirio() {
                 </div>
                 <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
                 <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-                     {/* Links de navegación... */}
                     <div className="nav-buttons-mobile">
                         <button className="btn-outline">Hermano: {user?.dni}</button>
                         <button className="btn-purple" onClick={handleLogout}>Cerrar Sesión</button>
@@ -191,11 +188,11 @@ function SolicitarCirio() {
                             </button>
                         </div>
                         <p className="description-area">
-                            Obtenga su papeleta de sitio para portar cirio en la Estación de Penitencia u otros actos de culto externo.
+                            Obtenga su papeleta de sitio para portar cirio en la Estación de Penitencia.
                         </p>
                     </header>
 
-                    {/* --- MENSAJES DE ESTADO --- */}
+                    {/* MENSAJES DE ESTADO */}
                     {error && (
                         <div className="alert-box error">
                             <AlertCircle size={20} style={{ marginRight: '10px' }}/>
@@ -215,11 +212,10 @@ function SolicitarCirio() {
                         </div>
                     )}
 
-                    {/* --- CONTENIDO PRINCIPAL --- */}
+                    {/* FORMULARIO */}
                     {actosDisponibles.length === 0 ? (
                         <div className="info-box">
                             No hay plazos abiertos para la solicitud de cirios en este momento.
-                            <br/><small>El plazo de insignias y cirios suele ser diferente.</small>
                         </div>
                     ) : (
                         <section className="form-card-acto">
@@ -247,40 +243,61 @@ function SolicitarCirio() {
                                     </div>
                                 </div>
 
-                                {/* 2. SELECCIÓN DE PUESTO (CIRIO) */}
                                 {selectedActoId && (
-                                    <div className="form-group-acto full-width fade-in">
-                                        <label htmlFor="puesto">MODALIDAD DE SITIO</label>
-                                        <div className="input-with-icon-acto">
-                                            <span className="icon-acto">🕯️</span>
-                                            <select 
-                                                id="puesto" 
-                                                value={selectedPuestoId} 
-                                                onChange={(e) => setSelectedPuestoId(e.target.value)} 
-                                                required
-                                                disabled={submitting || puestosCirio.length === 0}
-                                            >
-                                                <option value="" disabled>-- Seleccione tipo de cirio --</option>
-                                                {puestosCirio.map(puesto => (
-                                                    <option key={puesto.id} value={puesto.id}>
-                                                        {puesto.nombre} 
-                                                        {/* Mostramos disponibilidad si no es ilimitada */}
-                                                        {puesto.numero_maximo_asignaciones < 9999 
-                                                            ? ` (Libres: ${puesto.plazas_disponibles})` 
-                                                            : ''}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                    <>
+                                        {/* 2. SELECCIÓN DE PUESTO (CIRIO) */}
+                                        <div className="form-group-acto full-width fade-in">
+                                            <label htmlFor="puesto">MODALIDAD DE SITIO</label>
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto">🕯️</span>
+                                                <select 
+                                                    id="puesto" 
+                                                    value={selectedPuestoId} 
+                                                    onChange={(e) => setSelectedPuestoId(e.target.value)} 
+                                                    required
+                                                    disabled={submitting || puestosCirio.length === 0}
+                                                >
+                                                    <option value="" disabled>-- Seleccione tipo de cirio --</option>
+                                                    {puestosCirio.map(puesto => (
+                                                        <option key={puesto.id} value={puesto.id}>
+                                                            {puesto.nombre} 
+                                                            {puesto.numero_maximo_asignaciones < 9999 
+                                                                ? ` (Libres: ${puesto.plazas_disponibles})` 
+                                                                : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
                                         </div>
-                                        {puestosCirio.length > 0 && (
-                                            <small className="field-hint">
-                                                Seleccione "Cirio" o la variante específica si pertenece a tramos especiales (ej: Niños, Penitentes).
-                                            </small>
-                                        )}
-                                    </div>
+
+                                        {/* 3. VINCULACIÓN CON OTRO HERMANO (OPCIONAL) */}
+                                        <div className="separator-line"></div>
+                                        <div className="form-group-acto full-width fade-in">
+                                            <label htmlFor="vinculacion" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                VINCULAR CON OTRO HERMANO <span className="badge-optional">Opcional</span>
+                                            </label>
+                                            
+                                            <div className="info-box-small" style={{ marginBottom: '10px', fontSize: '0.85em', color: '#555' }}>
+                                                <Info size={14} style={{ marginRight: '5px', verticalAlign: '-2px' }}/>
+                                                Solo puedes vincularte si tienes un número de registro <strong>MENOR</strong> (más antiguo) que el hermano al que acompañas. Renunciarás a tu antigüedad para ir con él.
+                                            </div>
+
+                                            <div className="input-with-icon-acto">
+                                                <span className="icon-acto"><LinkIcon size={18}/></span>
+                                                <input 
+                                                    type="number" 
+                                                    id="vinculacion"
+                                                    placeholder="Nº de Registro del hermano (Ej: 1250)"
+                                                    value={numeroVinculado}
+                                                    onChange={(e) => setNumeroVinculado(e.target.value)}
+                                                    disabled={submitting}
+                                                    min="1"
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
 
-                                {/* BOTONES DE ACCIÓN */}
                                 <div className="form-actions-acto">
                                     <button 
                                         type="button" 

@@ -431,6 +431,7 @@ class PapeletaSitio(models.Model):
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='papeletas', verbose_name="Acto")
     puesto = models.ForeignKey(Puesto, on_delete=models.SET_NULL, related_name="papeletas_asignadas", verbose_name="Puesto asignado", null=True, blank=True)
     tramo = models.ForeignKey(Tramo, on_delete=models.SET_NULL, related_name="nazarenos", verbose_name="Tramo asignado", null=True, blank=True)
+    vinculado_a = models.ForeignKey(Hermano, on_delete=models.SET_NULL, null=True, blank=True, related_name='papeletas_vinculadas_origen', verbose_name="Vinculado a (Acompañante)", help_text="Hermano con el que se desea procesionar (perdiendo antigüedad)")
 
     numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
     es_solicitud_insignia = models.BooleanField(default=False, null=True, blank=True, verbose_name="¿Es solicitud de insignia?")
