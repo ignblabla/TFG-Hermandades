@@ -763,3 +763,27 @@ class ActoCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'inicio_solicitud': 'El reparto de insignias debe comenzar antes que el de cirios.'})
         
         return data
+    
+class ActoUpdateSerializer(serializers.ModelSerializer):
+    requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
+
+    tipo_acto = serializers.SlugRelatedField(
+        slug_field='tipo',
+        queryset=TipoActo.objects.all()
+    )
+
+    class Meta:
+        model = Acto
+        fields = [
+            'id',
+            'nombre',
+            'descripcion',
+            'fecha',
+            'modalidad',
+            'tipo_acto',
+            'requiere_papeleta',
+            'inicio_solicitud',
+            'fin_solicitud',
+            'inicio_solicitud_cirios',
+            'fin_solicitud_cirios'
+        ]
