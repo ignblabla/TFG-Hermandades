@@ -9,7 +9,7 @@ from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from . import views
 
-from .views import ActoUpdateView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisPapeletasListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoUpdateView, CrearActoView, CrearSolicitudUnificadaView, HermanoAdminDetailView, HermanoListView, MisPapeletasListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -42,4 +42,6 @@ urlpatterns = [
     #UrlS para actos
     path('actos/crear/', CrearActoView.as_view(), name='crear_acto'),
     path('actos/<int:pk>/editar/', ActoUpdateView.as_view(), name='acto-update'),
+
+    path("papeletas/solicitar-unificada/", CrearSolicitudUnificadaView.as_view(), name="solicitar-unificada"),
 ]
