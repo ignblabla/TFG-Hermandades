@@ -421,6 +421,11 @@ class PapeletaSitio(models.Model):
         ANULADA = 'ANULADA', 'Anulada'
         NO_ASIGNADA = 'NO_ASIGNADA', 'No asignada'
 
+    class LadoTramo(models.TextChoices):
+        IZQUIERDA = 'IZQUIERDA', 'Izquierda'
+        DERECHA = 'DERECHA', 'Derecha'
+        CENTRO = 'CENTRO', 'Centro (Diputado/Enlace)'
+
     estado_papeleta = models.CharField(max_length=20, choices=EstadoPapeleta.choices, default=EstadoPapeleta.NO_SOLICITADA, verbose_name="Estado")
     fecha_solicitud = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de solicitud", help_text="Fecha y hora exacta en la que el Hermano realizó la solicitud")
     fecha_emision = models.DateField(null=True, blank=True, verbose_name="Fecha de emisión")
@@ -435,6 +440,22 @@ class PapeletaSitio(models.Model):
 
     numero_papeleta = models.PositiveIntegerField(verbose_name="Número de Papeleta/Tramo", null=True, blank=True, help_text="Número asignado tras el reparto de sitios")
     es_solicitud_insignia = models.BooleanField(default=False, null=True, blank=True, verbose_name="¿Es solicitud de insignia?")
+    
+    orden_en_tramo = models.PositiveIntegerField(
+        verbose_name="Orden en el tramo", 
+        null=True, 
+        blank=True, 
+        help_text="Posición relativa dentro del tramo (ej: Pareja 1, Pareja 2...)"
+    )
+    
+    lado = models.CharField(
+        max_length=15, 
+        choices=LadoTramo.choices, 
+        null=True, 
+        blank=True, 
+        verbose_name="Lado en el tramo"
+    )
+    
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
     

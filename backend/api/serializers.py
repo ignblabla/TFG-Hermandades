@@ -335,6 +335,8 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
 
     tramo_display = serializers.CharField(source='tramo.__str__', read_only=True)
     nombre_vinculado = serializers.SerializerMethodField()
+
+    lado_display = serializers.CharField(source='get_lado_display', read_only=True)
     
     tramo_id = serializers.PrimaryKeyRelatedField(
         queryset=Tramo.objects.all(), 
@@ -352,9 +354,12 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             'anio', 'hermano', 'nombre_hermano', 'apellidos_hermano',
             'acto', 'nombre_acto', 
             'puesto', 'nombre_puesto', 'tramo_display', 'tramo_id',
-            'vinculado_a', 'nombre_vinculado'
+            'vinculado_a', 'nombre_vinculado',
+            'orden_en_tramo', 
+            'lado', 
+            'lado_display'
         ]
-        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display', 'nombre_vinculado']
+        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display', 'nombre_vinculado', 'orden_en_tramo', 'lado', 'lado_display']
 
     def get_apellidos_hermano(self, obj):
         return f"{obj.hermano.primer_apellido} {obj.hermano.segundo_apellido}"
@@ -682,6 +687,8 @@ class HistorialPapeletaSerializer(serializers.ModelSerializer):
     lugar_citacion = serializers.CharField(source='puesto.lugar_citacion', read_only=True, allow_null=True)
     hora_citacion = serializers.TimeField(source='puesto.hora_citacion', read_only=True, allow_null=True)
 
+    lado_display = serializers.CharField(source='get_lado_display', read_only=True)
+
     class Meta:
         model = PapeletaSitio
         fields = [
@@ -697,7 +704,10 @@ class HistorialPapeletaSerializer(serializers.ModelSerializer):
             'numero_tramo',
             'es_insignia',
             'lugar_citacion',
-            'hora_citacion'
+            'hora_citacion',
+            'orden_en_tramo',
+            'lado',
+            'lado_display'
         ]
 
 # -----------------------------------------------------------------------------
