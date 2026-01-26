@@ -334,6 +334,7 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
     nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True)
 
     tramo_display = serializers.CharField(source='tramo.__str__', read_only=True)
+    nombre_vinculado = serializers.SerializerMethodField()
     
     tramo_id = serializers.PrimaryKeyRelatedField(
         queryset=Tramo.objects.all(), 
@@ -350,12 +351,18 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             'fecha_solicitud', 'fecha_emision', 'codigo_verificacion', 
             'anio', 'hermano', 'nombre_hermano', 'apellidos_hermano',
             'acto', 'nombre_acto', 
-            'puesto', 'nombre_puesto', 'tramo_display', 'tramo_id'
+            'puesto', 'nombre_puesto', 'tramo_display', 'tramo_id',
+            'vinculado_a', 'nombre_vinculado'
         ]
-        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display']
+        read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display', 'nombre_vinculado']
 
     def get_apellidos_hermano(self, obj):
         return f"{obj.hermano.primer_apellido} {obj.hermano.segundo_apellido}"
+    
+    def get_nombre_vinculado(self, obj):
+        if obj.vinculado_a:
+            return f"{obj.vinculado_a.nombre} {obj.vinculado_a.primer_apellido} {obj.vinculado_a.segundo_apellido} (Nº {obj.vinculado_a.numero_registro})"
+        return None
 
     def validate(self, data):
         """
@@ -563,6 +570,7 @@ class SolicitudCirioSerializer(serializers.Serializer):
     id_papeleta = serializers.IntegerField(read_only=True, source='id')
     fecha_solicitud = serializers.DateTimeField(read_only=True)
     mensaje = serializers.CharField(read_only=True, default="Solicitud registrada correctamente.")
+    numero_registro_vinculado = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, data):
         """
@@ -824,3 +832,32 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['id', 'anio', 'estado_papeleta', 'fecha_solicitud']
+
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS PARA LA VINCULACIÓN DE PAPELETAS DE SITIO
+# -----------------------------------------------------------------------------
+class VincularPapeletaSerializer(serializers.Serializer):
+    """
+    Serializer simple para recibir el número de registro del hermano objetivo.
+    """
+    numero_registro_objetivo = serializers.IntegerField(
+        required=True, 
+        min_value=1,
+        help_text="Número de registro del hermano con el que quieres ir."
+    )
+
+class DetalleVinculacionSerializer(serializers.ModelSerializer):
+    """
+    Para devolver la respuesta con los datos del hermano vinculado.
+    """
+    nombre_vinculado = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PapeletaSitio
+        fields = ['id', 'vinculado_a', 'nombre_vinculado']
+
+    def get_nombre_vinculado(self, obj):
+        if obj.vinculado_a:
+            return f"{obj.vinculado_a.nombre} {obj.vinculado_a.primer_apellido}"
+        return None
