@@ -24,6 +24,7 @@ import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
+import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -178,6 +179,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-unificada" 
+          element={
+            <ProtectedRoute>
+              <HermanoCrearSolicitudUnificada />
             </ProtectedRoute>
           }
         />

@@ -305,7 +305,7 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta']
 
     def get_en_plazo_insignias(self, obj):
         ahora = timezone.now()
@@ -446,7 +446,6 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
     Serializador Transaccional: Recibe la intención de sacar papeleta y
     una lista de preferencias de puestos/insignias.
     """
-    # Nested Serializer para recibir la lista de opciones (Ej: [Vara, Cirio, Manigueta])
     preferencias = PreferenciaSolicitudSerializer(many=True)
     
     # Campos informativos del hermano y acto
@@ -787,3 +786,41 @@ class ActoUpdateSerializer(serializers.ModelSerializer):
             'inicio_solicitud_cirios',
             'fin_solicitud_cirios'
         ]
+
+# -----------------------------------------------------------------------------
+# SERIALIZERS PARA LA SOLICITUD DE PAPELETA DE SITIO
+# -----------------------------------------------------------------------------
+class PreferenciaSolicitudDTO(serializers.Serializer):
+    puesto_id = serializers.PrimaryKeyRelatedField(queryset=Puesto.objects.all(), source='puesto_solicitado')
+    orden = serializers.IntegerField(source='orden_prioridad')
+
+
+class SolicitudUnificadaSerializer(serializers.ModelSerializer):
+    nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
+    modalidad_acto = serializers.CharField(source='acto.modalidad', read_only=True)
+
+    acto_id = serializers.PrimaryKeyRelatedField(
+        queryset=Acto.objects.all(), 
+        source='acto', 
+        write_only=True
+    )
+
+    preferencias_solicitadas = PreferenciaSolicitudDTO(many=True, write_only=True, required=False)
+    preferencias = serializers.StringRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = PapeletaSitio
+        fields = [
+            'id',
+            'acto_id',
+            'nombre_acto',
+            'modalidad_acto',
+            'anio',
+            'estado_papeleta',
+            'es_solicitud_insignia',
+            'preferencias_solicitadas',
+            'preferencias',
+            'fecha_solicitud'
+        ]
+
+        read_only_fields = ['id', 'anio', 'estado_papeleta', 'fecha_solicitud']

@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
-from .serializers import ActoCreateSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
+
+from api.servicios.GestionSolicitudesService import GestionSolicitudesService
+from .serializers import ActoCreateSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -380,5 +382,37 @@ class ActoUpdateView(APIView):
                     {"detail": "Ocurrió un error inesperado al actualizar el acto."}, 
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# -----------------------------------------------------------------------------
+# VIEWS: SOLICITAR PAPELETA UNIFICADA
+# -----------------------------------------------------------------------------
+class CrearSolicitudUnificadaView(APIView):
+    def post(self, request):
+        serializer = SolicitudUnificadaSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                acto = serializer.validated_data['acto']
+                preferencias = serializer.validated_data.get('preferencias_solicitadas', [])
+                
+                papeleta = GestionSolicitudesService.procesar_solicitud_unificada(
+                    hermano=request.user,
+                    acto=acto,
+                    preferencias_data=preferencias
+                )
+
+                return Response(
+                    SolicitudUnificadaSerializer(papeleta).data, 
+                    status=status.HTTP_201_CREATED
+                )
+
+            except DjangoValidationError as e:
+                mensaje_error = e.message if hasattr(e, 'message') else str(e)
+                return Response({"detail": mensaje_error}, status=status.HTTP_400_BAD_REQUEST)
+            
+            except Exception as e:
+                return Response({"detail": "Error interno del servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
