@@ -45,8 +45,7 @@ class GestionSolicitudesService:
         self._validar_mix_puestos_unificado(preferencias_data)
 
         papeleta = self._crear_papeleta_base(hermano, acto, ahora)
-        
-        # Procesar preferencias
+
         es_insignia_global = False
         if preferencias_data:
             for item in preferencias_data:
