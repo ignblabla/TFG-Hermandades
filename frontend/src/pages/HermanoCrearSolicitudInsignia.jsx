@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api"; // Asegúrate de que tu instancia de Axios esté aquí
-import "../styles/CrearActo.css"; // Reutilizamos tus estilos
-import logoEscudo from '../assets/escudo.png'; // Asegúrate de la ruta
+import api from "../api";
+import "../styles/CrearActo.css";
+import logoEscudo from '../assets/escudo.png';
 import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 
-function CrearSolicitudInsignia() {
+function HermanoCrearSolicitudInsignia() {
     // --- ESTADOS ---
     const [menuOpen, setMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
@@ -17,7 +17,7 @@ function CrearSolicitudInsignia() {
     // Selección del usuario
     const [selectedActoId, setSelectedActoId] = useState("");
     const [selectedInsigniaToAdd, setSelectedInsigniaToAdd] = useState("");
-    const [preferencias, setPreferencias] = useState([]); // Array de objetos Puesto
+    const [preferencias, setPreferencias] = useState([]);
 
     // Estados de formulario
     const [submitting, setSubmitting] = useState(false);
@@ -30,17 +30,15 @@ function CrearSolicitudInsignia() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // 1. Cargar Usuario
                 const resUser = await api.get("api/me/");
                 setUser(resUser.data);
 
-                // 2. Cargar Actos
-                // Filtramos en el frontend para mostrar solo los vigentes y que requieren papeleta
                 const resActos = await api.get("api/actos/");
                 const now = new Date();
                 
                 const actosValidos = resActos.data.filter(acto => {
                     if (!acto.requiere_papeleta) return false;
+                    if (acto.modalidad !== 'TRADICIONAL') return false;
                     const inicio = new Date(acto.inicio_solicitud);
                     const fin = new Date(acto.fin_solicitud);
                     return now >= inicio && now <= fin;
@@ -353,4 +351,4 @@ function CrearSolicitudInsignia() {
     );
 }
 
-export default CrearSolicitudInsignia;
+export default HermanoCrearSolicitudInsignia;

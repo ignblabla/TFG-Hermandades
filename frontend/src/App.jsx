@@ -13,8 +13,8 @@ import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import GestionReparto from "./pages/GestionReparto"
-import CrearSolicitudInsignia from "./pages/CrearSolicitudInsignia"
-import SolicitarCirio from "./pages/SolicitarCirio"
+import HermanoCrearSolicitudInsignia from "./pages/HermanoCrearSolicitudInsignia"
+import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 // import MisPapeletas from "./pages/MisPapeletas"
@@ -102,22 +102,6 @@ function App() {
           }
         />
         <Route
-          path="/solicitar-insignia"
-          element={
-            <ProtectedRoute>
-              <CrearSolicitudInsignia />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/solicitar-cirio" 
-          element={
-            <ProtectedRoute>
-              <SolicitarCirio />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/panel-administracion" 
           element={
             <ProtectedRoute>
@@ -133,14 +117,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
-          path="/editar-acto/:id"
-          element={
-            <ProtectedRoute>
-              <EditarActo />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/editar-puesto/:id"
           element={
@@ -187,6 +163,22 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudUnificada />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-insignia"
+          element={
+            <ProtectedRoute>
+              <HermanoCrearSolicitudInsignia />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/solicitar-cirio" 
+          element={
+            <ProtectedRoute>
+              <HermanoCrearSolicitudCirio />
             </ProtectedRoute>
           }
         />

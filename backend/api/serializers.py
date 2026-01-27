@@ -414,27 +414,17 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
 # -----------------------------------------------------------------------------
 
 class PreferenciaSolicitudSerializer(serializers.ModelSerializer):
-    nombre_puesto = serializers.CharField(source='puesto.nombre', read_only=True)
-    tipo_puesto_nombre = serializers.CharField(source='puesto.tipo_puesto.nombre_tipo', read_only=True)
-    es_insignia = serializers.BooleanField(source='puesto.tipo_puesto.es_insignia', read_only=True)
-
     puesto_id = serializers.PrimaryKeyRelatedField(
-        queryset=Puesto.objects.filter(disponible=True),
-        source='puesto',
+        queryset=Puesto.objects.all(), 
+        source='puesto_solicitado', 
         write_only=True
     )
 
+    orden_prioridad = serializers.IntegerField() 
+
     class Meta:
         model = PreferenciaSolicitud
-        fields = ['id', 'puesto_id', 'nombre_puesto', 'tipo_puesto_nombre', 'orden_prioridad', 'es_insignia']
-
-        def validate(self, data):
-            puesto = data.get('puesto')
-            
-            if puesto and not puesto.disponible:
-                raise serializers.ValidationError(f"El puesto {puesto.nombre} ya no está disponible.")
-                
-            return data
+        fields = ['puesto_id', 'orden_prioridad']
         
 
 class MisPapeletasSerializer(PapeletaSitioSerializer):
@@ -481,9 +471,7 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
 
     def validate_preferencias(self, value):
         """
-        Validación de lógica de conjunto (Set Logic):
-        1. No puede haber puestos repetidos.
-        2. El orden de prioridad debe ser secuencial (1, 2, 3...).
+        Validaciones de lógica de negocio sobre la lista de preferencias.
         """
         if not value:
             raise serializers.ValidationError("Debe indicar al menos una preferencia de sitio.")
@@ -492,72 +480,50 @@ class SolicitudInsigniaSerializer(serializers.ModelSerializer):
         ordenes_vistos = []
 
         for item in value:
-            puesto = item['puesto']
+            # --- AQUÍ FALLABA ANTES ---
+            # Ahora, gracias al 'source' de arriba, item ya tiene la clave 'puesto_solicitado'
+            # y contiene el OBJETO Puesto completo, no solo el ID.
+            puesto = item['puesto_solicitado'] 
             orden = item['orden_prioridad']
 
+            # 1. Validar que sea insignia
             if not puesto.tipo_puesto.es_insignia:
                 raise serializers.ValidationError(
-                    f"El puesto '{puesto.nombre}' no es una insignia válida para esta solicitud."
+                    f"El puesto '{puesto.nombre}' no es una insignia válida."
                 )
 
-            # 1. Chequeo de duplicados
+            # 2. Validar duplicados
             if puesto.id in puestos_vistos:
-                raise serializers.ValidationError(f"El puesto '{puesto.nombre}' está repetido en sus preferencias.")
+                raise serializers.ValidationError(f"El puesto '{puesto.nombre}' está repetido.")
             puestos_vistos.add(puesto.id)
             
             ordenes_vistos.append(orden)
 
-        # 2. Chequeo de secuencia (opcional, pero recomendado para UI limpia)
+        # 3. Validar secuencia numérica (1, 2, 3...)
         ordenes_vistos.sort()
         expected_sequence = list(range(1, len(ordenes_vistos) + 1))
         if ordenes_vistos != expected_sequence:
-            raise serializers.ValidationError("El orden de prioridad debe ser consecutivo (1, 2, 3...) sin saltos.")
+            raise serializers.ValidationError("El orden de prioridad debe ser consecutivo (1, 2, 3...).")
 
         return value
 
     def validate(self, data):
         """
-        Validación cruzada Acto vs Puestos solicitados.
+        Validación cruzada: Asegurar que los puestos pertenecen al Acto seleccionado.
         """
         acto = data.get('acto')
         preferencias = data.get('preferencias')
         
-        # Validar que todos los puestos solicitados pertenecen al acto indicado
         for item in preferencias:
-            puesto = item['puesto']
+            # Aquí también usamos la clave correcta
+            puesto = item['puesto_solicitado']
+            
             if puesto.acto.id != acto.id:
                 raise serializers.ValidationError({
                     "preferencias": f"El puesto '{puesto.nombre}' no pertenece al acto '{acto.nombre}'."
                 })
             
         return data
-    
-
-    def create(self, validated_data):
-        """
-        Sobrescribimos create para manejar la escritura de campos anidados (preferencias).
-        """
-        # 1. Extraemos los datos anidados de la lista 'preferencias'
-        preferencias_data = validated_data.pop('preferencias')
-
-        # 2. Usamos una transacción atómica: O se guarda todo, o no se guarda nada.
-        with transaction.atomic():
-            # 3. Creamos la instancia del Padre (PapeletaSitio)
-            # validated_data ya contiene el resto de datos limpios y el 'hermano' (si lo pasas en el save del servicio)
-            papeleta = PapeletaSitio.objects.create(**validated_data)
-
-            for preferencia_item in preferencias_data:
-                PreferenciaSolicitud.objects.create(
-                    papeleta=papeleta,
-                    puesto_solicitado=preferencia_item['puesto'],
-                    orden_prioridad=preferencia_item['orden_prioridad']
-                )
-
-        return papeleta
-    
-
-
-
 
 class SolicitudCirioSerializer(serializers.Serializer):
     acto = serializers.PrimaryKeyRelatedField(
