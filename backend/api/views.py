@@ -12,6 +12,7 @@ from .models import Acto, Puesto
 from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError as DRFValidationError 
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .services import actualizar_acto_service, crear_acto_service, create_acto_service, get_historial_papeletas_hermano_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
@@ -372,6 +373,9 @@ class ActoUpdateView(APIView):
                 if hasattr(e, 'message_dict'):
                     return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
                 return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+            
+            except DRFValidationError as e:
+                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
             except PermissionDenied as e:
                 return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)

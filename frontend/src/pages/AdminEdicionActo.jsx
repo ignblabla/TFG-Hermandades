@@ -118,12 +118,12 @@ function AdminEdicionActo() {
         const { name, value } = e.target;
         let newData = { ...formData, [name]: value };
 
-        // Lógica de Tipo de Acto
         if (name === 'tipo_acto') {
             const tipoSeleccionado = tiposActo.find(t => t.tipo === value);
             if (tipoSeleccionado) {
                 setRequierePapeleta(tipoSeleccionado.requiere_papeleta);
                 if (!tipoSeleccionado.requiere_papeleta) {
+                    newData.modalidad = '';
                     newData.inicio_solicitud = '';
                     newData.fin_solicitud = '';
                     newData.inicio_solicitud_cirios = '';
@@ -132,7 +132,6 @@ function AdminEdicionActo() {
             }
         }
 
-        // Limpieza al cambiar modalidad
         if (name === 'modalidad' && value === 'UNIFICADO') {
             newData.inicio_solicitud_cirios = '';
             newData.fin_solicitud_cirios = '';
@@ -145,48 +144,35 @@ function AdminEdicionActo() {
         e.preventDefault();
         setSaving(true);
         setError("");
-        setSuccessMsg("");
 
         const payload = { ...formData };
-        
-        // Convertir strings vacíos a null para el backend
-        const dateFields = ['inicio_solicitud', 'fin_solicitud', 'inicio_solicitud_cirios', 'fin_solicitud_cirios'];
-        dateFields.forEach(field => {
-            if (!payload[field]) payload[field] = null;
+
+        Object.keys(payload).forEach(key => {
+            if (payload[key] === '') payload[key] = null;
         });
 
-        try {
-            // USAMOS PUT para actualizar
-            await api.put(`api/actos/${id}/editar/`, payload);
-            
-            setSuccessMsg("Acto actualizado correctamente.");
-            // Recargamos datos o navegamos
-            setTimeout(() => {
-                navigate("/home"); // O donde listes los actos
-            }, 1500);
+        if (!requierePapeleta) {
+            payload.modalidad = null;
+            payload.inicio_solicitud = null;
+            payload.fin_solicitud = null;
+            payload.inicio_solicitud_cirios = null;
+            payload.fin_solicitud_cirios = null;
+        } else if (payload.modalidad === 'UNIFICADO') {
+            payload.inicio_solicitud_cirios = null;
+            payload.fin_solicitud_cirios = null;
+        }
 
+        try {
+            await api.put(`api/actos/${id}/editar/`, payload);
+            setSuccessMsg("Acto actualizado correctamente.");
+            setTimeout(() => navigate("/home"), 1500);
         } catch (err) {
-            console.error(err);
-            if (err.response && err.response.data) {
-                const errorData = err.response.data;
-                // Si es un error general "detail" o errores de campos específicos
-                if (errorData.detail) {
-                    setError(typeof errorData.detail === 'string' ? errorData.detail : JSON.stringify(errorData.detail));
-                } else {
-                    // Formateamos los errores de campo (ej: fecha, tipo_acto) para mostrarlos en el banner
-                    const errorMessages = Object.entries(errorData)
-                        .map(([key, msg]) => {
-                            const fieldName = key === 'non_field_errors' ? 'Error' : key.replace(/_/g, ' ').toUpperCase();
-                            const msgText = Array.isArray(msg) ? msg[0] : msg;
-                            return `${fieldName}: ${msgText}`;
-                        })
-                        .join(" | ");
-                    setError(errorMessages);
-                }
+            if (err.response?.status === 500) {
+                setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
             } else {
-                setError("Ocurrió un error inesperado al conectar con el servidor.");
+                const errorData = err.response?.data;
+                setError(typeof errorData === 'object' ? JSON.stringify(errorData) : "Error al validar.");
             }
-            window.scrollTo(0, 0);
         } finally {
             setSaving(false);
         }
