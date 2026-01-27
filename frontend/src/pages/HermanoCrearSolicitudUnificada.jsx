@@ -212,7 +212,6 @@ function HermanoCrearSolicitudUnificada() {
         };
 
         try {
-            // NOTA: Endpoint nuevo para solicitud unificada
             await api.post("api/papeletas/solicitar-unificada/", payload);
             setSuccess(true);
             setPreferencias([]);

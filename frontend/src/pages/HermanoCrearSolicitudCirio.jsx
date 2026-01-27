@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/CrearActo.css";
 import logoEscudo from '../assets/escudo.png'; 
-import { ArrowLeft, CheckCircle, AlertCircle, Link as LinkIcon, Info } from "lucide-react";
+import { ArrowLeft, CheckCircle, AlertCircle, Link as LinkIcon, Info, Flame } from "lucide-react";
 
-function SolicitarCirio() {
+function HermanoCrearSolicitudCirio() {
     // --- ESTADOS ---
     const [menuOpen, setMenuOpen] = useState(false);
     const [user, setUser] = useState(null);
@@ -31,14 +31,26 @@ function SolicitarCirio() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // 1. Cargar Usuario
                 const resUser = await api.get("api/me/");
                 setUser(resUser.data);
 
+                // 2. Cargar Actos
                 const resActos = await api.get("api/actos/");
+                
+                // Aseguramos que sea array
+                const listaActos = Array.isArray(resActos.data) ? resActos.data : resActos.data.results;
                 const now = new Date();
                 
-                const actosValidos = resActos.data.filter(acto => {
+                // 3. FILTRADO ESTRICTO
+                const actosValidos = listaActos.filter(acto => {
+                    // A. Debe requerir papeleta
                     if (!acto.requiere_papeleta) return false;
+                    
+                    // B. Solo modalidad TRADICIONAL
+                    if (acto.modalidad !== 'TRADICIONAL') return false;
+
+                    // C. Validar fechas específicas de CIRIOS
                     if (!acto.inicio_solicitud_cirios || !acto.fin_solicitud_cirios) return false;
 
                     const inicio = new Date(acto.inicio_solicitud_cirios);
@@ -77,13 +89,15 @@ function SolicitarCirio() {
             setLoading(true);
             const res = await api.get(`api/actos/${actoId}/`);
             
+            // FILTRO DE PUESTOS:
+            // En lugar de buscar el string "CIRIO", es más seguro usar la propiedad 'es_insignia'
+            // Si es False, es un puesto de tramo/cirio.
             const ciriosDisponibles = res.data.puestos_disponibles.filter(p => {
-                const nombreTipo = p.tipo_puesto.toUpperCase() || "";
-                return p.disponible === true && nombreTipo.includes("CIRIO");
+                return p.disponible === true && p.es_insignia === false;
             });
 
             if (ciriosDisponibles.length === 0) {
-                setError("No hay cupo de cirios disponible para este acto.");
+                setError("No hay cupo de cirios disponible o configurado para este acto.");
             }
 
             setPuestosCirio(ciriosDisponibles);
@@ -94,7 +108,7 @@ function SolicitarCirio() {
         }
     };
 
-    // --- SUBMIT SIMPLIFICADO (UNA SOLA LLAMADA) ---
+    // --- SUBMIT ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -107,8 +121,7 @@ function SolicitarCirio() {
         setError("");
         setSuccess(false);
 
-        // Preparamos el payload unificado
-        // Si numeroVinculado está vacío, enviamos null o simplemente no lo enviamos
+        // Payload coincide exactamente con los campos de tu Serializer (acto, puesto, numero_registro_vinculado)
         const payload = {
             acto: selectedActoId,
             puesto: selectedPuestoId,
@@ -116,29 +129,27 @@ function SolicitarCirio() {
         };
 
         try {
-            // UNA SOLA LLAMADA AL BACKEND
-            // El backend se encarga de crear Y vincular en la misma transacción atomic
             const res = await api.post("api/papeletas/solicitar-cirio/", payload);
             
             setSuccess(true);
-            setSuccessData(res.data); // El backend ya devuelve el mensaje completo ("...vinculada con éxito")
+            setSuccessData(res.data); 
             
-            // Limpiar formulario
+            // Reset parcial
             setSelectedActoId("");
             setSelectedPuestoId("");
             setNumeroVinculado("");
             setPuestosCirio([]);
             
-            setTimeout(() => navigate("/mis-papeletas-de-sitio"), 4000); 
+            setTimeout(() => navigate("/mis-papeletas"), 4000); 
 
         } catch (err) {
             if (err.response && err.response.data) {
                 const data = err.response.data;
-                // Si falla la vinculación, el backend devuelve error 400 y NO crea la papeleta
-                // Mostramos el error directamente al usuario
                 if (data.detail) setError(data.detail);
                 else if (data.non_field_errors) setError(data.non_field_errors[0]);
-                else if (data.numero_registro_vinculado) setError(`Error en vinculación: ${data.numero_registro_vinculado[0]}`);
+                // Manejo específico para error de vinculación si el serializer lo devuelve en ese campo
+                else if (data.numero_registro_vinculado) setError(`Error vinculación: ${data.numero_registro_vinculado[0]}`);
+                else if (data.puesto) setError(`Error en puesto: ${data.puesto[0]}`);
                 else setError("No se pudo procesar la solicitud. Revise los datos.");
             } else {
                 setError("Error de conexión con el servidor.");
@@ -182,13 +193,13 @@ function SolicitarCirio() {
                 <div className="card-container-area">
                     <header className="content-header-area">
                         <div className="title-row-area">
-                            <h1>Solicitud de Papeleta de Sitio</h1>
+                            <h1><Flame className="icon-title" style={{color:'#e67e22'}}/> Solicitud de Sitio (Cirios)</h1>
                             <button className="btn-back-area" onClick={() => navigate(-1)}>
                                 <ArrowLeft size={16} /> Volver
                             </button>
                         </div>
                         <p className="description-area">
-                            Obtenga su papeleta de sitio para portar cirio en la Estación de Penitencia.
+                            Modalidad Tradicional. Seleccione su papeleta de sitio y vincúlese con otro hermano si lo desea.
                         </p>
                     </header>
 
@@ -215,7 +226,7 @@ function SolicitarCirio() {
                     {/* FORMULARIO */}
                     {actosDisponibles.length === 0 ? (
                         <div className="info-box">
-                            No hay plazos abiertos para la solicitud de cirios en este momento.
+                            No hay plazos abiertos para la solicitud de cirios (Modalidad Tradicional) en este momento.
                         </div>
                     ) : (
                         <section className="form-card-acto">
@@ -225,7 +236,7 @@ function SolicitarCirio() {
                                 <div className="form-group-acto full-width">
                                     <label htmlFor="acto">SELECCIONE EL ACTO</label>
                                     <div className="input-with-icon-acto">
-                                        <span className="icon-acto">📅</span>
+                                        <span className="icon-acto">📜</span>
                                         <select 
                                             id="acto" 
                                             value={selectedActoId} 
@@ -236,7 +247,7 @@ function SolicitarCirio() {
                                             <option value="" disabled>-- Seleccione un acto disponible --</option>
                                             {actosDisponibles.map(acto => (
                                                 <option key={acto.id} value={acto.id}>
-                                                    {acto.nombre} (Cierre Cirios: {new Date(acto.fin_solicitud_cirios).toLocaleDateString()})
+                                                    {acto.nombre} (Cierre: {new Date(acto.fin_solicitud_cirios).toLocaleDateString()})
                                                 </option>
                                             ))}
                                         </select>
@@ -260,17 +271,14 @@ function SolicitarCirio() {
                                                     <option value="" disabled>-- Seleccione tipo de cirio --</option>
                                                     {puestosCirio.map(puesto => (
                                                         <option key={puesto.id} value={puesto.id}>
-                                                            {puesto.nombre} 
-                                                            {puesto.numero_maximo_asignaciones < 9999 
-                                                                ? ` (Libres: ${puesto.plazas_disponibles})` 
-                                                                : ''}
+                                                            {puesto.nombre} ({puesto.tipo_puesto})
                                                         </option>
                                                     ))}
                                                 </select>
                                             </div>
                                         </div>
 
-                                        {/* 3. VINCULACIÓN CON OTRO HERMANO (OPCIONAL) */}
+                                        {/* 3. VINCULACIÓN CON OTRO HERMANO */}
                                         <div className="separator-line"></div>
                                         <div className="form-group-acto full-width fade-in">
                                             <label htmlFor="vinculacion" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -279,7 +287,7 @@ function SolicitarCirio() {
                                             
                                             <div className="info-box-small" style={{ marginBottom: '10px', fontSize: '0.85em', color: '#555' }}>
                                                 <Info size={14} style={{ marginRight: '5px', verticalAlign: '-2px' }}/>
-                                                Solo puedes vincularte si tienes un número de registro <strong>MENOR</strong> (más antiguo) que el hermano al que acompañas. Renunciarás a tu antigüedad para ir con él.
+                                                Solo puedes vincularte si tienes un número de registro <strong>MENOR</strong> (más antiguo) que el hermano al que acompañas.
                                             </div>
 
                                             <div className="input-with-icon-acto">
@@ -326,4 +334,4 @@ function SolicitarCirio() {
     );
 }
 
-export default SolicitarCirio;
+export default HermanoCrearSolicitudCirio;
