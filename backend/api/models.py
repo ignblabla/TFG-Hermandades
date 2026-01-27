@@ -289,7 +289,7 @@ class Acto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
     fecha = models.DateTimeField(verbose_name="Fecha y hora")
-    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, default=ModalidadReparto.TRADICIONAL, verbose_name="Modalidad de reparto")
+    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, default=ModalidadReparto.TRADICIONAL, verbose_name="Modalidad de reparto", blank=True, null=True)
 
     tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
 

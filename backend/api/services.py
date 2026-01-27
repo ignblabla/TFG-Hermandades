@@ -251,11 +251,16 @@ def _validar_fechas_acto(data):
     fecha_acto = data.get('fecha')
     
     if not tipo_acto.requiere_papeleta:
+        data['modalidad'] = None
         data['inicio_solicitud'] = None
         data['fin_solicitud'] = None
         data['inicio_solicitud_cirios'] = None
         data['fin_solicitud_cirios'] = None
         return data
+    
+    if modalidad == Acto.ModalidadReparto.UNIFICADO:
+        data['inicio_solicitud_cirios'] = None
+        data['fin_solicitud_cirios'] = None
 
     inicio_insignias = data.get('inicio_solicitud')
     fin_insignias = data.get('fin_solicitud')
