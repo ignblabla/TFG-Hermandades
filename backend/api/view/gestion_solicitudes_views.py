@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from ..servicios.GestionSolicitudesService import GestionSolicitudesService
+from ..servicios.papeleta_sitio_service import PapeletaSitioService
 from ..serializers import (
     SolicitudInsigniaSerializer, 
     SolicitudCirioSerializer, 
@@ -25,7 +25,7 @@ class SolicitarInsigniaView(APIView):
         
         if serializer.is_valid():
             try:
-                service = GestionSolicitudesService()
+                service = PapeletaSitioService()
 
                 papeleta = service.procesar_solicitud_insignia_tradicional(
                     hermano=request.user,
@@ -63,7 +63,7 @@ class SolicitarCirioView(APIView):
         
         if serializer.is_valid():
             try:
-                service = GestionSolicitudesService()
+                service = PapeletaSitioService()
                 
                 acto = serializer.validated_data['acto']
                 puesto = serializer.validated_data['puesto']
@@ -113,7 +113,7 @@ class CrearSolicitudUnificadaView(APIView):
         
         if serializer.is_valid():
             try:
-                service = GestionSolicitudesService()
+                service = PapeletaSitioService()
 
                 acto = serializer.validated_data['acto']
                 preferencias = serializer.validated_data.get('preferencias_solicitadas', [])

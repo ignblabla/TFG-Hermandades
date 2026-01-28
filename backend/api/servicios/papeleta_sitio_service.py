@@ -4,10 +4,9 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-# Asegúrate de importar tus modelos correctamente
 from ..models import Acto, CuerpoPertenencia, Hermano, PapeletaSitio, Puesto, PreferenciaSolicitud
 
-class GestionSolicitudesService:
+class PapeletaSitioService:
     """
     Servicio centralizado para la gestión de solicitudes de papeleta de sitio.
     Maneja tanto la modalidad UNIFICADA como la TRADICIONAL (Insignias y Cirios por separado).

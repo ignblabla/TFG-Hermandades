@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from .models import Acto, PapeletaSitio, Puesto, TipoActo, TipoPuesto
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError as DjangoValidationError
+# from django.core.exceptions import ValidationError as DjangoValidationError
 
 User = get_user_model()
 
@@ -247,64 +247,62 @@ def get_historial_papeletas_hermano_service(usuario):
 # -----------------------------------------------------------------------------
 def _validar_fechas_acto(data):
     tipo_acto = data.get('tipo_acto')
-    modalidad = data.get('modalidad', Acto.ModalidadReparto.TRADICIONAL)
+    modalidad = data.get('modalidad')
     fecha_acto = data.get('fecha')
     
     if not tipo_acto.requiere_papeleta:
-        data['inicio_solicitud'] = None
-        data['fin_solicitud'] = None
-        data['inicio_solicitud_cirios'] = None
-        data['fin_solicitud_cirios'] = None
+        campos_prohibidos = ['modalidad', 'inicio_solicitud', 'fin_solicitud', 'inicio_solicitud_cirios', 'fin_solicitud_cirios']
+        if any(data.get(campo) is not None for campo in campos_prohibidos):
+            raise ValidationError("Un acto que no requiere papeleta no puede tener modalidad ni fechas de solicitud.")
         return data
+
+    errors = {}
+
+    if not modalidad:
+        errors['modalidad'] = "La modalidad es obligatoria para actos con papeleta."
+    if not data.get('inicio_solicitud'):
+        errors['inicio_solicitud'] = "La fecha de inicio de solicitud es obligatoria."
+    if not data.get('fin_solicitud'):
+        errors['fin_solicitud'] = "La fecha de fin de solicitud es obligatoria."
+
+    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
+        if not data.get('inicio_solicitud_cirios'):
+            errors['inicio_solicitud_cirios'] = "El inicio de cirios es obligatorio en modalidad tradicional."
+        if not data.get('fin_solicitud_cirios'):
+            errors['fin_solicitud_cirios'] = "El fin de cirios es obligatorio en modalidad tradicional."
+            
+    elif modalidad == Acto.ModalidadReparto.UNIFICADO:
+        if data.get('inicio_solicitud_cirios') or data.get('fin_solicitud_cirios'):
+            errors['modalidad'] = "En modalidad Unificada no se deben definir fechas de cirios independientes."
+
+    if errors:
+        raise ValidationError(errors)
 
     inicio_insignias = data.get('inicio_solicitud')
     fin_insignias = data.get('fin_solicitud')
     inicio_cirios = data.get('inicio_solicitud_cirios')
     fin_cirios = data.get('fin_solicitud_cirios')
 
-    errors = {}
+    fechas = {
+        'inicio_solicitud': inicio_insignias,
+        'fin_solicitud': fin_insignias,
+        'inicio_solicitud_cirios': inicio_cirios,
+        'fin_solicitud_cirios': fin_cirios
+    }
 
-    if fecha_acto:
-        if inicio_insignias and inicio_insignias >= fecha_acto:
-            errors['inicio_solicitud'] = (
-                f"El inicio de solicitud de insignias debe ser anterior a la fecha del acto "
-                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-            )
-        
-        if fin_insignias and fin_insignias >= fecha_acto:
-            errors['fin_solicitud'] = (
-                f"El fin de solicitud de insignias debe finalizar antes de la fecha del acto "
-                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-            )
-
-        if inicio_cirios and inicio_cirios >= fecha_acto:
-            errors['inicio_solicitud_cirios'] = (
-                f"El inicio de solicitud de cirios debe ser anterior a la fecha del acto "
-                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-            )
-
-        if fin_cirios and fin_cirios >= fecha_acto:
-            errors['fin_solicitud_cirios'] = (
-                f"El fin de solicitud de cirios debe finalizar antes de la fecha del acto "
-                f"({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-            )
+    for campo, valor in fechas.items():
+        if valor and fecha_acto and valor >= fecha_acto:
+            errors[campo] = f"Debe ser anterior a la fecha del acto ({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
 
     if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
-        errors['fin_solicitud'] = "La fecha de fin de insignias debe ser posterior al inicio."
-
+        errors['fin_solicitud'] = "La fecha de fin debe ser posterior al inicio."
+    
     if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
         errors['fin_solicitud_cirios'] = "La fecha de fin de cirios debe ser posterior al inicio."
 
     if modalidad == Acto.ModalidadReparto.TRADICIONAL:
-        if fin_insignias and inicio_cirios:
-            if inicio_cirios <= fin_insignias:
-                errors['inicio_solicitud_cirios'] = (
-                    f"En modalidad Tradicional, los cirios no pueden empezar antes "
-                    f"de que terminen las insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
-                )
-        
-        if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
-            errors['inicio_solicitud'] = "El reparto de insignias debe comenzar antes que el de cirios."
+        if fin_insignias and inicio_cirios and inicio_cirios <= fin_insignias:
+            errors['inicio_solicitud_cirios'] = "El reparto de cirios debe empezar después de que terminen las insignias."
 
     if errors:
         raise ValidationError(errors)
@@ -346,57 +344,64 @@ def _validar_cambio_fecha(acto: Acto, nueva_fecha):
         
 def _validar_coherencia_fechas(acto, data):
     fecha_acto = data.get('fecha', acto.fecha)
-    inicio_insignias = data.get('inicio_solicitud', acto.inicio_solicitud)
-    fin_insignias = data.get('fin_solicitud', acto.fin_solicitud)
-    inicio_cirios = data.get('inicio_solicitud_cirios', acto.inicio_solicitud_cirios)
-    fin_cirios = data.get('fin_solicitud_cirios', acto.fin_solicitud_cirios)
-
     modalidad = data.get('modalidad', acto.modalidad)
     tipo_acto = data.get('tipo_acto', acto.tipo_acto)
     
     data_final = data.copy()
 
     if not tipo_acto.requiere_papeleta:
-        data_final['inicio_solicitud'] = None
-        data_final['fin_solicitud'] = None
-        data_final['inicio_solicitud_cirios'] = None
-        data_final['fin_solicitud_cirios'] = None
+        data_final.update({
+            'modalidad': None,
+            'inicio_solicitud': None,
+            'fin_solicitud': None,
+            'inicio_solicitud_cirios': None,
+            'fin_solicitud_cirios': None
+        })
         return data_final
+
+    if modalidad == Acto.ModalidadReparto.UNIFICADO:
+        data_final.update({
+            'inicio_solicitud_cirios': None,
+            'fin_solicitud_cirios': None
+        })
+
+    inicio_insignias = data_final.get('inicio_solicitud', acto.inicio_solicitud)
+    fin_insignias = data_final.get('fin_solicitud', acto.fin_solicitud)
+    inicio_cirios = data_final.get('inicio_solicitud_cirios', acto.inicio_solicitud_cirios)
+    fin_cirios = data_final.get('fin_solicitud_cirios', acto.fin_solicitud_cirios)
 
     errores = {}
 
+    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
+        if not all([inicio_insignias, fin_insignias, inicio_cirios, fin_cirios]):
+            raise ValidationError({
+                'modalidad': "En modalidad TRADICIONAL deben definirse los plazos de insignias y de cirios."
+            })
+
     if fecha_acto:
         if inicio_insignias and inicio_insignias >= fecha_acto:
-            errores['inicio_solicitud'] = f"El inicio de insignias debe ser anterior al acto ({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-        
+            errores['inicio_solicitud'] = f"El inicio de insignias debe ser anterior al acto."
         if fin_insignias and fin_insignias >= fecha_acto:
-            errores['fin_solicitud'] = f"El fin de insignias debe ser anterior al acto."
-
+            errores['fin_solicitud'] = "El fin de insignias debe ser anterior al acto."
         if inicio_cirios and inicio_cirios >= fecha_acto:
-            errores['inicio_solicitud_cirios'] = f"El inicio de cirios debe ser anterior al acto."
-
+            errores['inicio_solicitud_cirios'] = "El inicio de cirios debe ser anterior al acto."
         if fin_cirios and fin_cirios >= fecha_acto:
-            errores['fin_solicitud_cirios'] = f"El fin de cirios debe ser anterior al acto."
+            errores['fin_solicitud_cirios'] = "El fin de cirios debe ser anterior al acto."
 
     if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
-        errores['fin_solicitud'] = "La fecha fin de insignias debe ser posterior a su fecha de inicio."
+        errores['fin_solicitud'] = "La fecha fin de insignias debe ser posterior a su inicio."
     
     if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
-        errores['fin_solicitud_cirios'] = "La fecha fin de cirios debe ser posterior a su fecha de inicio."
+        errores['fin_solicitud_cirios'] = "La fecha fin de cirios debe ser posterior a su inicio."
 
     if modalidad == Acto.ModalidadReparto.TRADICIONAL:
-        if fin_insignias and inicio_cirios:
-            if inicio_cirios <= fin_insignias:
-                errores['inicio_solicitud_cirios'] = (
-                    f"En reparto Tradicional, el plazo de cirios no puede comenzar "
-                    f"hasta que finalice el de insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
-                )
-
-        if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
-            errores['inicio_solicitud'] = "El reparto de insignias debe comenzar antes que el de cirios."
+        if fin_insignias and inicio_cirios and inicio_cirios <= fin_insignias:
+            errores['inicio_solicitud_cirios'] = (
+                f"El plazo de cirios debe empezar tras el de insignias ({fin_insignias.strftime('%d/%m/%Y %H:%M')})."
+            )
 
     if errores:
-        raise DjangoValidationError(errores)
+        raise ValidationError(errores)
     
     return data_final
     

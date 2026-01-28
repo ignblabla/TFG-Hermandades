@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 
-from api.servicios.GestionSolicitudesService import GestionSolicitudesService
 from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
@@ -13,6 +12,7 @@ from .models import Acto, Puesto
 from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import ValidationError as DRFValidationError 
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from .services import actualizar_acto_service, crear_acto_service, create_acto_service, get_historial_papeletas_hermano_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
@@ -373,6 +373,9 @@ class ActoUpdateView(APIView):
                 if hasattr(e, 'message_dict'):
                     return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
                 return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+            
+            except DRFValidationError as e:
+                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
             except PermissionDenied as e:
                 return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
@@ -385,35 +388,4 @@ class ActoUpdateView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-# -----------------------------------------------------------------------------
-# VIEWS: SOLICITAR PAPELETA UNIFICADA
-# -----------------------------------------------------------------------------
-class CrearSolicitudUnificadaView(APIView):
-    def post(self, request):
-        serializer = SolicitudUnificadaSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            try:
-                acto = serializer.validated_data['acto']
-                preferencias = serializer.validated_data.get('preferencias_solicitadas', [])
-                
-                papeleta = GestionSolicitudesService.procesar_solicitud_unificada(
-                    hermano=request.user,
-                    acto=acto,
-                    preferencias_data=preferencias
-                )
-
-                return Response(
-                    SolicitudUnificadaSerializer(papeleta).data, 
-                    status=status.HTTP_201_CREATED
-                )
-
-            except DjangoValidationError as e:
-                mensaje_error = e.message if hasattr(e, 'message') else str(e)
-                return Response({"detail": mensaje_error}, status=status.HTTP_400_BAD_REQUEST)
-            
-            except Exception as e:
-                return Response({"detail": "Error interno del servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
