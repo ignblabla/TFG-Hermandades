@@ -73,19 +73,20 @@ class PapeletaSitioService:
         Solo permite solicitar puestos marcados como insignia.
         """
         ahora = timezone.now()
+                
+        self._validar_requiere_papeleta(acto)
 
         if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
             raise ValidationError("Este endpoint es solo para actos de modalidad TRADICIONAL.")
+
+        self._validar_pertenencia_cuerpos(hermano)
+        self._validar_unicidad(hermano, acto)
 
         if not acto.inicio_solicitud or not acto.fin_solicitud:
             raise ValidationError("Plazo de insignias no configurado.")
         
         if ahora < acto.inicio_solicitud or ahora > acto.fin_solicitud:
             raise ValidationError("Fuera del plazo de solicitud de insignias.")
-
-        self._validar_requiere_papeleta(acto)
-        self._validar_pertenencia_cuerpos(hermano)
-        self._validar_unicidad(hermano, acto)
 
         for item in preferencias_data:
             puesto = item['puesto_solicitado']
@@ -113,6 +114,32 @@ class PapeletaSitioService:
         """
         ahora = timezone.now()
 
+        self._validar_requiere_papeleta(acto)
+
+        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
+            raise ValidationError("Este endpoint es solo para actos de modalidad TRADICIONAL.")
+        
+        self._validar_pertenencia_cuerpos(hermano)
+
+        tiene_insignia_emitida = PapeletaSitio.objects.filter(
+            hermano=hermano, acto=acto, es_solicitud_insignia=True, 
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.EMITIDA
+        ).exists()
+
+        if tiene_insignia_emitida:
+            raise ValidationError("Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio.")
+        
+        solicitud_insignia_pendiente = PapeletaSitio.objects.filter(
+            hermano=hermano, acto=acto, es_solicitud_insignia=True,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
+        ).first()
+
+        if solicitud_insignia_pendiente:
+            solicitud_insignia_pendiente.estado_papeleta = PapeletaSitio.EstadoPapeleta.ANULADA
+            solicitud_insignia_pendiente.save(update_fields=['estado_papeleta'])
+
+        self._validar_unicidad(hermano, acto)
+
         if not acto.inicio_solicitud_cirios or not acto.fin_solicitud_cirios:
             raise ValidationError("Plazo de cirios no configurado.")
         
@@ -121,17 +148,6 @@ class PapeletaSitioService:
         
         if ahora > acto.fin_solicitud_cirios:
             raise ValidationError("El plazo de solicitud de cirios ha finalizado.")
-
-        self._validar_pertenencia_cuerpos(hermano)
-        
-        tiene_insignia = PapeletaSitio.objects.filter(
-            hermano=hermano, acto=acto, es_solicitud_insignia=True, 
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.EMITIDA
-        ).exists()
-        if tiene_insignia:
-            raise ValidationError("Ya tienes asignada una Insignia para este acto.")
-        
-        self._validar_unicidad(hermano, acto)
 
         papeleta = PapeletaSitio.objects.create(
             hermano=hermano,
