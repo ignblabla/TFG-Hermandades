@@ -1,3 +1,4 @@
+from datetime import datetime, time
 import uuid
 from django.utils import timezone
 from django.db import transaction
@@ -23,6 +24,8 @@ class PapeletaSitioService:
         Permite solicitar insignias y/o cirio en una sola petición.
         """
         ahora = timezone.now()
+
+        self._validar_plazos_acto_coherentes(acto)
 
         if acto.modalidad != Acto.ModalidadReparto.UNIFICADO:
             raise ValidationError(f"La solicitud unificada no está disponible. Modalidad actual: {acto.get_modalidad_display()}.")
@@ -75,6 +78,8 @@ class PapeletaSitioService:
         Solo permite solicitar puestos marcados como insignia.
         """
         ahora = timezone.now()
+
+        self._validar_plazos_acto_coherentes(acto)
                 
         self._validar_requiere_papeleta(acto)
 
@@ -140,6 +145,8 @@ class PapeletaSitioService:
     def procesar_solicitud_cirio_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, numero_registro_vinculado: int = None):
         ahora = timezone.now()
 
+        self._validar_plazos_acto_coherentes(acto)
+
         self._validar_requiere_papeleta(acto)
         self._validar_puesto_no_nulo(puesto)
 
@@ -192,9 +199,6 @@ class PapeletaSitioService:
 
         if qs_unicidad.exists():
             raise ValidationError("Ya existe una solicitud activa para este acto.")
-
-        if not acto.inicio_solicitud_cirios or not acto.fin_solicitud_cirios:
-            raise ValidationError("Plazo de cirios no configurado.")
 
         if ahora < acto.inicio_solicitud_cirios:
             raise ValidationError(f"El plazo de cirios comienza el {acto.inicio_solicitud_cirios}.")
@@ -381,4 +385,73 @@ class PapeletaSitioService:
             if not pertenece:
                 raise ValidationError(
                     f"El puesto '{puesto.nombre}' es exclusivo para Junta de Gobierno."
+                )
+            
+    def _acto_fecha_como_datetime_fin_dia(self, acto: Acto):
+        """
+        Devuelve la fecha del acto como datetime aware para poder comparar con plazos datetime.
+        - Si acto.fecha ya es datetime -> se usa tal cual
+        - Si acto.fecha es date -> se convierte a fin de día (23:59:59.999999)
+        """
+        if not acto.fecha:
+            return None
+
+        if hasattr(acto.fecha, "date"):
+            return acto.fecha
+
+        dt = datetime.combine(acto.fecha, time.max)
+        return timezone.make_aware(dt) if timezone.is_naive(dt) else dt
+
+    def _validar_rango_inicio_fin(self, inicio, fin, mensaje_base: str):
+        if not inicio or not fin:
+            raise ValidationError(f"{mensaje_base} no configurado.")
+        if inicio >= fin:
+            raise ValidationError(
+                f"{mensaje_base} mal configurado: la fecha de inicio debe ser anterior a la de fin."
+            )
+
+    def _validar_plazos_acto_coherentes(self, acto: Acto):
+        """
+        Restricciones pedidas:
+        - Si requiere papeleta y TRADICIONAL:
+            inicio_solicitud < fin_solicitud
+            inicio_solicitud_cirios < fin_solicitud_cirios
+            fin_solicitud_cirios <= acto.fecha
+        - Si requiere papeleta y UNIFICADO:
+            inicio_solicitud < fin_solicitud
+            fin_solicitud <= acto.fecha
+        """
+        if not acto.tipo_acto.requiere_papeleta:
+            return
+
+        acto_dt = self._acto_fecha_como_datetime_fin_dia(acto)
+
+        if acto.modalidad == Acto.ModalidadReparto.TRADICIONAL:
+            self._validar_rango_inicio_fin(
+                acto.inicio_solicitud,
+                acto.fin_solicitud,
+                "Plazo de insignias"
+            )
+
+            self._validar_rango_inicio_fin(
+                acto.inicio_solicitud_cirios,
+                acto.fin_solicitud_cirios,
+                "Plazo de cirios"
+            )
+
+            if acto_dt and acto.fin_solicitud_cirios > acto_dt:
+                raise ValidationError(
+                    "Plazo de cirios mal configurado: no puede finalizar después de la fecha del acto."
+                )
+
+        elif acto.modalidad == Acto.ModalidadReparto.UNIFICADO:
+            self._validar_rango_inicio_fin(
+                acto.inicio_solicitud,
+                acto.fin_solicitud,
+                "Plazo de solicitud"
+            )
+
+            if acto_dt and acto.fin_solicitud > acto_dt:
+                raise ValidationError(
+                    "Plazo de solicitud mal configurado: no puede finalizar después de la fecha del acto."
                 )
