@@ -242,6 +242,35 @@ class ProcesarSolicitudCirioServiceTest(TestCase):
             codigo_verificacion="ABCDEFGH",
         )
     
+    def _add_cuerpo_junta_a_hermano(self):
+        """Añade el cuerpo JUNTA_GOBIERNO al hermano base del setup."""
+        cuerpo_junta, _ = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
+        )
+        HermanoCuerpo.objects.create(
+            hermano=self.hermano,
+            cuerpo=cuerpo_junta,
+            anio_ingreso=self.ahora.year - 1,
+        )
+        return cuerpo_junta
+
+    def _crear_tipo_puesto_solo_junta(self, nombre="CIRIO SOLO JUNTA", es_insignia=False):
+        return TipoPuesto.objects.create(
+            nombre_tipo=nombre,
+            es_insignia=es_insignia,
+            solo_junta_gobierno=True
+        )
+
+    def _crear_puesto_solo_junta(self, nombre="Cirio Junta Tramo 9", disponible=True):
+        tipo = self._crear_tipo_puesto_solo_junta(nombre="CIRIO JUNTA", es_insignia=False)
+        return Puesto.objects.create(
+            nombre=nombre,
+            acto=self.acto,
+            tipo_puesto=tipo,
+            disponible=disponible,
+            numero_maximo_asignaciones=10
+        )
+    
 
 
     def test_procesar_solicitud_cirio_tradicional_ok_crea_papeleta_cirio(self):
@@ -1669,3 +1698,124 @@ class ProcesarSolicitudCirioServiceTest(TestCase):
                 es_solicitud_insignia=False
             ).exists()
         )
+
+
+
+    def test_validar_puesto_solo_junta_no_aplica_si_flag_false_no_lanza(self):
+        """
+        POSITIVO: si solo_junta_gobierno=False, no exige cuerpo JUNTA_GOBIERNO.
+        """
+        # tipo_puesto_cirio del setup tiene solo_junta_gobierno=False
+        try:
+            self.service._validar_puesto_solo_junta_gobierno(self.hermano, self.puesto_cirio_ok)
+        except ValidationError:
+            self.fail("No debería lanzar ValidationError cuando solo_junta_gobierno=False.")
+
+    def test_validar_puesto_solo_junta_lanza_si_no_pertenece_a_junta(self):
+        """
+        NEGATIVO: si solo_junta_gobierno=True y el hermano NO es JUNTA -> error específico.
+        """
+        puesto_solo_junta = self._crear_puesto_solo_junta()
+
+        with self.assertRaises(ValidationError) as ctx:
+            self.service._validar_puesto_solo_junta_gobierno(self.hermano, puesto_solo_junta)
+
+        self.assertIn("exclusivo", str(ctx.exception))
+        self.assertIn("Junta de Gobierno", str(ctx.exception))
+
+    def test_validar_puesto_solo_junta_ok_si_pertenece_a_junta(self):
+        """
+        POSITIVO: si solo_junta_gobierno=True y el hermano SÍ es JUNTA -> pasa.
+        """
+        puesto_solo_junta = self._crear_puesto_solo_junta()
+        self._add_cuerpo_junta_a_hermano()
+
+        try:
+            self.service._validar_puesto_solo_junta_gobierno(self.hermano, puesto_solo_junta)
+        except ValidationError:
+            self.fail("No debería lanzar ValidationError cuando el hermano pertenece a JUNTA_GOBIERNO.")
+
+    # -------------------------------------------------------------------------
+    # Tests de integración (dentro de procesar_solicitud_cirio_tradicional)
+    # -------------------------------------------------------------------------
+
+    def test_cirio_tradicional_solo_junta_error_si_hermano_no_es_junta(self):
+        """
+        NEGATIVO: la regla debe dispararse en el flujo real antes de comprobar disponibilidad.
+        """
+        puesto_solo_junta = self._crear_puesto_solo_junta(disponible=True)
+
+        with self.assertRaises(ValidationError) as ctx:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano,
+                acto=self.acto,
+                puesto=puesto_solo_junta
+            )
+
+        self.assertIn("exclusivo", str(ctx.exception))
+        self.assertIn("Junta de Gobierno", str(ctx.exception))
+
+        # Atomic: no debe crearse papeleta
+        self.assertFalse(
+            PapeletaSitio.objects.filter(
+                hermano=self.hermano,
+                acto=self.acto,
+                puesto=puesto_solo_junta
+            ).exists()
+        )
+
+    def test_cirio_tradicional_solo_junta_ok_si_hermano_es_junta(self):
+        """
+        POSITIVO: hermano con JUNTA_GOBIERNO puede solicitar un cirio cuyo tipo es solo_junta_gobierno.
+        """
+        puesto_solo_junta = self._crear_puesto_solo_junta(disponible=True)
+        self._add_cuerpo_junta_a_hermano()
+
+        papeleta = self.service.procesar_solicitud_cirio_tradicional(
+            hermano=self.hermano,
+            acto=self.acto,
+            puesto=puesto_solo_junta
+        )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertFalse(papeleta.es_solicitud_insignia)
+        self.assertEqual(papeleta.puesto_id, puesto_solo_junta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+    def test_cirio_tradicional_solo_junta_no_oculta_error_de_no_disponible_si_es_junta(self):
+        """
+        NEGATIVO: si el hermano SÍ es junta pero el puesto no está disponible, debe fallar por no disponible,
+        demostrando que la validación solo-junta no rompe el flujo.
+        """
+        puesto_solo_junta = self._crear_puesto_solo_junta(disponible=False)
+        self._add_cuerpo_junta_a_hermano()
+
+        with self.assertRaises(ValidationError) as ctx:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano,
+                acto=self.acto,
+                puesto=puesto_solo_junta
+            )
+
+        self.assertIn("no está disponible", str(ctx.exception))
+
+        self.assertFalse(
+            PapeletaSitio.objects.filter(
+                hermano=self.hermano,
+                acto=self.acto,
+                puesto=puesto_solo_junta
+            ).exists()
+        )
+
+    def test_cirio_tradicional_puesto_no_solo_junta_ok_aunque_no_tenga_junta(self):
+        """
+        POSITIVO: si el puesto NO es solo_junta_gobierno, el hermano sin Junta puede solicitar (caso base).
+        """
+        papeleta = self.service.procesar_solicitud_cirio_tradicional(
+            hermano=self.hermano,
+            acto=self.acto,
+            puesto=self.puesto_cirio_ok
+        )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
