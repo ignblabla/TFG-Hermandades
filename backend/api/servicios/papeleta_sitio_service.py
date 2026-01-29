@@ -71,75 +71,68 @@ class PapeletaSitioService:
 
         return papeleta
 
+    
     @transaction.atomic
     def procesar_solicitud_insignia_tradicional(self, hermano: Hermano, acto: Acto, preferencias_data: list):
         """
         [MODALIDAD TRADICIONAL - FASE 1]
         Solo permite solicitar puestos marcados como insignia.
+        Asume que el objeto 'acto' es válido y coherente (garantizado por Acto.clean).
         """
         ahora = timezone.now()
 
-        self._validar_plazos_acto_coherentes(acto)
-                
-        self._validar_requiere_papeleta(acto)
-
-        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
-            raise ValidationError("Este endpoint es solo para actos de modalidad TRADICIONAL.")
-
-        self._validar_hermano_en_alta(hermano)
-        self._validar_hermano_al_corriente_hasta_anio_anterior(hermano)
-        self._validar_pertenencia_cuerpos(hermano)
+        self._validar_configuracion_acto_tradicional(acto)
+        self._validar_hermano_apto_para_solicitar(hermano)
         self._validar_unicidad(hermano, acto)
-
-        if not acto.inicio_solicitud or not acto.fin_solicitud:
-            raise ValidationError("Plazo de insignias no configurado.")
-        
-        if ahora < acto.inicio_solicitud or ahora > acto.fin_solicitud:
-            raise ValidationError("Fuera del plazo de solicitud de insignias.")
-        
-        if not preferencias_data:
-            raise ValidationError("Debe indicar al menos una preferencia.")
-        
-        prioridades = [item["orden_prioridad"] for item in preferencias_data]
-        if len(prioridades) != len(set(prioridades)):
-            raise ValidationError("No puede haber orden de prioridad duplicado.")
-        
-        puestos_ids = [item["puesto_solicitado"].id for item in preferencias_data]
-        if len(puestos_ids) != len(set(puestos_ids)):
-            raise ValidationError("No puede haber un puesto duplicado en las preferencias.")
-
-        for item in preferencias_data:
-            puesto = item['puesto_solicitado']
-            prioridad = item['orden_prioridad']
-
-            self._validar_puesto_solo_junta_gobierno(hermano, puesto)
-
-            if not isinstance(prioridad, int) or prioridad < 1:
-                raise ValidationError("El orden de prioridad debe ser mayor que cero.")
-            
-            if puesto.acto_id != acto.id:
-                raise ValidationError("No puede seleccionar un puesto de otro acto.")
-
-            if not puesto.tipo_puesto.es_insignia:
-                raise ValidationError(f"El puesto '{puesto.nombre}' no es una insignia. En plazo tradicional, los cirios se piden aparte.")
-            
-            if not puesto.disponible:
-                raise ValidationError(
-                    f"El puesto '{puesto.nombre}' no está disponible para su solicitud en este acto."
-                )
+        self._validar_plazo_vigente(ahora, acto.inicio_solicitud, acto.fin_solicitud, "insignias")
+        self._validar_preferencias_insignia_tradicional(hermano, acto, preferencias_data)
 
         papeleta = self._crear_papeleta_base(hermano, acto, ahora)
         papeleta.es_solicitud_insignia = True
         papeleta.save(update_fields=['es_solicitud_insignia'])
 
-        for item in preferencias_data:
-            PreferenciaSolicitud.objects.create(
-                papeleta=papeleta,
-                puesto_solicitado=item['puesto_solicitado'],
-                orden_prioridad=item['orden_prioridad']
-            )
+        self._guardar_preferencias(papeleta, preferencias_data)
 
         return papeleta
+
+
+
+
+
+
+    def _validar_configuracion_acto_tradicional(self, acto: Acto):
+        """
+        Verifica que el acto sea del tipo correcto para este endpoint.
+        """
+        if not (acto.tipo_acto and acto.tipo_acto.requiere_papeleta):
+            raise ValidationError(f"El acto '{acto.nombre}' no admite solicitudes de papeleta.")
+
+        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
+            raise ValidationError("Este proceso es exclusivo para actos de modalidad TRADICIONAL.")
+        
+
+    def _validar_plazo_vigente(self, ahora, inicio, fin, nombre_plazo: str):
+        """
+        Valida que el momento actual esté dentro del rango definido.
+        """
+        if not inicio or not fin:
+            raise ValidationError(f"El plazo de {nombre_plazo} no está configurado en el acto.")
+            
+        if ahora < inicio:
+            raise ValidationError(f"El plazo de solicitud de {nombre_plazo} aún no ha comenzado.")
+        
+        if ahora > fin:
+            raise ValidationError(f"El plazo de solicitud de {nombre_plazo} ha finalizado.")
+        
+
+    def _validar_hermano_apto_para_solicitar(self, hermano: Hermano):
+        """Agrupa las validaciones de estado del hermano."""
+        self._validar_hermano_en_alta(hermano)
+        self._validar_hermano_al_corriente_hasta_anio_anterior(hermano)
+        self._validar_pertenencia_cuerpos(hermano)
+
+
+
 
     @transaction.atomic
     def procesar_solicitud_cirio_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, numero_registro_vinculado: int = None):
@@ -258,6 +251,9 @@ class PapeletaSitioService:
             raise ValidationError("Debe seleccionar un puesto válido.")
 
     def _validar_requiere_papeleta(self, acto):
+        if not acto.tipo_acto:
+            raise ValidationError(f"Configuración inválida: El acto '{acto.nombre}' no tiene asignado un Tipo de Acto.")
+
         if not acto.tipo_acto.requiere_papeleta:
             raise ValidationError(f"El acto '{acto.nombre}' no admite solicitudes.")
 
@@ -298,20 +294,31 @@ class PapeletaSitioService:
         
     def _validar_hermano_al_corriente_hasta_anio_anterior(self, hermano: Hermano):
         """
-        Requiere que TODAS las cuotas hasta el año anterior estén PAGADAS.
+        Requiere:
+        - que existan cuotas hasta el año anterior, y
+        - que todas estén en estado PAGADA o EXENTO.
         """
         anio_actual = timezone.now().date().year
         anio_limite = anio_actual - 1
-        existe_deuda = hermano.cuotas.filter(
-            anio__lte=anio_limite
-        ).exclude(
-            estado=Cuota.EstadoCuota.PAGADA
-        ).exists()
 
-        if existe_deuda:
+        qs = hermano.cuotas.filter(anio__lte=anio_limite)
+
+        if not qs.exists():
             raise ValidationError(
-                f"No puede solicitar insignias: debe estar al corriente de pago hasta {anio_limite}."
+                f"No constan cuotas registradas hasta el año {anio_limite}. Contacte con secretaría."
             )
+
+        estados_ok = [Cuota.EstadoCuota.PAGADA, Cuota.EstadoCuota.EXENTO]
+
+        cuotas_pendientes = qs.exclude(estado__in=estados_ok)
+
+        if cuotas_pendientes.exists():
+            primera_deuda = cuotas_pendientes.order_by('anio').first()
+            raise ValidationError(
+                f"No está al corriente de pago. Consta una cuota pendiente o no válida del año {primera_deuda.anio}. "
+                "Si cree que es un error (ej. duplicidad), contacte con tesorería."
+            )
+
 
     def _validar_mix_puestos_unificado(self, preferencias_data):
         """Valida que no se pidan dos puestos genéricos (ej: Cirio Cristo y Cirio Virgen)"""
@@ -416,42 +423,137 @@ class PapeletaSitioService:
         - Si requiere papeleta y TRADICIONAL:
             inicio_solicitud < fin_solicitud
             inicio_solicitud_cirios < fin_solicitud_cirios
+            fin_solicitud < inicio_solicitud_cirios
             fin_solicitud_cirios <= acto.fecha
         - Si requiere papeleta y UNIFICADO:
             inicio_solicitud < fin_solicitud
             fin_solicitud <= acto.fecha
         """
+        if not acto.tipo_acto:
+            raise ValidationError(f"Configuración inválida: El acto '{acto.nombre}' no tiene asignado un Tipo de Acto.")
+
         if not acto.tipo_acto.requiere_papeleta:
             return
+        
+        if not acto.modalidad:
+            raise ValidationError(
+                f"El acto '{acto.nombre}' no tiene configurada su modalidad de reparto (Tradicional o Unificada)."
+            )
+        
+        if not acto.fecha:
+            raise ValidationError(
+                f"El acto '{acto.nombre}' no tiene fecha asignada. No se pueden calcular los plazos."
+            )
 
         acto_dt = self._acto_fecha_como_datetime_fin_dia(acto)
 
         if acto.modalidad == Acto.ModalidadReparto.TRADICIONAL:
-            self._validar_rango_inicio_fin(
-                acto.inicio_solicitud,
-                acto.fin_solicitud,
-                "Plazo de insignias"
-            )
+            self._validar_rango_inicio_fin(acto.inicio_solicitud, acto.fin_solicitud, "Plazo de insignias")
 
-            self._validar_rango_inicio_fin(
-                acto.inicio_solicitud_cirios,
-                acto.fin_solicitud_cirios,
-                "Plazo de cirios"
-            )
+            self._validar_rango_inicio_fin(acto.inicio_solicitud_cirios, acto.fin_solicitud_cirios, "Plazo de cirios")
 
-            if acto_dt and acto.fin_solicitud_cirios > acto_dt:
+            if acto.inicio_solicitud_cirios <= acto.fin_solicitud:
+                raise ValidationError(
+                    "Conflicto de fechas: El reparto de cirios debe comenzar después de finalizar el de insignias."
+                )
+            
+            if acto.fin_solicitud_cirios > acto_dt:
                 raise ValidationError(
                     "Plazo de cirios mal configurado: no puede finalizar después de la fecha del acto."
                 )
 
         elif acto.modalidad == Acto.ModalidadReparto.UNIFICADO:
-            self._validar_rango_inicio_fin(
-                acto.inicio_solicitud,
-                acto.fin_solicitud,
-                "Plazo de solicitud"
-            )
+            self._validar_rango_inicio_fin(acto.inicio_solicitud, acto.fin_solicitud, "Plazo de solicitud")
 
             if acto_dt and acto.fin_solicitud > acto_dt:
                 raise ValidationError(
                     "Plazo de solicitud mal configurado: no puede finalizar después de la fecha del acto."
                 )
+            
+
+
+    def _validar_plazo(self, ahora, inicio, fin, nombre: str):
+        """
+        Valida que el plazo esté configurado y que 'ahora' esté dentro (incluyendo extremos).
+        """
+        if not inicio or not fin:
+            raise ValidationError(f"Plazo de {nombre} no configurado.")
+        if ahora < inicio or ahora > fin:
+            raise ValidationError(f"Fuera del plazo de solicitud de {nombre}.")
+        
+
+
+    def _validar_preferencias_insignia_tradicional(self, hermano: Hermano, acto: Acto, preferencias_data: list):
+        """
+        Valida:
+        - no vacío
+        - prioridades: int, >=1, sin duplicados, consecutivas 1..N
+        - puestos: sin duplicados, pertenecen al acto, son insignia, disponibles
+        - solo_junta_gobierno si aplica
+        """
+        if not preferencias_data:
+            raise ValidationError("Debe indicar al menos una preferencia.")
+
+        try:
+            prioridades = [item["orden_prioridad"] for item in preferencias_data]
+            puestos = [item["puesto_solicitado"] for item in preferencias_data]
+        except KeyError:
+            raise ValidationError(
+                "Cada preferencia debe incluir 'puesto_solicitado' y 'orden_prioridad'."
+            )
+
+        for puesto in puestos:
+            self._validar_puesto_no_nulo(puesto)
+
+        self._validar_prioridades_consecutivas(prioridades)
+        self._validar_puestos_no_duplicados(puestos)
+
+        for item in preferencias_data:
+            self._validar_item_preferencia_insignia_tradicional(
+                hermano=hermano,
+                acto=acto,
+                puesto=item["puesto_solicitado"],
+                prioridad=item["orden_prioridad"],
+            )
+
+
+
+    def _validar_prioridades_consecutivas(self, prioridades: list):
+        if len(prioridades) != len(set(prioridades)):
+            raise ValidationError("No puede haber orden de prioridad duplicado.")
+
+        if any((not isinstance(p, int)) or p < 1 for p in prioridades):
+            raise ValidationError("El orden de prioridad debe ser mayor que cero.")
+
+        n = len(prioridades)
+        esperadas = list(range(1, n + 1))
+        if sorted(prioridades) != esperadas:
+            raise ValidationError(
+                f"El orden de prioridad debe ser consecutivo y empezar en 1 ({', '.join(map(str, esperadas))})."
+            )
+        
+
+
+    def _validar_puestos_no_duplicados(self, puestos: list):
+        puestos_ids = [p.id for p in puestos]
+        if len(puestos_ids) != len(set(puestos_ids)):
+            raise ValidationError("No puede haber un puesto duplicado en las preferencias.")
+        
+
+
+    def _validar_item_preferencia_insignia_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, prioridad: int):
+
+        self._validar_puesto_solo_junta_gobierno(hermano, puesto)
+
+        if puesto.acto_id != acto.id:
+            raise ValidationError("No puede seleccionar un puesto de otro acto.")
+
+        if not puesto.tipo_puesto.es_insignia:
+            raise ValidationError(
+                f"El puesto '{puesto.nombre}' no es una insignia. En plazo tradicional, los cirios se piden aparte."
+            )
+
+        if not puesto.disponible:
+            raise ValidationError(
+                f"El puesto '{puesto.nombre}' no está disponible para su solicitud en este acto."
+            )

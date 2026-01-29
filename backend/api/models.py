@@ -301,17 +301,57 @@ class Acto(models.Model):
 
     def clean(self):
         super().clean()
+        errors = {}
 
-        if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
-            if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
-                raise ValidationError({'fin_solicitud_cirios': 'La fecha de fin de solicitud de cirios debe ser posterior a la de inicio.'})
-            
-        if self.fin_solicitud and self.inicio_solicitud_cirios:
-            if self.inicio_solicitud_cirios <= self.fin_solicitud:
-                raise ValidationError({'inicio_solicitud_cirios': (
-                        f'La solicitud de cirios no puede empezar antes o al mismo tiempo que termina la de insignias. '
-                        f'Insignias termina el {self.fin_solicitud.strftime("%d/%m/%Y %H:%M")}.'
-                    )})
+        # Si no requiere papeleta, no debe tener modalidad ni plazos
+        if self.tipo_acto and not self.tipo_acto.requiere_papeleta:
+            if self.modalidad:
+                errors["modalidad"] = "Un acto que no requiere papeleta no puede tener modalidad."
+            for f in ("inicio_solicitud", "fin_solicitud", "inicio_solicitud_cirios", "fin_solicitud_cirios"):
+                if getattr(self, f) is not None:
+                    errors[f] = "Un acto que no requiere papeleta no puede tener fechas de solicitud."
+            if errors:
+                raise ValidationError(errors)
+            return
+
+        # Si requiere papeleta
+        if self.tipo_acto and self.tipo_acto.requiere_papeleta:
+            if not self.modalidad:
+                errors["modalidad"] = "La modalidad es obligatoria para actos con papeleta."
+
+            if not self.inicio_solicitud:
+                errors["inicio_solicitud"] = "El inicio de solicitud es obligatorio."
+            if not self.fin_solicitud:
+                errors["fin_solicitud"] = "El fin de solicitud es obligatorio."
+
+            if self.inicio_solicitud and self.fin_solicitud:
+                if self.inicio_solicitud >= self.fin_solicitud:
+                    errors["fin_solicitud"] = "El fin de solicitud debe ser posterior al inicio."
+                if self.fecha and self.fin_solicitud > self.fecha:
+                    errors["fin_solicitud"] = "El fin de solicitud no puede ser posterior a la fecha del acto."
+
+            if self.modalidad == self.ModalidadReparto.TRADICIONAL:
+                if not self.inicio_solicitud_cirios:
+                    errors["inicio_solicitud_cirios"] = "El inicio de cirios es obligatorio en modalidad tradicional."
+                if not self.fin_solicitud_cirios:
+                    errors["fin_solicitud_cirios"] = "El fin de cirios es obligatorio en modalidad tradicional."
+
+                if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
+                    if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
+                        errors["fin_solicitud_cirios"] = "El fin de cirios debe ser posterior al inicio."
+                    if self.fecha and self.fin_solicitud_cirios > self.fecha:
+                        errors["fin_solicitud_cirios"] = "El fin de cirios no puede ser posterior a la fecha del acto."
+
+                if self.fin_solicitud and self.inicio_solicitud_cirios:
+                    if self.fin_solicitud >= self.inicio_solicitud_cirios:
+                        errors["inicio_solicitud_cirios"] = "El período de cirios debe comenzar después de finalizar el de insignias."
+
+            elif self.modalidad == self.ModalidadReparto.UNIFICADO:
+                if self.inicio_solicitud_cirios is not None or self.fin_solicitud_cirios is not None:
+                    errors["modalidad"] = "En modalidad UNIFICADO no se deben definir fechas de cirios."
+
+        if errors:
+            raise ValidationError(errors)
             
     def save(self, *args, **kwargs):
         self.full_clean()

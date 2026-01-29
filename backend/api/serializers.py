@@ -703,49 +703,7 @@ class ActoCreateSerializer(serializers.ModelSerializer):
             'fin_solicitud_cirios'
         ]
 
-    def validate(self, data):
-        tipo_acto_seleccionado = data.get('tipo_acto')
-        modalidad = data.get('modalidad')
-
-        if not tipo_acto_seleccionado:
-            return data
-        
-        necesita_papeleta = tipo_acto_seleccionado.requiere_papeleta
-
-        # --- ESCENARIO A: NO REQUIERE PAPELETA ---
-        if not necesita_papeleta:
-            data['inicio_solicitud'] = None
-            data['fin_solicitud'] = None
-            data['inicio_solicitud_cirios'] = None
-            data['fin_solicitud_cirios'] = None
-            return data
-        
-        # --- ESCENARIO B: SÍ REQUIERE PAPELETA ---
-        inicio_insignias = data.get('inicio_solicitud')
-        fin_insignias = data.get('fin_solicitud')
-        inicio_cirios = data.get('inicio_solicitud_cirios')
-        fin_cirios = data.get('fin_solicitud_cirios')
-
-        if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
-            raise serializers.ValidationError({"fin_solicitud": "La fecha de fin de insignias debe ser posterior al inicio."})
-        
-        if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
-            raise serializers.ValidationError({"fin_solicitud_cirios": "La fecha de fin de cirios debe ser posterior al inicio."})
-        
-        if modalidad == Acto.ModalidadReparto.TRADICIONAL:
-            if fin_insignias and inicio_cirios:
-                if inicio_cirios <= fin_insignias:
-                    raise serializers.ValidationError({
-                        'inicio_solicitud_cirios': (
-                            f'La solicitud de cirios no puede solaparse con insignias. '
-                            f'Insignias termina el {fin_insignias.strftime("%d/%m/%Y %H:%M")}.'
-                        )
-                    })
-                
-            if inicio_insignias and inicio_cirios and inicio_insignias >= inicio_cirios:
-                raise serializers.ValidationError({'inicio_solicitud': 'El reparto de insignias debe comenzar antes que el de cirios.'})
-        
-        return data
+    
     
 class ActoUpdateSerializer(serializers.ModelSerializer):
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)

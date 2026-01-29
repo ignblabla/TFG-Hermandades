@@ -245,83 +245,21 @@ def get_historial_papeletas_hermano_service(usuario):
 # -----------------------------------------------------------------------------
 # SERVICES: CREAR ACTO
 # -----------------------------------------------------------------------------
-def _validar_fechas_acto(data):
-    tipo_acto = data.get('tipo_acto')
-    modalidad = data.get('modalidad')
-    fecha_acto = data.get('fecha')
-    
-    if not tipo_acto.requiere_papeleta:
-        campos_prohibidos = ['modalidad', 'inicio_solicitud', 'fin_solicitud', 'inicio_solicitud_cirios', 'fin_solicitud_cirios']
-        if any(data.get(campo) is not None for campo in campos_prohibidos):
-            raise ValidationError("Un acto que no requiere papeleta no puede tener modalidad ni fechas de solicitud.")
-        return data
 
-    errors = {}
-
-    if not modalidad:
-        errors['modalidad'] = "La modalidad es obligatoria para actos con papeleta."
-    if not data.get('inicio_solicitud'):
-        errors['inicio_solicitud'] = "La fecha de inicio de solicitud es obligatoria."
-    if not data.get('fin_solicitud'):
-        errors['fin_solicitud'] = "La fecha de fin de solicitud es obligatoria."
-
-    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
-        if not data.get('inicio_solicitud_cirios'):
-            errors['inicio_solicitud_cirios'] = "El inicio de cirios es obligatorio en modalidad tradicional."
-        if not data.get('fin_solicitud_cirios'):
-            errors['fin_solicitud_cirios'] = "El fin de cirios es obligatorio en modalidad tradicional."
-            
-    elif modalidad == Acto.ModalidadReparto.UNIFICADO:
-        if data.get('inicio_solicitud_cirios') or data.get('fin_solicitud_cirios'):
-            errors['modalidad'] = "En modalidad Unificada no se deben definir fechas de cirios independientes."
-
-    if errors:
-        raise ValidationError(errors)
-
-    inicio_insignias = data.get('inicio_solicitud')
-    fin_insignias = data.get('fin_solicitud')
-    inicio_cirios = data.get('inicio_solicitud_cirios')
-    fin_cirios = data.get('fin_solicitud_cirios')
-
-    fechas = {
-        'inicio_solicitud': inicio_insignias,
-        'fin_solicitud': fin_insignias,
-        'inicio_solicitud_cirios': inicio_cirios,
-        'fin_solicitud_cirios': fin_cirios
-    }
-
-    for campo, valor in fechas.items():
-        if valor and fecha_acto and valor >= fecha_acto:
-            errors[campo] = f"Debe ser anterior a la fecha del acto ({fecha_acto.strftime('%d/%m/%Y %H:%M')})."
-
-    if inicio_insignias and fin_insignias and inicio_insignias >= fin_insignias:
-        errors['fin_solicitud'] = "La fecha de fin debe ser posterior al inicio."
-    
-    if inicio_cirios and fin_cirios and inicio_cirios >= fin_cirios:
-        errors['fin_solicitud_cirios'] = "La fecha de fin de cirios debe ser posterior al inicio."
-
-    if modalidad == Acto.ModalidadReparto.TRADICIONAL:
-        if fin_insignias and inicio_cirios and inicio_cirios <= fin_insignias:
-            errors['inicio_solicitud_cirios'] = "El reparto de cirios debe empezar después de que terminen las insignias."
-
-    if errors:
-        raise ValidationError(errors)
-    
-    return data
 
 @transaction.atomic
 def crear_acto_service(usuario_solicitante, data_validada):
+    # Permisos
     if not getattr(usuario_solicitante, "esAdmin", False):
         raise PermissionDenied("No tienes permisos para crear actos. Se requiere ser Administrador.")
-    
-    nombre = data_validada.get('nombre')
-    fecha = data_validada.get('fecha')
-    if Acto.objects.filter(nombre=nombre, fecha__date=fecha.date()).exists():
-        raise ValidationError(f"Ya existe el acto '{nombre}' en esa fecha.")
-    
-    data_limpia = _validar_fechas_acto(data_validada)
 
-    nuevo_acto = Acto.objects.create(**data_limpia)
+    nombre = data_validada.get("nombre")
+    fecha = data_validada.get("fecha")
+    if nombre and fecha and Acto.objects.filter(nombre=nombre, fecha__date=fecha.date()).exists():
+        raise ValidationError(f"Ya existe el acto '{nombre}' en esa fecha.")
+
+    nuevo_acto = Acto.objects.create(**data_validada)
+
     return nuevo_acto
 
 # -----------------------------------------------------------------------------

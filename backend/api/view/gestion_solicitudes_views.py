@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
 
+from api.servicios.solicitud_insignia_service import SolicitudInsigniaService
+
 from ..servicios.papeleta_sitio_service import PapeletaSitioService
 from ..serializers import (
     SolicitudInsigniaSerializer, 
@@ -25,7 +27,7 @@ class SolicitarInsigniaView(APIView):
         
         if serializer.is_valid():
             try:
-                service = PapeletaSitioService()
+                service = SolicitudInsigniaService()
 
                 papeleta = service.procesar_solicitud_insignia_tradicional(
                     hermano=request.user,
