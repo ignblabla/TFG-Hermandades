@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.db.models import UniqueConstraint, Q
 
 # -----------------------------------------------------------------------------
 # ENTIDAD: AREA DE INTERÉS
@@ -129,6 +130,9 @@ class Cuota(models.Model):
 
     def __str__(self):
         return f"{self.anio} - {self.tipo} - {self.hermano}"
+    
+    class Meta:
+        indexes = [models.Index(fields=['hermano', 'estado', 'anio'], name='idx_cuota_deuda_hermano'),]
 
 # -----------------------------------------------------------------------------
 # ENTIDAD: HERMANO
@@ -289,7 +293,7 @@ class Acto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
     fecha = models.DateTimeField(verbose_name="Fecha y hora")
-    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, default=ModalidadReparto.TRADICIONAL, verbose_name="Modalidad de reparto", blank=True, null=True)
+    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, verbose_name="Modalidad de reparto", blank=True, null=True)
 
     tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
 
@@ -303,7 +307,12 @@ class Acto(models.Model):
         super().clean()
         errors = {}
 
-        # Si no requiere papeleta, no debe tener modalidad ni plazos
+        if self.nombre is not None and not self.nombre.strip():
+            errors["nombre"] = "El nombre del acto no puede estar vacío."
+
+        if self.tipo_acto_id is None:
+            raise ValidationError({"tipo_acto": "El tipo de acto es obligatorio."})
+
         if self.tipo_acto and not self.tipo_acto.requiere_papeleta:
             if self.modalidad:
                 errors["modalidad"] = "Un acto que no requiere papeleta no puede tener modalidad."
@@ -314,7 +323,6 @@ class Acto(models.Model):
                 raise ValidationError(errors)
             return
 
-        # Si requiere papeleta
         if self.tipo_acto and self.tipo_acto.requiere_papeleta:
             if not self.modalidad:
                 errors["modalidad"] = "La modalidad es obligatoria para actos con papeleta."
@@ -327,8 +335,12 @@ class Acto(models.Model):
             if self.inicio_solicitud and self.fin_solicitud:
                 if self.inicio_solicitud >= self.fin_solicitud:
                     errors["fin_solicitud"] = "El fin de solicitud debe ser posterior al inicio."
-                if self.fecha and self.fin_solicitud > self.fecha:
-                    errors["fin_solicitud"] = "El fin de solicitud no puede ser posterior a la fecha del acto."
+
+            if self.fecha and self.inicio_solicitud and self.inicio_solicitud >= self.fecha:
+                errors["inicio_solicitud"] = "El inicio de solicitud no puede ser igual o posterior a la fecha del acto."
+
+            if self.fecha and self.fin_solicitud and self.fin_solicitud > self.fecha:
+                errors["fin_solicitud"] = "El fin de solicitud no puede ser posterior a la fecha del acto."
 
             if self.modalidad == self.ModalidadReparto.TRADICIONAL:
                 if not self.inicio_solicitud_cirios:
@@ -339,12 +351,28 @@ class Acto(models.Model):
                 if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
                     if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
                         errors["fin_solicitud_cirios"] = "El fin de cirios debe ser posterior al inicio."
-                    if self.fecha and self.fin_solicitud_cirios > self.fecha:
-                        errors["fin_solicitud_cirios"] = "El fin de cirios no puede ser posterior a la fecha del acto."
 
-                if self.fin_solicitud and self.inicio_solicitud_cirios:
-                    if self.fin_solicitud >= self.inicio_solicitud_cirios:
-                        errors["inicio_solicitud_cirios"] = "El período de cirios debe comenzar después de finalizar el de insignias."
+                if self.fecha and self.inicio_solicitud_cirios and self.inicio_solicitud_cirios >= self.fecha:
+                    errors["inicio_solicitud_cirios"] = "El inicio de cirios no puede ser igual o posterior a la fecha del acto."
+
+                if self.fecha and self.fin_solicitud_cirios and self.fin_solicitud_cirios > self.fecha:
+                    errors["fin_solicitud_cirios"] = "El fin de cirios no puede ser posterior a la fecha del acto."
+
+                if (
+                    self.inicio_solicitud and self.fin_solicitud and
+                    self.inicio_solicitud_cirios and self.fin_solicitud_cirios
+                ):
+                    if not (self.inicio_solicitud < self.fin_solicitud < self.inicio_solicitud_cirios < self.fin_solicitud_cirios):
+                        if self.fin_solicitud >= self.inicio_solicitud_cirios:
+                            errors.setdefault(
+                                "inicio_solicitud_cirios",
+                                "El período de cirios debe comenzar después de finalizar el de insignias."
+                            )
+                        else:
+                            errors.setdefault(
+                                "fin_solicitud_cirios",
+                                "Orden de fases incorrecto: cirios debe ir completamente después de insignias."
+                            )
 
             elif self.modalidad == self.ModalidadReparto.UNIFICADO:
                 if self.inicio_solicitud_cirios is not None or self.fin_solicitud_cirios is not None:
@@ -498,6 +526,16 @@ class PapeletaSitio(models.Model):
     
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+    # Aplica la restricción de unicidad a todas las papeletas MENOS a las que estén en la lista [ANULADA, NO_ASIGNADA]".
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['hermano', 'acto'],
+                condition=~Q(estado_papeleta__in=['ANULADA', 'NO_ASIGNADA']),
+                name='unique_papeleta_activa_hermano_acto'
+            )
+        ]
     
 # -----------------------------------------------------------------------------
 # ENTIDAD: PREFERENCIA SOLICITUD

@@ -14,22 +14,31 @@ class SolicitudInsigniaService:
     Maneja tanto la modalidad UNIFICADA como la TRADICIONAL (Insignias y Cirios por separado).
     """
 
+    MAX_PREFERENCIAS_PERMITIDAS = 20
+
     @transaction.atomic
-    def procesar_solicitud_insignia_tradicional(self, hermano: Hermano, acto: Acto, preferencias_data: list):
+    def procesar_solicitud_insignia_tradicional(self, hermano: Hermano, acto: Acto, preferencias_data: list, vinculado_a = None):
         """
         [MODALIDAD TRADICIONAL - FASE 1]
         Solo permite solicitar puestos marcados como insignia.
         Asume que el objeto 'acto' es válido y coherente (garantizado por Acto.clean).
         """
+        if vinculado_a is not None:
+            raise ValidationError("Las solicitudes de insignia no permiten vincularse con otro hermano.")
+
         ahora = timezone.now()
 
         self._validar_configuracion_acto_tradicional(acto)
 
+        self._validar_plazo_vigente(ahora, acto.inicio_solicitud, acto.fin_solicitud, "insignias")
+
         self._validar_hermano_apto_para_solicitar(hermano)
+
+        self._validar_edad_minima_insignia(hermano, acto)
 
         self._validar_unicidad(hermano, acto)
 
-        self._validar_plazo_vigente(ahora, acto.inicio_solicitud, acto.fin_solicitud, "insignias")
+        self._validar_limites_preferencias(preferencias_data)
 
         self._validar_preferencias_insignia_tradicional(hermano, acto, preferencias_data)
 
@@ -44,6 +53,41 @@ class SolicitudInsigniaService:
     # -------------------------------------------------------------------------
     # VALIDACIONES DE ACTO (Contexto)
     # -------------------------------------------------------------------------
+    def _validar_limites_preferencias(self, preferencias_data: list):
+        """Evita que envíen 500 puestos para saturar el sistema."""
+        if len(preferencias_data) > self.MAX_PREFERENCIAS_PERMITIDAS:
+            raise ValidationError(
+                f"No puede solicitar más de {self.MAX_PREFERENCIAS_PERMITIDAS} puestos por solicitud."
+            )
+        
+
+    def _validar_edad_minima_insignia(self, hermano: Hermano, acto: Acto):
+        """
+        Valida que el hermano tenga 18 años cumplidos antes de la fecha de inicio de solicitud.
+        """
+        if not hermano.fecha_nacimiento:
+            raise ValidationError(
+                "No consta su fecha de nacimiento en la base de datos. "
+                "Contacte con secretaría para actualizar su ficha antes de solicitar insignia."
+            )
+
+        if not acto.inicio_solicitud:
+            fecha_referencia = timezone.now().date()
+        else:
+            fecha_referencia = acto.inicio_solicitud.date()
+
+        fecha_nacimiento = hermano.fecha_nacimiento
+
+        edad = fecha_referencia.year - fecha_nacimiento.year - (
+            (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day)
+        )
+
+        if edad < 18:
+            raise ValidationError(
+                f"Para solicitar insignia debe ser mayor de 18 años antes del inicio del plazo ({fecha_referencia.strftime('%d/%m/%Y')})."
+            )
+
+
     def _validar_configuracion_acto_tradicional(self, acto: Acto):
         """
         Verifica que el acto sea del tipo correcto para este endpoint.
@@ -87,16 +131,28 @@ class SolicitudInsigniaService:
         anio_actual = timezone.now().date().year
         anio_limite = anio_actual - 1
 
-        qs = hermano.cuotas.filter(anio__lte=anio_limite)
-        if not qs.exists():
-            raise ValidationError(f"No constan cuotas registradas hasta el año {anio_limite}. Contacte con secretaría.")
+        estados_deuda = [
+            Cuota.EstadoCuota.PENDIENTE, 
+            Cuota.EstadoCuota.DEVUELTA
+        ]
 
-        estados_ok = [Cuota.EstadoCuota.PAGADA, Cuota.EstadoCuota.EXENTO]
-        cuota_pendiente = qs.exclude(estado__in=estados_ok).order_by('anio').first()
+        deuda = hermano.cuotas.filter(
+            anio__lte=anio_limite,
+            estado__in=estados_deuda
+        ).values('anio').order_by('anio').first()
 
-        if cuota_pendiente:
+        if deuda:
             raise ValidationError(
-                f"Consta una cuota pendiente del año {cuota_pendiente.anio}. Contacte con tesorería."
+                f"Consta una cuota pendiente o devuelta del año {deuda['anio']}. "
+                f"Por favor, contacte con tesorería para regularizar su situación."
+            )
+
+        existe_historial = hermano.cuotas.filter(anio__lte=anio_limite).exists()
+        
+        if not existe_historial:
+            raise ValidationError(
+                f"No constan cuotas registradas hasta el año {anio_limite}. "
+                "Contacte con secretaría para verificar su ficha."
             )
         
 
@@ -136,6 +192,8 @@ class SolicitudInsigniaService:
         if not preferencias_data:
             raise ValidationError("Debe indicar al menos una preferencia.")
 
+        self._resolver_y_validar_existencia_puestos(preferencias_data)
+
         puestos = []
         prioridades = []
         
@@ -154,6 +212,48 @@ class SolicitudInsigniaService:
 
         for puesto in puestos:
             self._validar_item_puesto(hermano, acto, puesto)
+
+
+    def _resolver_y_validar_existencia_puestos(self, preferencias_data: list):
+        """
+        Recorre la lista de preferencias, detecta si 'puesto_solicitado' es un ID (int/str)
+        y lo sustituye por la instancia de Puesto correspondiente.
+        Realiza una carga masiva (Bulk Fetch) para evitar N+1 queries.
+        """
+        ids_a_buscar = set()
+
+        for item in preferencias_data:
+            val = item.get("puesto_solicitado")
+            if isinstance(val, (int, str)) and str(val).isdigit():
+                ids_a_buscar.add(int(val))
+            elif isinstance(val, Puesto):
+                continue
+            elif val is None:
+                continue
+            else:
+                raise ValidationError(f"Formato de puesto inválido: {val}")
+
+        if not ids_a_buscar:
+            return
+
+        puestos_encontrados = Puesto.objects.filter(
+            id__in=ids_a_buscar
+        ).select_related('tipo_puesto')
+
+        mapa_puestos = {p.id: p for p in puestos_encontrados}
+
+        ids_encontrados = set(mapa_puestos.keys())
+        ids_faltantes = ids_a_buscar - ids_encontrados
+        
+        if ids_faltantes:
+            raise ValidationError(
+                f"Los siguientes IDs de puesto no existen: {', '.join(map(str, ids_faltantes))}"
+            )
+
+        for item in preferencias_data:
+            val = item.get("puesto_solicitado")
+            if isinstance(val, (int, str)) and str(val).isdigit():
+                item["puesto_solicitado"] = mapa_puestos[int(val)]
 
 
     def _validar_prioridades_consecutivas(self, prioridades: list):
@@ -192,13 +292,14 @@ class SolicitudInsigniaService:
     # -------------------------------------------------------------------------
     # CREACIÓN Y GUARDADO
     # -------------------------------------------------------------------------
-    def _crear_papeleta_base(self, hermano, acto, fecha_solicitud):
+    def _crear_papeleta_base(self, hermano, acto, fecha_solicitud, vinculado_a=None):
         return PapeletaSitio.objects.create(
             hermano=hermano,
             acto=acto,
             anio=acto.fecha.year,
             fecha_solicitud=fecha_solicitud,
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            vinculado_a=vinculado_a,
             es_solicitud_insignia=False,
             codigo_verificacion=uuid.uuid4().hex[:8].upper()
         )
