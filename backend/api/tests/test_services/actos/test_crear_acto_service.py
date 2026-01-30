@@ -9,21 +9,11 @@ from rest_framework.exceptions import PermissionDenied as DRFPermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from ....models import Acto, TipoActo
+from ....models import Acto, TipoActo, Hermano
 from ....services import crear_acto_service
 from api.tests.factories import HermanoFactory
 
 User = get_user_model()
-
-class CrearActoServiceTest(TestCase):
-
-    from datetime import timedelta
-from django.test import TestCase
-from django.utils import timezone
-from django.core.exceptions import ValidationError, PermissionDenied
-
-from api.models import Acto, TipoActo, Hermano
-from api.services import crear_acto_service  # ajusta el import si procede
 
 
 class CrearActoServiceTest(TestCase):
