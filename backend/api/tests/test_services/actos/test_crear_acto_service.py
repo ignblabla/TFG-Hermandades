@@ -1,1206 +1,1354 @@
+from zoneinfo import ZoneInfo
+from django.db import IntegrityError
 from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import get_user_model
 
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework.exceptions import PermissionDenied as DRFPermissionDenied
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from ....models import Acto, TipoActo
+from ....models import Acto, TipoActo, Hermano
 from ....services import crear_acto_service
 from api.tests.factories import HermanoFactory
 
 User = get_user_model()
 
+
 class CrearActoServiceTest(TestCase):
 
     def setUp(self):
-        """
-        Configuración inicial común para todos los tests de esta clase.
-        """
-        self.usuario_no_admin = HermanoFactory(esAdmin=False)
+        # ---------------------------------------------------------------------
+        # FECHA BASE
+        # ---------------------------------------------------------------------
+        self.ahora = timezone.now()
 
-        self.usuario_admin = HermanoFactory(esAdmin=True)
+        # ---------------------------------------------------------------------
+        # USUARIO ADMIN
+        # ---------------------------------------------------------------------
+        self.admin = Hermano.objects.create_user(
+            dni="12345678A",
+            username="12345678A",
+            password="password",
+            nombre="Admin",
+            primer_apellido="Test",
+            segundo_apellido="User",
+            email="admin@example.com",
+            telefono="600000000",
+            estado_civil=Hermano.EstadoCivil.SOLTERO,
+            genero=Hermano.Genero.MASCULINO,
+            estado_hermano=Hermano.EstadoHermano.ALTA,
+            numero_registro=1,
+            fecha_ingreso_corporacion=self.ahora.date(),
+            fecha_nacimiento="1980-01-01",
+            direccion="Calle Admin",
+            codigo_postal="41001",
+            localidad="Sevilla",
+            provincia="Sevilla",
+            comunidad_autonoma="Andalucía",
+            esAdmin=True,
+        )
 
-        self.tipo_acto = TipoActo.objects.create(
+        # ---------------------------------------------------------------------
+        # USUARIO NO ADMIN (tal como indicas)
+        # ---------------------------------------------------------------------
+        self.hermano = Hermano.objects.create_user(
+            dni="87654321X",
+            username="87654321X",
+            password="password",
+            nombre="Luis",
+            primer_apellido="Ruiz",
+            segundo_apellido="Díaz",
+            email="luis@example.com",
+            telefono="600654321",
+            estado_civil=Hermano.EstadoCivil.CASADO,
+            genero=Hermano.Genero.MASCULINO,
+            estado_hermano=Hermano.EstadoHermano.ALTA,
+            numero_registro=1002,
+            fecha_ingreso_corporacion=self.ahora.date(),
+            fecha_nacimiento="1985-06-15",
+            direccion="Calle Sierpes",
+            codigo_postal="41004",
+            localidad="Sevilla",
+            provincia="Sevilla",
+            comunidad_autonoma="Andalucía",
+            esAdmin=False,
+        )
+
+        # ---------------------------------------------------------------------
+        # TIPOS DE ACTO
+        # ---------------------------------------------------------------------
+        self.tipo_no_papeleta = TipoActo.objects.create(
+            tipo=TipoActo.OpcionesTipo.CONVIVENCIA,
+            requiere_papeleta=False
+        )
+
+        self.tipo_con_papeleta = TipoActo.objects.create(
             tipo=TipoActo.OpcionesTipo.ESTACION_PENITENCIA,
             requiere_papeleta=True
         )
 
-    def test_crear_acto_sin_papeleta_valido(self):
+        # ---------------------------------------------------------------------
+        # FECHAS COHERENTES
+        # ---------------------------------------------------------------------
+        self.fecha_acto = self.ahora + timedelta(days=30)
+
+        self.inicio_insignias = self.ahora + timedelta(days=1)
+        self.fin_insignias = self.ahora + timedelta(days=3)
+
+        self.inicio_cirios = self.fin_insignias + timedelta(hours=1)
+        self.fin_cirios = self.inicio_cirios + timedelta(days=2)
+
+        # ---------------------------------------------------------------------
+        # ACTO BASE (válidos)
+        # ---------------------------------------------------------------------
+        self.acto_no_papeleta_ok = {
+            "nombre": "Convivencia febrero",
+            "descripcion": "Acto sin papeleta",
+            "fecha": self.fecha_acto,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        }
+
+        self.acto_tradicional_ok = {
+            "nombre": "Estación de Penitencia 2026",
+            "descripcion": "Acto con reparto tradicional",
+            "fecha": self.fecha_acto,
+            "tipo_acto": self.tipo_con_papeleta,
+            "modalidad": Acto.ModalidadReparto.TRADICIONAL,
+            "inicio_solicitud": self.inicio_insignias,
+            "fin_solicitud": self.fin_insignias,
+            "inicio_solicitud_cirios": self.inicio_cirios,
+            "fin_solicitud_cirios": self.fin_cirios,
+        }
+
+        self.acto_unificado_ok = {
+            "nombre": "Cabildo General 2026",
+            "descripcion": "Acto unificado",
+            "fecha": self.fecha_acto,
+            "tipo_acto": self.tipo_con_papeleta,
+            "modalidad": Acto.ModalidadReparto.UNIFICADO,
+            "inicio_solicitud": self.inicio_insignias,
+            "fin_solicitud": self.fin_insignias,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        }
+
+    
+
+    def test_admin_crea_acto_sin_papeleta_ok(self):
         """
-        [Positivo] Caso de éxito: Creación de un Acto que NO requiere papeleta.
-        
-        Input: 
-            - tipo_acto.requiere_papeleta = False.
-            - data contiene campos básicos.
-            - Campos de gestión de papeletas (modalidad, fechas solicitud) son None.
-        Resultado: 
-            - El servicio crea el acto correctamente sin levantar ValidationError.
-            - Los campos de fechas de solicitud se guardan como NULL en BBDD.
+        Test: Admin crea acto sin papeleta (tipo_acto.requiere_papeleta = False)
+
+        Given: tipo_acto sin papeleta.
+        When: data_validada incluye nombre, fecha, tipo_acto, descripcion opcional.
+        Then: se crea Acto; modalidad y fechas de solicitud quedan None.
         """
+        data_validada = self.acto_no_papeleta_ok.copy()
 
-        tipo_sin_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.CONVIVENCIA,
-            requiere_papeleta=False
-        )
+        acto = crear_acto_service(self.admin, data_validada)
 
-        fecha_acto = timezone.now() + timedelta(days=15)
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.nombre, data_validada["nombre"])
+        self.assertEqual(acto.tipo_acto, self.tipo_no_papeleta)
+        self.assertEqual(acto.fecha, data_validada["fecha"])
+        self.assertEqual(acto.descripcion, data_validada["descripcion"])
 
+        self.assertIsNone(acto.modalidad)
+        self.assertIsNone(acto.inicio_solicitud)
+        self.assertIsNone(acto.fin_solicitud)
+        self.assertIsNone(acto.inicio_solicitud_cirios)
+        self.assertIsNone(acto.fin_solicitud_cirios)
+
+        self.assertTrue(Acto.objects.filter(id=acto.id).exists())
+
+
+
+    def test_admin_crea_acto_sin_papeleta_con_descripcion_ok(self):
+        """
+        Test: Admin crea acto sin papeleta incluyendo descripción
+
+        Given: tipo_acto que no requiere papeleta.
+        When: data_validada incluye nombre, fecha, tipo_acto y descripción.
+        Then: el acto se crea y la descripción se persiste correctamente.
+        """
+        # Given
         data_validada = {
-            'nombre': 'Misa de Hermandad',
-            'descripcion': 'Misa mensual',
-            'fecha': fecha_acto,
-            'tipo_acto': tipo_sin_papeleta,
-
-            'modalidad': None,
-            'inicio_solicitud': None,
-            'fin_solicitud': None,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
+            "nombre": "Convivencia con descripción",
+            "descripcion": "Descripción opcional del acto",
+            "fecha": self.fecha_acto,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
         }
 
-        acto_creado = crear_acto_service(self.usuario_admin, data_validada)
+        acto = crear_acto_service(self.admin, data_validada)
 
-        self.assertIsNotNone(acto_creado.id, "El acto debería tener un ID asignado")
-        self.assertEqual(Acto.objects.count(), 1, "Debería haber 1 acto en la base de datos")
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.nombre, "Convivencia con descripción")
+        self.assertEqual(acto.descripcion, "Descripción opcional del acto")
+        self.assertEqual(acto.tipo_acto, self.tipo_no_papeleta)
 
-        self.assertEqual(acto_creado.nombre, 'Misa de Hermandad')
-        self.assertEqual(acto_creado.tipo_acto, tipo_sin_papeleta)
+        self.assertIsNone(acto.modalidad)
+        self.assertIsNone(acto.inicio_solicitud)
+        self.assertIsNone(acto.fin_solicitud)
+        self.assertIsNone(acto.inicio_solicitud_cirios)
+        self.assertIsNone(acto.fin_solicitud_cirios)
 
-        self.assertIsNone(acto_creado.modalidad)
-        self.assertIsNone(acto_creado.inicio_solicitud)
-        self.assertIsNone(acto_creado.fin_solicitud_cirios)
+        acto_db = Acto.objects.get(id=acto.id)
+        self.assertEqual(acto_db.descripcion, "Descripción opcional del acto")
 
 
 
-    def test_crear_acto_sin_papeleta_con_datos_prohibidos_error(self):
+    def test_admin_crea_acto_con_papeleta_unificado_fechas_validas_ok(self):
         """
-        [Negativo] Intento de creación de Acto que NO requiere papeleta, 
-        pero enviando datos de gestión de papeletas (fechas/modalidad).
-        
-        Input:
-            - tipo_acto.requiere_papeleta = False.
-            - data contiene campos prohibidos (ej. inicio_solicitud).
-        Resultado:
-            - El servicio lanza ValidationError.
-            - El mensaje de error es específico sobre la incompatibilidad.
-            - No se guarda nada en la base de datos.
+        Test: Admin crea acto con papeleta modalidad UNIFICADO (fechas válidas)
+
+        Given: requiere_papeleta=True, modalidad=UNIFICADO,
+            inicio_solicitud < fin_solicitud <= fecha,
+            e inicio_solicitud_cirios=None, fin_solicitud_cirios=None.
+        When: se llama a crear_acto_service con data_validada.
+        Then: se crea el Acto correctamente.
         """
-        tipo_sin_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.CONVIVENCIA,
-            requiere_papeleta=False
-        )
+        data_validada = self.acto_unificado_ok.copy()
 
-        fecha_acto = timezone.now() + timedelta(days=10)
+        acto = crear_acto_service(self.admin, data_validada)
 
-        data_invalida = {
-            'nombre': 'Misa de Difuntos',
-            'descripcion': 'Misa solemne',
-            'fecha': fecha_acto,
-            'tipo_acto': tipo_sin_papeleta,
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.tipo_acto, self.tipo_con_papeleta)
+        self.assertEqual(acto.modalidad, Acto.ModalidadReparto.UNIFICADO)
 
-            'inicio_solicitud': fecha_acto - timedelta(days=5),
+        self.assertEqual(acto.inicio_solicitud, self.inicio_insignias)
+        self.assertEqual(acto.fin_solicitud, self.fin_insignias)
+        self.assertEqual(acto.fecha, self.fecha_acto)
 
-            'modalidad': None, 
-        }
+        self.assertIsNone(acto.inicio_solicitud_cirios)
+        self.assertIsNone(acto.fin_solicitud_cirios)
 
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
+        self.assertTrue(Acto.objects.filter(id=acto.id).exists())
 
-        mensaje_error = str(contexto.exception)
-        self.assertIn(
-            "Un acto que no requiere papeleta no puede tener modalidad ni fechas de solicitud", 
-            mensaje_error
-        )
+
+
+    def test_admin_crea_acto_con_papeleta_tradicional_fases_validas_encadenadas_ok(self):
+        """
+        Test: Admin crea acto con papeleta modalidad TRADICIONAL (fases válidas y encadenadas)
+
+        Given: inicio_solicitud < fin_solicitud < inicio_solicitud_cirios < fin_solicitud_cirios <= fecha.
+        When: se llama a crear_acto_service con data_validada.
+        Then: se crea el Acto correctamente.
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+
+        acto = crear_acto_service(self.admin, data_validada)
+
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.tipo_acto, self.tipo_con_papeleta)
+        self.assertEqual(acto.modalidad, Acto.ModalidadReparto.TRADICIONAL)
+
+        self.assertEqual(acto.inicio_solicitud, self.inicio_insignias)
+        self.assertEqual(acto.fin_solicitud, self.fin_insignias)
+
+        self.assertEqual(acto.inicio_solicitud_cirios, self.inicio_cirios)
+        self.assertEqual(acto.fin_solicitud_cirios, self.fin_cirios)
+
+        self.assertEqual(acto.fecha, self.fecha_acto)
+
+        self.assertTrue(Acto.objects.filter(id=acto.id).exists())
+
+
+
+    def test_admin_crea_acto_mismo_nombre_dias_distintos_ok(self):
+        """
+        Test: Mismo nombre en días distintos
+
+        Given: ya existe un Acto llamado "Cabildo" el día 2026-02-01.
+        When: se crea otro Acto llamado "Cabildo" el día 2026-02-02.
+        Then: la creación es válida y no lanza error.
+        """
+        fecha_1 = self.fecha_acto.replace(day=1, month=2, year=2026)
+        fecha_2 = self.fecha_acto.replace(day=2, month=2, year=2026)
+
+        crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Primer cabildo",
+            "fecha": fecha_1,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        acto_2 = crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Segundo cabildo",
+            "fecha": fecha_2,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        self.assertIsNotNone(acto_2.id)
+        self.assertEqual(acto_2.nombre, "Cabildo")
+        self.assertEqual(acto_2.fecha.date(), fecha_2.date())
 
         self.assertEqual(
-            Acto.objects.filter(nombre='Misa de Difuntos').count(), 
-            0, 
-            "El acto no debió persistirse en la BBDD"
+            Acto.objects.filter(nombre="Cabildo").count(),
+            2
         )
 
 
 
-    def test_crear_acto_unificado_valido(self):
+    def test_admin_crea_acto_mismo_nombre_mismo_dia_distinta_hora_falla(self):
         """
-        [Positivo] Caso de éxito: Creación de Acto con papeleta en modalidad UNIFICADA.
-        
-        Input:
-            - requiere_papeleta = True.
-            - modalidad = 'UNIFICADO'.
-            - Fechas: inicio_solicitud < fin_solicitud < fecha_acto.
-            - Fechas de cirios = None (Condición obligatoria para UNIFICADO).
-        Resultado:
-            - El servicio crea el acto.
-            - Se ignoran/permiten nulos en las fechas de cirios.
+        Test: Mismo nombre el mismo día pero distinta hora -> FALLA
+
+        Given: ya existe un Acto llamado "Cabildo" el día 2026-02-01 a las 10:00.
+        When: se intenta crear "Cabildo" el mismo día a las 18:00.
+        Then: falla por unicidad (nombre + fecha__date).
         """
-        fecha_acto = timezone.now() + timedelta(days=60)
-        inicio_solicitud = timezone.now() + timedelta(days=10)
-        fin_solicitud = timezone.now() + timedelta(days=30)
+
+        fecha_10 = self.fecha_acto.replace(year=2026, month=2, day=1, hour=10, minute=0, second=0, microsecond=0)
+        fecha_18 = self.fecha_acto.replace(year=2026, month=2, day=1, hour=18, minute=0, second=0, microsecond=0)
+
+        crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Cabildo mañana",
+            "fecha": fecha_10,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        with self.assertRaises(DRFValidationError) as ctx:
+            crear_acto_service(self.admin, {
+                "nombre": "Cabildo",
+                "descripcion": "Cabildo tarde",
+                "fecha": fecha_18,
+                "tipo_acto": self.tipo_no_papeleta,
+                "modalidad": None,
+                "inicio_solicitud": None,
+                "fin_solicitud": None,
+                "inicio_solicitud_cirios": None,
+                "fin_solicitud_cirios": None,
+            })
+
+        self.assertIn("Ya existe el acto 'Cabildo' en esa fecha.", str(ctx.exception))
+
+
+
+    def test_admin_crea_acto_distinto_nombre_mismo_dia_ok(self):
+        """
+        Test: Distinto nombre el mismo día -> OK
+
+        Given: ya existe un Acto llamado "Cabildo" el día 2026-02-01.
+        When: se crea otro Acto con nombre distinto ("Cabildo Extraordinario") el mismo día (aunque cambie la hora o no).
+        Then: OK, porque la unicidad del service es por (nombre + fecha__date).
+        """
+        fecha_10 = self.fecha_acto.replace(year=2026, month=2, day=1, hour=10, minute=0, second=0, microsecond=0)
+        fecha_18 = self.fecha_acto.replace(year=2026, month=2, day=1, hour=18, minute=0, second=0, microsecond=0)
+
+        crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Cabildo mañana",
+            "fecha": fecha_10,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        acto_2 = crear_acto_service(self.admin, {
+            "nombre": "Cabildo Extraordinario",
+            "descripcion": "Cabildo tarde",
+            "fecha": fecha_18,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        self.assertIsNotNone(acto_2.id)
+        self.assertEqual(acto_2.nombre, "Cabildo Extraordinario")
+        self.assertEqual(acto_2.fecha.date(), fecha_18.date())
+
+        self.assertTrue(Acto.objects.filter(nombre="Cabildo", fecha__date=fecha_10.date()).exists())
+        self.assertTrue(Acto.objects.filter(nombre="Cabildo Extraordinario", fecha__date=fecha_18.date()).exists())
+
+
+
+    def test_admin_crea_acto_unificado_fin_solicitud_igual_fecha_ok(self):
+        """
+        Test: UNIFICADO con fin_solicitud == fecha -> OK
+
+        Given: requiere_papeleta=True, modalidad=UNIFICADO,
+            inicio_solicitud < fin_solicitud == fecha,
+            inicio_solicitud_cirios=None, fin_solicitud_cirios=None.
+        When: se crea el acto.
+        Then: OK, porque clean() solo prohíbe fin_solicitud > fecha (permite igualdad).
+        """
+        # Given
+        fecha_acto = self.fecha_acto.replace(year=2026, month=3, day=10, hour=20, minute=0, second=0, microsecond=0)
+        inicio = fecha_acto - timedelta(days=2)
+        fin = fecha_acto
 
         data_validada = {
-            'nombre': 'Salida Extraordinaria Unificada',
-            'descripcion': 'Procesión Magna',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-
-            'inicio_solicitud': inicio_solicitud,
-            'fin_solicitud': fin_solicitud,
-
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
+            "nombre": "Acto Unificado fin==fecha",
+            "descripcion": "Caso borde permitido",
+            "fecha": fecha_acto,
+            "tipo_acto": self.tipo_con_papeleta,
+            "modalidad": Acto.ModalidadReparto.UNIFICADO,
+            "inicio_solicitud": inicio,
+            "fin_solicitud": fin,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
         }
 
-        acto_creado = crear_acto_service(self.usuario_admin, data_validada)
+        acto = crear_acto_service(self.admin, data_validada)
 
-        self.assertEqual(Acto.objects.count(), 1)
-        self.assertEqual(acto_creado.modalidad, Acto.ModalidadReparto.UNIFICADO)
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.modalidad, Acto.ModalidadReparto.UNIFICADO)
+        self.assertEqual(acto.inicio_solicitud, inicio)
+        self.assertEqual(acto.fin_solicitud, fin)
+        self.assertEqual(acto.fecha, fecha_acto)
 
-        self.assertEqual(acto_creado.inicio_solicitud, inicio_solicitud)
-        self.assertEqual(acto_creado.fin_solicitud, fin_solicitud)
+        self.assertIsNone(acto.inicio_solicitud_cirios)
+        self.assertIsNone(acto.fin_solicitud_cirios)
 
-        self.assertIsNone(acto_creado.inicio_solicitud_cirios)
-        self.assertIsNone(acto_creado.fin_solicitud_cirios)
-
+        self.assertTrue(Acto.objects.filter(id=acto.id).exists())
 
 
-    def test_crear_acto_tradicional_valido(self):
+
+    def test_admin_crea_acto_tradicional_fin_cirios_igual_fecha_ok(self):
         """
-        [Positivo] Caso de éxito: Creación de Acto con papeleta en modalidad TRADICIONAL.
-        
-        Input:
-            - requiere_papeleta = True.
-            - modalidad = 'TRADICIONAL'.
-            - Secuencia temporal estricta:
-                Inicio Insignias < Fin Insignias < Inicio Cirios < Fin Cirios < Fecha Acto
-        Resultado:
-            - El servicio crea el acto.
-            - Se validan correctamente los huecos entre fases (sin solapamientos).
-        """
-        base_time = timezone.now()
+        Test: TRADICIONAL con fin_solicitud_cirios == fecha -> OK
 
-        inicio_insignias = base_time + timedelta(days=10)
-        fin_insignias    = base_time + timedelta(days=15)
-        inicio_cirios    = base_time + timedelta(days=20) 
-        fin_cirios       = base_time + timedelta(days=25)
-        
-        fecha_acto       = base_time + timedelta(days=60)
+        Given: requiere_papeleta=True, modalidad=TRADICIONAL,
+            inicio_solicitud < fin_solicitud < inicio_solicitud_cirios < fin_solicitud_cirios == fecha.
+        When: se crea el acto.
+        Then: OK, porque clean() solo prohíbe fin_solicitud_cirios > fecha (permite igualdad).
+        """
+        fecha_acto = self.fecha_acto.replace(year=2026, month=4, day=5, hour=21, minute=0, second=0, microsecond=0)
+
+        inicio_insignias = fecha_acto - timedelta(days=6)
+        fin_insignias = fecha_acto - timedelta(days=4)
+
+        inicio_cirios = fecha_acto - timedelta(days=2)
+        fin_cirios = fecha_acto
 
         data_validada = {
-            'nombre': 'Estación de Penitencia 2024',
-            'descripcion': 'Salida procesional Jueves Santo',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL, 
-            'inicio_solicitud': inicio_insignias,
-            'fin_solicitud': fin_insignias,
-            'inicio_solicitud_cirios': inicio_cirios,
-            'fin_solicitud_cirios': fin_cirios,
+            "nombre": "Acto Tradicional fin cirios == fecha",
+            "descripcion": "Caso borde permitido",
+            "fecha": fecha_acto,
+            "tipo_acto": self.tipo_con_papeleta,
+            "modalidad": Acto.ModalidadReparto.TRADICIONAL,
+            "inicio_solicitud": inicio_insignias,
+            "fin_solicitud": fin_insignias,
+            "inicio_solicitud_cirios": inicio_cirios,
+            "fin_solicitud_cirios": fin_cirios,
         }
 
-        acto_creado = crear_acto_service(self.usuario_admin, data_validada)
+        acto = crear_acto_service(self.admin, data_validada)
 
-        self.assertEqual(Acto.objects.count(), 1)
-        self.assertEqual(acto_creado.modalidad, Acto.ModalidadReparto.TRADICIONAL)
+        self.assertIsNotNone(acto.id)
+        self.assertEqual(acto.modalidad, Acto.ModalidadReparto.TRADICIONAL)
 
-        self.assertEqual(acto_creado.inicio_solicitud, inicio_insignias)
-        self.assertEqual(acto_creado.fin_solicitud, fin_insignias)
-        self.assertEqual(acto_creado.inicio_solicitud_cirios, inicio_cirios)
-        self.assertEqual(acto_creado.fin_solicitud_cirios, fin_cirios)
+        self.assertEqual(acto.inicio_solicitud, inicio_insignias)
+        self.assertEqual(acto.fin_solicitud, fin_insignias)
+
+        self.assertEqual(acto.inicio_solicitud_cirios, inicio_cirios)
+        self.assertEqual(acto.fin_solicitud_cirios, fin_cirios)
+
+        self.assertEqual(acto.fecha, fecha_acto)
+
+        self.assertTrue(Acto.objects.filter(id=acto.id).exists())
 
 
 
-    def test_crear_acto_sin_papeleta_con_datos_prohibidos(self):
+    def test_usuario_no_admin_intenta_crear_acto_falla_por_permisos(self):
         """
-        [Negativo] Intento de creación de Acto que NO requiere papeleta, 
-        pero enviando datos prohibidos (modalidad o fechas).
-        
-        Input:
-            - tipo_acto.requiere_papeleta = False.
-            - data incluye 'modalidad' = 'UNIFICADO' (o fechas).
-        Resultado:
-            - ValidationError con el mensaje específico de bloqueo.
+        Test: Usuario no admin intenta crear acto
+
+        Given: usuario_solicitante.esAdmin = False.
+        When: intenta crear un acto válido.
+        Then: PermissionDenied("No tienes permisos...").
         """
-        tipo_sin_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.ROSARIO_AURORA,
-            requiere_papeleta=False
-        )
+        data_validada = self.acto_no_papeleta_ok.copy()
 
-        fecha_acto = timezone.now() + timedelta(days=15)
+        with self.assertRaises(DRFPermissionDenied) as ctx:
+            crear_acto_service(self.hermano, data_validada)
 
-        data_invalida = {
-            'nombre': 'Rosario de la Aurora 2025',
-            'descripcion': 'Rezo del Santo Rosario',
-            'fecha': fecha_acto,
-            'tipo_acto': tipo_sin_papeleta,
-
-            'modalidad': Acto.ModalidadReparto.UNIFICADO, 
-            'inicio_solicitud': fecha_acto - timedelta(days=5)
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        mensaje_esperado = "Un acto que no requiere papeleta no puede tener modalidad ni fechas de solicitud."
-
-        self.assertIn(mensaje_esperado, str(contexto.exception))
-
-        self.assertEqual(Acto.objects.filter(nombre='Rosario de la Aurora 2025').count(), 0)
-
-
-
-    def test_crear_acto_con_papeleta_sin_modalidad_error(self):
-        """
-        [Negativo] Intento de crear un Acto con papeleta (requiere_papeleta=True)
-        sin especificar la modalidad de reparto (modalidad=None).
-        
-        Input:
-            - tipo_acto.requiere_papeleta = True.
-            - modalidad = None.
-        Resultado:
-            - ValidationError (DRF) indicando que el campo 'modalidad' es obligatorio.
-        """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Vía Crucis Sin Modalidad',
-            'descripcion': 'Acto de culto externo',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': None,
-            'inicio_solicitud': fecha_acto - timedelta(days=10),
-            'fin_solicitud': fecha_acto - timedelta(days=5),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail' (propio de DRF)")
-        
-        errores = exception.detail
-
-        self.assertIn('modalidad', errores, "El error debe estar asociado al campo 'modalidad'")
-
-        mensaje_esperado = "La modalidad es obligatoria para actos con papeleta."
-
-        self.assertIn(mensaje_esperado, str(errores['modalidad']))
-        self.assertEqual(Acto.objects.filter(nombre='Vía Crucis Sin Modalidad').count(), 0)
-
-
-
-    def test_crear_acto_fechas_obligatorias_faltantes_error(self):
-        """
-        [Negativo] Intento de crear un Acto con papeleta donde falta una de las fechas obligatorias
-        (inicio_solicitud o fin_solicitud).
-        
-        Input:
-            - requiere_papeleta = True.
-            - modalidad = 'UNIFICADO' (válida).
-            - inicio_solicitud = None (FALTANTE).
-        Resultado:
-            - ValidationError (DRF) indicando que el campo 'inicio_solicitud' es obligatorio.
-        """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Sin Fecha Inicio',
-            'descripcion': 'Falta la fecha de apertura',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': None,
-            'fin_solicitud': fecha_acto - timedelta(days=5),
-            
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('inicio_solicitud', errores, "El error debe estar en 'inicio_solicitud'")
-        
-        mensaje_esperado = "La fecha de inicio de solicitud es obligatoria."
-        
-        self.assertIn(mensaje_esperado, str(errores['inicio_solicitud']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Sin Fecha Inicio').count(), 0)
-
-
-
-    def test_crear_acto_tradicional_fechas_cirios_faltantes_error(self):
-        """
-        [Negativo] Intento de crear un Acto TRADICIONAL donde faltan las fechas específicas de cirios.
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - inicio_solicitud_cirios = None (FALTANTE).
-            - Las fechas de insignias (generales) sí están presentes.
-        Resultado:
-            - ValidationError (DRF) indicando que 'inicio_solicitud_cirios' es obligatorio en tradicional.
-        """
-        fecha_acto = timezone.now() + timedelta(days=40)
-        
-        data_invalida = {
-            'nombre': 'Tradicional Incompleto',
-            'descripcion': 'Faltan plazos de cirios',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': fecha_acto - timedelta(days=20),
-            'fin_solicitud': fecha_acto - timedelta(days=15),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': fecha_acto - timedelta(days=5),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-        self.assertIn('inicio_solicitud_cirios', errores, "El error debe estar en 'inicio_solicitud_cirios'")
-        
-        mensaje_esperado = "El inicio de cirios es obligatorio en modalidad tradicional."
-        
-        self.assertIn(mensaje_esperado, str(errores['inicio_solicitud_cirios']))
-        self.assertEqual(Acto.objects.filter(nombre='Tradicional Incompleto').count(), 0)
-
-
-
-    def test_crear_acto_unificado_con_fechas_cirios_error(self):
-        """
-        [Negativo] Intento de crear un Acto UNIFICADO enviando fechas de cirios.
-        
-        Input:
-            - modalidad = 'UNIFICADO'.
-            - inicio_solicitud_cirios = fecha (INVALIDO para esta modalidad).
-        Resultado:
-            - ValidationError (DRF) indicando que en unificado no debe haber fechas de cirios.
-            - El error debe estar asociado al campo 'modalidad'.
-        """
-        fecha_acto = timezone.now() + timedelta(days=50)
-        
-        data_invalida = {
-            'nombre': 'Unificado Incoherente',
-            'descripcion': 'Intento mezclar modalidades',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_acto - timedelta(days=20),
-            'fin_solicitud': fecha_acto - timedelta(days=10),
-            'inicio_solicitud_cirios': fecha_acto - timedelta(days=15),
-            'fin_solicitud_cirios': fecha_acto - timedelta(days=5),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-        self.assertIn('modalidad', errores, "El error debe estar asociado al campo 'modalidad'")
-        
-        mensaje_esperado = "En modalidad Unificada no se deben definir fechas de cirios independientes."
-        
-        self.assertIn(mensaje_esperado, str(errores['modalidad']))
-        self.assertEqual(Acto.objects.filter(nombre='Unificado Incoherente').count(), 0)
-
-
-
-    def test_crear_acto_incoherencia_fechas_insignias_error(self):
-        """
-        [Negativo] Intento de crear un Acto donde la fecha de inicio de solicitud 
-        es posterior a la fecha de fin (Incoherencia temporal).
-        
-        Input:
-            - inicio_solicitud > fin_solicitud.
-        Resultado:
-            - ValidationError (DRF) asociado al campo 'fin_solicitud'.
-        """
-        base_time = timezone.now()
-        fecha_acto = base_time + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Fechas Cruzadas',
-            'descripcion': 'Error cronológico',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-
-            'inicio_solicitud': base_time + timedelta(days=10),
-            'fin_solicitud': base_time + timedelta(days=5),
-
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud', errores, "El error debe estar en 'fin_solicitud'")
-        
-        mensaje_esperado = "La fecha de fin debe ser posterior al inicio."
-        
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Fechas Cruzadas').count(), 0)
-
-
-
-    def test_crear_acto_incoherencia_fechas_cirios_error(self):
-        """
-        [Negativo] Intento de crear un Acto TRADICIONAL donde la fecha de inicio de cirios 
-        es posterior a la fecha de fin de cirios.
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - inicio_solicitud_cirios > fin_solicitud_cirios.
-        Resultado:
-            - ValidationError (DRF) asociado al campo 'fin_solicitud_cirios'.
-        """
-        base_time = timezone.now()
-        fecha_acto = base_time + timedelta(days=60)
-        
-        data_invalida = {
-            'nombre': 'Cirios Incoherentes',
-            'descripcion': 'Error en fechas de papeletas de sitio generales',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': base_time + timedelta(days=5),
-            'fin_solicitud': base_time + timedelta(days=10),
-            'inicio_solicitud_cirios': base_time + timedelta(days=20),
-            'fin_solicitud_cirios': base_time + timedelta(days=15),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud_cirios', errores, "El error debe estar en 'fin_solicitud_cirios'")
-        
-        mensaje_esperado = "La fecha de fin de cirios debe ser posterior al inicio."
-        
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud_cirios']))
-        self.assertEqual(Acto.objects.filter(nombre='Cirios Incoherentes').count(), 0)
-
-
-
-    def test_crear_acto_tradicional_solapamiento_insignias_cirios_error(self):
-        """
-        [Negativo] Intento de crear un Acto TRADICIONAL donde el plazo de cirios 
-        comienza antes de que termine el de insignias (Solapamiento).
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - inicio_solicitud_cirios <= fin_solicitud (insignias).
-        Resultado:
-            - ValidationError (DRF) asociado a 'inicio_solicitud_cirios'.
-        """
-        base_time = timezone.now()
-        fecha_acto = base_time + timedelta(days=60)
-        
-        data_invalida = {
-            'nombre': 'Solapamiento Tradicional',
-            'descripcion': 'Conflicto de fechas entre fases',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': base_time + timedelta(days=10),
-            'fin_solicitud': base_time + timedelta(days=20),
-            'inicio_solicitud_cirios': base_time + timedelta(days=15),
-            'fin_solicitud_cirios': base_time + timedelta(days=25),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('inicio_solicitud_cirios', errores, "El error debe estar en 'inicio_solicitud_cirios'")
-        
-        mensaje_esperado = "El reparto de cirios debe empezar después de que terminen las insignias."
-        
-        self.assertIn(mensaje_esperado, str(errores['inicio_solicitud_cirios']))
-        self.assertEqual(Acto.objects.filter(nombre='Solapamiento Tradicional').count(), 0)
-
-
-
-    def test_crear_acto_fechas_solicitud_posterior_al_acto_error(self):
-        """
-        [Negativo] Intento de crear un Acto donde una de las fechas de solicitud
-        (ej. fin_solicitud) es posterior a la propia fecha de celebración del acto.
-        
-        Input:
-            - fecha_acto = Día X.
-            - fin_solicitud = Día X + 1 (Posterior al acto).
-        Resultado:
-            - ValidationError (DRF) asociado al campo 'fin_solicitud'.
-            - Mensaje: "Debe ser anterior a la fecha del acto..."
-        """
-        base_time = timezone.now()
-
-        fecha_acto = base_time + timedelta(days=10)
-        
-        data_invalida = {
-            'nombre': 'Acto Pasado de Fecha',
-            'descripcion': 'Error: solicitud termina después del acto',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': base_time + timedelta(days=1),
-            'fin_solicitud': fecha_acto + timedelta(days=1),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud', errores, "El error debe estar asociado a 'fin_solicitud'")
-        
-        mensaje_esperado_parte = "Debe ser anterior a la fecha del acto"
-        
-        self.assertIn(mensaje_esperado_parte, str(errores['fin_solicitud']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Pasado de Fecha').count(), 0)
-
-
-
-    def test_crear_acto_exito_admin(self):
-        """
-        [Positivo] Creación exitosa de un Acto por parte de un Administrador.
-        
-        Input:
-            - usuario.esAdmin = True.
-            - nombre único.
-            - fechas válidas (lógica temporal correcta).
-        Resultado:
-            - El servicio no lanza excepciones.
-            - El objeto Acto se crea en BBDD.
-            - El servicio retorna la instancia creada correctamente poblada.
-        """
-        fecha_acto = timezone.now() + timedelta(days=60)
-        inicio_solicitud = timezone.now() + timedelta(days=10)
-        fin_solicitud = timezone.now() + timedelta(days=30)
-
-        data_validada = {
-            'nombre': 'Procesión Magna 2025',
-            'descripcion': 'Salida extraordinaria por aniversario.',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': inicio_solicitud,
-            'fin_solicitud': fin_solicitud,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        acto_creado = crear_acto_service(self.usuario_admin, data_validada)
-        self.assertIsNotNone(acto_creado, "El servicio debe retornar el objeto creado.")
-        self.assertIsNotNone(acto_creado.id, "El objeto retornado debe tener un ID asignado (persistido).")
-        self.assertEqual(acto_creado.nombre, 'Procesión Magna 2025')
-
-        acto_db = Acto.objects.get(id=acto_creado.id)
-        self.assertEqual(acto_db.descripcion, 'Salida extraordinaria por aniversario.')
-        self.assertEqual(acto_db.fecha, fecha_acto)
-        self.assertEqual(acto_db.modalidad, Acto.ModalidadReparto.UNIFICADO)
-        self.assertTrue(Acto.objects.filter(nombre='Procesión Magna 2025').exists())
-
-
-
-    def test_crear_acto_fallo_seguridad_no_admin(self):
-        """
-        [Negativo] Fallo de Seguridad: Intento de creación por usuario NO Admin.
-        
-        Input:
-            - usuario.esAdmin = False (usuario_no_admin del setUp).
-            - data válida (para asegurar que el fallo es por permisos y no por validación).
-        Resultado:
-            - PermissionDenied levantado por el servicio.
-            - No se crea nada en la BBDD.
-        """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_validada = {
-            'nombre': 'Intento Hackeo',
-            'descripcion': 'Usuario normal intentando crear acto',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_acto - timedelta(days=10),
-            'fin_solicitud': fecha_acto - timedelta(days=5),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(PermissionDenied) as contexto:
-            crear_acto_service(self.usuario_no_admin, data_validada)
-
-        mensaje_esperado = "No tienes permisos para crear actos. Se requiere ser Administrador."
-        self.assertIn(mensaje_esperado, str(contexto.exception))
-        self.assertEqual(Acto.objects.count(), 0, "No se debería haber persistido ningún Acto")
-
-
-
-    def test_crear_acto_duplicado_nombre_y_fecha_error(self):
-        """
-        [Negativo] Intento de crear un Acto con el mismo nombre y fecha (día)
-        que uno ya existente.
-        
-        Input:
-            - Ya existe en BBDD: Acto(nombre="Procesión", fecha="Día X 10:00")
-            - Se intenta crear: Acto(nombre="Procesión", fecha="Día X 18:00")
-        Resultado:
-            - ValidationError indicando que "Ya existe el acto...".
-            - No se crea el segundo acto.
-        """
-        fecha_dia = timezone.now() + timedelta(days=90)
-        fecha_original = fecha_dia.replace(hour=10, minute=0, second=0)
-
-        Acto.objects.create(
-            nombre="Procesión Magna",
-            descripcion="Original",
-            fecha=fecha_original,
-            tipo_acto=self.tipo_acto,
-            modalidad=Acto.ModalidadReparto.UNIFICADO,
-            inicio_solicitud=fecha_original - timedelta(days=20),
-            fin_solicitud=fecha_original - timedelta(days=10)
-        )
-
-        fecha_intento = fecha_dia.replace(hour=18, minute=0, second=0)
-
-        data_duplicada = {
-            'nombre': "Procesión Magna",
-            'descripcion': "Intento de duplicado",
-            'fecha': fecha_intento,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_intento - timedelta(days=20),
-            'fin_solicitud': fecha_intento - timedelta(days=10),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_duplicada)
-
-        exception = contexto.exception
-
-        mensaje_esperado = "Ya existe el acto 'Procesión Magna' en esa fecha."
-        
-        if hasattr(exception, 'detail'):
-            self.assertIn(mensaje_esperado, str(exception.detail))
-        else:
-            self.assertIn(mensaje_esperado, str(exception))
-
-        self.assertEqual(Acto.objects.filter(nombre="Procesión Magna").count(), 1)
-
-
-
-    def test_crear_acto_rollback_validacion_fallida(self):
-        """
-        [Negativo] Verificación de Atomicidad/Rollback.
-        
-        Input:
-            - Usuario: Admin (Pasa el check de permisos).
-            - Nombre/Fecha: Únicos (Pasa el check de duplicados).
-            - Datos: Contienen una incoherencia de fechas que hace fallar a '_validar_fechas_acto'.
-        Resultado:
-            - Se lanza ValidationError.
-            - El decorador @transaction.atomic asegura que no se haga commit.
-            - No se crea el registro en BBDD.
-        """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Rollback Test',
-            'descripcion': 'Probando atomicidad',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_acto - timedelta(days=5),
-            'fin_solicitud': fecha_acto - timedelta(days=10),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError):
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        self.assertEqual(
-            Acto.objects.filter(nombre='Acto Rollback Test').count(), 
-            0,
-            "La transacción debió revertirse o cancelarse; el objeto no debe existir."
-        )
-
-
-
-    def test_crear_acto_frontera_inicio_igual_fin_error(self):
-        """
-        [Negativo] Caso Frontera: Inicio de solicitud es EXACTAMENTE igual al Fin.
-        
-        Input:
-            - inicio_solicitud == fin_solicitud.
-        Resultado:
-            - ValidationError. El código utiliza la condición '>=', por lo que
-                la igualdad también se considera inválida (se requiere duración > 0).
-        """
-        instante_reparto = timezone.now() + timedelta(days=10)
-        fecha_acto = timezone.now() + timedelta(days=60)
-        
-        data_invalida = {
-            'nombre': 'Acto Tiempo Nulo',
-            'descripcion': 'Intervalo de 0 minutos',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': instante_reparto,
-            'fin_solicitud': instante_reparto,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud', errores, "El error debe estar en 'fin_solicitud'")
-        
-        mensaje_esperado = "La fecha de fin debe ser posterior al inicio."
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud']))
-
-        self.assertEqual(Acto.objects.filter(nombre='Acto Tiempo Nulo').count(), 0)
-
-
-
-    def test_crear_acto_frontera_fin_solicitud_igual_fecha_acto_error(self):
-        """
-        [Negativo] Caso Frontera: La fecha de fin de solicitud es EXACTAMENTE igual 
-        a la fecha de celebración del Acto.
-        
-        Input:
-            - fin_solicitud == fecha_acto.
-        Resultado:
-            - ValidationError. El sistema exige 'valor < fecha_acto'.
-            - Al ser iguales (>=), debe bloquearse.
-        """
-        momento_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Frontera Límite',
-            'descripcion': 'Prueba de concurrencia de fechas',
-            'fecha': momento_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': momento_acto - timedelta(days=1),
-            'fin_solicitud': momento_acto,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud', errores, "El error debe estar en 'fin_solicitud'")
-
-        fecha_formateada = momento_acto.strftime('%d/%m/%Y %H:%M')
-        mensaje_esperado = f"Debe ser anterior a la fecha del acto ({fecha_formateada})."
-        
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Frontera Límite').count(), 0)
-
-
-
-    def test_crear_acto_frontera_fin_insignias_igual_inicio_cirios_error(self):
-        """
-        [Negativo] Caso Frontera TRADICIONAL: El fin de solicitud de insignias es 
-        EXACTAMENTE igual al inicio de solicitud de cirios.
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - fin_solicitud == inicio_solicitud_cirios.
-        Resultado:
-            - ValidationError. La lógica 'inicio_cirios <= fin_insignias' 
-                detecta el solapamiento incluso en la igualdad estricta.
-        """
-        base_time = timezone.now()
-        momento_cambio_fase = base_time + timedelta(days=10)
-        fecha_acto = base_time + timedelta(days=60)
-        
-        data_invalida = {
-            'nombre': 'Acto Frontera Fases',
-            'descripcion': 'Prueba de continuidad inmediata',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': momento_cambio_fase - timedelta(days=5),
-            'fin_solicitud': momento_cambio_fase,
-            'inicio_solicitud_cirios': momento_cambio_fase,
-            'fin_solicitud_cirios': momento_cambio_fase + timedelta(days=5),
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('inicio_solicitud_cirios', errores, "El error debe estar en 'inicio_solicitud_cirios'")
-        
-        mensaje_esperado = "El reparto de cirios debe empezar después de que terminen las insignias."
-        
-        self.assertIn(mensaje_esperado, str(errores['inicio_solicitud_cirios']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Frontera Fases').count(), 0)
-
-
-
-    def test_crear_acto_frontera_unicidad_mismo_dia_diferente_hora_error(self):
-        """
-        [Negativo] Caso Frontera de Unicidad: Mismo nombre, mismo día, diferente hora.
-        
-        Input:
-            - Existe: Acto("Misa", 20/03/2024 10:00).
-            - Intento: Acto("Misa", 20/03/2024 20:00).
-        Código: 
-            - filter(nombre=..., fecha__date=fecha.date()).
-        Resultado:
-            - ValidationError. El sistema considera que 'ya existe' porque coincide el día.
-        """
-        dia_conflicto = timezone.now() + timedelta(days=20)
-        fecha_manana = dia_conflicto.replace(hour=10, minute=0, second=0)
-        
-        Acto.objects.create(
-            nombre="Misa de Hermandad",
-            descripcion="Misa matutina",
-            fecha=fecha_manana,
-            tipo_acto=self.tipo_acto,
-            modalidad=Acto.ModalidadReparto.UNIFICADO,
-            inicio_solicitud=fecha_manana - timedelta(days=5),
-            fin_solicitud=fecha_manana - timedelta(days=1)
-        )
-
-        fecha_tarde = dia_conflicto.replace(hour=20, minute=0, second=0)
-
-        data_duplicada = {
-            'nombre': "Misa de Hermandad",
-            'descripcion': "Misa vespertina (Intento)",
-            'fecha': fecha_tarde,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_tarde - timedelta(days=5),
-            'fin_solicitud': fecha_tarde - timedelta(days=1),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_duplicada)
-
-        exception = contexto.exception
-
-        mensaje_esperado = "Ya existe el acto 'Misa de Hermandad' en esa fecha."
-
-        if hasattr(exception, 'detail'):
-            self.assertIn(mensaje_esperado, str(exception.detail))
-        else:
-            self.assertIn(mensaje_esperado, str(exception))
-
-        self.assertEqual(Acto.objects.filter(nombre="Misa de Hermandad").count(), 1)
-
-        acto_existente = Acto.objects.get(nombre="Misa de Hermandad")
-        self.assertEqual(acto_existente.fecha, fecha_manana)
-
-
-
-    def test_crear_acto_modalidad_string_vacio_error(self):
-        """
-        [Negativo] Caso de Valor Crítico: Modalidad enviada como string vacío ("").
-        
-        Input:
-            - tipo_acto.requiere_papeleta = True.
-            - modalidad = "" (String vacío).
-        Código:
-            - if not modalidad: (Python evalúa "" como False).
-        Resultado:
-            - ValidationError indicando que la modalidad es obligatoria.
-        """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Modalidad Vacía',
-            'descripcion': 'Test de valor Falsey',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': "", 
-            'inicio_solicitud': fecha_acto - timedelta(days=10),
-            'fin_solicitud': fecha_acto - timedelta(days=5),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-        self.assertIn('modalidad', errores, "El error debe estar en 'modalidad'")
-        
-        mensaje_esperado = "La modalidad es obligatoria para actos con papeleta."
-        
-        self.assertIn(mensaje_esperado, str(errores['modalidad']))
-        self.assertEqual(Acto.objects.filter(nombre='Acto Modalidad Vacía').count(), 0)
-
-
-
-    def test_crear_acto_tradicional_ambas_fechas_cirios_faltantes_error(self):
-        """
-        [Negativo] Intento de crear un Acto TRADICIONAL donde faltan AMBAS fechas de cirios.
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - inicio_solicitud_cirios = None.
-            - fin_solicitud_cirios = None.
-        Resultado:
-            - ValidationError (DRF) que contiene DOS errores simultáneos:
-                1. Clave 'inicio_solicitud_cirios'.
-                2. Clave 'fin_solicitud_cirios'.
-        """
-        fecha_acto = timezone.now() + timedelta(days=40)
-        
-        data_invalida = {
-            'nombre': 'Tradicional Sin Fechas Cirios',
-            'descripcion': 'Faltan inicio y fin de la fase 2',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': fecha_acto - timedelta(days=20),
-            'fin_solicitud': fecha_acto - timedelta(days=15),
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
-
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
-
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('inicio_solicitud_cirios', errores, "Debe reportar error en inicio")
         self.assertIn(
-            "El inicio de cirios es obligatorio en modalidad tradicional.", 
-            str(errores['inicio_solicitud_cirios'])
+            "No tienes permisos para crear actos. Se requiere ser Administrador.",
+            str(ctx.exception)
         )
 
-        self.assertIn('fin_solicitud_cirios', errores, "Debe reportar error en fin")
+
+
+    def test_usuario_sin_atributo_esAdmin_intenta_crear_acto_falla_por_permisos(self):
+        """
+        Test: usuario_solicitante es un objeto sin atributo esAdmin
+
+        Given: usuario_solicitante no tiene atributo esAdmin (getattr(..., False) => False).
+        When: intenta crear un acto válido.
+        Then: PermissionDenied.
+        """
+        class UsuarioSinAdmin:
+            pass
+
+        usuario = UsuarioSinAdmin()
+        data_validada = self.acto_no_papeleta_ok.copy()
+
+        with self.assertRaises(DRFPermissionDenied) as ctx:
+            crear_acto_service(usuario, data_validada)
+
         self.assertIn(
-            "El fin de cirios es obligatorio en modalidad tradicional.", 
-            str(errores['fin_solicitud_cirios'])
+            "No tienes permisos para crear actos. Se requiere ser Administrador.",
+            str(ctx.exception)
         )
 
-        self.assertEqual(Acto.objects.filter(nombre='Tradicional Sin Fechas Cirios').count(), 0)
 
 
-
-    def test_crear_acto_datos_basicos_obligatorios_faltantes_error(self):
+    def test_admin_crea_acto_duplicado_mismo_nombre_mismo_dia_falla(self):
         """
-        [Negativo] Intento de crear un Acto con papeleta donde faltan TODOS 
-        los datos obligatorios de configuración (Modalidad y Fechas Generales).
-        
-        Input:
-            - requiere_papeleta = True.
-            - modalidad = None.
-            - inicio_solicitud = None.
-            - fin_solicitud = None.
-        Resultado:
-            - ValidationError (DRF) conteniendo 3 errores simultáneos:
-                'modalidad', 'inicio_solicitud' y 'fin_solicitud'.
+        Test: Acto duplicado por (nombre + fecha en el mismo día)
+
+        Given: existe Acto con nombre="Cabildo" y fecha 2026-02-01 10:00.
+        When: se intenta crear otro Acto con nombre="Cabildo" y fecha 2026-02-01 20:00.
+        Then: falla porque el service valida unicidad por nombre + fecha__date.
         """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Sin Configuración',
-            'descripcion': 'Faltan los pilares básicos',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': None,
-            'inicio_solicitud': None,
-            'fin_solicitud': None,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
+        fecha_manana = self.fecha_acto.replace(
+            year=2026, month=2, day=1, hour=10, minute=0, second=0, microsecond=0
+        )
+        fecha_tarde = self.fecha_acto.replace(
+            year=2026, month=2, day=1, hour=20, minute=0, second=0, microsecond=0
+        )
 
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
+        crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Cabildo de mañana",
+            "fecha": fecha_manana,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
 
-        exception = contexto.exception
+        with self.assertRaises(DRFValidationError) as ctx:
+            crear_acto_service(self.admin, {
+                "nombre": "Cabildo",
+                "descripcion": "Cabildo de tarde",
+                "fecha": fecha_tarde,
+                "tipo_acto": self.tipo_no_papeleta,
+                "modalidad": None,
+                "inicio_solicitud": None,
+                "fin_solicitud": None,
+                "inicio_solicitud_cirios": None,
+                "fin_solicitud_cirios": None,
+            })
 
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('modalidad', errores, "Debe faltar la modalidad")
         self.assertIn(
-            "La modalidad es obligatoria para actos con papeleta.", 
-            str(errores['modalidad'])
+            "Ya existe el acto 'Cabildo' en esa fecha.",
+            str(ctx.exception)
         )
 
-        self.assertIn('inicio_solicitud', errores, "Debe faltar el inicio")
+
+
+    def test_admin_crea_acto_nombre_igual_datetime_equivalente_distinta_tz_mismo_dia_falla(self):
+        """
+        Test: Edge - nombre coincide, pero la fecha cambia solo por zona horaria (datetime equivalente)
+
+        Given: existe Acto "Cabildo" con fecha tz-aware (Europe/Madrid) en 2026-02-01.
+        When: intentas crear "Cabildo" con un datetime equivalente (misma hora instantánea) pero en UTC,
+            y al hacer fecha.date() cae en el mismo día (2026-02-01).
+        Then: debe fallar igual porque el service valida por nombre + fecha__date (mismo date()).
+        """
+        madrid = ZoneInfo("Europe/Madrid")
+        utc = ZoneInfo("UTC")
+
+        fecha_madrid = self.fecha_acto.replace(
+            year=2026, month=2, day=1, hour=10, minute=0, second=0, microsecond=0, tzinfo=madrid
+        )
+        fecha_utc_equivalente = self.fecha_acto.replace(
+            year=2026, month=2, day=1, hour=9, minute=0, second=0, microsecond=0, tzinfo=utc
+        )
+
+        self.assertEqual(fecha_madrid.astimezone(utc), fecha_utc_equivalente)
+
+        self.assertEqual(fecha_madrid.date(), fecha_utc_equivalente.date())
+        self.assertEqual(fecha_madrid.date().isoformat(), "2026-02-01")
+
+        crear_acto_service(self.admin, {
+            "nombre": "Cabildo",
+            "descripcion": "Cabildo creado en tz Madrid",
+            "fecha": fecha_madrid,
+            "tipo_acto": self.tipo_no_papeleta,
+            "modalidad": None,
+            "inicio_solicitud": None,
+            "fin_solicitud": None,
+            "inicio_solicitud_cirios": None,
+            "fin_solicitud_cirios": None,
+        })
+
+        with self.assertRaises(DRFValidationError) as ctx:
+            crear_acto_service(self.admin, {
+                "nombre": "Cabildo",
+                "descripcion": "Cabildo equivalente en UTC",
+                "fecha": fecha_utc_equivalente,
+                "tipo_acto": self.tipo_no_papeleta,
+                "modalidad": None,
+                "inicio_solicitud": None,
+                "fin_solicitud": None,
+                "inicio_solicitud_cirios": None,
+                "fin_solicitud_cirios": None,
+            })
+
+        self.assertIn("Ya existe el acto 'Cabildo' en esa fecha.", str(ctx.exception))
+
+
+
+    def test_admin_crea_acto_con_nombre_none_falla_por_modelo(self):
+        """
+        Test: nombre=None
+
+        Given: data_validada tiene nombre=None (service no entra en la unicidad).
+        When: se intenta crear el acto.
+        Then: falla por full_clean() del modelo con ValidationError en 'nombre'.
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["nombre"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("nombre", ctx.exception.message_dict)
+        self.assertIn("This field cannot be null.", ctx.exception.message_dict["nombre"])
+
+
+
+    def test_admin_crea_acto_con_fecha_none_falla_por_modelo(self):
+        """
+        Test: fecha=None
+
+        Given: data_validada tiene fecha=None (service no entra en la unicidad).
+        When: se intenta crear el acto.
+        Then: falla por full_clean() del modelo con ValidationError en 'fecha'.
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["fecha"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fecha", ctx.exception.message_dict)
+        self.assertIn("This field cannot be null.", ctx.exception.message_dict["fecha"])
+
+
+
+    def test_admin_crea_acto_tipo_sin_papeleta_con_modalidad_falla(self):
+        """
+        Test: Tipo sin papeleta pero se envía modalidad
+
+        Given: tipo_acto.requiere_papeleta = False.
+        When: data_validada incluye modalidad.
+        Then: ValidationError con error en 'modalidad'
+            ("Un acto que no requiere papeleta no puede tener modalidad.").
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["modalidad"] = Acto.ModalidadReparto.UNIFICADO
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("modalidad", ctx.exception.message_dict)
         self.assertIn(
-            "La fecha de inicio de solicitud es obligatoria.", 
-            str(errores['inicio_solicitud'])
+            "Un acto que no requiere papeleta",
+            ctx.exception.message_dict["modalidad"][0]
         )
 
-        self.assertIn('fin_solicitud', errores, "Debe faltar el fin")
+
+
+    def test_admin_crea_acto_tipo_sin_papeleta_con_inicio_solicitud_falla(self):
+        """
+        Test: Tipo sin papeleta pero se envía inicio_solicitud
+
+        Given: tipo_acto.requiere_papeleta = False.
+        When: data_validada incluye inicio_solicitud.
+        Then: ValidationError con error en 'inicio_solicitud'
+            ("Un acto que no requiere papeleta no puede tener fechas de solicitud.").
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["inicio_solicitud"] = self.inicio_insignias
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud", ctx.exception.message_dict)
         self.assertIn(
-            "La fecha de fin de solicitud es obligatoria.", 
-            str(errores['fin_solicitud'])
+            "Un acto que no requiere papeleta",
+            ctx.exception.message_dict["inicio_solicitud"][0]
         )
 
-        self.assertEqual(Acto.objects.filter(nombre='Acto Sin Configuración').count(), 0)
 
 
-
-    def test_crear_acto_fin_solicitud_faltante_error(self):
+    def test_admin_crea_acto_tipo_sin_papeleta_con_fin_solicitud_falla(self):
         """
-        [Negativo] Intento de crear un Acto con papeleta donde falta SOLO 
-        la fecha de fin de solicitud.
-        
-        Input:
-            - requiere_papeleta = True.
-            - modalidad = 'UNIFICADO' (Correcto).
-            - inicio_solicitud = Fecha válida (Correcto).
-            - fin_solicitud = None (FALTANTE).
-        Resultado:
-            - ValidationError (DRF) asociado exclusivamente al campo 'fin_solicitud'.
+        Test: Tipo sin papeleta pero se envía fin_solicitud
+
+        Given: tipo_acto.requiere_papeleta = False.
+        When: data_validada incluye fin_solicitud.
+        Then: ValidationError con error en 'fin_solicitud'
+            ("Un acto que no requiere papeleta no puede tener fechas de solicitud.").
         """
-        fecha_acto = timezone.now() + timedelta(days=30)
-        
-        data_invalida = {
-            'nombre': 'Acto Sin Fecha Fin',
-            'descripcion': 'Falta el cierre de plazo',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.UNIFICADO,
-            'inicio_solicitud': fecha_acto - timedelta(days=10),
-            'fin_solicitud': None,
-            'inicio_solicitud_cirios': None,
-            'fin_solicitud_cirios': None,
-        }
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["fin_solicitud"] = self.fin_insignias
 
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
 
-        exception = contexto.exception
-
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
-
-        self.assertIn('fin_solicitud', errores, "El error debe estar en 'fin_solicitud'")
-        
-        mensaje_esperado = "La fecha de fin de solicitud es obligatoria."
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud']))
-
-        self.assertNotIn('inicio_solicitud', errores)
-        self.assertNotIn('modalidad', errores)
-
-        self.assertEqual(Acto.objects.filter(nombre='Acto Sin Fecha Fin').count(), 0)
+        self.assertIn("fin_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "Un acto que no requiere papeleta",
+            ctx.exception.message_dict["fin_solicitud"][0]
+        )
 
 
 
-    def test_crear_acto_tradicional_fin_cirios_faltante_error(self):
+    def test_admin_crea_acto_tipo_sin_papeleta_con_fechas_cirios_falla(self):
         """
-        [Negativo] Intento de crear un Acto TRADICIONAL donde falta SOLO 
-        la fecha de fin de solicitud de cirios.
-        
-        Input:
-            - modalidad = 'TRADICIONAL'.
-            - inicio_solicitud_cirios = Fecha válida (Correcto).
-            - fin_solicitud_cirios = None (FALTANTE).
-        Resultado:
-            - ValidationError (DRF) asociado exclusivamente al campo 'fin_solicitud_cirios'.
+        Test: Tipo sin papeleta pero se envían fechas de cirios
+
+        Given: tipo_acto.requiere_papeleta = False.
+        When: data_validada incluye inicio_solicitud_cirios y/o fin_solicitud_cirios.
+        Then: ValidationError con error en inicio_solicitud_cirios y/o fin_solicitud_cirios
+            ("Un acto que no requiere papeleta no puede tener fechas de solicitud.").
         """
-        fecha_acto = timezone.now() + timedelta(days=40)
-        
-        data_invalida = {
-            'nombre': 'Tradicional Sin Fin Cirios',
-            'descripcion': 'Falta el cierre de la fase 2',
-            'fecha': fecha_acto,
-            'tipo_acto': self.tipo_acto,
-            'modalidad': Acto.ModalidadReparto.TRADICIONAL,
-            'inicio_solicitud': fecha_acto - timedelta(days=20),
-            'fin_solicitud': fecha_acto - timedelta(days=15),
-            'inicio_solicitud_cirios': fecha_acto - timedelta(days=10),
-            'fin_solicitud_cirios': None,
-        }
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.inicio_cirios
+        data_validada["fin_solicitud_cirios"] = self.fin_cirios
 
-        with self.assertRaises(ValidationError) as contexto:
-            crear_acto_service(self.usuario_admin, data_invalida)
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
 
-        exception = contexto.exception
+        self.assertTrue(
+            "inicio_solicitud_cirios" in ctx.exception.message_dict
+            or "fin_solicitud_cirios" in ctx.exception.message_dict
+        )
 
-        self.assertTrue(hasattr(exception, 'detail'), "La excepción debe tener el atributo '.detail'")
-        
-        errores = exception.detail
+        errores = ctx.exception.message_dict
+        if "inicio_solicitud_cirios" in errores:
+            self.assertIn(
+                "no requiere papeleta",
+                errores["inicio_solicitud_cirios"][0]
+            )
+        if "fin_solicitud_cirios" in errores:
+            self.assertIn(
+                "no requiere papeleta",
+                errores["fin_solicitud_cirios"][0]
+            )
 
-        self.assertIn('fin_solicitud_cirios', errores, "El error debe estar en 'fin_solicitud_cirios'")
-        
-        mensaje_esperado = "El fin de cirios es obligatorio en modalidad tradicional."
-        self.assertIn(mensaje_esperado, str(errores['fin_solicitud_cirios']))
 
-        self.assertNotIn('inicio_solicitud_cirios', errores)
-        self.assertEqual(Acto.objects.filter(nombre='Tradicional Sin Fin Cirios').count(), 0)
+
+    def test_admin_crea_acto_tipo_sin_papeleta_con_multiples_campos_prohibidos_falla_con_varios_errores(self):
+        """
+        Test: Tipo sin papeleta pero envías varias cosas prohibidas a la vez
+
+        Given: tipo_acto.requiere_papeleta = False.
+        When: envías modalidad + varias fechas (insignias y cirios) a la vez.
+        Then: ValidationError con múltiples claves en message_dict (acumula errores en `errors`).
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada.update({
+            "modalidad": Acto.ModalidadReparto.TRADICIONAL,
+            "inicio_solicitud": self.inicio_insignias,
+            "fin_solicitud": self.fin_insignias,
+            "inicio_solicitud_cirios": self.inicio_cirios,
+            "fin_solicitud_cirios": self.fin_cirios,
+        })
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        errores = ctx.exception.message_dict
+
+        self.assertGreaterEqual(len(errores.keys()), 2)
+
+        self.assertIn("modalidad", errores)
+        self.assertIn("inicio_solicitud", errores)
+        self.assertIn("fin_solicitud", errores)
+        self.assertIn("inicio_solicitud_cirios", errores)
+        self.assertIn("fin_solicitud_cirios", errores)
+
+        self.assertIn("no requiere papeleta", errores["modalidad"][0].lower())
+        self.assertIn("no requiere papeleta", errores["inicio_solicitud"][0].lower())
+        self.assertIn("no requiere papeleta", errores["fin_solicitud"][0].lower())
+        self.assertIn("no requiere papeleta", errores["inicio_solicitud_cirios"][0].lower())
+        self.assertIn("no requiere papeleta", errores["fin_solicitud_cirios"][0].lower())
+
+
+
+    def test_admin_crea_acto_con_papeleta_sin_modalidad_falla(self):
+        """
+        Test: Falta modalidad
+
+        Given: tipo_acto.requiere_papeleta = True.
+        When: data_validada no incluye modalidad (modalidad=None) pero sí fechas obligatorias.
+        Then: ValidationError con error en 'modalidad'.
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["modalidad"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("modalidad", ctx.exception.message_dict)
+        self.assertIn(
+            "La modalidad es obligatoria para actos con papeleta.",
+            ctx.exception.message_dict["modalidad"]
+        )
+
+
+
+    def test_admin_crea_acto_con_papeleta_sin_inicio_solicitud_falla(self):
+        """
+        Test: Falta inicio_solicitud
+
+        Given: tipo_acto.requiere_papeleta = True.
+        When: data_validada no incluye inicio_solicitud.
+        Then: ValidationError con error en 'inicio_solicitud'.
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["inicio_solicitud"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "El inicio de solicitud es obligatorio.",
+            ctx.exception.message_dict["inicio_solicitud"]
+        )
+
+
+
+    def test_admin_crea_acto_con_papeleta_sin_fin_solicitud_falla(self):
+        """
+        Test: Falta fin_solicitud
+
+        Given: tipo_acto.requiere_papeleta = True.
+        When: data_validada no incluye fin_solicitud.
+        Then: ValidationError con error en 'fin_solicitud'.
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["fin_solicitud"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "El fin de solicitud es obligatorio.",
+            ctx.exception.message_dict["fin_solicitud"]
+        )
+
+
+
+    def test_admin_crea_acto_inicio_solicitud_igual_fin_solicitud_falla(self):
+        """
+        Test: inicio_solicitud == fin_solicitud
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad válida.
+        When: inicio_solicitud == fin_solicitud.
+        Then: ValidationError con error en 'fin_solicitud'
+            ("El fin de solicitud debe ser posterior al inicio.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["inicio_solicitud"] = self.inicio_insignias
+        data_validada["fin_solicitud"] = self.inicio_insignias
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "posterior al inicio",
+            ctx.exception.message_dict["fin_solicitud"][0]
+        )
+
+
+
+    def test_admin_crea_acto_inicio_solicitud_mayor_que_fin_solicitud_falla(self):
+        """
+        Test: inicio_solicitud > fin_solicitud
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad válida.
+        When: inicio_solicitud es posterior a fin_solicitud.
+        Then: ValidationError con error en 'fin_solicitud'
+            ("El fin de solicitud debe ser posterior al inicio.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["inicio_solicitud"] = self.fin_insignias
+        data_validada["fin_solicitud"] = self.inicio_insignias
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "posterior al inicio",
+            ctx.exception.message_dict["fin_solicitud"][0]
+        )
+
+
+
+    def test_admin_crea_acto_inicio_solicitud_igual_o_posterior_a_fecha_falla(self):
+        """
+        Test: inicio_solicitud >= fecha
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad válida.
+        When: inicio_solicitud es igual o posterior a la fecha del acto.
+        Then: ValidationError con error en 'inicio_solicitud'
+            ("El inicio de solicitud no puede ser igual o posterior a la fecha del acto.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+
+        data_validada["inicio_solicitud"] = self.fecha_acto
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "igual o posterior a la fecha del acto",
+            ctx.exception.message_dict["inicio_solicitud"][0]
+        )
+
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["inicio_solicitud"] = self.fecha_acto + timedelta(hours=1)
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "igual o posterior a la fecha del acto",
+            ctx.exception.message_dict["inicio_solicitud"][0]
+        )
+
+
+
+    def test_admin_crea_acto_fin_solicitud_posterior_a_fecha_falla(self):
+        """
+        Test: fin_solicitud > fecha
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad válida.
+        When: fin_solicitud es posterior a la fecha del acto.
+        Then: ValidationError con error en 'fin_solicitud'
+            ("El fin de solicitud no puede ser posterior a la fecha del acto.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["fin_solicitud"] = self.fecha_acto + timedelta(hours=1)
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud", ctx.exception.message_dict)
+        self.assertIn(
+            "no puede ser posterior a la fecha del acto",
+            ctx.exception.message_dict["fin_solicitud"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_sin_inicio_solicitud_cirios_falla(self):
+        """
+        Test: TRADICIONAL sin inicio_solicitud_cirios
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: falta inicio_solicitud_cirios.
+        Then: ValidationError con error en 'inicio_solicitud_cirios'
+            ("El inicio de cirios es obligatorio en modalidad tradicional.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "obligatorio en modalidad tradicional",
+            ctx.exception.message_dict["inicio_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_sin_fin_solicitud_cirios_falla(self):
+        """
+        Test: TRADICIONAL sin fin_solicitud_cirios
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: falta fin_solicitud_cirios.
+        Then: ValidationError con error en 'fin_solicitud_cirios'
+            ("El fin de cirios es obligatorio en modalidad tradicional.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["fin_solicitud_cirios"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "obligatorio en modalidad tradicional",
+            ctx.exception.message_dict["fin_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_inicio_cirios_igual_fin_cirios_falla(self):
+        """
+        Test: inicio_solicitud_cirios == fin_solicitud_cirios
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: inicio_solicitud_cirios es igual a fin_solicitud_cirios.
+        Then: ValidationError con error en 'fin_solicitud_cirios'
+            ("El fin de cirios debe ser posterior al inicio.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.inicio_cirios
+        data_validada["fin_solicitud_cirios"] = self.inicio_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "posterior al inicio",
+            ctx.exception.message_dict["fin_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_inicio_cirios_mayor_que_fin_cirios_falla(self):
+        """
+        Test: inicio_solicitud_cirios > fin_solicitud_cirios
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: inicio_solicitud_cirios es posterior a fin_solicitud_cirios.
+        Then: ValidationError con error en 'fin_solicitud_cirios'
+            ("El fin de cirios debe ser posterior al inicio.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.fin_cirios
+        data_validada["fin_solicitud_cirios"] = self.inicio_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "posterior al inicio",
+            ctx.exception.message_dict["fin_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_inicio_cirios_igual_o_posterior_a_fecha_falla(self):
+        """
+        Test: inicio_solicitud_cirios >= fecha
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: inicio_solicitud_cirios es igual o posterior a la fecha del acto.
+        Then: ValidationError con error en 'inicio_solicitud_cirios'
+            ("El inicio de cirios no puede ser igual o posterior a la fecha del acto.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+
+        data_validada["inicio_solicitud_cirios"] = self.fecha_acto
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "igual o posterior a la fecha del acto",
+            ctx.exception.message_dict["inicio_solicitud_cirios"][0]
+        )
+
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.fecha_acto + timedelta(hours=1)
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "igual o posterior a la fecha del acto",
+            ctx.exception.message_dict["inicio_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_fin_cirios_posterior_a_fecha_falla(self):
+        """
+        Test: fin_solicitud_cirios > fecha
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+        When: fin_solicitud_cirios es posterior a la fecha del acto.
+        Then: ValidationError con error en 'fin_solicitud_cirios'
+            ("El fin de cirios no puede ser posterior a la fecha del acto.").
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["fin_solicitud_cirios"] = self.fecha_acto + timedelta(hours=1)
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "no puede ser posterior a la fecha del acto",
+            ctx.exception.message_dict["fin_solicitud_cirios"][0]
+        )
+
+
+
+    def test_admin_crea_acto_tradicional_conflicto_fases_fin_insignias_mayor_o_igual_inicio_cirios_falla(self):
+        """
+        Test: Conflicto de fases (fin_solicitud >= inicio_solicitud_cirios)
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = TRADICIONAL.
+            inicio_solicitud < fin_solicitud >= inicio_solicitud_cirios < fin_solicitud_cirios <= fecha.
+        When: fin_solicitud es igual o posterior al inicio de cirios.
+        Then: ValidationError con error en 'inicio_solicitud_cirios' y mensaje:
+            "El período de cirios debe comenzar después de finalizar el de insignias."
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+
+        data_validada["fin_solicitud"] = self.inicio_cirios
+        data_validada["inicio_solicitud_cirios"] = self.inicio_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("inicio_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn(
+            "El período de cirios debe comenzar después",
+            ctx.exception.message_dict["inicio_solicitud_cirios"][0]
+        )
+
+
+
+    def test_tradicional_orden_global_invalido_por_fin_cirios_no_posterior_sale_error_especifico(self):
+        """
+        Test: Orden global inválido, pero el fallo real es fin_cirios no posterior a inicio_cirios
+
+        Given: inicio_solicitud < fin_solicitud < inicio_cirios
+            pero inicio_cirios >= fin_cirios (rompe el orden global)
+        Then: error en fin_solicitud_cirios con mensaje específico ("posterior al inicio"),
+            no el genérico de "Orden de fases incorrecto".
+        """
+        data_validada = self.acto_tradicional_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.inicio_cirios
+        data_validada["fin_solicitud_cirios"] = self.inicio_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("fin_solicitud_cirios", ctx.exception.message_dict)
+        self.assertIn("posterior al inicio", ctx.exception.message_dict["fin_solicitud_cirios"][0])
+
+
+
+    def test_admin_crea_acto_unificado_con_inicio_cirios_informado_falla(self):
+        """
+        Test: UNIFICADO con inicio_solicitud_cirios informado
+
+        Given: tipo_acto.requiere_papeleta=True, modalidad=UNIFICADO.
+        When: se informa inicio_solicitud_cirios (no permitido en UNIFICADO).
+        Then: ValidationError con error en 'modalidad'
+            ("En modalidad UNIFICADO no se deben definir fechas de cirios.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["inicio_solicitud_cirios"] = self.inicio_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("modalidad", ctx.exception.message_dict)
+        self.assertIn(
+            "no se deben definir fechas de cirios",
+            ctx.exception.message_dict["modalidad"][0]
+        )
+
+
+
+    def test_admin_crea_acto_unificado_con_fin_cirios_informado_falla(self):
+        """
+        Test: UNIFICADO con fin_solicitud_cirios informado
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = UNIFICADO.
+        When: se informa fin_solicitud_cirios (campo prohibido en UNIFICADO).
+        Then: ValidationError con error en 'modalidad'
+            ("En modalidad UNIFICADO no se deben definir fechas de cirios.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["fin_solicitud_cirios"] = self.fin_cirios
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("modalidad", ctx.exception.message_dict)
+        self.assertIn(
+            "no se deben definir fechas de cirios",
+            ctx.exception.message_dict["modalidad"][0]
+        )
+
+
+
+    def test_admin_crea_acto_unificado_con_ambas_fechas_cirios_informadas_falla(self):
+        """
+        Test: UNIFICADO con ambas fechas de cirios informadas
+
+        Given: tipo_acto.requiere_papeleta = True y modalidad = UNIFICADO.
+        When: se informan inicio_solicitud_cirios y fin_solicitud_cirios a la vez.
+        Then: ValidationError con un único error en 'modalidad'
+            ("En modalidad UNIFICADO no se deben definir fechas de cirios.").
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada.update({
+            "inicio_solicitud_cirios": self.inicio_cirios,
+            "fin_solicitud_cirios": self.fin_cirios,
+        })
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        errores = ctx.exception.message_dict
+
+        self.assertIn("modalidad", errores)
+        self.assertEqual(len(errores.keys()), 1)
+
+        self.assertIn(
+            "no se deben definir fechas de cirios",
+            errores["modalidad"][0]
+        )
+
+
+
+    def test_admin_crea_acto_sin_tipo_acto_falla(self):
+        """
+        Test: tipo_acto no viene
+
+        Given: data_validada no incluye tipo_acto (queda None).
+        When: se intenta crear el acto.
+        Then: ValidationError con clave 'tipo_acto' y mensaje:
+            "El tipo de acto es obligatorio."
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["tipo_acto"] = None
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("tipo_acto", ctx.exception.message_dict)
+        self.assertIn(
+            "El tipo de acto es obligatorio.",
+            ctx.exception.message_dict["tipo_acto"]
+        )
+
+
+
+    def test_admin_crea_acto_con_tipo_acto_id_inexistente_falla(self):
+        """
+        Test: tipo_acto_id inválido (FK no existe)
+
+        Given: data_validada incluye tipo_acto_id con un id que no existe.
+        When: se intenta crear el acto.
+        Then: falla. En este flujo concreto, Django puede lanzar TipoActo.DoesNotExist
+            al intentar resolver el FK (antes de llegar a BD).
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada.pop("tipo_acto", None)
+        data_validada["tipo_acto_id"] = 999999
+
+        with self.assertRaises((TipoActo.DoesNotExist, DjangoValidationError, IntegrityError)):
+            crear_acto_service(self.admin, data_validada)
+
+
+
+    def test_admin_crea_acto_con_modalidad_no_permitida_falla_por_choices(self):
+        """
+        Test: modalidad con valor no permitido
+
+        Given: tipo_acto.requiere_papeleta = True.
+        When: modalidad tiene un valor que no está en Acto.ModalidadReparto.choices.
+        Then: ValidationError lanzado por full_clean() (choices inválido).
+        """
+        data_validada = self.acto_unificado_ok.copy()
+        data_validada["modalidad"] = "INVALIDA"
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("modalidad", ctx.exception.message_dict)
+
+        msg = ctx.exception.message_dict["modalidad"][0]
+        self.assertTrue(
+            ("valid choice" in msg.lower()) or ("not a valid choice" in msg.lower()),
+            f"Mensaje inesperado para choices inválido: {msg}"
+        )
+
+
+
+    def test_admin_crea_acto_con_nombre_vacio_falla(self):
+        """
+        Test: nombre=""
+
+        Given: nombre es string vacío.
+        When: se intenta crear el acto.
+        Then: ValidationError en 'nombre' (blank).
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["nombre"] = ""
+
+        with self.assertRaises(DjangoValidationError) as ctx:
+            crear_acto_service(self.admin, data_validada)
+
+        self.assertIn("nombre", ctx.exception.message_dict)
+        self.assertTrue(len(ctx.exception.message_dict["nombre"]) >= 1)
+
+
+
+    def test_admin_crea_acto_con_nombre_solo_espacios_deberia_fallar(self):
+        """
+        Test: nombre="   " (solo espacios)
+
+        Expected: debería fallar (defensa), pero OJO: con el modelo actual puede colarse.
+        """
+        data_validada = self.acto_no_papeleta_ok.copy()
+        data_validada["nombre"] = "   "
+
+        with self.assertRaises(DjangoValidationError):
+            crear_acto_service(self.admin, data_validada)

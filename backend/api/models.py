@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.db.models import UniqueConstraint, Q
 
 # -----------------------------------------------------------------------------
 # ENTIDAD: AREA DE INTERÉS
@@ -129,6 +130,9 @@ class Cuota(models.Model):
 
     def __str__(self):
         return f"{self.anio} - {self.tipo} - {self.hermano}"
+    
+    class Meta:
+        indexes = [models.Index(fields=['hermano', 'estado', 'anio'], name='idx_cuota_deuda_hermano'),]
 
 # -----------------------------------------------------------------------------
 # ENTIDAD: HERMANO
@@ -159,7 +163,7 @@ class Hermano(AbstractUser):
         message="El código postal debe tener exactamente 5 dígitos numéricos."
     )
 
-    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=150, unique=True, blank=False, null=False)
     nombre = models.CharField(max_length=100, verbose_name = "Nombre")
     primer_apellido = models.CharField(max_length=100, verbose_name = "Primer apellido")
     segundo_apellido = models.CharField(max_length=100, verbose_name = "Segundo apellido")
@@ -206,7 +210,7 @@ class Hermano(AbstractUser):
     last_name = None
 
     USERNAME_FIELD = 'dni'
-    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'username', 'telefono', 'estado_civil']
+    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'telefono', 'estado_civil']
 
     @property
     def esta_al_corriente(self):
@@ -238,7 +242,7 @@ class Hermano(AbstractUser):
         
         # Validación extra opcional: Si está de ALTA, debería tener número de hermano (depende de tu lógica de negocio)
         if self.estado_hermano == self.EstadoHermano.ALTA and not self.numero_registro:
-            raise ValidationError({'numero_hermano': 'Un hermano de Alta debe tener un número de registro asignado.'})
+            raise ValidationError({'numero_registro': 'Un hermano de Alta debe tener un número de registro asignado.'})
             pass
 
         if self.fecha_ingreso_corporacion and self.fecha_baja_corporacion:
@@ -251,6 +255,9 @@ class Hermano(AbstractUser):
             raise ValidationError({
                 'fecha_baja_corporacion': 'Si el estado es BAJA, debe indicar la fecha de la misma.'
             })
+        
+        if self.dni:
+            self.username = self.dni
     
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -289,7 +296,7 @@ class Acto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
     fecha = models.DateTimeField(verbose_name="Fecha y hora")
-    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, default=ModalidadReparto.TRADICIONAL, verbose_name="Modalidad de reparto", blank=True, null=True)
+    modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, verbose_name="Modalidad de reparto", blank=True, null=True)
 
     tipo_acto = models.ForeignKey(TipoActo, on_delete=models.PROTECT, verbose_name="Tipo de acto", related_name="actos")
 
@@ -301,17 +308,81 @@ class Acto(models.Model):
 
     def clean(self):
         super().clean()
+        errors = {}
 
-        if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
-            if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
-                raise ValidationError({'fin_solicitud_cirios': 'La fecha de fin de solicitud de cirios debe ser posterior a la de inicio.'})
-            
-        if self.fin_solicitud and self.inicio_solicitud_cirios:
-            if self.inicio_solicitud_cirios <= self.fin_solicitud:
-                raise ValidationError({'inicio_solicitud_cirios': (
-                        f'La solicitud de cirios no puede empezar antes o al mismo tiempo que termina la de insignias. '
-                        f'Insignias termina el {self.fin_solicitud.strftime("%d/%m/%Y %H:%M")}.'
-                    )})
+        if self.nombre is not None and not self.nombre.strip():
+            errors["nombre"] = "El nombre del acto no puede estar vacío."
+
+        if self.tipo_acto_id is None:
+            raise ValidationError({"tipo_acto": "El tipo de acto es obligatorio."})
+
+        if self.tipo_acto and not self.tipo_acto.requiere_papeleta:
+            if self.modalidad:
+                errors["modalidad"] = "Un acto que no requiere papeleta no puede tener modalidad."
+            for f in ("inicio_solicitud", "fin_solicitud", "inicio_solicitud_cirios", "fin_solicitud_cirios"):
+                if getattr(self, f) is not None:
+                    errors[f] = "Un acto que no requiere papeleta no puede tener fechas de solicitud."
+            if errors:
+                raise ValidationError(errors)
+            return
+
+        if self.tipo_acto and self.tipo_acto.requiere_papeleta:
+            if not self.modalidad:
+                errors["modalidad"] = "La modalidad es obligatoria para actos con papeleta."
+
+            if not self.inicio_solicitud:
+                errors["inicio_solicitud"] = "El inicio de solicitud es obligatorio."
+            if not self.fin_solicitud:
+                errors["fin_solicitud"] = "El fin de solicitud es obligatorio."
+
+            if self.inicio_solicitud and self.fin_solicitud:
+                if self.inicio_solicitud >= self.fin_solicitud:
+                    errors["fin_solicitud"] = "El fin de solicitud debe ser posterior al inicio."
+
+            if self.fecha and self.inicio_solicitud and self.inicio_solicitud >= self.fecha:
+                errors["inicio_solicitud"] = "El inicio de solicitud no puede ser igual o posterior a la fecha del acto."
+
+            if self.fecha and self.fin_solicitud and self.fin_solicitud > self.fecha:
+                errors["fin_solicitud"] = "El fin de solicitud no puede ser posterior a la fecha del acto."
+
+            if self.modalidad == self.ModalidadReparto.TRADICIONAL:
+                if not self.inicio_solicitud_cirios:
+                    errors["inicio_solicitud_cirios"] = "El inicio de cirios es obligatorio en modalidad tradicional."
+                if not self.fin_solicitud_cirios:
+                    errors["fin_solicitud_cirios"] = "El fin de cirios es obligatorio en modalidad tradicional."
+
+                if self.inicio_solicitud_cirios and self.fin_solicitud_cirios:
+                    if self.inicio_solicitud_cirios >= self.fin_solicitud_cirios:
+                        errors["fin_solicitud_cirios"] = "El fin de cirios debe ser posterior al inicio."
+
+                if self.fecha and self.inicio_solicitud_cirios and self.inicio_solicitud_cirios >= self.fecha:
+                    errors["inicio_solicitud_cirios"] = "El inicio de cirios no puede ser igual o posterior a la fecha del acto."
+
+                if self.fecha and self.fin_solicitud_cirios and self.fin_solicitud_cirios > self.fecha:
+                    errors["fin_solicitud_cirios"] = "El fin de cirios no puede ser posterior a la fecha del acto."
+
+                if (
+                    self.inicio_solicitud and self.fin_solicitud and
+                    self.inicio_solicitud_cirios and self.fin_solicitud_cirios
+                ):
+                    if not (self.inicio_solicitud < self.fin_solicitud < self.inicio_solicitud_cirios < self.fin_solicitud_cirios):
+                        if self.fin_solicitud >= self.inicio_solicitud_cirios:
+                            errors.setdefault(
+                                "inicio_solicitud_cirios",
+                                "El período de cirios debe comenzar después de finalizar el de insignias."
+                            )
+                        else:
+                            errors.setdefault(
+                                "fin_solicitud_cirios",
+                                "Orden de fases incorrecto: cirios debe ir completamente después de insignias."
+                            )
+
+            elif self.modalidad == self.ModalidadReparto.UNIFICADO:
+                if self.inicio_solicitud_cirios is not None or self.fin_solicitud_cirios is not None:
+                    errors["modalidad"] = "En modalidad UNIFICADO no se deben definir fechas de cirios."
+
+        if errors:
+            raise ValidationError(errors)
             
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -458,6 +529,16 @@ class PapeletaSitio(models.Model):
     
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
+    
+    # Aplica la restricción de unicidad a todas las papeletas MENOS a las que estén en la lista [ANULADA, NO_ASIGNADA]".
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=['hermano', 'acto'],
+                condition=~Q(estado_papeleta__in=['ANULADA', 'NO_ASIGNADA']),
+                name='unique_papeleta_activa_hermano_acto'
+            )
+        ]
     
 # -----------------------------------------------------------------------------
 # ENTIDAD: PREFERENCIA SOLICITUD
