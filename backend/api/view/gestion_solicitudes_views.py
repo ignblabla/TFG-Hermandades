@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 from api.servicios.solicitud_insignia_service import SolicitudInsigniaService
+from api.servicios.solicitud_cirio_tradicional import SolicitudCirioTradicionalService
 
 from ..servicios.papeleta_sitio_service import PapeletaSitioService
 from ..serializers import (
@@ -65,7 +66,7 @@ class SolicitarCirioView(APIView):
         
         if serializer.is_valid():
             try:
-                service = PapeletaSitioService()
+                service = SolicitudCirioTradicionalService()
                 
                 acto = serializer.validated_data['acto']
                 puesto = serializer.validated_data['puesto']

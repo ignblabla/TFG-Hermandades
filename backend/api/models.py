@@ -163,7 +163,7 @@ class Hermano(AbstractUser):
         message="El código postal debe tener exactamente 5 dígitos numéricos."
     )
 
-    username = models.CharField(max_length=150, unique=True, blank=True, null=True)
+    username = models.CharField(max_length=150, unique=True, blank=False, null=False)
     nombre = models.CharField(max_length=100, verbose_name = "Nombre")
     primer_apellido = models.CharField(max_length=100, verbose_name = "Primer apellido")
     segundo_apellido = models.CharField(max_length=100, verbose_name = "Segundo apellido")
@@ -210,7 +210,7 @@ class Hermano(AbstractUser):
     last_name = None
 
     USERNAME_FIELD = 'dni'
-    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'username', 'telefono', 'estado_civil']
+    REQUIRED_FIELDS = ['nombre', 'primer_apellido', 'segundo_apellido', 'email', 'telefono', 'estado_civil']
 
     @property
     def esta_al_corriente(self):
@@ -242,7 +242,7 @@ class Hermano(AbstractUser):
         
         # Validación extra opcional: Si está de ALTA, debería tener número de hermano (depende de tu lógica de negocio)
         if self.estado_hermano == self.EstadoHermano.ALTA and not self.numero_registro:
-            raise ValidationError({'numero_hermano': 'Un hermano de Alta debe tener un número de registro asignado.'})
+            raise ValidationError({'numero_registro': 'Un hermano de Alta debe tener un número de registro asignado.'})
             pass
 
         if self.fecha_ingreso_corporacion and self.fecha_baja_corporacion:
@@ -255,6 +255,9 @@ class Hermano(AbstractUser):
             raise ValidationError({
                 'fecha_baja_corporacion': 'Si el estado es BAJA, debe indicar la fecha de la misma.'
             })
+        
+        if self.dni:
+            self.username = self.dni
     
     def save(self, *args, **kwargs):
         self.full_clean()
