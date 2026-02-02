@@ -754,6 +754,8 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
+    puesto_general_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+
     preferencias_solicitadas = PreferenciaSolicitudDTO(many=True, write_only=True, required=False)
     preferencias = serializers.StringRelatedField(many=True, read_only=True)
 
@@ -767,6 +769,7 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
             'anio',
             'estado_papeleta',
             'es_solicitud_insignia',
+            'puesto_general_id',
             'preferencias_solicitadas',
             'preferencias',
             'fecha_solicitud'
