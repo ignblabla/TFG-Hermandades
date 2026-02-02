@@ -306,6 +306,8 @@ class Acto(models.Model):
     inicio_solicitud_cirios = models.DateTimeField(verbose_name="Inicio solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de apertura de solicitudes de papeletas de sitio generales")
     fin_solicitud_cirios = models.DateTimeField(verbose_name="Fin solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de cierre de solicitudes de papeletas de sitio generales")
 
+    fecha_ejecucion_reparto = models.DateTimeField(null=True, blank=True, verbose_name="Fecha ejecución reparto", help_text="Si tiene valor, indica que el reparto automático ya se ha ejecutado.")
+
     def clean(self):
         super().clean()
         errors = {}

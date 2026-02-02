@@ -8,28 +8,28 @@ class RepartoService:
     @staticmethod
     def ejecutar_asignacion_automatica(acto_id):
         """
-        Algoritmo de asignación de insignias por antigüedad estricta.
-        CORRECCIONES APLICADAS:
-        1. Atomicidad completa: Lectura de stock y escritura ocurren dentro de la transacción.
-        2. Bloqueo pesimista: Se usa select_for_update para evitar condiciones de carrera.
-        3. Optimización: Uso de prefetch_related para evitar el problema N+1.
-        4. Lógica: No se modifica el flag 'disponible' del Puesto, solo se gestiona stock en memoria.
-        5. Ordenación: Manejo explícito de nulos en numero_registro.
+        Algoritmo de asignación de insignias.
+        CARACTERÍSTICA NUEVA: Idempotencia de ejecución (Solo corre una vez).
         """
-        try:
-            acto = Acto.objects.get(id=acto_id)
-        except Acto.DoesNotExist:
+
+        if not Acto.objects.filter(id=acto_id).exists():
             raise ValidationError("El acto especificado no existe.")
 
         now = timezone.now()
-        if acto.fin_solicitud and now <= acto.fin_solicitud:
-            raise ValidationError(f"El plazo de solicitud no ha finalizado aún. Acaba el: {acto.fin_solicitud}")
-
         asignaciones_realizadas = 0
         hermanos_sin_puesto = []
 
-
         with transaction.atomic():
+            try:
+                acto = Acto.objects.select_for_update().get(id=acto_id)
+            except Acto.DoesNotExist:
+                raise ValidationError("El acto no existe.")
+
+            if acto.fecha_ejecucion_reparto is not None:
+                raise ValidationError(f"El reparto para este acto ya se ejecutó el {acto.fecha_ejecucion_reparto}.")
+
+            if acto.fin_solicitud and now <= acto.fin_solicitud:
+                raise ValidationError(f"El plazo de solicitud no ha finalizado aún. Acaba el: {acto.fin_solicitud}")
 
             puestos_candidatos = Puesto.objects.filter(
                 acto=acto, 
@@ -48,9 +48,7 @@ class RepartoService:
             mapa_puestos = {}
 
             for p in puestos_candidatos:
-                
                 stock_real = p.numero_maximo_asignaciones - p.total_ocupadas
-                
                 if stock_real > 0:
                     p._stock_temp = stock_real 
                     mapa_puestos[p.id] = p
@@ -78,7 +76,6 @@ class RepartoService:
 
             for solicitud in solicitudes:
                 asignado = False
-                
                 preferencias = solicitud.preferencias.all().order_by('orden_prioridad')
 
                 for pref in preferencias:
@@ -102,7 +99,7 @@ class RepartoService:
                                 del mapa_puestos[puesto_id]
 
                             asignado = True
-                            break
+                            break 
                 
                 if not asignado:
                     solicitud.estado_papeleta = PapeletaSitio.EstadoPapeleta.NO_ASIGNADA
@@ -112,6 +109,9 @@ class RepartoService:
                         "nombre": f"{solicitud.hermano.nombre} {solicitud.hermano.primer_apellido}",
                         "num_registro": solicitud.hermano.numero_registro
                     })
+
+            acto.fecha_ejecucion_reparto = now
+            acto.save()
 
         return {
             "mensaje": "Proceso finalizado correctamente",
