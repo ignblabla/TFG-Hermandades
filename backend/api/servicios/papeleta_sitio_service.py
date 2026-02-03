@@ -1,7 +1,7 @@
 from datetime import datetime, time
 import uuid
 from django.utils import timezone
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
@@ -9,85 +9,88 @@ from ..models import Acto, CuerpoPertenencia, Cuota, Hermano, PapeletaSitio, Pue
 
 class PapeletaSitioService:
     """
-    Servicio centralizado para la gestión de solicitudes de papeleta de sitio.
-    Maneja tanto la modalidad UNIFICADA como la TRADICIONAL (Insignias y Cirios por separado).
+    Servicio para la gestión de solicitudes en Modalidad UNIFICADA (Express).
+    
+    Lógica de Negocio:
+    - Permite solicitar Insignias (Lista de Preferencias) Y/O Puesto General (Cirio/Diputado/Etc) en el mismo acto.
+    - Si se solicitan insignias, el Puesto General actúa como 'Puesto de Reserva' en caso de no obtener la insignia.
+    - No permite vinculación (acompañantes).
     """
-
-    # -------------------------------------------------------------------------
-    # MÉTODOS PÚBLICOS (ENTRADA)
-    # -------------------------------------------------------------------------
+    MAX_PREFERENCIAS_PERMITIDAS = 20
+    ESTADOS_NO_ACTIVOS = (
+        PapeletaSitio.EstadoPapeleta.ANULADA,
+        PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
+    )
 
     @transaction.atomic
-    def procesar_solicitud_unificada(self, hermano: Hermano, acto: Acto, preferencias_data: list):
-        """
-        [MODALIDAD UNIFICADA]
-        Permite solicitar insignias y/o cirio en una sola petición.
-        """
+    def procesar_solicitud_unificada(self, hermano: Hermano, acto: Acto, datos_solicitud: dict):
+        # ----------------------------------------------------------------------------------
+        Hermano.objects.select_for_update().only("id").get(pk=hermano.pk)
+
         ahora = timezone.now()
 
-        self._validar_plazos_acto_coherentes(acto)
+        self._validar_configuracion_acto_unificado(acto)
+        self._validar_plazo_vigente(ahora, acto.inicio_solicitud, acto.fin_solicitud, nombre_plazo="solicitud de papeletas")
 
-        if acto.modalidad != Acto.ModalidadReparto.UNIFICADO:
-            raise ValidationError(f"La solicitud unificada no está disponible. Modalidad actual: {acto.get_modalidad_display()}.")
+        cuerpos_hermano_set = set(hermano.cuerpos.values_list('nombre_cuerpo', flat=True))
+        self._validar_hermano_apto_para_solicitar(hermano, cuerpos_hermano_set, ahora)
+        # ----------------------------------------------------------------------------------
 
-        if not acto.inicio_solicitud or not acto.fin_solicitud:
-            raise ValidationError("El plazo de solicitud no está configurado correctamente.")
-        
-        if ahora < acto.inicio_solicitud:
-            raise ValidationError(f"El plazo aún no ha comenzado. Empieza el {acto.inicio_solicitud}.")
-        
-        if ahora > acto.fin_solicitud:
-            raise ValidationError(f"El plazo finalizó el {acto.fin_solicitud}.")
-
-        # 3. Validaciones Comunes
-        self._validar_requiere_papeleta(acto)
-        self._validar_pertenencia_cuerpos(hermano)
         self._validar_unicidad(hermano, acto)
 
-        self._validar_mix_puestos_unificado(preferencias_data)
+        preferencias_data = datos_solicitud.get('preferencias', [])
+        puesto_general_id = datos_solicitud.get('puesto_general_id')
 
-        papeleta = self._crear_papeleta_base(hermano, acto, ahora)
-
-        es_insignia_global = False
+        if not preferencias_data and not puesto_general_id:
+            raise ValidationError("La solicitud está vacía. Debe seleccionar al menos un puesto general o una insignia.")
+        
         if preferencias_data:
-            for item in preferencias_data:
-                puesto = item['puesto_solicitado']
-                orden = item['orden_prioridad']
+            self._validar_edad_minima_insignia(hermano, acto)
+            self._validar_limites_preferencias(preferencias_data)
+            self._validar_preferencias_insignia(hermano, acto, preferencias_data, cuerpos_hermano_set)
 
-                self._validar_puesto_solo_junta_gobierno(hermano, puesto)
-                
-                if puesto.tipo_puesto.es_insignia:
-                    es_insignia_global = True
+        puesto_general_obj = None
+        if puesto_general_id:
+            try:
+                puesto_general_obj = Puesto.objects.select_related('tipo_puesto').get(pk=puesto_general_id)
+            except Puesto.DoesNotExist:
+                raise ValidationError("El puesto general seleccionado no existe.")
+            
+            self._validar_item_puesto_general(cuerpos_hermano_set, acto, puesto_general_obj)
 
-                PreferenciaSolicitud.objects.create(
-                    papeleta=papeleta,
-                    puesto_solicitado=puesto,
-                    orden_prioridad=orden
-                )
+        try:
+            papeleta = self._crear_papeleta(
+                hermano, 
+                acto, 
+                ahora, 
+                puesto_general=puesto_general_obj, 
+                tiene_insignias=bool(preferencias_data)
+            )
+
+            if preferencias_data:
+                self._guardar_preferencias(papeleta, preferencias_data)
+
+            return papeleta
+
+        except IntegrityError:
+            raise ValidationError("Error de integridad. Es posible que ya exista una solicitud procesándose.")
         
-        if es_insignia_global:
-            papeleta.es_solicitud_insignia = True
-            papeleta.save(update_fields=['es_solicitud_insignia'])
+    # =========================================================================
+    # VALIDACIONES DE ACTO Y HERMANO
+    # =========================================================================
 
-        return papeleta
-
-    
-
-
-
-
-
-    def _validar_configuracion_acto_tradicional(self, acto: Acto):
-        """
-        Verifica que el acto sea del tipo correcto para este endpoint.
-        """
-        if not (acto.tipo_acto and acto.tipo_acto.requiere_papeleta):
-            raise ValidationError(f"El acto '{acto.nombre}' no admite solicitudes de papeleta.")
-
-        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
-            raise ValidationError("Este proceso es exclusivo para actos de modalidad TRADICIONAL.")
+    def _validar_configuracion_acto_unificado(self, acto: Acto):
+        if acto is None or acto.tipo_acto_id is None:
+            raise ValidationError({"tipo_acto": "El tipo de acto es obligatorio."})
+        
+        if not acto.tipo_acto.requiere_papeleta:
+            raise ValidationError(f"Este acto '{acto.nombre}' no admite solicitudes de papeleta.")
+        
+        if acto.modalidad != Acto.ModalidadReparto.UNIFICADO:
+            raise ValidationError(f"Este proceso es exclusivo para actos de modalidad UNIFICADO.")
         
 
+        
     def _validar_plazo_vigente(self, ahora, inicio, fin, nombre_plazo: str):
         """
         Valida que el momento actual esté dentro del rango definido.
@@ -102,447 +105,298 @@ class PapeletaSitioService:
             raise ValidationError(f"El plazo de solicitud de {nombre_plazo} ha finalizado.")
         
 
-    def _validar_hermano_apto_para_solicitar(self, hermano: Hermano):
+
+    def _validar_unicidad(self, hermano, acto):
+        """
+        Verifica si existe alguna papeleta que BLOQUEE una nueva solicitud.
+        Una papeleta bloquea si está 'viva'.
+        Una papeleta NO bloquea si está 'muerta' (ANULADA o NO_ASIGNADA).
+        """
+        estados_ignorable = [
+            PapeletaSitio.EstadoPapeleta.ANULADA,
+            PapeletaSitio.EstadoPapeleta.NO_ASIGNADA
+        ]
+        
+        existe_activa = PapeletaSitio.objects.filter(
+            hermano=hermano, 
+            acto=acto
+        ).exclude(
+            estado_papeleta__in=estados_ignorable
+        ).exists()
+        
+        if existe_activa:
+            raise ValidationError("Ya existe una solicitud activa (en proceso o asignada) para este acto.")
+        
+
+
+    def _validar_hermano_apto_para_solicitar(self, hermano: Hermano, cuerpos_hermano_set: set, ahora):
         """Agrupa las validaciones de estado del hermano."""
         self._validar_hermano_en_alta(hermano)
-        self._validar_hermano_al_corriente_hasta_anio_anterior(hermano)
-        self._validar_pertenencia_cuerpos(hermano)
+        self._validar_hermano_al_corriente_hasta_anio_anterior(hermano, ahora)
+        self._validar_pertenencia_cuerpos(cuerpos_hermano_set)
 
 
 
+    def _validar_hermano_en_alta(self, hermano):
+        if hermano.estado_hermano != Hermano.EstadoHermano.ALTA:
+            raise ValidationError("Solo los hermanos en estado ALTA pueden solicitar papeleta.")
+        
 
-    @transaction.atomic
-    def procesar_solicitud_cirio_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, numero_registro_vinculado: int = None):
-        ahora = timezone.now()
 
-        self._validar_plazos_acto_coherentes(acto)
+    def _validar_hermano_al_corriente_hasta_anio_anterior(self, hermano: Hermano, ahora):
+        anio_actual = ahora.date().year
+        anio_limite = anio_actual - 1
 
-        self._validar_requiere_papeleta(acto)
-        self._validar_puesto_no_nulo(puesto)
+        estados_deuda = [
+            Cuota.EstadoCuota.PENDIENTE, 
+            Cuota.EstadoCuota.DEVUELTA
+        ]
 
-        # if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
-        #     raise ValidationError("Este endpoint es solo para actos de modalidad TRADICIONAL.")
+        deuda = hermano.cuotas.filter(
+            anio__lte=anio_limite,
+            estado__in=estados_deuda
+        ).values('anio').order_by('anio').first()
 
-        # self._validar_hermano_en_alta(hermano)
-        # self._validar_hermano_al_corriente_hasta_anio_anterior(hermano)
-        # self._validar_pertenencia_cuerpos(hermano)
-
-        tiene_insignia_emitida = PapeletaSitio.objects.filter(
-            hermano=hermano, acto=acto, es_solicitud_insignia=True,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.EMITIDA
-        ).exists()
-        if tiene_insignia_emitida:
-            raise ValidationError("Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio.")
-
-        solicitud_insignia_pendiente = PapeletaSitio.objects.select_for_update().filter(
-            hermano=hermano, acto=acto, es_solicitud_insignia=True,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
-        ).first()
-
-        papeleta_cirio_activa = PapeletaSitio.objects.filter(
-            hermano=hermano, acto=acto, es_solicitud_insignia=False
-        ).exclude(
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA
-        ).select_related("puesto__tipo_puesto").first()
-
-        if papeleta_cirio_activa:
-            tipo_existente_id = papeleta_cirio_activa.puesto.tipo_puesto_id if papeleta_cirio_activa.puesto else None
-            tipo_nuevo_id = puesto.tipo_puesto_id
-
-            if tipo_existente_id == tipo_nuevo_id:
-                raise ValidationError(
-                    f"Ya tienes una solicitud activa para el tipo '{puesto.tipo_puesto.nombre_tipo}'. "
-                    "Solo puedes solicitar un puesto de ese tipo."
-                )
-
+        if deuda:
             raise ValidationError(
-                "Solo puedes solicitar un único tipo de puesto en este acto (por ejemplo, CIRIO o CRUZ PENITENTE, pero no ambos)."
+                f"Consta una cuota pendiente o devuelta del año {deuda['anio']}. "
+                f"Por favor, contacte con mayordomía para regularizar su situación."
             )
 
-        qs_unicidad = PapeletaSitio.objects.select_for_update().filter(
-            hermano=hermano, acto=acto
-        ).exclude(
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA
+        existe_historial = hermano.cuotas.filter(anio__lte=anio_limite).exists()
+        
+        if not existe_historial:
+            raise ValidationError(
+                f"No constan cuotas registradas hasta el año {anio_limite}. "
+                "Contacte con secretaría para verificar su ficha."
+            )
+        
+
+
+    def _validar_pertenencia_cuerpos(self, cuerpos_hermano_set: set):
+        cuerpos_permitidos = {
+            CuerpoPertenencia.NombreCuerpo.NAZARENOS.value,
+            CuerpoPertenencia.NombreCuerpo.PRIOSTÍA.value,
+            CuerpoPertenencia.NombreCuerpo.JUVENTUD.value,
+            CuerpoPertenencia.NombreCuerpo.CARIDAD_ACCION_SOCIAL.value,
+            CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value,
+        }
+
+        if not cuerpos_hermano_set:
+            return
+
+        cuerpos_no_aptos = set(cuerpos_hermano_set) - cuerpos_permitidos
+
+        if cuerpos_no_aptos:
+            raise ValidationError(
+                "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta: "
+                + ", ".join(sorted(cuerpos_no_aptos))
+            )
+
+
+
+    def _validar_edad_minima_insignia(self, hermano: Hermano, acto: Acto):
+        """
+        Valida que el hermano tenga 18 años cumplidos antes de la fecha de inicio de solicitud.
+        """
+        if not hermano.fecha_nacimiento:
+            raise ValidationError(
+                "No consta su fecha de nacimiento en la base de datos. "
+                "Contacte con secretaría para actualizar su ficha antes de solicitar insignia."
+            )
+
+        if not acto.inicio_solicitud:
+            fecha_referencia = timezone.now().date()
+        else:
+            fecha_referencia = acto.inicio_solicitud.date()
+
+        fecha_nacimiento = hermano.fecha_nacimiento
+
+        edad = fecha_referencia.year - fecha_nacimiento.year - (
+            (fecha_referencia.month, fecha_referencia.day) < (fecha_nacimiento.month, fecha_nacimiento.day)
         )
-        if solicitud_insignia_pendiente:
-            qs_unicidad = qs_unicidad.exclude(id=solicitud_insignia_pendiente.id)
 
-        if qs_unicidad.exists():
-            raise ValidationError("Ya existe una solicitud activa para este acto.")
+        if edad < 18:
+            raise ValidationError(
+                f"Para solicitar insignia debe ser mayor de 18 años antes del inicio del plazo ({fecha_referencia.strftime('%d/%m/%Y')})."
+            )
+        
 
-        # if ahora < acto.inicio_solicitud_cirios:
-        #     raise ValidationError(f"El plazo de cirios comienza el {acto.inicio_solicitud_cirios}.")
+    # =========================================================================
+    # LÓGICA DE PUESTO GENERAL (CIRIO/NO INSIGNIA)
+    # =========================================================================
 
-        # if ahora > acto.fin_solicitud_cirios:
-        #     raise ValidationError("El plazo de solicitud de cirios ha finalizado.")
+    def _validar_item_puesto_general(self, cuerpos_hermano_set: set, acto: Acto, puesto: Puesto):
+        """
+        Validaciones específicas para un puesto único general (no insignia).
+        """
+        if not puesto:
+            raise ValidationError("Debe seleccionar un puesto válido.")
 
         if puesto.acto_id != acto.id:
-            raise ValidationError("No puede seleccionar un puesto de otro acto.")
+            raise ValidationError("El puesto general no pertenece a este acto.")
 
         if puesto.tipo_puesto.es_insignia:
-            raise ValidationError(f"El puesto '{puesto.nombre}' es una insignia y no puede solicitarse como cirio.")
-        
-        self._validar_puesto_solo_junta_gobierno(hermano, puesto)
+            raise ValidationError(
+                f"El puesto '{puesto.nombre}' es una Insignia. "
+                "Las insignias deben añadirse a la lista de preferencias, no como puesto general."
+            )
 
         if not puesto.disponible:
-            raise ValidationError(f"El puesto '{puesto.nombre}' no está disponible para su solicitud en este acto.")
+            raise ValidationError(f"El puesto general '{puesto.nombre}' no está disponible.")
 
-        if solicitud_insignia_pendiente:
-            solicitud_insignia_pendiente.estado_papeleta = PapeletaSitio.EstadoPapeleta.ANULADA
-            solicitud_insignia_pendiente.save(update_fields=["estado_papeleta"])
+        if (puesto.tipo_puesto.solo_junta_gobierno and 
+            CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value not in cuerpos_hermano_set):
+            raise ValidationError(f"El puesto '{puesto.nombre}' es exclusivo para Junta de Gobierno.")
+    
 
-        papeleta = PapeletaSitio.objects.create(
-            hermano=hermano,
-            acto=acto,
-            anio=acto.fecha.year,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=False,
-            puesto=puesto,
-            fecha_solicitud=ahora,
-            codigo_verificacion=uuid.uuid4().hex[:8].upper()
-        )
+    # =========================================================================
+    # LÓGICA DE PREFERENCIAS (INSIGNIAS)
+    # =========================================================================
 
-        if numero_registro_vinculado:
-            self._procesar_vinculacion(hermano, acto, papeleta, puesto, numero_registro_vinculado)
+    def _validar_limites_preferencias(self, preferencias_data: list):
+        if len(preferencias_data) > self.MAX_PREFERENCIAS_PERMITIDAS:
+            raise ValidationError(f"No puede solicitar más de {self.MAX_PREFERENCIAS_PERMITIDAS} puestos.")
+        
 
-        return papeleta
+    def _validar_preferencias_insignia(self, hermano: Hermano, acto: Acto, preferencias_data: list, cuerpos_hermano_set: set):
+        if not preferencias_data:
+            raise ValidationError("Debe indicar al menos una preferencia.")
 
-    # -------------------------------------------------------------------------
-    # MÉTODOS PRIVADOS (HELPER & VALIDATORS)
-    # -------------------------------------------------------------------------
+        self._resolver_y_validar_existencia_puestos(preferencias_data)
 
-    def _crear_papeleta_base(self, hermano, acto, fecha_solicitud):
+        puestos = []
+        prioridades = []
+        
+        for item in preferencias_data:
+            puesto = item.get("puesto_solicitado")
+            prioridad = item.get("orden_prioridad")
+            
+            if not puesto or prioridad is None:
+                raise ValidationError("Datos de preferencia incompletos.")
+            
+            puestos.append(puesto)
+            prioridades.append(prioridad)
+
+        self._validar_prioridades_consecutivas(prioridades)
+        self._validar_puestos_unicos(puestos)
+
+        for puesto in puestos:
+            self._validar_item_puesto(cuerpos_hermano_set, acto, puesto)
+
+
+
+    def _validar_item_puesto(self, cuerpos_hermano_set: set, acto: Acto, puesto: Puesto):
+        if puesto.acto_id != acto.id:
+            raise ValidationError(f"El puesto '{puesto.nombre}' no pertenece a este acto.")
+        
+        if not puesto.tipo_puesto.es_insignia:
+            raise ValidationError(f"El puesto '{puesto.nombre}' no es una insignia.")
+
+        if not puesto.disponible:
+            raise ValidationError(f"El puesto '{puesto.nombre}' no está marcado como disponible.")
+
+        if puesto.tipo_puesto.solo_junta_gobierno:
+            if CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO not in cuerpos_hermano_set:
+                raise ValidationError(f"El puesto '{puesto.nombre}' es exclusivo para Junta de Gobierno.")
+
+
+
+    def _validar_prioridades_consecutivas(self, prioridades: list):
+        if len(prioridades) != len(set(prioridades)):
+            raise ValidationError("No puede haber orden de prioridad duplicado.")
+        
+        if any(p < 1 for p in prioridades):
+            raise ValidationError("El orden de prioridad debe ser mayor que cero.")
+
+        if sorted(prioridades) != list(range(1, len(prioridades) + 1)):
+            raise ValidationError("El orden de prioridad debe ser consecutivo empezando por 1.")
+        
+
+
+    def _validar_puestos_unicos(self, puestos: list):
+        if len(puestos) != len(set(p for p in puestos if p)):
+            raise ValidationError("No puede solicitar el mismo puesto varias veces.")
+        
+
+
+    def _resolver_y_validar_existencia_puestos(self, preferencias_data: list):
+        """
+        Recorre la lista de preferencias, detecta si 'puesto_solicitado' es un ID (int/str)
+        y lo sustituye por la instancia de Puesto correspondiente.
+        Realiza una carga masiva (Bulk Fetch) para evitar N+1 queries.
+        """
+        ids_a_buscar = set()
+
+        for item in preferencias_data:
+            val = item.get("puesto_solicitado")
+            if isinstance(val, (int, str)) and str(val).isdigit():
+                ids_a_buscar.add(int(val))
+            elif isinstance(val, Puesto):
+                continue
+            elif val is None:
+                continue
+            else:
+                raise ValidationError(f"Formato de puesto inválido: {val}")
+
+        if not ids_a_buscar:
+            return
+
+        puestos_encontrados = Puesto.objects.filter(
+            id__in=ids_a_buscar
+        ).select_related('tipo_puesto')
+
+        mapa_puestos = {p.id: p for p in puestos_encontrados}
+
+        ids_encontrados = set(mapa_puestos.keys())
+        ids_faltantes = ids_a_buscar - ids_encontrados
+        
+        if ids_faltantes:
+            raise ValidationError(
+                f"Los siguientes IDs de puesto no existen: {', '.join(map(str, ids_faltantes))}"
+            )
+
+        for item in preferencias_data:
+            val = item.get("puesto_solicitado")
+            if isinstance(val, (int, str)) and str(val).isdigit():
+                item["puesto_solicitado"] = mapa_puestos[int(val)]
+
+
+
+    # =========================================================================
+    # PERSISTENCIA
+    # =========================================================================
+
+    def _crear_papeleta(self, hermano, acto, fecha, puesto_general=None, tiene_insignias=False):
+        """
+        Crea la papeleta.
+        - puesto: Se rellena con el puesto_general (cirio/diputado).
+        - es_solicitud_insignia: True si hay preferencias.
+        
+        Interpretación: Si es_solicitud_insignia=True y puesto!=None, 
+        el puesto es el "fallback" si no consigue insignia.
+        """
         return PapeletaSitio.objects.create(
             hermano=hermano,
             acto=acto,
             anio=acto.fecha.year,
-            fecha_solicitud=fecha_solicitud,
+            fecha_solicitud=fecha,
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=False,
-            numero_papeleta=None,
+
+            puesto=puesto_general, 
+            
+            es_solicitud_insignia=tiene_insignias,
+            
+            vinculado_a=None,
             codigo_verificacion=uuid.uuid4().hex[:8].upper()
         )
-    
-    # def _validar_puesto_no_nulo(self, puesto: Puesto):
-    #     if not puesto:
-    #         raise ValidationError("Debe seleccionar un puesto válido.")
 
-    # def _validar_requiere_papeleta(self, acto):
-    #     if not acto.tipo_acto:
-    #         raise ValidationError(f"Configuración inválida: El acto '{acto.nombre}' no tiene asignado un Tipo de Acto.")
-
-    #     if not acto.tipo_acto.requiere_papeleta:
-    #         raise ValidationError(f"El acto '{acto.nombre}' no admite solicitudes.")
-
-    # def _validar_pertenencia_cuerpos(self, hermano):
-    #     cuerpos_permitidos = {
-    #         CuerpoPertenencia.NombreCuerpo.NAZARENOS,
-    #         CuerpoPertenencia.NombreCuerpo.PRIOSTÍA,
-    #         CuerpoPertenencia.NombreCuerpo.JUVENTUD,
-    #         CuerpoPertenencia.NombreCuerpo.CARIDAD_ACCION_SOCIAL,
-    #         CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO,
-    #     }
-
-    #     mis_cuerpos_ids = list(
-    #         hermano.cuerpos.values_list('nombre_cuerpo', flat=True)
-    #     )
-
-    #     if not mis_cuerpos_ids:
-    #         return
-
-    #     cuerpos_no_permitidos = [c for c in mis_cuerpos_ids if c not in cuerpos_permitidos]
-    #     if cuerpos_no_permitidos:
-    #         raise ValidationError("Tu cuerpo de pertenencia actual no permite solicitar papeleta.")
-
-    # def _validar_unicidad(self, hermano, acto):
-    #     existe = PapeletaSitio.objects.select_for_update().filter(
-    #         hermano=hermano, 
-    #         acto=acto
-    #     ).exclude(
-    #         estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA
-    #     ).exists()
-        
-    #     if existe:
-    #         raise ValidationError("Ya existe una solicitud activa para este acto.")
-        
-    # def _validar_hermano_en_alta(self, hermano: Hermano):
-    #     if hermano.estado_hermano != Hermano.EstadoHermano.ALTA:
-    #         raise ValidationError("Solo los hermanos en estado ALTA pueden solicitar papeleta.")
-        
-    # def _validar_hermano_al_corriente_hasta_anio_anterior(self, hermano: Hermano):
-    #     """
-    #     Requiere:
-    #     - que existan cuotas hasta el año anterior, y
-    #     - que todas estén en estado PAGADA o EXENTO.
-    #     """
-    #     anio_actual = timezone.now().date().year
-    #     anio_limite = anio_actual - 1
-
-    #     qs = hermano.cuotas.filter(anio__lte=anio_limite)
-
-    #     if not qs.exists():
-    #         raise ValidationError(
-    #             f"No constan cuotas registradas hasta el año {anio_limite}. Contacte con secretaría."
-    #         )
-
-    #     estados_ok = [Cuota.EstadoCuota.PAGADA, Cuota.EstadoCuota.EXENTO]
-
-    #     cuotas_pendientes = qs.exclude(estado__in=estados_ok)
-
-    #     if cuotas_pendientes.exists():
-    #         primera_deuda = cuotas_pendientes.order_by('anio').first()
-    #         raise ValidationError(
-    #             f"No está al corriente de pago. Consta una cuota pendiente o no válida del año {primera_deuda.anio}. "
-    #             "Si cree que es un error (ej. duplicidad), contacte con tesorería."
-    #         )
-
-
-    def _validar_mix_puestos_unificado(self, preferencias_data):
-        """Valida que no se pidan dos puestos genéricos (ej: Cirio Cristo y Cirio Virgen)"""
-        tipos_no_insignia_vistos = set()
-        if preferencias_data:
-            for item in preferencias_data:
-                puesto = item['puesto_solicitado']
-                tipo = puesto.tipo_puesto
-                if not tipo.es_insignia:
-                    if tipo.id in tipos_no_insignia_vistos:
-                        raise ValidationError(f"No puedes solicitar más de un puesto tipo '{tipo.nombre_tipo}' en la misma solicitud.")
-                    tipos_no_insignia_vistos.add(tipo.id)
-
-    def _procesar_vinculacion(self, hermano, acto, mi_papeleta, mi_puesto, numero_objetivo):
-        """Lógica compleja de vinculación entre hermanos para tramos"""
-        
-        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
-            raise ValidationError("La vinculación solo está disponible en modalidad TRADICIONAL.")
-
-        try:
-            hermano_objetivo = Hermano.objects.get(numero_registro=numero_objetivo)
-        except Hermano.DoesNotExist:
-            raise ValidationError(f"No existe hermano con Nº {numero_objetivo}.")
-
-        if hermano_objetivo.id == hermano.id:
-            raise ValidationError("No puedes vincularte contigo mismo.")
-        
-        if hermano.numero_registro > hermano_objetivo.numero_registro:
-            raise ValidationError(
-                f"Tú (Nº {hermano.numero_registro}) eres más nuevo que el Nº {hermano_objetivo.numero_registro}. "
-                "Solo el hermano antiguo puede vincularse al nuevo (perdiendo antigüedad)."
-            )
-
-        papeleta_objetivo = PapeletaSitio.objects.select_for_update().filter(
-            hermano=hermano_objetivo,
-            acto=acto
-        ).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).first()
-
-        if not papeleta_objetivo:
-            raise ValidationError(f"El hermano Nº {numero_objetivo} no tiene solicitud activa.")
-
-        tengo_dependientes = PapeletaSitio.objects.filter(
-            acto=acto,
-            vinculado_a=hermano
-        ).exclude(
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA
-        ).exists()
-
-        if tengo_dependientes:
-            raise ValidationError(
-                "No puedes vincularte a otro hermano porque ya tienes a otros hermanos vinculados a ti. "
-                "No se permiten cadenas de vinculación (A->B->C). Diles que se vinculen directamente al hermano objetivo."
-            )
-
-        es_insignia_obj = papeleta_objetivo.es_solicitud_insignia or (
-            papeleta_objetivo.puesto and papeleta_objetivo.puesto.tipo_puesto.es_insignia
-        )
-        if es_insignia_obj:
-            raise ValidationError("No puedes vincularte a un hermano que solicita Insignia.")
-
-        puesto_objetivo = papeleta_objetivo.puesto
-        if not puesto_objetivo:
-            raise ValidationError(f"El hermano Nº {numero_objetivo} no tiene puesto seleccionado.")
-
-        if mi_puesto.tipo_puesto.nombre_tipo != puesto_objetivo.tipo_puesto.nombre_tipo:
-            raise ValidationError("Ambos deben solicitar el mismo tipo de puesto (ej: ambos Cirio).")
-
-        if mi_puesto.cortejo_cristo != puesto_objetivo.cortejo_cristo:
-            raise ValidationError("Conflicto de sección: Uno va en Cristo y otro en Virgen.")
-
-        mi_papeleta.vinculado_a = hermano_objetivo
-        mi_papeleta.save(update_fields=['vinculado_a'])
-
-    # def _validar_puesto_solo_junta_gobierno(self, hermano: Hermano, puesto: Puesto):
-    #     """
-    #     Si el tipo de puesto es exclusivo de Junta de Gobierno, exige pertenecer al cuerpo JUNTA_GOBIERNO.
-    #     """
-    #     if puesto.tipo_puesto.solo_junta_gobierno:
-    #         pertenece = hermano.cuerpos.filter(
-    #             nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
-    #         ).exists()
-
-    #         if not pertenece:
-    #             raise ValidationError(
-    #                 f"El puesto '{puesto.nombre}' es exclusivo para Junta de Gobierno."
-    #             )
-            
-    # def _acto_fecha_como_datetime_fin_dia(self, acto: Acto):
-    #     """
-    #     Devuelve la fecha del acto como datetime aware para poder comparar con plazos datetime.
-    #     - Si acto.fecha ya es datetime -> se usa tal cual
-    #     - Si acto.fecha es date -> se convierte a fin de día (23:59:59.999999)
-    #     """
-    #     if not acto.fecha:
-    #         return None
-
-    #     if hasattr(acto.fecha, "date"):
-    #         return acto.fecha
-
-    #     dt = datetime.combine(acto.fecha, time.max)
-    #     return timezone.make_aware(dt) if timezone.is_naive(dt) else dt
-
-    # def _validar_rango_inicio_fin(self, inicio, fin, mensaje_base: str):
-    #     if not inicio or not fin:
-    #         raise ValidationError(f"{mensaje_base} no configurado.")
-    #     if inicio >= fin:
-    #         raise ValidationError(
-    #             f"{mensaje_base} mal configurado: la fecha de inicio debe ser anterior a la de fin."
-    #         )
-
-    # def _validar_plazos_acto_coherentes(self, acto: Acto):
-    #     """
-    #     Restricciones pedidas:
-    #     - Si requiere papeleta y TRADICIONAL:
-    #         inicio_solicitud < fin_solicitud
-    #         inicio_solicitud_cirios < fin_solicitud_cirios
-    #         fin_solicitud < inicio_solicitud_cirios
-    #         fin_solicitud_cirios <= acto.fecha
-    #     - Si requiere papeleta y UNIFICADO:
-    #         inicio_solicitud < fin_solicitud
-    #         fin_solicitud <= acto.fecha
-    #     """
-    #     if not acto.tipo_acto:
-    #         raise ValidationError(f"Configuración inválida: El acto '{acto.nombre}' no tiene asignado un Tipo de Acto.")
-
-    #     if not acto.tipo_acto.requiere_papeleta:
-    #         return
-        
-    #     if not acto.modalidad:
-    #         raise ValidationError(
-    #             f"El acto '{acto.nombre}' no tiene configurada su modalidad de reparto (Tradicional o Unificada)."
-    #         )
-        
-    #     if not acto.fecha:
-    #         raise ValidationError(
-    #             f"El acto '{acto.nombre}' no tiene fecha asignada. No se pueden calcular los plazos."
-    #         )
-
-    #     acto_dt = self._acto_fecha_como_datetime_fin_dia(acto)
-
-    #     if acto.modalidad == Acto.ModalidadReparto.TRADICIONAL:
-    #         self._validar_rango_inicio_fin(acto.inicio_solicitud, acto.fin_solicitud, "Plazo de insignias")
-
-    #         self._validar_rango_inicio_fin(acto.inicio_solicitud_cirios, acto.fin_solicitud_cirios, "Plazo de cirios")
-
-    #         if acto.inicio_solicitud_cirios <= acto.fin_solicitud:
-    #             raise ValidationError(
-    #                 "Conflicto de fechas: El reparto de cirios debe comenzar después de finalizar el de insignias."
-    #             )
-            
-    #         if acto.fin_solicitud_cirios > acto_dt:
-    #             raise ValidationError(
-    #                 "Plazo de cirios mal configurado: no puede finalizar después de la fecha del acto."
-    #             )
-
-    #     elif acto.modalidad == Acto.ModalidadReparto.UNIFICADO:
-    #         self._validar_rango_inicio_fin(acto.inicio_solicitud, acto.fin_solicitud, "Plazo de solicitud")
-
-    #         if acto_dt and acto.fin_solicitud > acto_dt:
-    #             raise ValidationError(
-    #                 "Plazo de solicitud mal configurado: no puede finalizar después de la fecha del acto."
-    #             )
-            
-
-
-    # def _validar_plazo(self, ahora, inicio, fin, nombre: str):
-    #     """
-    #     Valida que el plazo esté configurado y que 'ahora' esté dentro (incluyendo extremos).
-    #     """
-    #     if not inicio or not fin:
-    #         raise ValidationError(f"Plazo de {nombre} no configurado.")
-    #     if ahora < inicio or ahora > fin:
-    #         raise ValidationError(f"Fuera del plazo de solicitud de {nombre}.")
-        
-
-
-    # def _validar_preferencias_insignia_tradicional(self, hermano: Hermano, acto: Acto, preferencias_data: list):
-    #     """
-    #     Valida:
-    #     - no vacío
-    #     - prioridades: int, >=1, sin duplicados, consecutivas 1..N
-    #     - puestos: sin duplicados, pertenecen al acto, son insignia, disponibles
-    #     - solo_junta_gobierno si aplica
-    #     """
-    #     if not preferencias_data:
-    #         raise ValidationError("Debe indicar al menos una preferencia.")
-
-    #     try:
-    #         prioridades = [item["orden_prioridad"] for item in preferencias_data]
-    #         puestos = [item["puesto_solicitado"] for item in preferencias_data]
-    #     except KeyError:
-    #         raise ValidationError(
-    #             "Cada preferencia debe incluir 'puesto_solicitado' y 'orden_prioridad'."
-    #         )
-
-    #     for puesto in puestos:
-    #         self._validar_puesto_no_nulo(puesto)
-
-    #     self._validar_prioridades_consecutivas(prioridades)
-    #     self._validar_puestos_no_duplicados(puestos)
-
-    #     for item in preferencias_data:
-    #         self._validar_item_preferencia_insignia_tradicional(
-    #             hermano=hermano,
-    #             acto=acto,
-    #             puesto=item["puesto_solicitado"],
-    #             prioridad=item["orden_prioridad"],
-    #         )
-
-
-
-    # def _validar_prioridades_consecutivas(self, prioridades: list):
-    #     if len(prioridades) != len(set(prioridades)):
-    #         raise ValidationError("No puede haber orden de prioridad duplicado.")
-
-    #     if any((not isinstance(p, int)) or p < 1 for p in prioridades):
-    #         raise ValidationError("El orden de prioridad debe ser mayor que cero.")
-
-    #     n = len(prioridades)
-    #     esperadas = list(range(1, n + 1))
-    #     if sorted(prioridades) != esperadas:
-    #         raise ValidationError(
-    #             f"El orden de prioridad debe ser consecutivo y empezar en 1 ({', '.join(map(str, esperadas))})."
-    #         )
-        
-
-
-    # def _validar_puestos_no_duplicados(self, puestos: list):
-    #     puestos_ids = [p.id for p in puestos]
-    #     if len(puestos_ids) != len(set(puestos_ids)):
-    #         raise ValidationError("No puede haber un puesto duplicado en las preferencias.")
-        
-
-
-    # def _validar_item_preferencia_insignia_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, prioridad: int):
-
-        # self._validar_puesto_solo_junta_gobierno(hermano, puesto)
-
-        # if puesto.acto_id != acto.id:
-        #     raise ValidationError("No puede seleccionar un puesto de otro acto.")
-
-        # if not puesto.tipo_puesto.es_insignia:
-        #     raise ValidationError(
-        #         f"El puesto '{puesto.nombre}' no es una insignia. En plazo tradicional, los cirios se piden aparte."
-        #     )
-
-        # if not puesto.disponible:
-        #     raise ValidationError(
-        #         f"El puesto '{puesto.nombre}' no está disponible para su solicitud en este acto."
-        #     )
+    def _guardar_preferencias(self, papeleta, preferencias_data):
+        objs = [
+            PreferenciaSolicitud(
+                papeleta=papeleta,
+                puesto_solicitado=item['puesto_solicitado'],
+                orden_prioridad=item['orden_prioridad']
+            ) for item in preferencias_data
+        ]
+        PreferenciaSolicitud.objects.bulk_create(objs)

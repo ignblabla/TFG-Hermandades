@@ -303,9 +303,13 @@ class ActoSerializer(serializers.ModelSerializer):
     en_plazo_insignias = serializers.SerializerMethodField()
     en_plazo_cirios = serializers.SerializerMethodField()
 
+    reparto_ejecutado = serializers.SerializerMethodField()
+
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta']
+        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado']
+
+    read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
     def get_en_plazo_insignias(self, obj):
         ahora = timezone.now()
@@ -318,6 +322,9 @@ class ActoSerializer(serializers.ModelSerializer):
         if obj.inicio_solicitud_cirios and obj.fin_solicitud_cirios:
             return obj.inicio_solicitud_cirios <= ahora <= obj.fin_solicitud_cirios
         return False
+    
+    def get_reparto_ejecutado(self, obj):
+        return obj.fecha_ejecucion_reparto is not None
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO
@@ -747,6 +754,8 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
+    puesto_general_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
+
     preferencias_solicitadas = PreferenciaSolicitudDTO(many=True, write_only=True, required=False)
     preferencias = serializers.StringRelatedField(many=True, read_only=True)
 
@@ -760,6 +769,7 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
             'anio',
             'estado_papeleta',
             'es_solicitud_insignia',
+            'puesto_general_id',
             'preferencias_solicitadas',
             'preferencias',
             'fecha_solicitud'

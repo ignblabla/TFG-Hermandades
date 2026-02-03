@@ -117,14 +117,16 @@ class CrearSolicitudUnificadaView(APIView):
         if serializer.is_valid():
             try:
                 service = PapeletaSitioService()
-
-                acto = serializer.validated_data['acto']
-                preferencias = serializer.validated_data.get('preferencias_solicitadas', [])
+                
+                datos_para_servicio = {
+                    'puesto_general_id': serializer.validated_data.get('puesto_general_id'),
+                    'preferencias': serializer.validated_data.get('preferencias_solicitadas', [])
+                }
                 
                 papeleta = service.procesar_solicitud_unificada(
                     hermano=request.user,
-                    acto=acto,
-                    preferencias_data=preferencias
+                    acto=serializer.validated_data['acto'],
+                    datos_solicitud=datos_para_servicio
                 )
 
                 return Response(
@@ -133,11 +135,10 @@ class CrearSolicitudUnificadaView(APIView):
                 )
 
             except DjangoValidationError as e:
-                mensaje_error = e.message if hasattr(e, 'message') else str(e)
-                return Response({"detail": mensaje_error}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": e.message if hasattr(e, 'message') else str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
             except Exception as e:
-                print(f"Error en Unificada: {e}")
-                return Response({"detail": "Error interno del servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                print(f"Error interno: {e}")
+                return Response({"detail": "Error procesando la solicitud."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

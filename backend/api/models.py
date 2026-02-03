@@ -306,6 +306,8 @@ class Acto(models.Model):
     inicio_solicitud_cirios = models.DateTimeField(verbose_name="Inicio solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de apertura de solicitudes de papeletas de sitio generales")
     fin_solicitud_cirios = models.DateTimeField(verbose_name="Fin solicitud papeletas generales", blank=True, null=True, help_text="Fecha y hora de cierre de solicitudes de papeletas de sitio generales")
 
+    fecha_ejecucion_reparto = models.DateTimeField(null=True, blank=True, verbose_name="Fecha ejecución reparto", help_text="Si tiene valor, indica que el reparto automático ya se ha ejecutado.")
+
     def clean(self):
         super().clean()
         errors = {}
@@ -529,16 +531,41 @@ class PapeletaSitio(models.Model):
     
     def __str__(self):
         return f"Papeleta {self.numero_papeleta} - {self.anio})"
-    
-    # Aplica la restricción de unicidad a todas las papeletas MENOS a las que estén en la lista [ANULADA, NO_ASIGNADA]".
-    class Meta:
-        constraints = [
-            UniqueConstraint(
-                fields=['hermano', 'acto'],
-                condition=~Q(estado_papeleta__in=['ANULADA', 'NO_ASIGNADA']),
-                name='unique_papeleta_activa_hermano_acto'
-            )
+
+    def clean(self):
+        """
+        Validación personalizada para evitar duplicados activos en MariaDB.
+        """
+        super().clean()
+
+        estados_inactivos = [
+            self.EstadoPapeleta.ANULADA,
+            self.EstadoPapeleta.NO_ASIGNADA
         ]
+
+        if self.estado_papeleta not in estados_inactivos:
+            papeletas_existentes = PapeletaSitio.objects.filter(
+                hermano=self.hermano,
+                acto=self.acto
+            ).exclude(
+                estado_papeleta__in=estados_inactivos
+            )
+
+            if self.pk:
+                papeletas_existentes = papeletas_existentes.exclude(pk=self.pk)
+
+            if papeletas_existentes.exists():
+                raise ValidationError({
+                    'hermano': 'Este hermano ya tiene una papeleta activa para este acto. Debe anular la anterior antes de crear una nueva.'
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Papeleta de Sitio"
+        verbose_name_plural = "Papeletas de Sitio"
     
 # -----------------------------------------------------------------------------
 # ENTIDAD: PREFERENCIA SOLICITUD
