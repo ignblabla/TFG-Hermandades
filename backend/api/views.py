@@ -402,8 +402,6 @@ class ComunicadoListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Aquí podrías filtrar en el futuro para mostrar solo los de las áreas del usuario
-        # Por ahora, mostramos todos ordenados por fecha descendente
         comunicados = Comunicado.objects.all().order_by('-fecha_emision')
         serializer = ComunicadoSerializer(comunicados, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
