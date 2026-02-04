@@ -349,14 +349,13 @@ function AdminCreacionActo() {
                                     <div className="form-section-creacion-acto admin-section-creacion-acto">
                                         <h3 className="section-title-creacion-acto admin-title-creacion-acto"><Clock size={18}/> Plazos de Solicitud Online</h3>
                                         
-                                        {/* BLOQUE 1: INSIGNIAS (USAMOS grid-dates-row PARA FILA DE 2) */}
                                         <h4 style={{ margin: '15px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>
                                             {formData.modalidad === 'TRADICIONAL' 
                                                 ? '1. Solicitud de Insignias / Varas' 
                                                 : 'Plazo Único de Solicitud (General)'}
                                         </h4>
                                         
-                                        <div className="grid-dates-row"> {/* CLASE NUEVA PARA FORZAR FILA */}
+                                        <div className="grid-dates-row">
                                             <div className="form-group-creacion-acto">
                                                 <label>Inicio Solicitud</label>
                                                 <input 
@@ -379,12 +378,11 @@ function AdminCreacionActo() {
                                             </div>
                                         </div>
 
-                                        {/* BLOQUE 2: CIRIOS (USAMOS grid-dates-row PARA FILA DE 2) */}
                                         {formData.modalidad === 'TRADICIONAL' && (
                                             <>
                                                 <h4 style={{ margin: '20px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>2. Solicitud de Cirios / General</h4>
                                                 
-                                                <div className="grid-dates-row"> {/* CLASE NUEVA */}
+                                                <div className="grid-dates-row">
                                                     <div className="form-group-creacion-acto">
                                                         <label>Inicio Solicitud</label>
                                                         <input 
