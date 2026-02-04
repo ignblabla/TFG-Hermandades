@@ -1,24 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
-import '../styles/AdminEdicionActo.css'; // Usamos los mismos estilos para consistencia
+import '../styles/AdminEdicionActo.css';
 import { 
-    Save, 
-    FileText, 
-    Users, 
-    Trash2, 
-    ArrowLeft, 
-    AlertCircle, 
-    CheckCircle, 
-    Info 
+    Save,
+    FileText,
+    Users,
+    Trash2,
+    AlertCircle,
+    CheckCircle,
+    Info,
+    Church,
+    Heart,
+    Sun,
+    Hammer,
+    BookOpen,
+    Crown
 } from "lucide-react";
 
 function AdminEdicionComunicado() {
     const navigate = useNavigate();
-    const { id } = useParams(); // Obtenemos el ID de la URL
+    const { id } = useParams();
 
-    // --- ESTADOS ---
-    const [isOpen, setIsOpen] = useState(false); // Sidebar
+    const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
@@ -32,10 +36,9 @@ function AdminEdicionComunicado() {
         titulo: '',
         contenido: '',
         tipo_comunicacion: '',
-        areas_interes: [] // Array de IDs (ej: [1, 3])
+        areas_interes: []
     });
 
-    // Opciones estáticas (Deben coincidir con models.py)
     const tiposComunicacion = [
         { value: 'GENERAL', label: 'General' },
         { value: 'INFORMATIVO', label: 'Informativo' },
@@ -45,23 +48,31 @@ function AdminEdicionComunicado() {
         { value: 'EVENTOS', label: 'Eventos y Caridad' },
     ];
 
-    // --- CARGA INICIAL DE DATOS ---
+    const getAreaIcon = (nombreArea) => {
+        switch (nombreArea) {
+            case 'ACOLITOS': return <Church size={18} />;
+            case 'COSTALEROS': return <Users size={18} />;
+            case 'CARIDAD': return <Heart size={18} />;
+            case 'JUVENTUD': return <Sun size={18} />;
+            case 'PRIOSTIA': return <Hammer size={18} />;
+            case 'CULTOS_FORMACION': return <BookOpen size={18} />;
+            case 'PATRIMONIO': return <Church size={18} />;
+            case 'DIPUTACION_MAYOR_GOBIERNO': return <Crown size={18} />;
+            default: return <Users size={18} />;
+        }
+    };
+
     useEffect(() => {
         let isMounted = true;
 
         const fetchData = async () => {
             try {
-                // 1. Validar Usuario
                 const resUser = await api.get("api/me/");
                 if (isMounted) setCurrentUser(resUser.data);
 
-                // 2. Obtener todas las Áreas disponibles (para pintar los checkboxes)
                 const resAreas = await api.get("api/areas-interes/");
                 if (isMounted) setAreasDisponibles(resAreas.data);
 
-                // 3. Obtener Datos del Comunicado a editar
-                // NOTA: Gracias a que en la View usamos ComunicadoFormSerializer en el GET,
-                // 'areas_interes' vendrá como una lista de IDs: [1, 2], perfecto para React.
                 const resComunicado = await api.get(`api/comunicados/${id}/`);
                 const data = resComunicado.data;
 
@@ -86,7 +97,6 @@ function AdminEdicionComunicado() {
         return () => { isMounted = false; };
     }, [id]);
 
-    // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
@@ -94,21 +104,17 @@ function AdminEdicionComunicado() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Lógica para marcar/desmarcar áreas
     const toggleArea = (areaId) => {
         setFormData(prev => {
             const current = prev.areas_interes;
             if (current.includes(areaId)) {
-                // Si ya existe, lo sacamos del array
                 return { ...prev, areas_interes: current.filter(id => id !== areaId) };
             } else {
-                // Si no existe, lo agregamos
                 return { ...prev, areas_interes: [...current, areaId] };
             }
         });
     };
 
-    // --- ACTUALIZAR (PUT) ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -119,7 +125,6 @@ function AdminEdicionComunicado() {
             await api.put(`api/comunicados/${id}/`, formData);
             setSuccessMsg("Comunicado actualizado correctamente.");
             
-            // Redirigir al listado después de 1.5 segundos
             setTimeout(() => navigate("/admin/comunicados"), 1500); 
         } catch (err) {
             if (err.response && err.response.data) {
@@ -132,7 +137,6 @@ function AdminEdicionComunicado() {
         }
     };
 
-    // --- ELIMINAR (DELETE) ---
     const handleDelete = async () => {
         if (!window.confirm("¿Estás seguro de que deseas eliminar este comunicado? Esta acción es irreversible.")) {
             return;
@@ -141,7 +145,6 @@ function AdminEdicionComunicado() {
         setDeleting(true);
         try {
             await api.delete(`api/comunicados/${id}/`);
-            // Redirección inmediata tras borrado exitoso
             navigate("/admin/comunicados");
         } catch (err) {
             console.error(err);
@@ -159,42 +162,93 @@ function AdminEdicionComunicado() {
 
     return (
         <div>
-            {/* SIDEBAR */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
                 </div>
                 <ul className="nav-list-dashboard">
-                    <li onClick={() => navigate("/admin/comunicados")} style={{cursor: 'pointer'}}>
-                        <a href="#">
-                            <i className='bx bx-arrow-back'></i>
-                            <span className="link_name-dashboard">Volver</span>
-                        </a>
-                        <span className="tooltip-dashboard">Volver</span>
+                    <li>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
                     </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-grid-alt"></i>
+                            <span className="link_name-dashboard">Dashboard</span>
+                        </a>
+                        <span className="tooltip-dashboard">Dashboard</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
-                            <img src="/profile.jpeg" alt="profile" />
+                            <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre}` : "Usuario"}</div>
-                                <div className="designation-dashboard">Admin</div>
+                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i className="bx bx-log-out" id="log_out" onClick={handleLogout} style={{cursor: 'pointer'}}></i>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
                     </li>
                 </ul>
             </div>
 
             {/* CONTENIDO PRINCIPAL */}
             <section className="home-section-dashboard">
-                <div className="text-dashboard">
-                    <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', marginRight: '10px' }}>
-                        <ArrowLeft size={24} color="#11101d"/>
-                    </button>
-                    Editar Comunicado
-                </div>
+                <div className="text-dashboard">Editar Comunicado</div>
                 
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
@@ -217,7 +271,7 @@ function AdminEdicionComunicado() {
                                 <h3 className="section-title-edicion"><FileText size={18}/> Datos del Comunicado</h3>
                                 <div className="form-grid-edicion grid-2-edicion">
                                     
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -228,7 +282,7 @@ function AdminEdicionComunicado() {
                                         />
                                     </div>
 
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-comunicado">
                                         <label>Tipo de Comunicación *</label>
                                         <select 
                                             name="tipo_comunicacion" 
@@ -236,22 +290,20 @@ function AdminEdicionComunicado() {
                                             onChange={handleChange} 
                                             required
                                         >
-                                            <option value="">-- Seleccionar --</option>
                                             {tiposComunicacion.map(opt => (
                                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                                             ))}
                                         </select>
                                     </div>
 
-                                    <div className="form-group-edicion span-2-edicion">
-                                        <label>Contenido *</label>
+                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                        <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
                                             value={formData.contenido} 
                                             onChange={handleChange} 
                                             rows="6"
-                                            className="textarea-standard"
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                                            className="textarea-standard-creacion-comunicado"
                                             required
                                         />
                                     </div>
@@ -259,57 +311,51 @@ function AdminEdicionComunicado() {
                             </div>
 
                             {/* SECCIÓN 2: ÁREAS DE INTERÉS (M2M) */}
-                            <div className="form-section-edicion admin-section-edicion">
-                                <h3 className="section-title-edicion admin-title-edicion">
-                                    <Users size={18}/> Destinatarios (Áreas)
+                            <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
+                                <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
+                                    <Users size={18}/> Áreas de Interés (Destinatarios)
                                 </h3>
+
+                                <div className="help-text-container-creacion-comunicado">
+                                    <small>
+                                        Selecciona las áreas a las que va dirigido este comunicado. Si no seleccionas ninguna, 
+                                        el comunicado se guardará como <strong>Borrador</strong> y no aparecerá en el muro de los hermanos.
+                                    </small>
+                                </div>
                                 
-                                <div className="areas-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', marginTop: '15px' }}>
+                                <div className="areas-grid-creacion-comunicado">
                                     {areasDisponibles.map(area => {
-                                        // Verificamos si el ID del área está en nuestro array de IDs seleccionados
                                         const isSelected = formData.areas_interes.includes(area.id);
+
                                         return (
                                             <div 
                                                 key={area.id}
                                                 onClick={() => toggleArea(area.id)}
-                                                style={{
-                                                    padding: '10px 15px',
-                                                    border: isSelected ? '1px solid #2563eb' : '1px solid #e5e7eb',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: isSelected ? '#eff6ff' : '#fff',
-                                                    color: isSelected ? '#1e40af' : '#374151',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    transition: 'all 0.2s'
-                                                }}
+                                                className={`area-card-creacion-comunicado ${isSelected ? 'selected' : ''}`}
                                             >
                                                 <input 
                                                     type="checkbox" 
                                                     checked={isSelected} 
-                                                    onChange={() => {}} // Controlado por el div padre
-                                                    style={{ cursor: 'pointer', accentColor: '#2563eb' }}
+                                                    onChange={() => {}}
                                                 />
-                                                <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}>
+
+                                                <div className="area-icon-creacion-comunicado">
+                                                    {getAreaIcon(area.nombre_area)}
+                                                </div>
+
+                                                <span className="area-name-creacion-comunicado">
                                                     {area.get_nombre_area_display || area.nombre_area}
                                                 </span>
+
                                             </div>
                                         )
                                     })}
                                 </div>
-                                {formData.areas_interes.length === 0 && (
-                                    <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#fff7ed', borderRadius: '6px', borderLeft: '4px solid #f97316', fontSize: '0.85rem', color: '#9a3412', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Info size={16} />
-                                        <span>Sin áreas seleccionadas: este comunicado pasará a estado <strong>Borrador</strong>.</span>
-                                    </div>
-                                )}
                             </div>
 
                             {/* ACCIONES DEL FORMULARIO */}
                             <div className="form-actions-edicion" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
                                 
-                                {/* Botón Borrar (Izquierda) */}
                                 <button 
                                     type="button" 
                                     onClick={handleDelete} 
@@ -332,7 +378,6 @@ function AdminEdicionComunicado() {
                                     {deleting ? "Eliminando..." : "Eliminar Comunicado"}
                                 </button>
 
-                                {/* Botones Guardar/Cancelar (Derecha) */}
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/admin/comunicados")}>
                                         Cancelar

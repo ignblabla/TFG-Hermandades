@@ -104,6 +104,23 @@
     min-height: 100px;
 }
 
+.textarea-standard-creacion-comunicado {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.textarea-standard-creacion-comunicado:focus {
+    outline: none;
+    border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
 /* ESTILOS DE GESTIÓN INTERNA (ADMIN) */
 .admin-section-creacion-comunicado {
     background-color: #fff1f2;
@@ -112,7 +129,23 @@
     padding: 1.5rem;
 }
 
-.admin-title-creacion-comunicado {
+.help-text-container-creacion-comunicado {
+    margin-bottom: 15px;
+}
+
+.help-text-container-creacion-comunicado small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    display: block;
+    line-height: 1.4;
+}
+
+.help-text-container-creacion-comunicado strong {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.admin-title-creacion-comunicado-comunicado {
     border-bottom-color: #fda4af;
     margin-bottom: 1.5rem;
 }

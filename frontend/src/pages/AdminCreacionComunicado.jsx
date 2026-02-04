@@ -315,7 +315,7 @@ function AdminCreacionComunicado() {
                                             onChange={handleChange}
                                             rows="6"
                                             placeholder="Escriba aquí el cuerpo de la noticia..."
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', resize: 'vertical' }}
+                                            className="textarea-standard-creacion-comunicado"
                                             required
                                         />
                                     </div>
@@ -328,8 +328,8 @@ function AdminCreacionComunicado() {
                                     <Users size={18}/> Áreas de Interés (Destinatarios)
                                 </h3>
                                 
-                                <div style={{ marginBottom: '15px' }}>
-                                    <small style={{ color: '#6b7280' }}>
+                                <div className="help-text-container-creacion-comunicado">
+                                    <small>
                                         Selecciona las áreas a las que va dirigido este comunicado. Si no seleccionas ninguna, 
                                         el comunicado se guardará como <strong>Borrador</strong> y no aparecerá en el muro de los hermanos.
                                     </small>
@@ -362,13 +362,6 @@ function AdminCreacionComunicado() {
                                         )
                                     })}
                                 </div>
-
-                                {formData.areas_interes.length === 0 && (
-                                    <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#fff7ed', borderRadius: '6px', borderLeft: '4px solid #f97316', fontSize: '0.85rem', color: '#9a3412', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Info size={16} />
-                                        <span>Este comunicado se guardará en modo <strong>Borrador</strong> (sin destinatarios).</span>
-                                    </div>
-                                )}
                             </div>
 
                             {/* BOTONES DE ACCIÓN */}
