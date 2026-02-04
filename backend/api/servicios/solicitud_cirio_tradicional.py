@@ -181,7 +181,7 @@ class SolicitudCirioTradicionalService:
             raise ValidationError(f"El puesto '{puesto.nombre}' no está marcado como disponible.")
             
         if (puesto.tipo_puesto.solo_junta_gobierno and CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value not in cuerpos_hermano_set):
-            raise ValidationError(f"El puesto '{puesto.nombre}' es exclusivo para Junta de Gobierno.")
+            raise ValidationError(f"El puesto '{puesto.nombre}' es exclusivo para la Junta de Gobierno.")
         
 
 
@@ -277,9 +277,6 @@ class SolicitudCirioTradicionalService:
             )
 
         papeleta_objetivo = qs_obj.get()
-
-        if not papeleta_objetivo:
-            raise ValidationError(f"El hermano Nº {numero_objetivo} no tiene solicitud activa.")
 
         tengo_dependientes = (
             self._qs_papeletas_activas()
