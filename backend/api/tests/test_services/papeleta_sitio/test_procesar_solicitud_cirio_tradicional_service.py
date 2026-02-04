@@ -1,12 +1,13 @@
-import re
+import threading
+import uuid
+from django.db import IntegrityError, transaction, connection
 from django.test import TestCase
-from django.db import IntegrityError
 from django.utils import timezone
 from unittest import mock
-from datetime import datetime, timedelta
-from django.core.exceptions import ValidationError as DjangoValidationError
+from datetime import timedelta
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from api.models import (
     Acto, Cuota, Hermano, PreferenciaSolicitud, TipoActo, Puesto, TipoPuesto, 
@@ -19,3036 +20,3270 @@ from api.servicios.solicitud_cirio_tradicional import SolicitudCirioTradicionalS
 
 User = get_user_model()
 
-class ProcesarSolicitudCirioServiceTest(TestCase):
-    
+class ProcesarSolicitudCirioConVinculacionServiceTest(TestCase):
     def setUp(self):
-        # ---------------------------------------------------------------------
-        # FECHA BASE
-        # ---------------------------------------------------------------------
+        """
+        Setup mínimo y reutilizable SOLO para tests de _procesar_vinculacion.
+
+        Objetivo:
+        - Tener 2 hermanos: "antiguo" (puede vincularse) y "nuevo" (objetivo).
+        - Acto TRADICIONAL y que requiere papeleta.
+        - Tipos y puestos coherentes para validar el matching por tipo y sección (Cristo/Virgen).
+        - Papeleta del objetivo ya existente y activa (no ANULADA), y NO insignia.
+        - Papeleta del solicitante (mi_papeleta) ya creada, con mi_puesto.
+        - Cuotas pagadas hasta año anterior (para no ensuciar otros tests si llamas al flujo completo).
+        """
+        self.service = SolicitudCirioTradicionalService()
         self.ahora = timezone.now()
 
-        # ---------------------------------------------------------------------
-        # SERVICE
-        # ---------------------------------------------------------------------
-        self.service = SolicitudCirioTradicionalService()
-
-        # ---------------------------------------------------------------------
-        # CUERPOS
-        # ---------------------------------------------------------------------
+        # ------------------------------------------------------------
+        # Cuerpos (por si algún test usa flujo completo)
+        # ------------------------------------------------------------
         self.cuerpo_nazarenos = CuerpoPertenencia.objects.create(
             nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.NAZARENOS
         )
-        self.cuerpo_junta = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
-        )
-        self.cuerpo_costaleros = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.COSTALEROS
-        )
-        self.cuerpo_juventud = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUVENTUD
-        )
-        self.cuerpo_priostia = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.PRIOSTÍA
-        )
-        self.cuerpo_caridad_accion_social = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.CARIDAD_ACCION_SOCIAL
-        )
 
-        # ---------------------------------------------------------------------
-        # USUARIOS
-        # ---------------------------------------------------------------------
-        self.hermano = Hermano.objects.create_user(
-            dni="87654321X",
-            username="87654321X",
+        # ------------------------------------------------------------
+        # Hermanos (create_user para evitar error de password en blanco)
+        # ------------------------------------------------------------
+        self.hermano_antiguo = Hermano.objects.create_user(
+            dni="11111111A",
+            username="11111111A",
             password="password",
-            nombre="Luis",
-            primer_apellido="Ruiz",
-            segundo_apellido="Díaz",
-            email="luis@example.com",
-            telefono="600654321",
+            nombre="Antonio",
+            primer_apellido="Antiguo",
+            segundo_apellido="López",
+            email="antiguo@example.com",
+            telefono="600000001",
             estado_civil=Hermano.EstadoCivil.CASADO,
             genero=Hermano.Genero.MASCULINO,
             estado_hermano=Hermano.EstadoHermano.ALTA,
-            numero_registro=1002,
+            numero_registro=1000,
             fecha_ingreso_corporacion=self.ahora.date(),
-            fecha_nacimiento="1985-06-15",
-            direccion="Calle Sierpes",
-            codigo_postal="41004",
+            fecha_nacimiento="1980-01-01",
+            direccion="Calle A",
+            codigo_postal="41001",
             localidad="Sevilla",
             provincia="Sevilla",
             comunidad_autonoma="Andalucía",
             esAdmin=False,
         )
 
-        self.hermano_objetivo = Hermano.objects.create_user(
-            dni="11223344Z",
-            username="11223344Z",
+        self.hermano_nuevo = Hermano.objects.create_user(
+            dni="22222222B",
+            username="22222222B",
             password="password",
-            nombre="Pepe",
-            primer_apellido="Gómez",
-            segundo_apellido="López",
-            email="pepe@example.com",
-            telefono="600111222",
+            nombre="Nicolás",
+            primer_apellido="Nuevo",
+            segundo_apellido="Pérez",
+            email="nuevo@example.com",
+            telefono="600000002",
             estado_civil=Hermano.EstadoCivil.SOLTERO,
             genero=Hermano.Genero.MASCULINO,
             estado_hermano=Hermano.EstadoHermano.ALTA,
             numero_registro=2000,
             fecha_ingreso_corporacion=self.ahora.date(),
             fecha_nacimiento="1990-01-01",
-            direccion="Calle Objetivo",
-            codigo_postal="41010",
+            direccion="Calle B",
+            codigo_postal="41002",
             localidad="Sevilla",
             provincia="Sevilla",
             comunidad_autonoma="Andalucía",
             esAdmin=False,
         )
 
-        # ---------------------------------------------------------------------
-        # PERTENENCIAS A CUERPOS
-        # ---------------------------------------------------------------------
         HermanoCuerpo.objects.create(
-            hermano=self.hermano,
+            hermano=self.hermano_antiguo,
             cuerpo=self.cuerpo_nazarenos,
-            anio_ingreso=self.ahora.year - 5
+            anio_ingreso=self.ahora.year - 10,
         )
         HermanoCuerpo.objects.create(
-            hermano=self.hermano_objetivo,
+            hermano=self.hermano_nuevo,
             cuerpo=self.cuerpo_nazarenos,
-            anio_ingreso=self.ahora.year - 3
+            anio_ingreso=self.ahora.year - 2,
         )
 
-        # ---------------------------------------------------------------------
-        # TIPO DE ACTO
-        # ---------------------------------------------------------------------
-        self.tipo_con_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.ESTACION_PENITENCIA,
-            requiere_papeleta=True
-        )
-
-        # ---------------------------------------------------------------------
-        # ACTO TRADICIONAL
-        # ---------------------------------------------------------------------
-        self.fecha_acto = self.ahora + timedelta(days=30)
-
-        self.inicio_insignias = self.ahora - timedelta(days=10)
-        self.fin_insignias = self.ahora - timedelta(days=7)
-
-        self.inicio_cirios = self.ahora - timedelta(hours=1)
-        self.fin_cirios = self.ahora + timedelta(hours=2)
-
-        self.acto = Acto.objects.create(
-            nombre="Estación de Penitencia 2026",
-            descripcion="Acto con reparto tradicional",
-            fecha=self.fecha_acto,
-            tipo_acto=self.tipo_con_papeleta,
-            modalidad=Acto.ModalidadReparto.TRADICIONAL,
-            inicio_solicitud=self.inicio_insignias,
-            fin_solicitud=self.fin_insignias,
-            inicio_solicitud_cirios=self.inicio_cirios,
-            fin_solicitud_cirios=self.fin_cirios,
-        )
-
-        # ---------------------------------------------------------------------
-        # TIPOS DE PUESTO + PUESTOS
-        # ---------------------------------------------------------------------
-        self.tipo_cirio = TipoPuesto.objects.create(
-            nombre_tipo="Cirio",
-            es_insignia=False,
-            solo_junta_gobierno=False
-        )
-        self.tipo_insignia = TipoPuesto.objects.create(
-            nombre_tipo="Senatus",
-            es_insignia=True,
-            solo_junta_gobierno=False
-        )
-        self.tipo_cirio_solo_junta = TipoPuesto.objects.create(
-            nombre_tipo="Cirio Junta",
-            es_insignia=False,
-            solo_junta_gobierno=True
-        )
-
-        self.puesto_cirio_ok = Puesto.objects.create(
-            nombre="Cirio Tramo 3",
-            numero_maximo_asignaciones=10,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=self.tipo_cirio,
-            cortejo_cristo=True,
-        )
-
-        self.puesto_insignia = Puesto.objects.create(
-            nombre="Senatus (Insignia)",
-            numero_maximo_asignaciones=1,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=self.tipo_insignia,
-            cortejo_cristo=True,
-        )
-
-        self.puesto_cirio_no_disponible = Puesto.objects.create(
-            nombre="Cirio No Disponible",
-            numero_maximo_asignaciones=10,
-            disponible=False,
-            acto=self.acto,
-            tipo_puesto=self.tipo_cirio,
-            cortejo_cristo=True,
-        )
-
-        self.puesto_cirio_solo_junta = Puesto.objects.create(
-            nombre="Cirio Junta (exclusivo)",
-            numero_maximo_asignaciones=5,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=self.tipo_cirio_solo_junta,
-            cortejo_cristo=True,
-        )
-
-        # ---------------------------------------------------------------------
-        # CUOTAS
-        # ---------------------------------------------------------------------
-        anio_limite = self.ahora.date().year - 1
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        Cuota.objects.create(
-            hermano=self.hermano_objetivo,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        # ---------------------------------------------------------------------
-        # Helpers de datos frecuentes para tests
-        # ---------------------------------------------------------------------
-        self.anio_acto = self.acto.fecha.year
-
-
-
-    def test_tradicional_cirio_solicitud_valida_crea_papeleta_solicitada_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) crea papeleta SOLICITADA.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA, con puesto asignado,
-            es_solicitud_insignia=False y código verificación correcto.
-        """
-        now = timezone.now()
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-        self.assertEqual(papeleta.anio, self.acto.fecha.year)
-        self.assertEqual(papeleta.fecha_solicitud, now)
-
-        self.assertIsNotNone(papeleta.codigo_verificacion)
-        self.assertEqual(len(papeleta.codigo_verificacion), 8)
-        self.assertTrue(papeleta.codigo_verificacion.isupper())
-
-
-
-    def test_tradicional_cirio_solicitud_valida_sin_cuerpos_pasa_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) sin pertenecer a ningún cuerpo pasa.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano NO pertenece a ningún cuerpo (cuerpos_hermano_set vacío).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_hermano_nazarenos_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con hermano perteneciente a NAZARENOS.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano pertenece únicamente al cuerpo NAZARENOS (cuerpo permitido).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_nazarenos,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_hermano_priostia_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con hermano perteneciente a PRIOSTÍA.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano pertenece únicamente al cuerpo PRIOSTÍA (cuerpo permitido).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_priostia,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_hermano_juventud_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con hermano perteneciente a JUVENTUD.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano pertenece únicamente al cuerpo JUVENTUD (cuerpo permitido).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_juventud,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_hermano_caridad_accion_social_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con hermano perteneciente a CARIDAD_ACCION_SOCIAL.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano pertenece únicamente al cuerpo CARIDAD_ACCION_SOCIAL (cuerpo permitido).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_caridad_accion_social,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_hermano_junta_gobierno_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con hermano perteneciente a JUNTA_GOBIERNO.
-
-        Given: hermano en ALTA, con historial de cuotas hasta año anterior (PAGADA/EXENTO),
-            sin deuda.
-            hermano pertenece únicamente al cuerpo JUNTA_GOBIERNO (cuerpo permitido).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_junta,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_cuotas_historicas_pagadas_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con todas las cuotas históricas PAGADAS.
-
-        Given: hermano en ALTA.
-            historial completo de cuotas hasta el año anterior, todas en estado PAGADA.
-            sin ninguna cuota PENDIENTE ni DEVUELTA.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        for anio in range(anio_limite - 3, anio_limite + 1):
+        # ------------------------------------------------------------
+        # Cuotas: pagadas hasta año anterior (por si se testea también el flujo completo)
+        # ------------------------------------------------------------
+        anio_actual = self.ahora.date().year
+        for hermano in (self.hermano_antiguo, self.hermano_nuevo):
             Cuota.objects.create(
-                hermano=self.hermano,
-                anio=anio,
+                hermano=hermano,
+                anio=anio_actual - 1,
                 tipo=Cuota.TipoCuota.ORDINARIA,
-                descripcion=f"Cuota {anio}",
-                importe="25.00",
+                descripcion=f"Cuota {anio_actual - 1}",
+                importe="30.00",
                 estado=Cuota.EstadoCuota.PAGADA,
                 metodo_pago=Cuota.MetodoPago.DOMICILIACION,
             )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_cuotas_historicas_exento_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con todas las cuotas históricas en estado EXENTO.
-
-        Given: hermano en ALTA.
-            historial completo de cuotas hasta el año anterior, todas en estado EXENTO.
-            sin ninguna cuota PENDIENTE ni DEVUELTA.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        for anio in range(anio_limite - 3, anio_limite + 1):
-            Cuota.objects.create(
-                hermano=self.hermano,
-                anio=anio,
-                tipo=Cuota.TipoCuota.ORDINARIA,
-                descripcion=f"Cuota {anio}",
-                importe="0.00",
-                estado=Cuota.EstadoCuota.EXENTO,
-                metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-            )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_solicitud_valida_cuotas_historicas_pagada_y_exento_ok(self):
-        """
-        Test: Solicitud válida de cirio (TRADICIONAL) con mezcla de cuotas PAGADA + EXENTO
-        hasta el año anterior.
-
-        Given: hermano en ALTA.
-            historial completo de cuotas hasta el año anterior con estados mixtos
-            (PAGADA y EXENTO).
-            sin ninguna cuota PENDIENTE ni DEVUELTA.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio en estado SOLICITADA sin errores.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite - 2,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite - 2}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
+        # ------------------------------------------------------------
+        # Acto TRADICIONAL con papeleta
+        # ------------------------------------------------------------
+        self.tipo_acto = TipoActo.objects.create(
+            tipo=TipoActo.OpcionesTipo.ESTACION_PENITENCIA,
+            requiere_papeleta=True,
         )
 
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite - 1,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite - 1}",
-            importe="0.00",
-            estado=Cuota.EstadoCuota.EXENTO,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
+        self.acto = Acto.objects.create(
+            nombre="Estación de Penitencia",
+            descripcion="Test vinculación",
+            fecha=self.ahora + timedelta(days=30),
+            modalidad=Acto.ModalidadReparto.TRADICIONAL,
+            tipo_acto=self.tipo_acto,
+            inicio_solicitud=self.ahora - timedelta(days=10),
+            fin_solicitud=self.ahora - timedelta(days=5),
+            inicio_solicitud_cirios=self.ahora - timedelta(days=2),
+            fin_solicitud_cirios=self.ahora + timedelta(days=2),
         )
 
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
+        # ------------------------------------------------------------
+        # Tipos y puestos (Cirio) y control de sección (Cristo/Virgen)
+        # ------------------------------------------------------------
+        self.tipo_cirio = TipoPuesto.objects.create(
+            nombre_tipo="CIRIO",
+            es_insignia=False,
+            solo_junta_gobierno=False,
         )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_cuota_anio_actual_pendiente_no_bloquea_ok(self):
-        """
-        Test: Cuotas del año actual en PENDIENTE NO bloquean (regla solo mira <= año anterior).
-
-        Given: hermano en ALTA.
-            existe historial de cuotas hasta año anterior y no hay deuda (PENDIENTE/DEVUELTA)
-            en años <= año anterior.
-            además, existe una cuota del AÑO ACTUAL en estado PENDIENTE.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: la solicitud pasa y se crea PapeletaSitio SOLICITADA.
-        """
-        now = timezone.now()
-        anio_actual = now.date().year
-        anio_limite = anio_actual - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_actual}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PENDIENTE,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_cuota_anio_actual_devuelta_no_bloquea_ok(self):
-        """
-        Test: Cuota del año actual en DEVUELTA NO bloquea (regla solo mira <= año anterior).
-
-        Given: hermano en ALTA.
-            existe historial de cuotas hasta año anterior y no hay deuda (PENDIENTE/DEVUELTA)
-            en años <= año anterior.
-            además, existe una cuota del AÑO ACTUAL en estado DEVUELTA.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido: no insignia, disponible y perteneciente al acto.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: la solicitud pasa y se crea PapeletaSitio SOLICITADA.
-        """
-        now = timezone.now()
-        anio_actual = now.date().year
-        anio_limite = anio_actual - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_actual}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.DEVUELTA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_plazo_inicia_en_ahora_igual_inicio_ok(self):
-        """
-        Test: ahora == inicio_solicitud_cirios => OK (igualdad no falla).
-
-        Given: acto TRADICIONAL con inicio_solicitud_cirios exactamente igual a now,
-            y fin_solicitud_cirios posterior.
-            hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            puesto válido.
-        When: se procesa la solicitud con now == inicio.
-        Then: se crea PapeletaSitio SOLICITADA.
-        """
-        now = timezone.now()
-
-        self.acto.inicio_solicitud_cirios = now
-        self.acto.fin_solicitud_cirios = now + timezone.timedelta(hours=2)
-        self.acto.save(update_fields=["inicio_solicitud_cirios", "fin_solicitud_cirios"])
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.fecha_solicitud, now)
-
-
-
-    def test_tradicional_cirio_plazo_finaliza_en_ahora_igual_fin_ok(self):
-        """
-        Test: ahora == fin_solicitud_cirios => OK (igualdad no falla).
-
-        Given: acto TRADICIONAL con fin_solicitud_cirios exactamente igual a now,
-            e inicio_solicitud_cirios anterior.
-            hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            puesto válido.
-        When: se procesa la solicitud con now == fin.
-        Then: se crea PapeletaSitio SOLICITADA.
-        """
-        now = timezone.now()
-
-        self.acto.inicio_solicitud_cirios = now - timezone.timedelta(hours=2)
-        self.acto.fin_solicitud_cirios = now
-        self.acto.save(update_fields=["inicio_solicitud_cirios", "fin_solicitud_cirios"])
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.fecha_solicitud, now)
-
-
-
-    def test_tradicional_cirio_plazo_con_precision_segundos_y_milisegundos_ok(self):
-        """
-        Test: Plazo de cirios válido considerando segundos y microsegundos (edge de timezone).
-
-        Given: acto TRADICIONAL con inicio_solicitud_cirios y fin_solicitud_cirios
-            definidos con segundos y microsegundos.
-            now cae estrictamente dentro del rango (no igual a bordes),
-            validando que no hay errores por precisión temporal / timezone.
-            hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea PapeletaSitio SOLICITADA sin errores.
-        """
-        now = timezone.now().replace(microsecond=123456)
-
-        inicio = now - timedelta(seconds=30, microseconds=500000)
-        fin = now + timedelta(seconds=30, microseconds=250000)
-
-        self.acto.inicio_solicitud_cirios = inicio
-        self.acto.fin_solicitud_cirios = fin
-        self.acto.save(update_fields=["inicio_solicitud_cirios", "fin_solicitud_cirios"])
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.fecha_solicitud, now)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-
-
-
-    def test_tradicional_cirio_puesto_no_insignia_y_disponible_ok(self):
-        """
-        Test: Puesto con tipo_puesto.es_insignia=False y disponible=True => OK.
-
-        Given: hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto cuyo tipo NO es insignia y está marcado como disponible.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio SOLICITADA con el puesto asignado.
-        """
-        now = timezone.now()
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_puesto_no_exclusivo_junta_hermano_no_junta_ok(self):
-        """
-        Test: Puesto con tipo_puesto.solo_junta_gobierno=False => OK aunque el hermano no sea Junta.
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            hermano NO pertenece a JUNTA_GOBIERNO (por ejemplo, NAZARENOS).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto cuyo tipo NO es exclusivo de Junta (solo_junta_gobierno=False).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_nazarenos,
-            anio_ingreso=now.year - 5,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_puesto_cortejo_cristo_ok(self):
-        """
-        Test: Puesto con cortejo_cristo=True (Cristo) => OK.
-
-        Given: hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido con cortejo_cristo=True (Paso de Cristo).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_puesto_cortejo_virgen_ok(self):
-        """
-        Test: Puesto con cortejo_cristo=False (Virgen/Palio) => OK.
-
-        Given: hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido con cortejo_cristo=False (Paso de Virgen/Palio).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio SOLICITADA sin errores.
-        """
-        now = timezone.now()
-
-        puesto_virgen = Puesto.objects.create(
-            nombre="Cirio Tramo Virgen",
-            numero_maximo_asignaciones=10,
-            disponible=True,
+        self.mi_puesto_cirio_cristo = Puesto.objects.create(
+            nombre="Cirio Cristo 1",
             acto=self.acto,
             tipo_puesto=self.tipo_cirio,
+            disponible=True,
+            numero_maximo_asignaciones=1,
+            cortejo_cristo=True,
+        )
+
+        self.puesto_objetivo_cirio_cristo = Puesto.objects.create(
+            nombre="Cirio Cristo 2",
+            acto=self.acto,
+            tipo_puesto=self.tipo_cirio,
+            disponible=True,
+            numero_maximo_asignaciones=1,
+            cortejo_cristo=True,
+        )
+
+        self.puesto_objetivo_cirio_virgen = Puesto.objects.create(
+            nombre="Cirio Virgen 1",
+            acto=self.acto,
+            tipo_puesto=self.tipo_cirio,
+            disponible=True,
+            numero_maximo_asignaciones=1,
             cortejo_cristo=False,
         )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=puesto_virgen,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, puesto_virgen.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-
-    def test_tradicional_cirio_puesto_con_cupo_unico_sin_ocupacion_previa_ok(self):
-        """
-        Test: Puesto con numero_maximo_asignaciones=1 (sin papeletas emitidas previas) => OK.
-
-        Given: hermano en ALTA, al corriente hasta año anterior, cuerpo permitido.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido con numero_maximo_asignaciones=1 y SIN papeletas previamente emitidas
-            (cantidad_ocupada = 0).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea una PapeletaSitio SOLICITADA correctamente.
-        """
-        now = timezone.now()
-
-        puesto_cupo_unico = Puesto.objects.create(
-            nombre="Cirio Cupo Único",
+        self.tipo_cruz = TipoPuesto.objects.create(
+            nombre_tipo="CRUZ PENITENTE",
+            es_insignia=False,
+            solo_junta_gobierno=False,
+        )
+        self.mi_puesto_cruz_cristo = Puesto.objects.create(
+            nombre="Cruz Cristo 1",
+            acto=self.acto,
+            tipo_puesto=self.tipo_cruz,
+            disponible=True,
             numero_maximo_asignaciones=1,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=self.tipo_cirio,
             cortejo_cristo=True,
         )
 
-        self.assertEqual(puesto_cupo_unico.cantidad_ocupada, 0)
-        self.assertEqual(puesto_cupo_unico.plazas_disponibles, 1)
-
-        with patch("django.utils.timezone.now", return_value=now):
-            papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=puesto_cupo_unico,
-            )
-
-        self.assertIsNotNone(papeleta.id)
-
-        papeleta.refresh_from_db()
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.hermano_id, self.hermano.id)
-        self.assertEqual(papeleta.acto_id, self.acto.id)
-        self.assertEqual(papeleta.puesto_id, puesto_cupo_unico.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
-
-
-
-    def test_tradicional_cirio_con_insignia_previa_solicitada_anula_insignia_y_crea_cirio_ok(self):
-        """
-        Test: Existe una papeleta activa de INSIGNIA del mismo acto en estado SOLICITADA =>
-
-        - crea la papeleta de cirio en estado SOLICITADA
-        - anula la insignia previa (pasa a ANULADA)
-        - devuelve la nueva papeleta
-        """
-        now = timezone.now()
-
-        insignia_previa = PapeletaSitio.objects.create(
-            hermano=self.hermano,
+        # ------------------------------------------------------------
+        # Papeletas base para _procesar_vinculacion
+        # ------------------------------------------------------------
+        self.mi_papeleta = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
             acto=self.acto,
             anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=5),
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="INSIG001",
-            puesto=self.puesto_insignia,
+            es_solicitud_insignia=False,
+            puesto=self.mi_puesto_cirio_cristo,
+            fecha_solicitud=self.ahora,
+            codigo_verificacion="ABCDEFGH",
         )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
-
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertFalse(nueva.es_solicitud_insignia)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertEqual(nueva.hermano_id, self.hermano.id)
-        self.assertEqual(nueva.acto_id, self.acto.id)
-
-        insignia_previa.refresh_from_db()
-        self.assertEqual(insignia_previa.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
-
-        self.assertEqual(
-            PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count(),
-            2
-        )
-
-
-
-    def test_tradicional_cirio_insignia_previa_solicitada_con_puesto_se_anula_y_crea_cirio_ok(self):
-        """
-        Test: Insignia previa SOLICITADA con puesto asignado => se anula igualmente.
-
-        Given: existe papeleta INSIGNIA (es_solicitud_insignia=True) en estado SOLICITADA
-            para el mismo acto/hermano, y además tiene puesto asignado.
-        When: se solicita cirio.
-        Then: se anula la insignia previa (ANULADA) y se crea/devolver papeleta de cirio SOLICITADA.
-        """
-        now = timezone.now()
-
-        insignia_previa = PapeletaSitio.objects.create(
-            hermano=self.hermano,
+        self.papeleta_objetivo_ok = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
             acto=self.acto,
             anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=5),
             estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="INSIGPST",
-            puesto=self.puesto_insignia,
+            es_solicitud_insignia=False,
+            puesto=self.puesto_objetivo_cirio_cristo,
+            fecha_solicitud=self.ahora,
+            codigo_verificacion="HGFEDCBA",
         )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertFalse(nueva.es_solicitud_insignia)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertEqual(nueva.hermano_id, self.hermano.id)
-        self.assertEqual(nueva.acto_id, self.acto.id)
-
-        insignia_previa.refresh_from_db()
-        self.assertEqual(insignia_previa.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
 
 
-
-    def test_tradicional_cirio_insignia_previa_solicitada_sin_puesto_se_anula_y_crea_cirio_ok(self):
+    def test_tradicional_solicitud_cirio_valida_ok(self):
         """
-        Test: Insignia previa SOLICITADA sin puesto asignado => se anula igualmente.
+        Test POSITIVO:
+        Solicitud válida de CIRIO en acto TRADICIONAL.
 
-        Given: existe papeleta INSIGNIA (es_solicitud_insignia=True) en estado SOLICITADA
-            para el mismo acto/hermano, y NO tiene puesto asignado.
-        When: se solicita cirio.
-        Then: se anula la insignia previa (ANULADA) y se crea/devolver papeleta de cirio SOLICITADA.
-        """
-        now = timezone.now()
-
-        insignia_previa = PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=5),
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="INSIGNON",
-            puesto=None,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertFalse(nueva.es_solicitud_insignia)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertEqual(nueva.hermano_id, self.hermano.id)
-        self.assertEqual(nueva.acto_id, self.acto.id)
-
-        insignia_previa.refresh_from_db()
-        self.assertEqual(insignia_previa.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
-
-
-
-    def test_tradicional_cirio_insignia_solicitada_con_otras_anulada_y_no_asignada_ignora_inactivas_anula_solo_activa_ok(self):
-        """
-        Test: Existe insignia SOLICITADA activa y además hay otras papeletas ANULADA/NO_ASIGNADA.
-        Debe ignorar las inactivas, anular SOLO la insignia SOLICITADA activa y crear cirio.
-
-        Given: para el mismo hermano/acto existen:
-            - papeleta INSIGNIA SOLICITADA (activa) => debe anularse
-            - otra papeleta ANULADA (inactiva) => se ignora
-            - otra papeleta NO_ASIGNADA (inactiva) => se ignora
-        When: se solicita cirio.
+        Given:
+            - Acto con tipo_acto.requiere_papeleta = True
+            - modalidad = TRADICIONAL
+            - Plazo de cirios vigente
+            - Hermano en ALTA
+            - Cuotas pagadas hasta año anterior
+            - Cuerpo permitido (NAZARENOS)
+            - Puesto de cirio disponible y del mismo acto
+        When:
+            - Se procesa la solicitud de cirio tradicional
         Then:
-            - se crea nueva papeleta de cirio SOLICITADA
-            - la insignia SOLICITADA pasa a ANULADA
-            - las otras papeletas permanecen igual
-        """
-        now = timezone.now()
-
-        anulada_prev = PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=30),
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="ANULAD01",
-            puesto=self.puesto_insignia,
-        )
-
-        no_asignada_prev = PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=20),
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="NOASIG01",
-            puesto=self.puesto_insignia,
-        )
-
-        insignia_activa = PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now - timezone.timedelta(minutes=5),
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=True,
-            codigo_verificacion="ACTIVA01",
-            puesto=self.puesto_insignia,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertFalse(nueva.es_solicitud_insignia)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-
-        insignia_activa.refresh_from_db()
-        self.assertEqual(insignia_activa.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
-
-        anulada_prev.refresh_from_db()
-        self.assertEqual(anulada_prev.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
-
-        no_asignada_prev.refresh_from_db()
-        self.assertEqual(no_asignada_prev.estado_papeleta, PapeletaSitio.EstadoPapeleta.NO_ASIGNADA)
-
-        self.assertEqual(
-            PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count(),
-            4
-        )
-
-
-
-    def test_tradicional_cirio_papeleta_creada_campos_correctos_ok(self):
-        """
-        Test: La papeleta creada tiene los campos esperados.
-
-        Then:
-            - estado_papeleta = SOLICITADA
-            - anio = acto.fecha.year
-            - fecha_solicitud ~= ahora (dentro de un delta)
-            - puesto = el puesto pasado
+            - Se crea una PapeletaSitio
+            - Estado = SOLICITADA
             - es_solicitud_insignia = False
-            - vinculado_a = None
-            - codigo_verificacion: longitud 8 y uppercase hex
+            - Puesto asignado correctamente
+            - Fecha de solicitud correcta
         """
+        self.mi_papeleta.delete()
+
         now = timezone.now()
-        delta = timedelta(seconds=1)
 
         with patch("django.utils.timezone.now", return_value=now):
             papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_cirio_ok,
+                puesto=self.mi_puesto_cirio_cristo,
             )
 
         self.assertIsNotNone(papeleta.id)
 
-        papeleta.refresh_from_db()
+        self.assertEqual(papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(papeleta.acto, self.acto)
 
-        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        self.assertEqual(papeleta.estado_papeleta,PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        self.assertFalse(papeleta.es_solicitud_insignia)
         self.assertEqual(papeleta.anio, self.acto.fecha.year)
+        self.assertEqual(papeleta.fecha_solicitud, now)
 
-        self.assertIsNotNone(papeleta.fecha_solicitud)
-        self.assertTrue(now - delta <= papeleta.fecha_solicitud <= now + delta)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
 
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_ok.id)
+        self.assertEqual(PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count(), 1)
+
+
+
+    def test_tradicional_acto_fechas_solicitud_cirios_correctas_ok(self):
+        """
+        Test POSITIVO:
+        Acto TRADICIONAL con fechas de solicitud de cirios correctamente configuradas.
+
+        Given:
+            - Acto requiere papeleta
+            - Modalidad TRADICIONAL
+            - inicio_solicitud_cirios y fin_solicitud_cirios definidos
+            - now está dentro del rango
+        When:
+            - Se procesa una solicitud de cirio tradicional
+        Then:
+            - No se lanza ValidationError por fechas
+            - Se crea la papeleta correctamente
+        """
+        self.mi_papeleta.delete()
+
+        now = timezone.now()
+
+        self.assertLess(self.acto.inicio_solicitud_cirios, now)
+        self.assertGreater(self.acto.fin_solicitud_cirios, now)
+
+        with patch("django.utils.timezone.now", return_value=now):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+            )
+
+        self.assertIsNotNone(papeleta.id)
+
+        self.assertEqual(papeleta.estado_papeleta,PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        self.assertEqual(papeleta.fecha_solicitud, now)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
+
+
+
+    def test_tradicional_acto_futuro_con_cierre_solicitudes_antes_del_acto_ok(self):
+        """
+        Test POSITIVO:
+        Acto en fecha futura con solicitudes de cirios que finalizan antes del acto.
+
+        Given:
+            - Acto TRADICIONAL
+            - Fecha del acto en el futuro
+            - fin_solicitud_cirios < fecha del acto
+            - now dentro del plazo de cirios
+        When:
+            - Se procesa la solicitud de cirio tradicional
+        Then:
+            - La solicitud se procesa correctamente
+            - Se crea la papeleta sin errores
+        """
+        self.mi_papeleta.delete()
+
+        now = timezone.now()
+
+        self.assertGreater(self.acto.fecha, now)
+        self.assertLess(self.acto.fin_solicitud_cirios, self.acto.fecha)
+        self.assertLess(self.acto.inicio_solicitud_cirios, now)
+        self.assertGreater(self.acto.fin_solicitud_cirios, now)
+
+        with patch("django.utils.timezone.now", return_value=now):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+            )
+
+        self.assertIsNotNone(papeleta.id)
+
+        self.assertEqual(papeleta.estado_papeleta,PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        self.assertEqual(papeleta.fecha_solicitud, now)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
         self.assertFalse(papeleta.es_solicitud_insignia)
 
-        self.assertIsNone(papeleta.vinculado_a)
-
-        self.assertIsNotNone(papeleta.codigo_verificacion)
-        self.assertEqual(len(papeleta.codigo_verificacion), 8)
-        self.assertTrue(papeleta.codigo_verificacion.isupper())
-
-        self.assertTrue(all(c in "0123456789ABCDEF" for c in papeleta.codigo_verificacion))
 
 
-
-    def test_tradicional_cirio_crea_exactamente_una_papeleta_nueva_ok(self):
+    def test_tradicional_acto_con_campos_completos_ok(self):
         """
-        Test: Se crea exactamente 1 papeleta nueva.
+        Test POSITIVO:
+        Acto TRADICIONAL con todos los campos requeridos correctamente configurados.
 
-        Given: no existe papeleta activa previa para (hermano, acto).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: el número de PapeletaSitio para (hermano, acto) incrementa en +1.
+        Given:
+            - Acto requiere papeleta
+            - Modalidad TRADICIONAL
+            - Todas las fechas obligatorias presentes
+            - Orden cronológico correcto
+        When:
+            - Se procesa una solicitud de cirio tradicional
+        Then:
+            - No se lanza ValidationError
+            - Se crea la papeleta correctamente
         """
+        self.mi_papeleta.delete()
+
         now = timezone.now()
 
-        before = PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count()
+        self.assertEqual(self.acto.modalidad, self.acto.ModalidadReparto.TRADICIONAL)
+        self.assertTrue(self.acto.tipo_acto.requiere_papeleta)
+
+        self.assertIsNotNone(self.acto.inicio_solicitud)
+        self.assertIsNotNone(self.acto.fin_solicitud)
+        self.assertIsNotNone(self.acto.inicio_solicitud_cirios)
+        self.assertIsNotNone(self.acto.fin_solicitud_cirios)
+
+        self.assertLess(self.acto.inicio_solicitud, self.acto.fin_solicitud)
+        self.assertLess(self.acto.fin_solicitud, self.acto.inicio_solicitud_cirios)
+        self.assertLess(self.acto.inicio_solicitud_cirios, self.acto.fin_solicitud_cirios)
+        self.assertLess(self.acto.fin_solicitud_cirios, self.acto.fecha)
+
+        self.assertLess(self.acto.inicio_solicitud_cirios, now)
+        self.assertGreater(self.acto.fin_solicitud_cirios, now)
 
         with patch("django.utils.timezone.now", return_value=now):
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_cirio_ok,
+                puesto=self.mi_puesto_cirio_cristo,
             )
 
-        after = PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count()
-        self.assertEqual(after, before + 1)
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(papeleta.acto, self.acto)
+
+        self.assertEqual(papeleta.estado_papeleta,PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        self.assertFalse(papeleta.es_solicitud_insignia)
+        self.assertEqual(papeleta.fecha_solicitud, now)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
 
 
 
-    def test_tradicional_cirio_no_crea_ni_modifica_preferencias_solicitud_ok(self):
+    def test_tradicional_error_acto_none(self):
         """
-        Test: No se crean/modifican PreferenciaSolicitud (cirio no usa preferencias).
+        Test NEGATIVO:
+        El acto es None.
 
-        Given: no hay PreferenciaSolicitud inicialmente.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: el conteo total de PreferenciaSolicitud no cambia.
+        Given:
+            - acto = None
+        When:
+            - Se procesa una solicitud de cirio tradicional
+        Then:
+            - Se lanza ValidationError
+            - No se crea ninguna papeleta
         """
-        now = timezone.now()
+        self.mi_papeleta.delete()
 
-        before = PreferenciaSolicitud.objects.count()
-
-        with patch("django.utils.timezone.now", return_value=now):
+        with self.assertRaises(ValidationError):
             self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        after = PreferenciaSolicitud.objects.count()
-        self.assertEqual(after, before)
-
-
-
-    def test_tradicional_cirio_acto_none_validation_error_tipo_acto(self):
-        """
-        Test: acto is None => ValidationError con 'tipo_acto' (o similar).
-
-        Given: acto=None
-        When: se procesa solicitud de cirio tradicional
-        Then: lanza ValidationError con error asociado a 'tipo_acto'
-        """
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+                hermano=self.hermano_antiguo,
                 acto=None,
-                puesto=self.puesto_cirio_ok,
+                puesto=self.mi_puesto_cirio_cristo,
             )
 
-        err = ctx.exception
-
-        self.assertTrue(hasattr(err, "message_dict"))
-        self.assertIn("tipo_acto", err.message_dict)
-        self.assertTrue(len(err.message_dict["tipo_acto"]) >= 1)
 
 
-
-    def test_tradicional_cirio_acto_sin_tipo_acto_validation_error(self):
+    def test_procesar_solicitud_cirio_acto_sin_tipo_acto_error(self):
         """
-        Test: acto.tipo_acto_id is None => ValidationError {'tipo_acto': 'El tipo de acto es obligatorio.'}
+        Test: Error al procesar solicitud si el acto no tiene tipo_acto.
 
-        Given: acto con tipo_acto "borrado" solo en memoria (sin persistir en BD)
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con clave 'tipo_acto' y mensaje esperado
+        Given: Un acto creado manualmente (sin save() para evitar validaciones de modelo o 
+            usando update) que tiene el campo tipo_acto_id como None.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje de error indica que el tipo de acto es obligatorio.
         """
-        self.acto.tipo_acto = None
-        self.acto.tipo_acto_id = None
+        acto_invalido = self.acto
+        acto_invalido.tipo_acto = None
 
-        with self.assertRaises(DjangoValidationError) as ctx:
+        with self.assertRaises(ValidationError) as cm:
             self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
+                hermano=self.hermano_antiguo,
+                acto=acto_invalido,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        err = ctx.exception
-        self.assertTrue(hasattr(err, "message_dict"))
-        self.assertIn("tipo_acto", err.message_dict)
-        self.assertIn("El tipo de acto es obligatorio.", err.message_dict["tipo_acto"])
-
-
-
-    def test_tradicional_cirio_acto_no_requiere_papeleta_validation_error(self):
-        """
-        Test: acto.tipo_acto.requiere_papeleta=False => ValidationError
-        "El acto 'X' no admite solicitudes de papeleta."
-
-        Given: acto con tipo_acto que NO requiere papeleta (sin persistir cambios que disparen clean()).
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        tipo_sin_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.CONVIVENCIA,
-            requiere_papeleta=False,
-        )
-
-        self.acto.tipo_acto = tipo_sin_papeleta
-        self.acto.tipo_acto_id = tipo_sin_papeleta.id
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(f"El acto '{self.acto.nombre}' no admite solicitudes de papeleta.", err.messages)
-
-
-
-    def test_tradicional_cirio_acto_modalidad_unificado_validation_error(self):
-        """
-        Test: acto.modalidad = UNIFICADO => ValidationError
-        "Este proceso es exclusivo para actos de modalidad TRADICIONAL."
-
-        Given: acto con tipo_acto que requiere papeleta pero modalidad UNIFICADO
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con el mensaje esperado
-        """
-        self.acto.modalidad = Acto.ModalidadReparto.UNIFICADO
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "Este proceso es exclusivo para actos de modalidad TRADICIONAL.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_acto_modalidad_none_validation_error(self):
-        """
-        Test: acto.modalidad = None => ValidationError
-        "Este proceso es exclusivo para actos de modalidad TRADICIONAL."
-
-        Given: acto con tipo_acto que requiere papeleta pero modalidad = None
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError indicando que el proceso es exclusivo de modalidad TRADICIONAL
-        """
-        self.acto.modalidad = None
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "Este proceso es exclusivo para actos de modalidad TRADICIONAL.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_inicio_solicitud_cirios_none_validation_error(self):
-        """
-        Test: inicio_solicitud_cirios is None => ValidationError
-        "El plazo de cirios no está configurado en el acto."
-
-        Given: acto TRADICIONAL que requiere papeleta,
-            pero inicio_solicitud_cirios = None (plazo de cirios mal configurado).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        self.acto.inicio_solicitud_cirios = None
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "El plazo de cirios no está configurado en el acto.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_fin_solicitud_cirios_none_validation_error(self):
-        """
-        Test: fin_solicitud_cirios is None => ValidationError
-        "El plazo de cirios no está configurado en el acto."
-
-        Given: acto TRADICIONAL que requiere papeleta,
-            pero fin_solicitud_cirios = None (plazo de cirios mal configurado).
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        self.acto.fin_solicitud_cirios = None
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "El plazo de cirios no está configurado en el acto.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_inicio_y_fin_solicitud_cirios_none_validation_error(self):
-        """
-        Test: inicio_solicitud_cirios is None y fin_solicitud_cirios is None => ValidationError
-        "El plazo de cirios no está configurado en el acto."
-
-        Given: acto TRADICIONAL que requiere papeleta,
-            pero inicio_solicitud_cirios = None y fin_solicitud_cirios = None.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        self.acto.inicio_solicitud_cirios = None
-        self.acto.fin_solicitud_cirios = None
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "El plazo de cirios no está configurado en el acto.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_ahora_antes_inicio_solicitud_cirios_validation_error(self):
-        """
-        Test: ahora < inicio_solicitud_cirios => ValidationError
-        "El plazo de solicitud de cirios aún no ha comenzado."
-
-        Given: acto TRADICIONAL con inicio_solicitud_cirios en el futuro y fin posterior.
-        When: se procesa la solicitud con now < inicio.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        now = timezone.now()
-
-        self.acto.inicio_solicitud_cirios = now + timedelta(minutes=10)
-        self.acto.fin_solicitud_cirios = now + timedelta(hours=1)
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "El plazo de solicitud de cirios aún no ha comenzado.",
-            err.messages,
-        )
-
-
-    
-    def test_tradicional_cirio_ahora_despues_fin_solicitud_cirios_validation_error(self):
-        """
-        Test: ahora > fin_solicitud_cirios => ValidationError
-        "El plazo de solicitud de cirios ha finalizado."
-
-        Given: acto TRADICIONAL con fin_solicitud_cirios en el pasado.
-        When: se procesa la solicitud con now > fin.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        now = timezone.now()
-
-        self.acto.inicio_solicitud_cirios = now - timedelta(hours=2)
-        self.acto.fin_solicitud_cirios = now - timedelta(minutes=1)
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "El plazo de solicitud de cirios ha finalizado.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_plazo_cirios_configuracion_absurda_inicio_mayor_que_fin_muestra_que_no_se_valida_orden_en_service(self):
-        """
-        Test: inicio_solicitud_cirios > fin_solicitud_cirios (configuración absurda).
-
-        Objetivo del test:
-        - Detectar que el servicio NO valida el orden inicio/fin en _validar_plazo_vigente.
-        - El error que salga dependerá de 'ahora' (porque compara ahora<inicio y ahora>fin),
-            y esto sirve para descubrir fixtures/BD corruptos si entran por debajo del clean().
-
-        Given: acto TRADICIONAL con inicio_cirios posterior a fin_cirios (inicio > fin).
-        When: se procesa la solicitud en un 'now' controlado.
-        Then: lanza ValidationError, y el mensaje será uno de:
-            - "El plazo de solicitud de cirios aún no ha comenzado." (si now < inicio)
-            - "El plazo de solicitud de cirios ha finalizado." (si now > fin)
-        """
-        now = timezone.now()
-
-        self.acto.inicio_solicitud_cirios = now + timedelta(hours=2)
-        self.acto.fin_solicitud_cirios = now - timedelta(hours=2)
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        msg = ctx.exception.messages[0]
-        self.assertIn(
-            msg,
-            [
-                "El plazo de solicitud de cirios aún no ha comenzado.",
-                "El plazo de solicitud de cirios ha finalizado.",
-            ],
-        )
-
-
-
-    def test_tradicional_cirio_hermano_estado_baja_validation_error(self):
-        """
-        Test: hermano.estado_hermano = BAJA => ValidationError
-        "Solo los hermanos en estado ALTA pueden solicitar papeleta."
-
-        Given: hermano en estado BAJA
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con el mensaje esperado
-        """
-        self.hermano.estado_hermano = self.hermano.EstadoHermano.BAJA
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "Solo los hermanos en estado ALTA pueden solicitar papeleta.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_hermano_estado_pendiente_ingreso_validation_error(self):
-        """
-        Test: hermano.estado_hermano = PENDIENTE_INGRESO => ValidationError
-        "Solo los hermanos en estado ALTA pueden solicitar papeleta."
-
-        Given: hermano en estado PENDIENTE_INGRESO
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con el mismo mensaje que para BAJA
-        """
-        self.hermano.estado_hermano = self.hermano.EstadoHermano.PENDIENTE_INGRESO
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "Solo los hermanos en estado ALTA pueden solicitar papeleta.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_hermano_estado_none_validation_error(self):
-        """
-        Test: hermano.estado_hermano = None => ValidationError
-        "Solo los hermanos en estado ALTA pueden solicitar papeleta."
-
-        Given: hermano con estado_hermano = None
-            (cualquier valor distinto de ALTA debe fallar por la comparación != ALTA)
-        When: se procesa la solicitud de cirio tradicional
-        Then: lanza ValidationError con el mismo mensaje contractual
-        """
-        self.hermano.estado_hermano = None
-
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        err = ctx.exception
-        self.assertIn(
-            "Solo los hermanos en estado ALTA pueden solicitar papeleta.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_cuota_pendiente_anio_anterior_validation_error(self):
-        """
-        Test: Existe cuota <= año anterior en estado PENDIENTE => ValidationError con año exacto.
-
-        Given: hermano en ALTA.
-            existe al menos una cuota del año anterior (o anterior) en estado PENDIENTE.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError indicando exactamente el año de la cuota pendiente.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        cuota_pendiente = Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PENDIENTE,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"Consta una cuota pendiente o devuelta del año {cuota_pendiente.anio}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_cuota_devuelta_anio_anterior_validation_error(self):
-        """
-        Test: Existe cuota <= año anterior en estado DEVUELTA => ValidationError con año exacto.
-
-        Given: hermano en ALTA.
-            existe al menos una cuota del año anterior (o anterior) en estado DEVUELTA.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError indicando exactamente el año de la cuota devuelta.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        cuota_devuelta = Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.DEVUELTA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"Consta una cuota pendiente o devuelta del año {cuota_devuelta.anio}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_varias_deudas_reporta_anio_mas_antiguo_validation_error(self):
-        """
-        Test: existen varias deudas <= año anterior => se reporta el año más antiguo
-        según order_by('anio').first().
-
-        Given: hermano en ALTA con varias cuotas <= año anterior en estado PENDIENTE/DEVUELTA
-            con distintos años.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError cuyo mensaje contiene el año más antiguo.
-        """
-        now = timezone.now()
-        anio_limite = now.date().year - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        cuota_mas_antigua = Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite - 3,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite - 3}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.DEVUELTA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite - 1,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite - 1}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PENDIENTE,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_limite,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_limite}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PENDIENTE,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"Consta una cuota pendiente o devuelta del año {cuota_mas_antigua.anio}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_sin_cuotas_hasta_anio_anterior_validation_error(self):
-        """
-        Test: No existe ninguna cuota con anio <= año_anterior =>
-        ValidationError "No constan cuotas registradas hasta el año YYYY..."
-
-        Given: hermano en ALTA.
-            solo existen (o no existen) cuotas del año ACTUAL,
-            y NO hay ninguna cuota con anio <= año_anterior.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado y el año exacto.
-        """
-        now = timezone.now()
-        anio_actual = now.date().year
-        anio_limite = anio_actual - 1
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_actual}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"No constan cuotas registradas hasta el año {anio_limite}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_caso_frontera_enero_anio_limite_correcto_en_mensaje(self):
-        """
-        Test frontera: estamos en enero, cambia el año_actual y anio_limite = anio_actual - 1.
-
-        Given: now forzado a enero (10/01/2026).
-            Plazo de cirios forzado para que now esté dentro (y no bloquee antes).
-            No existen cuotas con anio <= anio_limite.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError cuyo mensaje usa exactamente anio_limite (= 2025).
-        """
-        now = timezone.make_aware(datetime(2026, 1, 10, 10, 0, 0))
-        anio_actual = now.date().year
-        anio_limite = anio_actual - 1
-
-        self.acto.inicio_solicitud_cirios = now - timedelta(hours=1)
-        self.acto.fin_solicitud_cirios = now + timedelta(hours=1)
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_actual}",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"No constan cuotas registradas hasta el año {anio_limite}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_solo_cuotas_anio_actual_sin_historial_hasta_anio_anterior_falla(self):
-        """
-        Test: hay cuotas, pero todas son del año actual (anio > anio_limite) =>
-        se considera SIN historial hasta año anterior => debe fallar.
-
-        Given: now controlado y plazo de cirios vigente.
-            hermano en ALTA.
-            existen cuotas SOLO del año actual.
-            no existe ninguna cuota con anio <= anio_limite.
-        When: se procesa solicitud de cirio tradicional.
-        Then: lanza ValidationError "No constan cuotas registradas hasta el año {anio_limite}..."
-        """
-        now = timezone.now()
-        anio_actual = now.date().year
-        anio_limite = anio_actual - 1
-
-        self.acto.inicio_solicitud_cirios = now - timedelta(hours=1)
-        self.acto.fin_solicitud_cirios = now + timedelta(hours=1)
-
-        Cuota.objects.filter(hermano=self.hermano).delete()
-
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.ORDINARIA,
-            descripcion=f"Cuota {anio_actual} (1)",
-            importe="25.00",
-            estado=Cuota.EstadoCuota.PAGADA,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-        Cuota.objects.create(
-            hermano=self.hermano,
-            anio=anio_actual,
-            tipo=Cuota.TipoCuota.EXTRAORDINARIA,
-            descripcion=f"Cuota {anio_actual} (2)",
-            importe="10.00",
-            estado=Cuota.EstadoCuota.EXENTO,
-            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            f"No constan cuotas registradas hasta el año {anio_limite}.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_hermano_solo_costaleros_falla_por_cuerpo_no_apto(self):
-        """
-        Test: Hermano pertenece SOLO a COSTALEROS => falla (no está en cuerpos permitidos).
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            pertenencia a cuerpos = {COSTALEROS} exclusivamente.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError indicando que COSTALEROS no permite solicitar la papeleta.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_costaleros,
-            anio_ingreso=now.year - 2,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            err.messages[0],
-        )
-        self.assertIn(CuerpoPertenencia.NombreCuerpo.COSTALEROS.value, err.messages[0])
-
-
-
-    def test_tradicional_cirio_hermano_solo_acolitos_falla_por_cuerpo_no_apto(self):
-        """
-        Test: Hermano pertenece SOLO a ACOLITOS => falla (no está en cuerpos permitidos).
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            pertenencia a cuerpos = {ACOLITOS} exclusivamente.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError indicando que ACOLITOS no permite solicitar la papeleta.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_priostia,
-            anio_ingreso=now.year - 1,
-        )
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        cuerpo_acolitos = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.ACOLITOS
-        )
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=cuerpo_acolitos,
-            anio_ingreso=now.year - 2,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            err.messages[0],
-        )
-        self.assertIn(CuerpoPertenencia.NombreCuerpo.ACOLITOS.value, err.messages[0])
-
-
-
-    def test_tradicional_cirio_hermano_solo_diputados_falla_por_cuerpo_no_apto(self):
-        """
-        Test: Hermano pertenece SOLO a DIPUTADOS => falla (no está en cuerpos permitidos).
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            pertenencia a cuerpos = {DIPUTADOS} exclusivamente.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError indicando que DIPUTADOS no permite solicitar la papeleta.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        cuerpo_diputados = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.DIPUTADOS
-        )
-
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=cuerpo_diputados,
-            anio_ingreso=now.year - 2,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            err.messages[0],
-        )
-        self.assertIn(CuerpoPertenencia.NombreCuerpo.DIPUTADOS.value, err.messages[0])
-
-
-
-    def test_tradicional_cirio_hermano_nazarenos_y_costaleros_falla_por_cuerpo_no_apto(self):
-        """
-        Test: Hermano pertenece a una mezcla NAZARENOS + COSTALEROS => falla (por COSTALEROS).
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            pertenencia a cuerpos = {NAZARENOS, COSTALEROS}.
-            NAZARENOS es permitido, COSTALEROS NO.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError indicando que COSTALEROS no permite solicitar la papeleta.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_nazarenos,
-            anio_ingreso=now.year - 5,
-        )
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_costaleros,
-            anio_ingreso=now.year - 3,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            err.messages[0],
-        )
-        self.assertIn(
-            CuerpoPertenencia.NombreCuerpo.COSTALEROS.value,
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_hermano_junta_y_sanitarios_falla_por_cuerpo_no_apto(self):
-        """
-        Test: Hermano pertenece a JUNTA_GOBIERNO + SANITARIOS => falla (por SANITARIOS).
-
-        Given: hermano en ALTA, al corriente hasta año anterior.
-            pertenencia a cuerpos = {JUNTA_GOBIERNO, SANITARIOS}.
-            JUNTA_GOBIERNO es permitido, SANITARIOS NO.
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError indicando que SANITARIOS no permite solicitar la papeleta.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_junta,
-            anio_ingreso=now.year - 4,
-        )
-
-        cuerpo_sanitarios = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.SANITARIOS
-        )
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=cuerpo_sanitarios,
-            anio_ingreso=now.year - 2,
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            err.messages[0],
-        )
-        self.assertIn(CuerpoPertenencia.NombreCuerpo.SANITARIOS.value, err.messages[0])
-
-
-
-    def test_tradicional_cirio_cuerpos_no_aptos_mensaje_ordenado_determinista(self):
-        """
-        Test: Mensaje lista cuerpos no aptos ordenados (sorted) => orden determinista.
-
-        Given: hermano con varios cuerpos NO permitidos en un orden "aleatorio".
-        When: se procesa la solicitud de cirio tradicional.
-        Then: ValidationError cuyo mensaje lista los cuerpos no aptos en orden alfabético (sorted).
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-
-        cuerpo_sanitarios = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.SANITARIOS
-        )
-        cuerpo_costaleros = self.cuerpo_costaleros
-        cuerpo_diputados = CuerpoPertenencia.objects.create(
-            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.DIPUTADOS
-        )
-
-        HermanoCuerpo.objects.create(hermano=self.hermano, cuerpo=cuerpo_sanitarios, anio_ingreso=now.year - 1)
-        HermanoCuerpo.objects.create(hermano=self.hermano, cuerpo=cuerpo_costaleros, anio_ingreso=now.year - 2)
-        HermanoCuerpo.objects.create(hermano=self.hermano, cuerpo=cuerpo_diputados, anio_ingreso=now.year - 3)
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        msg = ctx.exception.messages[0]
-
-        prefijo = "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta: "
-        self.assertTrue(msg.startswith(prefijo))
-
-        esperados_ordenados = sorted([
-            CuerpoPertenencia.NombreCuerpo.SANITARIOS.value,
-            CuerpoPertenencia.NombreCuerpo.COSTALEROS.value,
-            CuerpoPertenencia.NombreCuerpo.DIPUTADOS.value,
-        ])
-
+        self.assertIn('tipo_acto', cm.exception.message_dict)
         self.assertEqual(
-            msg,
-            prefijo + ", ".join(esperados_ordenados)
+            cm.exception.message_dict['tipo_acto'][0], 
+            "El tipo de acto es obligatorio."
         )
 
 
 
-    def test_tradicional_cirio_data_mismatch_cuerpo_priostia_con_tilde_falla(self):
+    def test_tradicional_solicitud_cirio_error_si_acto_no_requiere_papeleta(self):
         """
-        Test: Caso típico de data mismatch.
-        cuerpos_hermano_set viene como strings (values_list), y si uno viene con tilde/valor distinto
-        (ej. "PRIOSTÍA" vs "PRIOSTIA"), no coincide con los .value permitidos => debe fallar.
+        Test: Error al solicitar cirio en un acto que no requiere papeleta.
 
-        Objetivo: detectar inconsistencias de datos/choices/carga (fixtures antiguas, migraciones, etc.)
+        Given: Un hermano en ALTA y un acto de modalidad TRADICIONAL, 
+            pero cuyo tipo_acto tiene requiere_papeleta = False.
+        When: Se intenta procesar la solicitud de cirio tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje de error indica que el acto no admite solicitudes de papeleta.
         """
-        now = timezone.now()
+        self.tipo_acto.requiere_papeleta = False
+        self.tipo_acto.save()
+        
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
 
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
+        expected_error = f"El acto '{self.acto.nombre}' no admite solicitudes de papeleta."
+        self.assertIn(expected_error, str(cm.exception))
 
-        cuerpo_priostia_mal = CuerpoPertenencia.objects.create(
-            nombre_cuerpo="PRIOSTÍA"
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_modalidad_incorrecta(self):
+        """
+        Test: Error al procesar solicitud si la modalidad del acto no es TRADICIONAL.
+
+        Given: Un acto con modalidad UNIFICADO.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el proceso es exclusivo para actos de modalidad TRADICIONAL.
+        """
+        Acto.objects.filter(pk=self.acto.pk).update(modalidad=Acto.ModalidadReparto.UNIFICADO)
+        self.acto.refresh_from_db()
+
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIn("Este proceso es exclusivo para actos de modalidad TRADICIONAL.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_sin_inicio_solicitud(self):
+        """
+        Test: Error al procesar solicitud si no está configurado el inicio de solicitud de cirios.
+
+        Given: Un acto TRADICIONAL donde inicio_solicitud_cirios es None.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el plazo de cirios no está configurado en el acto.
+        """
+        Acto.objects.filter(pk=self.acto.pk).update(inicio_solicitud_cirios=None)
+        self.acto.refresh_from_db()
+
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIn("El plazo de cirios no está configurado en el acto.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_sin_fin_solicitud(self):
+        """
+        Test: Error al procesar solicitud si no está configurado el fin de solicitud de cirios.
+
+        Given: Un acto TRADICIONAL donde fin_solicitud_cirios es None.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el plazo de cirios no está configurado en el acto.
+        """
+
+        Acto.objects.filter(pk=self.acto.pk).update(fin_solicitud_cirios=None)
+        self.acto.refresh_from_db()
+
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIn("El plazo de cirios no está configurado en el acto.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_plazos_invertidos(self):
+        """
+        Test: Error al procesar solicitud si el inicio de cirios es posterior al fin.
+
+        Given: Un acto TRADICIONAL donde inicio_solicitud_cirios (ej. mañana) 
+            es posterior a fin_solicitud_cirios (ej. ayer).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            Como 'ahora' no puede estar entre el futuro y el pasado, 
+            el service detecta que el plazo no ha comenzado o ha finalizado.
+        """
+        Acto.objects.filter(pk=self.acto.pk).update(
+            inicio_solicitud_cirios=self.ahora + timedelta(days=1),
+            fin_solicitud_cirios=self.ahora - timedelta(days=1)
         )
+        self.acto.refresh_from_db()
 
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=cuerpo_priostia_mal,
-            anio_ingreso=now.year - 2,
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIn("El plazo de solicitud de cirios aún no ha comenzado.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_plazo_inicio_tras_acto(self):
+        """
+        Test: Error al procesar solicitud si el inicio de cirios es igual o posterior al acto.
+
+        Given: Un acto cuya fecha es 'hoy' y el inicio de solicitudes de cirios
+            se configura para 'mañana' (posterior al acto).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El servicio detecta que el plazo aún no ha comenzado (o ha finalizado
+            dependiendo del 'ahora' del test).
+        """
+        fecha_del_acto = self.ahora + timedelta(days=1)
+        inicio_invalido = fecha_del_acto + timedelta(hours=1)
+        fin_invalido = inicio_invalido + timedelta(days=1)
+
+        Acto.objects.filter(pk=self.acto.pk).update(
+            fecha=fecha_del_acto,
+            inicio_solicitud_cirios=inicio_invalido,
+            fin_solicitud_cirios=fin_invalido
         )
+        self.acto.refresh_from_db()
 
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIn("El plazo de solicitud de cirios aún no ha comenzado.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_fin_tras_fecha_acto(self):
+        """
+        Test: Error al procesar solicitud si el fin de cirios es posterior al acto.
+
+        Given: Un acto que se celebra 'hoy' y un plazo de fin de cirios configurado
+            para 'mañana' (posterior al acto).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional en un momento
+            donde el acto ya ha pasado pero el plazo sigue "abierto" teóricamente.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el plazo ha finalizado (porque el service 
+            valida el momento 'ahora' contra los límites).
+        """
+        momento_acto = self.ahora - timedelta(hours=1)
+        fin_invalido = self.ahora + timedelta(hours=5)
+
+        Acto.objects.filter(pk=self.acto.pk).update(
+            fecha=momento_acto,
+            fin_solicitud_cirios=fin_invalido
+        )
+        self.acto.refresh_from_db()
+        
+        with self.assertRaises(ValidationError) as cm:
+            pasado_mañana = self.ahora + timedelta(days=2)
+            with patch("django.utils.timezone.now", return_value=pasado_mañana):
                 self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
+                    hermano=self.hermano_antiguo,
                     acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
+                    puesto=self.mi_puesto_cirio_cristo
                 )
 
-        msg = ctx.exception.messages[0]
-        self.assertIn(
-            "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta:",
-            msg,
-        )
-        self.assertIn("PRIOSTÍA", msg)
+        self.assertIn("El plazo de solicitud de cirios ha finalizado.", str(cm.exception))
 
 
 
-    def test_tradicional_cirio_puesto_none_validation_error(self):
+    def test_procesar_solicitud_cirio_tradicional_exito(self):
         """
-        Test: puesto is None => ValidationError
-        "Debe seleccionar un puesto válido."
+        Test: Solicitud de cirio exitosa dentro del plazo legal.
 
-        Given: acto TRADICIONAL con plazo de cirios vigente,
-            hermano en ALTA y al corriente.
-            puesto = None.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+        Given: Un hermano en ALTA, al corriente de cuotas y con cuerpo nazareno.
+            Un acto TRADICIONAL con plazos de cirios abiertos.
+            Un momento 'ahora' que cae justo en medio del plazo de cirios.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea una PapeletaSitio en la base de datos.
+            - El estado es SOLICITADA.
+            - El puesto es el solicitado.
+            - es_solicitud_insignia es False.
+            - La fecha_solicitud coincide con el 'ahora' simulado.
+        """ 
+        self.mi_papeleta.delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=None,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        err = ctx.exception
-        self.assertIn(
-            "Debe seleccionar un puesto válido.",
-            err.messages,
-        )
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(papeleta.acto, self.acto)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        self.assertFalse(papeleta.es_solicitud_insignia)
+
+        self.assertEqual(papeleta.fecha_solicitud, self.ahora)
+        self.assertEqual(papeleta.anio, self.acto.fecha.year)
+        self.assertTrue(len(papeleta.codigo_verificacion) > 0)
+
+        self.assertTrue(PapeletaSitio.objects.filter(pk=papeleta.pk).exists())
 
 
 
-    def test_tradicional_cirio_puesto_no_pertenece_al_acto_validation_error(self):
+    def test_procesar_solicitud_cirio_tradicional_error_antes_de_plazo(self):
         """
-        Test: puesto.acto_id != acto.id => ValidationError
-        "El puesto no pertenece a este acto."
+        Test: Error al solicitar cirio antes de que abra el plazo.
 
-        Given: existe un puesto válido pero asociado a OTRO acto distinto.
-            hermano en ALTA, al corriente.
-            acto TRADICIONAL con plazo de cirios vigente.
-        When: se procesa la solicitud de cirio tradicional usando un puesto de otro acto.
-        Then: lanza ValidationError con el mensaje esperado.
+        Given: Un acto con inicio_solicitud_cirios en el futuro.
+            Un momento 'ahora' anterior a dicho inicio.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el plazo aún no ha comenzado.
         """
-        otro_acto = Acto.objects.create(
-            nombre="Otro acto distinto",
-            descripcion="Acto diferente",
-            fecha=self.acto.fecha,
-            tipo_acto=self.tipo_con_papeleta,
-            modalidad=Acto.ModalidadReparto.TRADICIONAL,
-            inicio_solicitud=self.acto.inicio_solicitud,
-            fin_solicitud=self.acto.fin_solicitud,
-            inicio_solicitud_cirios=self.acto.inicio_solicitud_cirios,
-            fin_solicitud_cirios=self.acto.fin_solicitud_cirios,
-        )
 
-        puesto_otro_acto = Puesto.objects.create(
-            nombre="Cirio de otro acto",
-            numero_maximo_asignaciones=5,
-            disponible=True,
-            acto=otro_acto,
-            tipo_puesto=self.tipo_cirio,
-            cortejo_cristo=True,
-        )
+        inicio_plazo = self.ahora + timedelta(days=2)
+        fin_plazo = self.ahora + timedelta(days=5)
 
-        with self.assertRaises(DjangoValidationError) as ctx:
+        Acto.objects.filter(pk=self.acto.pk).update(
+            inicio_solicitud_cirios=inicio_plazo,
+            fin_solicitud_cirios=fin_plazo
+        )
+        self.acto.refresh_from_db()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        self.assertIn("El plazo de solicitud de cirios aún no ha comenzado.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_despues_de_plazo(self):
+        """
+        Test: Error al solicitar cirio una vez cerrado el plazo.
+
+        Given: Un acto con fin_solicitud_cirios en el pasado.
+            Un momento 'ahora' posterior a dicho cierre.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que el plazo ha finalizado.
+        """
+        inicio_plazo = self.ahora - timedelta(days=5)
+        fin_plazo = self.ahora - timedelta(days=1)
+
+        Acto.objects.filter(pk=self.acto.pk).update(
+            inicio_solicitud_cirios=inicio_plazo,
+            fin_solicitud_cirios=fin_plazo
+        )
+        self.acto.refresh_from_db()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        self.assertIn("El plazo de solicitud de cirios ha finalizado.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_inicio_solicitud_nulo(self):
+        """
+        Test: Error si el inicio del plazo de cirios es nulo.
+
+        Given: Un acto TRADICIONAL donde inicio_solicitud_cirios es None.
+        When: Se intenta procesar la solicitud.
+        Then: Se lanza una ValidationError indicando que el plazo no está configurado.
+        """
+        Acto.objects.filter(pk=self.acto.pk).update(inicio_solicitud_cirios=None)
+        self.acto.refresh_from_db()
+
+        with self.assertRaises(ValidationError) as cm:
             self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=puesto_otro_acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+            
+        self.assertIn("El plazo de cirios no está configurado en el acto.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_fin_solicitud_nulo(self):
+        """
+        Test: Error si el fin del plazo de cirios es nulo.
+
+        Given: Un acto TRADICIONAL donde fin_solicitud_cirios es None.
+        When: Se intenta procesar la solicitud.
+        Then: Se lanza una ValidationError indicando que el plazo no está configurado.
+        """
+        Acto.objects.filter(pk=self.acto.pk).update(
+            inicio_solicitud_cirios=self.ahora - timedelta(days=1),
+            fin_solicitud_cirios=None
+        )
+        self.acto.refresh_from_db()
+
+        with self.assertRaises(ValidationError) as cm:
+            self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+            
+        self.assertIn("El plazo de cirios no está configurado en el acto.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_hermano_en_alta_ok(self):
+        """
+        Test: Un hermano en estado ALTA puede solicitar papeleta.
+
+        Given: Un hermano cuyo estado_hermano es ALTA.
+            El resto de condiciones (plazos, cuotas, cuerpo) son correctas.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+        """
+        self.hermano_antiguo.estado_hermano = Hermano.EstadoHermano.ALTA
+        self.hermano_antiguo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        err = ctx.exception
-        self.assertIn(
-            "El puesto no pertenece a este acto.",
-            err.messages,
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.hermano.estado_hermano, Hermano.EstadoHermano.ALTA)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_cuotas_al_dia_ok(self):
+        """
+        Test: Hermano al corriente de pago (todas las cuotas pagadas hasta el año anterior).
+
+        Given: Un hermano con historial de cuotas.
+            Todas las cuotas de años anteriores tienen estado PAGADA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+        """
+        self.hermano_antiguo.cuotas.all().delete()
+        
+        anio_actual = self.ahora.year
+        Cuota.objects.create(
+            hermano=self.hermano_antiguo,
+            anio=anio_actual - 1,
+            tipo=Cuota.TipoCuota.ORDINARIA,
+            importe="30.00",
+            estado=Cuota.EstadoCuota.PAGADA,
+            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
         )
 
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
 
-
-    def test_tradicional_cirio_puesto_es_insignia_validation_error(self):
-        """
-        Test: puesto.tipo_puesto.es_insignia = True =>
-        ValidationError "El puesto 'X' es una Insignia. No puede solicitarse en este formulario."
-
-        Given: acto TRADICIONAL con plazo de cirios vigente.
-            hermano en ALTA y al corriente.
-            puesto cuyo tipo_puesto está marcado como es_insignia=True.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
-        """
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_insignia,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        err = ctx.exception
-        self.assertIn(
-            f"El puesto '{self.puesto_insignia.nombre}' es una Insignia. No puede solicitarse en este formulario.",
-            err.messages,
-        )
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        estados_deuda = [Cuota.EstadoCuota.PENDIENTE, Cuota.EstadoCuota.DEVUELTA]
+        deuda_existente = self.hermano_antiguo.cuotas.filter(
+            anio__lt=anio_actual,
+            estado__in=estados_deuda
+        ).exists()
+        self.assertFalse(deuda_existente)
 
 
 
-    def test_tradicional_cirio_puesto_no_disponible_validation_error(self):
+    def test_procesar_solicitud_cirio_tradicional_historial_completo_ok(self):
         """
-        Test: puesto.disponible = False =>
-        ValidationError "El puesto 'X' no está marcado como disponible."
+        Test: Hermano con historial de cuotas de varios años, todas correctas.
 
-        Given: acto TRADICIONAL con plazo de cirios vigente.
-            hermano en ALTA y al corriente.
-            puesto existente del acto pero marcado como disponible=False.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
+        Given: Un hermano con cuotas registradas de los últimos 3 años.
+            Todas las cuotas anteriores al año actual están PAGADAS o EXENTAS.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito.
         """
-        with self.assertRaises(DjangoValidationError) as ctx:
-            self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_no_disponible, 
+        self.hermano_antiguo.cuotas.all().delete()
+        anio_actual = self.ahora.year
+
+        for i in range(1, 4):
+            Cuota.objects.create(
+                hermano=self.hermano_antiguo,
+                anio=anio_actual - i,
+                tipo=Cuota.TipoCuota.ORDINARIA,
+                importe="30.00",
+                estado=Cuota.EstadoCuota.PAGADA if i != 2 else Cuota.EstadoCuota.EXENTO,
+                metodo_pago=Cuota.MetodoPago.DOMICILIACION,
             )
 
-        err = ctx.exception
-        self.assertIn(
-            f"El puesto '{self.puesto_cirio_no_disponible.nombre}' no está marcado como disponible.",
-            err.messages,
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        self.assertEqual(self.hermano_antiguo.cuotas.filter(anio__lt=anio_actual).count(), 3)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_cuerpos_permitidos_ok(self):
+        """
+        Test: Hermano perteneciente solo a cuerpos permitidos puede solicitar.
+
+        Given: Un hermano que pertenece a 'NAZARENOS' y 'JUVENTUD' (ambos permitidos).
+            No pertenece a ningún cuerpo restringido (como COSTALEROS).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+        """
+        self.hermano_antiguo.pertenencias_cuerpos.all().delete()
+        
+        cuerpo_juventud = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUVENTUD
+        )[0]
+        
+        HermanoCuerpo.objects.create(
+            hermano=self.hermano_antiguo, 
+            cuerpo=self.cuerpo_nazarenos, 
+            anio_ingreso=2020
+        )
+        HermanoCuerpo.objects.create(
+            hermano=self.hermano_antiguo, 
+            cuerpo=cuerpo_juventud, 
+            anio_ingreso=2022
         )
 
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        cuerpos_actuales = set(self.hermano_antiguo.cuerpos.values_list('nombre_cuerpo', flat=True))
+        cuerpos_permitidos = {
+            CuerpoPertenencia.NombreCuerpo.NAZARENOS.value,
+            CuerpoPertenencia.NombreCuerpo.PRIOSTÍA.value,
+            CuerpoPertenencia.NombreCuerpo.JUVENTUD.value,
+            CuerpoPertenencia.NombreCuerpo.CARIDAD_ACCION_SOCIAL.value,
+            CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value,
+        }
+        self.assertTrue(cuerpos_actuales.issubset(cuerpos_permitidos))
 
 
-    def test_tradicional_cirio_puesto_solo_junta_y_hermano_no_junta_validation_error(self):
+
+    def test_procesar_solicitud_cirio_tradicional_sin_cuerpos_asignados_ok(self):
         """
-        Test: puesto.tipo_puesto.solo_junta_gobierno = True y el hermano NO pertenece a JUNTA_GOBIERNO
-        => ValidationError "El puesto 'X' es exclusivo para Junta de Gobierno."
+        Test: Hermano sin cuerpos asignados (caso permitido por defecto).
 
-        Given: acto TRADICIONAL con plazo de cirios vigente.
-            puesto cuyo tipo_puesto es solo_junta_gobierno=True.
-            hermano en ALTA, al corriente, pero SIN cuerpo JUNTA_GOBIERNO.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: lanza ValidationError con el mensaje esperado.
+        Given: Un hermano que no tiene registros en HermanoCuerpo.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+            El service no lanza ValidationError al no haber cuerpos que validar.
         """
-        now = timezone.now()
+        self.hermano_antiguo.pertenencias_cuerpos.all().delete()
 
-        HermanoCuerpo.objects.filter(hermano=self.hermano).exclude(
-            cuerpo=self.cuerpo_nazarenos
+        cuerpos_actuales = self.hermano_antiguo.cuerpos.all()
+        self.assertEqual(cuerpos_actuales.count(), 0)
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        
+        self.assertEqual(papeleta.hermano.cuerpos.count(), 0)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_hermano_en_baja(self):
+        """
+        Test: Un hermano en estado BAJA no puede solicitar papeleta.
+
+        Given: Un hermano cuyo estado_hermano es BAJA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que solo los hermanos en ALTA pueden solicitar.
+        """
+
+        self.hermano_antiguo.estado_hermano = Hermano.EstadoHermano.BAJA
+        self.hermano_antiguo.fecha_baja_corporacion = self.ahora.date()
+        self.hermano_antiguo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        self.assertIn("Solo los hermanos en estado ALTA pueden solicitar papeleta.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_hermano_pendiente_ingreso(self):
+        """
+        Test: Un hermano en estado PENDIENTE_INGRESO no puede solicitar papeleta.
+
+        Given: Un hermano cuyo estado_hermano es PENDIENTE_INGRESO.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que solo los hermanos en ALTA pueden solicitar.
+        """
+        self.hermano_antiguo.estado_hermano = Hermano.EstadoHermano.PENDIENTE_INGRESO
+        self.hermano_antiguo.numero_registro = None 
+        self.hermano_antiguo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        self.assertIn("Solo los hermanos en estado ALTA pueden solicitar papeleta.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_cuota_pendiente_anterior(self):
+        """
+        Test: Error al solicitar si existe una cuota PENDIENTE de años anteriores.
+
+        Given: Un hermano con una cuota del año pasado en estado PENDIENTE.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica exactamente el año de la deuda y pide contactar con mayordomía.
+        """
+        self.hermano_antiguo.cuotas.all().delete()
+
+        anio_deuda = self.ahora.year - 1
+        Cuota.objects.create(
+            hermano=self.hermano_antiguo,
+            anio=anio_deuda,
+            tipo=Cuota.TipoCuota.ORDINARIA,
+            descripcion=f"Cuota {anio_deuda}",
+            importe="30.00",
+            estado=Cuota.EstadoCuota.PENDIENTE,
+            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = (
+            f"Consta una cuota pendiente o devuelta del año {anio_deuda}. "
+            f"Por favor, contacte con mayordomía para regularizar su situación."
+        )
+        
+        self.assertEqual(mensaje_esperado, str(cm.exception.messages[0]))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_cuota_devuelta_anterior(self):
+        """
+        Test: Error al solicitar si existe una cuota DEVUELTA de años anteriores.
+
+        Given: Un hermano con una cuota de hace 2 años en estado DEVUELTA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError con el mensaje de deuda de mayordomía.
+        """
+        self.hermano_antiguo.cuotas.all().delete()
+
+        anio_deuda = self.ahora.year - 2
+        Cuota.objects.create(
+            hermano=self.hermano_antiguo,
+            anio=anio_deuda,
+            tipo=Cuota.TipoCuota.ORDINARIA,
+            importe="30.00",
+            estado=Cuota.EstadoCuota.DEVUELTA,
+            metodo_pago=Cuota.MetodoPago.DOMICILIACION,
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = (
+            f"Consta una cuota pendiente o devuelta del año {anio_deuda}. "
+            f"Por favor, contacte con mayordomía para regularizar su situación."
+        )
+        
+        self.assertEqual(mensaje_esperado, str(cm.exception.messages[0]))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_sin_historial_cuotas(self):
+        """
+        Test: Error si el hermano no tiene cuotas registradas hasta el año anterior.
+
+        Given: Un hermano que no tiene ningún objeto Cuota en la base de datos.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje indica que no constan cuotas registradas.
+        """
+
+        self.hermano_antiguo.cuotas.all().delete()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        anio_limite = self.ahora.year - 1
+        mensaje_esperado = f"No constan cuotas registradas hasta el año {anio_limite}."
+        
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_cuerpo_no_permitido(self):
+        """
+        Test: Error al solicitar si el hermano pertenece a un cuerpo no apto.
+
+        Given: Un hermano que pertenece al cuerpo de COSTALEROS.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje lista los cuerpos no aptos que bloquean la solicitud.
+        """
+        self.hermano_antiguo.pertenencias_cuerpos.all().delete()
+
+        cuerpo_costaleros = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.COSTALEROS
+        )[0]
+
+        HermanoCuerpo.objects.create(
+            hermano=self.hermano_antiguo,
+            cuerpo=cuerpo_costaleros,
+            anio_ingreso=self.ahora.year - 5
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        expected_msg = "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta: COSTALEROS"
+        self.assertIn(expected_msg, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_mezcla_cuerpos_permitidos_y_no_permitidos(self):
+        """
+        Test: Error si el hermano tiene cuerpos permitidos pero también uno NO permitido.
+
+        Given: Un hermano que es 'NAZARENO' (permitido) pero también 'COSTALERO' (no permitido).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError.
+            El mensaje debe señalar específicamente el cuerpo no apto (COSTALEROS).
+        """
+        self.hermano_antiguo.pertenencias_cuerpos.all().delete()
+
+        cuerpo_nazareno = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.NAZARENOS
+        )[0]
+        cuerpo_costalero = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.COSTALEROS
+        )[0]
+
+        HermanoCuerpo.objects.create(hermano=self.hermano_antiguo, cuerpo=cuerpo_nazareno, anio_ingreso=2020)
+        HermanoCuerpo.objects.create(hermano=self.hermano_antiguo, cuerpo=cuerpo_costalero, anio_ingreso=2024)
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta: COSTALEROS"
+        self.assertIn(mensaje_esperado, str(cm.exception))
+        self.assertNotIn("NAZARENOS", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_puesto_valido_ok(self):
+        """
+        Test: Solicitud exitosa con puesto válido, disponible y del acto correcto.
+
+        Given: Un puesto que pertenece al self.acto.
+            El puesto tiene disponible=True.
+            El puesto es de tipo CIRIO (no es insignia).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y el puesto queda asignado a la papeleta.
+        """
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.acto = self.acto
+        self.mi_puesto_cirio_cristo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
+        self.assertEqual(papeleta.puesto.acto, self.acto)
+        self.assertTrue(papeleta.puesto.disponible)
+        self.assertFalse(papeleta.puesto.tipo_puesto.es_insignia)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_puesto_no_insignia_ok(self):
+        """
+        Test: Un puesto que NO es insignia debe procesarse correctamente.
+
+        Given: Un TipoPuesto con es_insignia=False.
+            Un hermano apto y un acto en periodo de solicitud.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea la PapeletaSitio exitosamente.
+        """
+
+        self.mi_puesto_cirio_cristo.tipo_puesto.es_insignia = False
+        self.mi_puesto_cirio_cristo.tipo_puesto.save()
+
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertFalse(papeleta.puesto.tipo_puesto.es_insignia)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_puesto_no_exclusivo_jg_ok(self):
+        """
+        Test: Un hermano de base puede solicitar un puesto que NO es exclusivo de la JG.
+
+        Given: Un hermano que NO pertenece al cuerpo de JUNTA_GOBIERNO.
+            Un puesto cuyo tipo_puesto tiene solo_junta_gobierno=False.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+        """
+
+        self.hermano_antiguo.pertenencias_cuerpos.filter(
+            cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
         ).delete()
 
-        cuerpos = set(self.hermano.cuerpos.values_list("nombre_cuerpo", flat=True))
-        self.assertNotIn(CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value, cuerpos)
+        self.mi_puesto_cirio_cristo.tipo_puesto.solo_junta_gobierno = False
+        self.mi_puesto_cirio_cristo.tipo_puesto.save()
 
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_solo_junta,
-                )
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
 
-        err = ctx.exception
-        self.assertIn(
-            f"El puesto '{self.puesto_cirio_solo_junta.nombre}' es exclusivo para Junta de Gobierno.",
-            err.messages[0],
-        )
-
-
-
-    def test_tradicional_cirio_puesto_solo_junta_y_hermano_es_junta_ok(self):
-        """
-        Test (contraste positivo): puesto.tipo_puesto.solo_junta_gobierno = True
-        y el hermano SÍ pertenece a JUNTA_GOBIERNO => debe pasar.
-
-        Given: acto TRADICIONAL con plazo de cirios vigente.
-            puesto exclusivo de Junta de Gobierno.
-            hermano en ALTA, al corriente y con cuerpo JUNTA_GOBIERNO.
-        When: se procesa la solicitud de cirio tradicional.
-        Then: se crea papeleta SOLICITADA correctamente.
-        """
-        now = timezone.now()
-
-        HermanoCuerpo.objects.filter(hermano=self.hermano).delete()
-        HermanoCuerpo.objects.create(
-            hermano=self.hermano,
-            cuerpo=self.cuerpo_junta,
-            anio_ingreso=now.year - 3,
-        )
-
-        cuerpos = set(self.hermano.cuerpos.values_list("nombre_cuerpo", flat=True))
-        self.assertIn(CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value, cuerpos)
-
-        with patch("django.utils.timezone.now", return_value=now):
+        with patch("django.utils.timezone.now", return_value=self.ahora):
             papeleta = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_cirio_solo_junta,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
         self.assertIsNotNone(papeleta.id)
-        papeleta.refresh_from_db()
+        self.assertFalse(papeleta.puesto.tipo_puesto.solo_junta_gobierno)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_puesto_exclusivo_jg_por_miembro_jg_ok(self):
+        """
+        Test: Un miembro de la Junta de Gobierno puede solicitar un puesto exclusivo para ellos.
+
+        Given: Un hermano que pertenece al cuerpo de JUNTA_GOBIERNO.
+            Un puesto cuyo tipo_puesto tiene solo_junta_gobierno=True.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La solicitud se procesa con éxito y se crea la PapeletaSitio.
+        """
+
+        cuerpo_jg, _ = CuerpoPertenencia.objects.get_or_create(
+            nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
+        )
+        HermanoCuerpo.objects.get_or_create(
+            hermano=self.hermano_antiguo,
+            cuerpo=cuerpo_jg,
+            anio_ingreso=self.ahora.year
+        )
+
+        self.mi_puesto_cirio_cristo.tipo_puesto.solo_junta_gobierno = True
+        self.mi_puesto_cirio_cristo.tipo_puesto.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertTrue(papeleta.puesto.tipo_puesto.solo_junta_gobierno)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        cuerpos_hermano = self.hermano_antiguo.cuerpos.values_list('nombre_cuerpo', flat=True)
+        self.assertIn(CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value, cuerpos_hermano)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_none(self):
+        """
+        Test: Error al intentar procesar una solicitud con puesto nulo.
+
+        Given: Un parámetro puesto=None enviado al servicio.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError indicando que debe seleccionar un puesto válido.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=None
+                )
+
+        self.assertIn("Debe seleccionar un puesto válido.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_pertenece_a_otro_acto(self):
+        """
+        Test: Error si el puesto no pertenece al acto de la solicitud.
+
+        Given: Un acto A (el de la solicitud) y un acto B (distinto).
+            Un puesto que está asociado al acto B.
+        When: Se intenta procesar la solicitud para el acto A usando el puesto del acto B.
+        Then: Se lanza una ValidationError con mensaje genérico de pertenencia.
+        """
+        otro_acto = Acto.objects.create(
+            nombre="Acto Secundario Diferente",
+            descripcion="Descripción del acto ajeno",
+            fecha=self.ahora + timedelta(days=60),
+            tipo_acto=self.tipo_acto,
+            modalidad=Acto.ModalidadReparto.TRADICIONAL,
+            inicio_solicitud=self.ahora - timedelta(days=10),
+            fin_solicitud=self.ahora - timedelta(days=5),
+            inicio_solicitud_cirios=self.ahora - timedelta(days=2),
+            fin_solicitud_cirios=self.ahora + timedelta(days=2),
+        )
+
+        puesto_ajeno = Puesto.objects.create(
+            nombre="Cirio de Prueba Ajeno",
+            acto=otro_acto, 
+            tipo_puesto=self.mi_puesto_cirio_cristo.tipo_puesto,
+            disponible=True
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_ajeno
+                )
+
+        self.assertIn("El puesto no pertenece a este acto.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_es_insignia(self):
+        """
+        Test: Error al intentar solicitar un puesto marcado como insignia.
+
+        Given: Un puesto cuyo tipo de puesto tiene es_insignia=True.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError con el mensaje correspondiente.
+        """
+        tipo_insignia = TipoPuesto.objects.create(
+            nombre_tipo="Vara de Acompañamiento",
+            es_insignia=True,
+            solo_junta_gobierno=False
+        )
+
+        puesto_insignia = Puesto.objects.create(
+            nombre="Vara 1 - Presidencia Cristo",
+            acto=self.acto,
+            tipo_puesto=tipo_insignia,
+            disponible=True
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_insignia
+                )
+
+        self.assertIn("es una insignia", str(cm.exception).lower())
+        self.assertIn("no puede solicitarse", str(cm.exception).lower())
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_no_disponible(self):
+        """
+        Test: Error si el puesto tiene el flag disponible en False.
+
+        Given: Un puesto que pertenece al acto correcto pero disponible=False.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError con el nombre del puesto.
+        """
+        self.mi_puesto_cirio_cristo.disponible = False
+        self.mi_puesto_cirio_cristo.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = f"El puesto '{self.mi_puesto_cirio_cristo.nombre}' no está marcado como disponible."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_exclusivo_jg_solicitado_por_hermano_base(self):
+        """
+        Test: Un hermano que no es de la Junta no puede pedir puestos exclusivos (solo_junta_gobierno=True).
+
+        Given: Un hermano sin pertenencia al cuerpo JUNTA_GOBIERNO.
+            Un puesto cuyo tipo_puesto tiene solo_junta_gobierno=True.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError de restricción de acceso.
+        """
+        self.hermano_antiguo.pertenencias_cuerpos.filter(
+            cuerpo__nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
+        ).delete()
+
+        self.mi_puesto_cirio_cristo.tipo_puesto.solo_junta_gobierno = True
+        self.mi_puesto_cirio_cristo.tipo_puesto.save()
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = f"El puesto '{self.mi_puesto_cirio_cristo.nombre}' es exclusivo para la Junta de Gobierno."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_puesto_tipo_insignia(self):
+        """
+        Test: Error al intentar solicitar una Insignia en el flujo de Cirios.
+
+        Given: Un puesto cuyo TipoPuesto tiene es_insignia=True.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError con el mensaje dinámico del nombre del puesto.
+        """
+        tipo_insignia = TipoPuesto.objects.create(
+            nombre_tipo="ESTANDARTE",
+            es_insignia=True,
+            solo_junta_gobierno=False
+        )
+
+        puesto_insignia = Puesto.objects.create(
+            nombre="Estandarte Corporativo",
+            acto=self.acto,
+            tipo_puesto=tipo_insignia,
+            disponible=True
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_insignia
+                )
+
+        mensaje_esperado = f"El puesto '{puesto_insignia.nombre}' es una Insignia. No puede solicitarse en este formulario."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_sin_papeletas_previas_ok(self):
+        """
+        Test: Creación exitosa cuando el hermano no tiene registros previos.
+
+        Given: Un hermano apto y un puesto disponible.
+            No existen PapeletaSitio previas para este hermano y acto.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea una nueva PapeletaSitio.
+            El estado de la papeleta es SOLICITADA.
+        """
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        self.mi_puesto_cirio_cristo.tipo_puesto.es_insignia = False
+        self.mi_puesto_cirio_cristo.tipo_puesto.save()
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id)
+
+        self.assertEqual(papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(papeleta.puesto, self.mi_puesto_cirio_cristo)
 
         self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(papeleta.puesto_id, self.puesto_cirio_solo_junta.id)
-        self.assertFalse(papeleta.es_solicitud_insignia)
+
+        self.assertEqual(PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count(), 1)
 
 
 
-    def test_tradicional_cirio_con_insignia_activa_emitida_falla(self):
+    def test_procesar_solicitud_cirio_tradicional_con_papeleta_anulada_ok(self):
         """
-        Test: Existe papeleta activa es_solicitud_insignia=True y estado=EMITIDA =>
-        ValidationError "Ya tienes asignada una Insignia..."
+        Test: Un hermano con una papeleta ANULADA puede solicitar una nueva.
 
-        Given: hermano tiene una papeleta de insignia activa (EMITIDA) para el mismo acto.
-        When: intenta solicitar cirio.
-        Then: falla con el mensaje esperado.
+        Given: Una PapeletaSitio previa para el hermano y acto en estado ANULADA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea una SEGUNDA PapeletaSitio en estado SOLICITADA.
+            El sistema no bloquea la petición por duplicidad.
         """
-        now = timezone.now()
+        self.mi_papeleta.delete()
 
         PapeletaSitio.objects.create(
-            hermano=self.hermano,
+            hermano=self.hermano_antiguo,
             acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.EMITIDA,
-            es_solicitud_insignia=True,
-            puesto=self.puesto_insignia,
-            codigo_verificacion="ABCDEF12",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_con_insignia_activa_recogida_falla(self):
-        """
-        Test: Existe papeleta activa es_solicitud_insignia=True y estado=RECOGIDA =>
-        ValidationError "Ya tienes asignada una Insignia..."
-
-        Given: hermano tiene una papeleta de insignia activa (RECOGIDA) para el mismo acto.
-        When: intenta solicitar cirio.
-        Then: falla con el mensaje esperado.
-        """
-        now = timezone.now()
-
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.RECOGIDA,
-            es_solicitud_insignia=True,
-            puesto=self.puesto_insignia,
-            codigo_verificacion="ABCDEF34",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_con_insignia_activa_leida_falla(self):
-        """
-        Test: Existe papeleta activa es_solicitud_insignia=True y estado=LEIDA =>
-        ValidationError "Ya tienes asignada una Insignia..."
-
-        Given: hermano tiene una papeleta de insignia activa (LEIDA) para el mismo acto.
-        When: intenta solicitar cirio.
-        Then: falla con el mensaje esperado.
-        """
-        now = timezone.now()
-
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.LEIDA,
-            es_solicitud_insignia=True,
-            puesto=self.puesto_insignia,
-            codigo_verificacion="ABCDEF56",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        err = ctx.exception
-        self.assertIn(
-            "Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente.",
-            err.messages,
-        )
-
-
-
-    def test_tradicional_cirio_con_papeleta_activa_no_insignia_mismo_tipo_falla_mensaje_especifico(self):
-        """
-        Test: existe papeleta activa es_solicitud_insignia=False y MISMO tipo_puesto que el nuevo =>
-        falla con: "Ya tienes una solicitud activa para 'tipo'."
-
-        Se prueba para estados activos: SOLICITADA/EMITIDA/RECOGIDA/LEIDA.
-        """
-        now = timezone.now()
-
-        estados_activos = [
-            PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            PapeletaSitio.EstadoPapeleta.EMITIDA,
-            PapeletaSitio.EstadoPapeleta.RECOGIDA,
-            PapeletaSitio.EstadoPapeleta.LEIDA,
-        ]
-
-        for estado in estados_activos:
-            with self.subTest(estado=estado):
-                PapeletaSitio.objects.all().delete()
-
-                PapeletaSitio.objects.create(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    anio=self.acto.fecha.year,
-                    fecha_solicitud=now,
-                    estado_papeleta=estado,
-                    es_solicitud_insignia=False,
-                    puesto=self.puesto_cirio_ok,
-                    codigo_verificacion="ABCDEF12",
-                )
-
-                with patch("django.utils.timezone.now", return_value=now):
-                    with self.assertRaises(DjangoValidationError) as ctx:
-                        self.service.procesar_solicitud_cirio_tradicional(
-                            hermano=self.hermano,
-                            acto=self.acto,
-                            puesto=self.puesto_cirio_ok,
-                        )
-
-                msg = ctx.exception.messages[0]
-                self.assertEqual(
-                    msg,
-                    f"Ya tienes una solicitud activa para '{self.tipo_cirio.nombre_tipo}'."
-                )
-
-
-
-    def test_tradicional_cirio_con_papeleta_activa_no_insignia_tipo_distinto_falla_mensaje_generico(self):
-        """
-        Test: existe papeleta activa es_solicitud_insignia=False y tipo_puesto DISTINTO al nuevo =>
-        falla con: "Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez)."
-
-        Se prueba para estados activos: SOLICITADA/EMITIDA/RECOGIDA/LEIDA.
-        """
-        now = timezone.now()
-
-        tipo_penitente = TipoPuesto.objects.create(
-            nombre_tipo="Penitente",
-            es_insignia=False,
-            solo_junta_gobierno=False,
-        )
-        puesto_penitente = Puesto.objects.create(
-            nombre="Cruz de penitente",
-            numero_maximo_asignaciones=50,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=tipo_penitente,
-            cortejo_cristo=True,
-        )
-
-        estados_activos = [
-            PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            PapeletaSitio.EstadoPapeleta.EMITIDA,
-            PapeletaSitio.EstadoPapeleta.RECOGIDA,
-            PapeletaSitio.EstadoPapeleta.LEIDA,
-        ]
-
-        for estado in estados_activos:
-            with self.subTest(estado=estado):
-                PapeletaSitio.objects.all().delete()
-
-                PapeletaSitio.objects.create(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    anio=self.acto.fecha.year,
-                    fecha_solicitud=now,
-                    estado_papeleta=estado,
-                    es_solicitud_insignia=False,
-                    puesto=puesto_penitente,
-                    codigo_verificacion="ABCDEF34",
-                )
-
-                with patch("django.utils.timezone.now", return_value=now):
-                    with self.assertRaises(DjangoValidationError) as ctx:
-                        self.service.procesar_solicitud_cirio_tradicional(
-                            hermano=self.hermano,
-                            acto=self.acto,
-                            puesto=self.puesto_cirio_ok,
-                        )
-
-                msg = ctx.exception.messages[0]
-                self.assertEqual(
-                    msg,
-                    "Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez)."
-                )
-
-
-
-    def test_tradicional_cirio_mismo_tipo_puesto_distinto_falla_ya_tienes_solicitud_activa_para_tipo(self):
-        """
-        Caso "mismo tipo": ya existe papeleta activa con puesto tipo "Cirio",
-        y se intenta pedir OTRO puesto distinto pero también tipo "Cirio" =>
-        falla: "Ya tienes una solicitud activa para 'Cirio'."
-        """
-        now = timezone.now()
-
-        otro_puesto_cirio = Puesto.objects.create(
-            nombre="Cirio Tramo 7",
-            numero_maximo_asignaciones=10,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=self.tipo_cirio,
-            cortejo_cristo=True,
-        )
-
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=False,
-            puesto=self.puesto_cirio_ok,
-            codigo_verificacion="ABCDEF12",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=otro_puesto_cirio,
-                )
-
-        msg = ctx.exception.messages[0]
-        self.assertEqual(
-            msg,
-            f"Ya tienes una solicitud activa para '{self.tipo_cirio.nombre_tipo}'."
-        )
-
-
-
-    def test_tradicional_cirio_tipo_distinto_existente_penitente_falla_mensaje_generico(self):
-        """
-        Caso "tipo distinto": existe papeleta activa con tipo 'Penitente'
-        y se intenta solicitar 'Cirio' ⇒ falla con:
-        "Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez)."
-        """
-        now = timezone.now()
-
-        tipo_penitente = TipoPuesto.objects.create(
-            nombre_tipo="Penitente",
-            es_insignia=False,
-            solo_junta_gobierno=False,
-        )
-        puesto_penitente = Puesto.objects.create(
-            nombre="Cruz de penitente",
-            numero_maximo_asignaciones=30,
-            disponible=True,
-            acto=self.acto,
-            tipo_puesto=tipo_penitente,
-            cortejo_cristo=True,
-        )
-
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
-            es_solicitud_insignia=False,
-            puesto=puesto_penitente,
-            codigo_verificacion="ABCDEF99",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            with self.assertRaises(DjangoValidationError) as ctx:
-                self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
-                    acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
-                )
-
-        msg = ctx.exception.messages[0]
-        self.assertEqual(
-            msg,
-            "Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez)."
-        )
-
-
-
-    def test_tradicional_cirio_con_papeleta_prev_anu_lada_no_bloquea_y_permite_crear_nueva(self):
-        """
-        Test: Existe papeleta previa ANULADA (cirio) => NO bloquea => permite crear nueva.
-
-        Given: hermano tiene una papeleta ANULADA para el mismo acto (es_solicitud_insignia=False).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa una nueva solicitud de cirio tradicional.
-        Then: se crea una nueva papeleta SOLICITADA y el total de papeletas para (hermano, acto)
-            pasa a 2 (la anulada + la nueva).
-        """
-        now = timezone.now()
-
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
+            puesto=self.mi_puesto_cirio_cristo,
             estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA,
-            es_solicitud_insignia=False,
-            puesto=self.puesto_cirio_ok,
-            codigo_verificacion="ABCDEF12",
+            fecha_solicitud=self.ahora - timedelta(days=1),
+            anio=self.ahora.year
         )
 
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_cirio_ok,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
+        self.assertIsNotNone(nueva_papeleta.id)
+        self.assertEqual(nueva_papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
 
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(nueva.es_solicitud_insignia)
+        total_papeletas = PapeletaSitio.objects.filter(
+            hermano=self.hermano_antiguo, 
+            acto=self.acto
+        ).count()
+        self.assertEqual(total_papeletas, 2)
 
-        total = PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count()
+
+
+    def test_procesar_solicitud_cirio_tradicional_con_papeleta_no_asignada_ok(self):
+        """
+        Test: Un hermano con una papeleta NO_ASIGNADA puede realizar una nueva solicitud.
+
+        Given: Una PapeletaSitio previa en estado NO_ASIGNADA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea una SEGUNDA PapeletaSitio en estado SOLICITADA.
+        """
+        self.mi_papeleta.delete()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            puesto=self.mi_puesto_cirio_cristo,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
+            fecha_solicitud=self.ahora - timedelta(days=5),
+            anio=self.ahora.year
+        )
+
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(nueva_papeleta.id)
+        self.assertEqual(nueva_papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+        total = PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count()
         self.assertEqual(total, 2)
 
-        activas = PapeletaSitio.objects.exclude(
-            estado_papeleta__in=[PapeletaSitio.EstadoPapeleta.ANULADA, PapeletaSitio.EstadoPapeleta.NO_ASIGNADA]
-        ).filter(hermano=self.hermano, acto=self.acto).count()
-        self.assertEqual(activas, 1)
 
 
-
-    def test_tradicional_cirio_con_papeleta_prev_no_asignada_no_bloquea_y_permite_crear_nueva(self):
+    def test_procesar_solicitud_cirio_tradicional_anula_insignia_previa_ok(self):
         """
-        Test: Existe papeleta previa NO_ASIGNADA => NO bloquea => permite crear nueva.
+        Test: Al solicitar un cirio, se debe anular la solicitud de insignia previa.
 
-        Given: hermano tiene una papeleta NO_ASIGNADA para el mismo acto (es_solicitud_insignia=False).
-            acto TRADICIONAL con plazo de cirios vigente.
-            puesto válido.
-        When: se procesa una nueva solicitud de cirio tradicional.
-        Then: se crea una nueva papeleta SOLICITADA y el total de papeletas para (hermano, acto)
-            pasa a 2 (la NO_ASIGNADA + la nueva).
+        Given: Una PapeletaSitio previa con es_solicitud_insignia=True y estado SOLICITADA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: La papeleta de insignia pasa a estado ANULADA.
+            Se crea una nueva PapeletaSitio para el cirio en estado SOLICITADA.
         """
-        now = timezone.now()
 
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
-            es_solicitud_insignia=False,
-            puesto=self.puesto_cirio_ok,
-            codigo_verificacion="ABCDEF12",
-        )
+        papeleta_insignia = self.mi_papeleta 
+        papeleta_insignia.es_solicitud_insignia = True
+        papeleta_insignia.estado_papeleta = PapeletaSitio.EstadoPapeleta.SOLICITADA
+        papeleta_insignia.save()
 
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta_cirio = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
                 acto=self.acto,
-                puesto=self.puesto_cirio_ok,
+                puesto=self.mi_puesto_cirio_cristo
             )
 
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
+        self.assertIsNotNone(nueva_papeleta_cirio.id)
+        self.assertEqual(nueva_papeleta_cirio.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        self.assertFalse(nueva_papeleta_cirio.es_solicitud_insignia)
 
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(nueva.es_solicitud_insignia)
+        papeleta_insignia.refresh_from_db()
+        self.assertEqual(papeleta_insignia.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
 
-        total = PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count()
+        total = PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count()
         self.assertEqual(total, 2)
 
-        activas = PapeletaSitio.objects.exclude(
-            estado_papeleta__in=[PapeletaSitio.EstadoPapeleta.ANULADA, PapeletaSitio.EstadoPapeleta.NO_ASIGNADA]
-        ).filter(hermano=self.hermano, acto=self.acto).count()
-        self.assertEqual(activas, 1)
 
 
-
-    def test_tradicional_cirio_con_mezcla_anulada_y_no_asignada_no_bloquea_y_permite_crear_nueva(self):
+    def test_procesar_solicitud_cirio_tradicional_error_insignia_ya_emitida(self):
         """
-        Test: Existe mezcla de papeletas previas ANULADA y NO_ASIGNADA => NO bloquea => permite crear nueva.
+        Test: Error si el hermano intenta pedir un cirio teniendo ya una insignia EMITIDA.
 
-        Given: hermano tiene 2 papeletas previas para el mismo acto:
-            - una ANULADA
-            - una NO_ASIGNADA
-            (ambas son estados NO activos según el service/constraint)
-        When: se procesa una nueva solicitud de cirio tradicional.
-        Then: se crea una nueva papeleta SOLICITADA sin bloqueo.
+        Given: Una PapeletaSitio previa con es_solicitud_insignia=True y estado EMITIDA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError impidiendo la nueva solicitud.
         """
-        now = timezone.now()
+        papeleta_emitida = self.mi_papeleta 
+        papeleta_emitida.es_solicitud_insignia = True
+        papeleta_emitida.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA
+        papeleta_emitida.save()
 
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA,
-            es_solicitud_insignia=False,
-            puesto=self.puesto_cirio_ok,
-            codigo_verificacion="ABCDEF12",
-        )
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
 
-        PapeletaSitio.objects.create(
-            hermano=self.hermano,
-            acto=self.acto,
-            anio=self.acto.fecha.year,
-            fecha_solicitud=now,
-            estado_papeleta=PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
-            es_solicitud_insignia=False,
-            puesto=self.puesto_cirio_ok,
-            codigo_verificacion="ABCDEF34",
-        )
-
-        with patch("django.utils.timezone.now", return_value=now):
-            nueva = self.service.procesar_solicitud_cirio_tradicional(
-                hermano=self.hermano,
-                acto=self.acto,
-                puesto=self.puesto_cirio_ok,
-            )
-
-        self.assertIsNotNone(nueva.id)
-        nueva.refresh_from_db()
-
-        self.assertEqual(nueva.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
-        self.assertEqual(nueva.puesto_id, self.puesto_cirio_ok.id)
-        self.assertFalse(nueva.es_solicitud_insignia)
-
-        total = PapeletaSitio.objects.filter(hermano=self.hermano, acto=self.acto).count()
-        self.assertEqual(total, 3)
-
-        activas = PapeletaSitio.objects.exclude(
-            estado_papeleta__in=[PapeletaSitio.EstadoPapeleta.ANULADA, PapeletaSitio.EstadoPapeleta.NO_ASIGNADA]
-        ).filter(hermano=self.hermano, acto=self.acto).count()
-        self.assertEqual(activas, 1)
-
-
-
-    def test_tradicional_cirio_integrity_error_en_crear_papeleta_base_traduce_a_validation_error_doble_click(self):
-        """
-        Test: se produce IntegrityError al crear la papeleta base (constraint unique)
-        ⇒ el service debe capturarlo y relanzar ValidationError con el mensaje de
-        "doble click / recarga".
-
-        Este test simula una condición de carrera (dos peticiones simultáneas)
-        y valida que el error de BD se traduce correctamente a un mensaje de dominio.
-        """
-        now = timezone.now()
-
-        with patch("django.utils.timezone.now", return_value=now), \
-            patch.object(
-                self.service,
-                "_crear_papeleta_base",
-                side_effect=IntegrityError("unique_papeleta_activa_hermano_acto")
-            ):
-
-            with self.assertRaises(DjangoValidationError) as ctx:
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
                 self.service.procesar_solicitud_cirio_tradicional(
-                    hermano=self.hermano,
+                    hermano=self.hermano_antiguo,
                     acto=self.acto,
-                    puesto=self.puesto_cirio_ok,
+                    puesto=self.mi_puesto_cirio_cristo
                 )
 
-        err = ctx.exception
+        self.assertIn("Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_insignia_ya_recogida(self):
+        """
+        Test: Error si el hermano intenta pedir un cirio teniendo ya una insignia RECOGIDA.
+
+        Given: Una PapeletaSitio previa con es_solicitud_insignia=True y estado RECOGIDA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError impidiendo la nueva solicitud.
+        """
+        papeleta_recogida = self.mi_papeleta 
+        papeleta_recogida.es_solicitud_insignia = True
+        papeleta_recogida.estado_papeleta = PapeletaSitio.EstadoPapeleta.RECOGIDA
+        papeleta_recogida.save()
+
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = "Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_insignia_ya_leida(self):
+        """
+        Test: Error si el hermano intenta pedir un cirio teniendo ya una insignia LEIDA.
+
+        Given: Una PapeletaSitio previa con es_solicitud_insignia=True y estado LEIDA.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se lanza una ValidationError impidiendo la nueva solicitud.
+        """
+        papeleta_leida = self.mi_papeleta 
+        papeleta_leida.es_solicitud_insignia = True
+        papeleta_leida.estado_papeleta = PapeletaSitio.EstadoPapeleta.LEIDA
+        papeleta_leida.save()
+
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = "Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_ya_tiene_solicitud_cirio(self):
+        """
+        Test: Error si el hermano intenta pedir un cirio teniendo ya uno solicitado.
+
+        Given: Una PapeletaSitio previa (no insignia) en estado SOLICITADA para el mismo acto.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional con un puesto de tipo CIRIO.
+        Then: Se lanza una ValidationError indicando que ya existe una solicitud activa.
+        """
+        self.mi_papeleta.es_solicitud_insignia = False
+        self.mi_papeleta.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.puesto_objetivo_cirio_cristo
+                )
+
+        mensaje_esperado = "Ya tienes una solicitud activa para 'CIRIO'."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_tipo_diferente_activo(self):
+        """
+        Test: Error si el hermano intenta pedir una Cruz teniendo ya un Cirio solicitado.
+
+        Given: Una PapeletaSitio previa de tipo 'CIRIO' en estado SOLICITADA.
+        When: Se llama al servicio para pedir un puesto de tipo 'CRUZ PENITENTE'.
+        Then: Se lanza una ValidationError con el mensaje específico de incompatibilidad.
+        """
+        self.mi_papeleta.puesto = self.mi_puesto_cirio_cristo
+        self.mi_papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.SOLICITADA
+        self.mi_papeleta.es_solicitud_insignia = False
+        self.mi_papeleta.save()
+
+        puesto_cruz = self.mi_puesto_cruz_cristo 
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_cruz
+                )
+
+        mensaje_esperado = "Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez)."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    @patch("api.servicios.solicitud_cirio_tradicional.PapeletaSitio.objects.create")
+    def test_procesar_solicitud_cirio_tradicional_error_integridad_concurrente(self, mock_create):
+        """
+        Test: Manejo de error de integridad (ej. doble clic simultáneo).
+
+        Given: Un intento de creación que lanza un IntegrityError desde la base de datos.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: El servicio captura el error y lanza una ValidationError amigable con el mensaje de salvaguarda.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        mock_create.side_effect = IntegrityError("UNIQUE constraint failed")
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = "Ya existe una papeleta activa para este acto. Si has pulsado dos veces, espera unos segundos y recarga."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_error_fallo_anulacion_insignia_por_cambio_estado(self):
+        """
+        Test: Error específico cuando la anulación de la insignia falla por concurrencia.
+        """
+        self.mi_papeleta.es_solicitud_insignia = True
+        self.mi_papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.SOLICITADA
+        self.mi_papeleta.save()
+
+        with patch("django.db.models.query.QuerySet.update", return_value=0):
+            with patch("django.utils.timezone.now", return_value=self.ahora):
+                with self.assertRaises(ValidationError) as cm:
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo
+                    )
+
+        mensaje_esperado = "Tu solicitud de insignia cambió de estado durante el proceso. Vuelve a intentarlo o contacta con secretaría."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_creacion_ok(self):
+        """
+        Test: Creación exitosa de una papeleta de sitio.
+
+        Given: Un hermano apto y un puesto de cirio disponible.
+            El hermano no tiene solicitudes previas para el acto.
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se crea un nuevo registro en PapeletaSitio.
+            El estado inicial es SOLICITADA.
+            Se genera un código de verificación único.
+        """
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(nueva_papeleta.id)
+        
+        self.assertEqual(nueva_papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        
+        self.assertEqual(nueva_papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(nueva_papeleta.puesto, self.mi_puesto_cirio_cristo)
+        self.assertEqual(nueva_papeleta.acto, self.acto)
+        self.assertEqual(nueva_papeleta.anio, self.ahora.year)
+
+        self.assertTrue(len(nueva_papeleta.codigo_verificacion) > 0)
+        
+        count = PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count()
+        self.assertEqual(count, 1)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_genera_codigo_verificacion_ok(self):
+        """
+        Test: Generación automática y única del código de verificación.
+
+        Given: Un proceso de solicitud válido.
+        When: Se crea la PapeletaSitio a través del servicio.
+        Then: El campo codigo_verificacion no debe estar vacío.
+            El código debe tener un formato válido (ej. longitud mínima).
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+        self.mi_puesto_cirio_cristo.disponible = True
+        self.mi_puesto_cirio_cristo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(nueva_papeleta.codigo_verificacion)
+        self.assertNotEqual(nueva_papeleta.codigo_verificacion, "")
+
+        self.assertGreaterEqual(len(nueva_papeleta.codigo_verificacion), 8)
+
+        nueva_papeleta.refresh_from_db()
+        self.assertIsNotNone(nueva_papeleta.codigo_verificacion)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_anio_coincide_con_acto_ok(self):
+        """
+        Test: El año de la papeleta debe ser el mismo que el año de la fecha del acto.
+
+        Given: Un acto programado para una fecha futura (ej. año 2026).
+        When: Se procesa la solicitud de la papeleta.
+        Then: El campo 'anio' de la PapeletaSitio debe ser 2026.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        anio_acto = self.acto.fecha.year
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertEqual(nueva_papeleta.anio, anio_acto)
+        
+        self.assertIsNotNone(nueva_papeleta.anio)
+        self.assertIsInstance(nueva_papeleta.anio, int)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_puesto_asignado_ok(self):
+        """
+        Test: El puesto solicitado queda correctamente vinculado a la papeleta.
+
+        Given: Un puesto de cirio específico y disponible.
+        When: Se procesa la solicitud exitosamente.
+        Then: La papeleta creada debe apuntar exactamente a ese ID de puesto.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        puesto_elegido = self.puesto_objetivo_cirio_cristo
+        puesto_elegido.disponible = True
+        puesto_elegido.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=puesto_elegido
+            )
+
+        self.assertEqual(nueva_papeleta.puesto, puesto_elegido)
+        self.assertEqual(nueva_papeleta.puesto.id, puesto_elegido.id)
+
+        self.assertEqual(nueva_papeleta.puesto.tipo_puesto, self.tipo_cirio)
+        
+        nueva_papeleta.refresh_from_db()
+        self.assertIsNotNone(nueva_papeleta.puesto)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_transaccion_completa_ok(self):
+        """
+        Test: Flujo completo exitoso (Happy Path).
+
+        Given: Un hermano sin papeletas, un puesto disponible y un acto en plazo.
+        When: Se ejecuta el servicio procesar_solicitud_cirio_tradicional.
+        Then: 1. Se crea la papeleta.
+            2. El puesto queda correctamente asociado.
+            3. No se lanzan excepciones.
+            4. Los datos persistidos son íntegros.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        puesto_objetivo = self.mi_puesto_cirio_cristo
+        puesto_objetivo.disponible = True
+        puesto_objetivo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            try:
+                nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_objetivo
+                )
+            except ValidationError as e:
+                self.fail(f"El servicio lanzó ValidationError inesperada: {e}")
+
+        self.assertIsNotNone(nueva_papeleta.id)
+
+        nueva_papeleta.refresh_from_db()
+        self.assertEqual(nueva_papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+        self.assertEqual(nueva_papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(nueva_papeleta.puesto, puesto_objetivo)
+        self.assertEqual(nueva_papeleta.anio, self.acto.fecha.year)
+
+        self.assertTrue(nueva_papeleta.codigo_verificacion)
+
+        self.assertEqual(PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).count(), 1)
+
+
+
+    @patch("api.servicios.solicitud_cirio_tradicional.PapeletaSitio.objects.create")
+    def test_procesar_solicitud_cirio_tradicional_error_unicidad_simultanea(self, mock_create):
+        """
+        Test: Manejo de IntegrityError por doble creación simultánea (Race Condition).
+
+        Given: Un escenario donde la validación lógica pasa, pero la base de datos 
+            lanza un IntegrityError al intentar insertar (por UniqueConstraint).
+        When: Se llama al servicio procesar_solicitud_cirio_tradicional.
+        Then: Se captura el IntegrityError y se lanza una ValidationError amigable.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        mock_create.side_effect = IntegrityError("UNIQUE constraint failed: api_papeletasitio.hermano_id...")
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = "Ya existe una papeleta activa para este acto. Si has pulsado dos veces, espera unos segundos y recarga."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    @patch("api.models.PapeletaSitio.clean")
+    def test_procesar_solicitud_cirio_tradicional_error_validacion_modelo_clean(self, mock_clean):
+        """
+        Test: El servicio debe propagar los errores lanzados por el clean() del modelo.
+
+        Given: Un flujo de solicitud donde los datos violan una regla del modelo.
+        When: El servicio intenta guardar la papeleta y se ejecuta el método clean().
+        Then: Se lanza una ValidationError originada en el modelo.
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        mensaje_error_modelo = "Regla de negocio del modelo violada: Combinación no permitida."
+        mock_clean.side_effect = ValidationError(mensaje_error_modelo)
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        self.assertIn(mensaje_error_modelo, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_valida_ok(self):
+        """
+        Test: Vinculación exitosa entre dos hermanos.
+
+        Given: Un hermano que solicita un cirio y proporciona el número de registro 
+            de otro hermano (más nuevo) para ir vinculado.
+        When: Se llama al servicio con el argumento numero_registro_vinculado.
+        Then: La papeleta se crea correctamente.
+            El campo vinculado_a (en el modelo) apunta al hermano objetivo.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        papeleta_objetivo = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+        nueva_papeleta.refresh_from_db()
+        self.assertEqual(nueva_papeleta.vinculado_a.id, self.hermano_nuevo.id)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_ambos_con_numero_ok(self):
+        """
+        Test: Vinculación válida cuando ambos tienen número de registro y 
+            se respeta la jerarquía de antigüedad.
+
+        Given: Hermano A (Nº 100) y Hermano B (Nº 500).
+            El Hermano B ya tiene una solicitud activa de Cirio en el Cristo.
+        When: El Hermano A solicita un Cirio en el Cristo vinculado al Hermano B.
+        Then: La papeleta del Hermano A se crea vinculada_a el Hermano B.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+        self.assertEqual(nueva_papeleta.vinculado_a.numero_registro, 500)
+
+        nueva_papeleta.refresh_from_db()
+        self.assertIsNotNone(nueva_papeleta.vinculado_a)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_solicitud_unica_ok(self):
+        """
+        Test: Vinculación exitosa cuando el hermano objetivo tiene una única solicitud.
+
+        Given: El Hermano A (antiguo) y el Hermano B (nuevo).
+            El Hermano B tiene exactamente una papeleta SOLICITADA.
+        When: El Hermano A solicita cirio vinculado al Hermano B.
+        Then: La vinculación se procesa correctamente sin conflictos de multiplicidad.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 200
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 800
+        self.hermano_nuevo.save()
+
+        papeleta_objetivo = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+        self.assertIsNotNone(nueva_papeleta.id)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_mismo_tipo_ok(self):
+        """
+        Test: Vinculación permitida cuando ambos hermanos piden el mismo tipo de puesto.
+
+        Given: El Hermano B (objetivo) tiene una solicitud de 'CIRIO'.
+        When: El Hermano A (solicitante) pide un puesto de tipo 'CIRIO' vinculado al B.
+        Then: La vinculación se realiza con éxito.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        self.hermano_antiguo.numero_registro = 300
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 900
+        self.hermano_nuevo.save()
+
+        papeleta_objetivo = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+        self.assertEqual(nueva_papeleta.puesto.tipo_puesto_id, papeleta_objetivo.puesto.tipo_puesto_id)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_mismo_cortejo_ok(self):
+        """
+        Test: Vinculación permitida cuando ambos hermanos van en la misma sección.
+
+        Given: El Hermano B (objetivo) tiene una solicitud en el cortejo de Cristo.
+        When: El Hermano A (solicitante) pide un puesto también en el cortejo de Cristo.
+        Then: La vinculación se realiza con éxito porque no hay conflicto de sección.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 400
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 1000
+        self.hermano_nuevo.save()
+
+        papeleta_objetivo = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+        self.assertEqual(nueva_papeleta.puesto.cortejo_cristo, papeleta_objetivo.puesto.cortejo_cristo)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_objetivo_sin_dependientes_ok(self):
+        """
+        Test: Vinculación permitida cuando el hermano objetivo no es el 
+            punto de destino de otras vinculaciones previas.
+
+        Given: El Hermano B (nuevo) tiene su solicitud activa.
+            Nadie se ha vinculado todavía al Hermano B.
+        When: El Hermano A (antiguo) solicita vincularse al Hermano B.
+        Then: La vinculación se crea correctamente.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        self.assertFalse(
+            PapeletaSitio.objects.filter(acto=self.acto, vinculado_a=self.hermano_nuevo).exists()
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+
+
+    def test_procesar_solicitud_cirio_tradicional_vinculacion_persistencia_ok(self):
+        """
+        Test: La vinculación se guarda correctamente en el modelo PapeletaSitio.
+
+        Given: Un escenario válido de vinculación (Antiguo -> Nuevo).
+        When: Se procesa la solicitud a través del servicio.
+        Then: La base de datos refleja la relación en el campo 'vinculado_a'.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        self.hermano_antiguo.numero_registro = 150
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 600
+        self.hermano_nuevo.save()
+
+        papeleta_objetivo = PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo,
+                numero_registro_vinculado=self.hermano_nuevo.numero_registro
+            )
+
+        self.assertIsNotNone(nueva_papeleta.vinculado_a)
+        self.assertEqual(nueva_papeleta.vinculado_a.id, self.hermano_nuevo.id)
+
+        nueva_papeleta.refresh_from_db()
+        self.assertEqual(nueva_papeleta.vinculado_a, self.hermano_nuevo)
+
+        vinculaciones_recibidas = self.hermano_nuevo.papeletas_vinculadas_origen.all()
+        self.assertIn(nueva_papeleta, vinculaciones_recibidas)
+
+
+
+    def test_procesar_solicitud_vinculacion_error_hermano_no_existe(self):
+        """
+        Test: Error si el número de registro objetivo no existe en la base de datos.
+
+        Given: Un número de registro (ej: 99999) que no está asignado a nadie.
+        When: El hermano solicita vincularse a ese número.
+        Then: Se lanza una ValidationError: "No existe hermano con Nº 99999."
+        """
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        numero_inexistente = 99999
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=numero_inexistente
+                )
+
+        mensaje_esperado = f"No existe hermano con Nº {numero_inexistente}."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_consigo_mismo(self):
+        """
+        Test: Un hermano no puede vincularse a su propio número de registro.
+
+        Given: El hermano_antiguo con número de registro 100.
+        When: Intenta solicitar una papeleta vinculada al número 100.
+        Then: Se lanza una ValidationError: "No puedes vincularte contigo mismo."
+        """
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        
+        PapeletaSitio.objects.filter(hermano=self.hermano_antiguo, acto=self.acto).delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=100
+                )
+
+        self.assertIn("No puedes vincularte contigo mismo.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_falta_numero_registro(self):
+        """
+        Test: La vinculación falla si el solicitante o el objetivo carecen de número.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        self.hermano_nuevo.estado_hermano = Hermano.EstadoHermano.PENDIENTE_INGRESO
+        self.hermano_nuevo.numero_registro = None
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with patch("api.models.Hermano.objects.get", return_value=self.hermano_nuevo):
+                with self.assertRaises(ValidationError) as cm:
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo,
+                        numero_registro_vinculado=999
+                    )
+
+        mensaje_esperado = "Ambos hermanos deben tener número de registro para poder vincularse."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_jerarquia_invertida(self):
+        """
+        Test: Un hermano nuevo no puede vincularse a uno antiguo.
+
+        Given: Hermano Solicitante (Nº 500) y Hermano Objetivo (Nº 100).
+        When: El Nº 500 intenta vincularse al Nº 100.
+        Then: Se lanza ValidationError: "Tú (Nº 500) eres más nuevo que el Nº 100..."
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 500 
+        self.hermano_antiguo.save()
+
+        self.hermano_nuevo.numero_registro = 100
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=100
+                )
+
+        mensaje_esperado = "Tú (Nº 500) eres más nuevo que el Nº 100. Solo el hermano antiguo puede vincularse al nuevo"
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_objetivo_sin_solicitud(self):
+        """
+        Test: No se puede vincular a un hermano que no ha pedido papeleta.
+
+        Given: El hermano_antiguo (Nº 100) y el hermano_nuevo (Nº 500).
+            El hermano_nuevo NO tiene ninguna papeleta activa para el acto.
+        When: El Nº 100 intenta vincularse al Nº 500.
+        Then: Se lanza ValidationError: "El hermano Nº 500 no tiene solicitud activa."
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=500
+                )
+
+        mensaje_esperado = "El hermano Nº 500 no tiene solicitud activa."
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+
+    def test_procesar_solicitud_vinculacion_error_objetivo_multiples_solicitudes(self):
+        """
+        Test: El servicio detecta si el objetivo tiene múltiples solicitudes.
+        
+        Dado que el clean() del modelo impide crear duplicados, usamos super().save() 
+        para forzar un estado de inconsistencia en la BD y probar la defensa del service.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        
+        numero_objetivo = 500
+        self.hermano_nuevo.numero_registro = numero_objetivo
+        self.hermano_nuevo.save()
+
+        for _ in range(2):
+            p = PapeletaSitio(
+                hermano=self.hermano_nuevo,
+                acto=self.acto,
+                anio=self.acto.fecha.year,
+                estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+                puesto=self.mi_puesto_cirio_cristo,
+                codigo_verificacion=f"TEST-{uuid.uuid4().hex[:4]}"
+            )
+            super(PapeletaSitio, p).save() 
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=numero_objetivo
+                )
+
+        mensaje_esperado = (
+            f"El hermano Nº {numero_objetivo} tiene múltiples solicitudes activas para este acto. "
+            "Contacte con secretaría."
+        )
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_objetivo_pide_insignia(self):
+        """
+        Test: Bloqueo de vinculación si el hermano objetivo solicita una insignia.
+
+        Given: El hermano_nuevo (objetivo) tiene una solicitud de tipo Insignia.
+        When: El hermano_antiguo intenta vincularse a él.
+        Then: Se lanza ValidationError: "No puedes vincularte a un hermano que solicita Insignia."
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True,
+            puesto=None
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=500
+                )
+
+        self.assertIn("No puedes vincularte a un hermano que solicita Insignia", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_distinto_tipo_puesto(self):
+        """
+        Test: No se permite la vinculación si los tipos de puesto son diferentes.
+
+        Given: El hermano objetivo solicita un 'Cirio'.
+        When: El hermano solicitante intenta vincularse pidiendo una 'Cruz'.
+        Then: Se lanza ValidationError: "Ambos deben solicitar el mismo tipo de puesto..."
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo,
+            es_solicitud_insignia=False
+        )
+
+        tipo_cruz = TipoPuesto.objects.create(nombre_tipo="Cruz", es_insignia=False)
+        puesto_cruz = Puesto.objects.create(
+            nombre="Cruz de Penitencia 1",
+            acto=self.acto,
+            tipo_puesto=tipo_cruz,
+            cortejo_cristo=True
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=puesto_cruz,
+                    numero_registro_vinculado=500
+                )
+
+        self.assertIn("Ambos deben solicitar el mismo tipo de puesto (ej: ambos Cirio).", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_conflicto_seccion(self):
+        """
+        Test: No se permite vincular hermanos si uno va en Cristo y otro en Virgen.
+        
+        Nota: Deben compartir el mismo tipo de puesto para superar la primera validación
+        y llegar a la comprobación de sección.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        tipo_del_puesto_cristo = self.mi_puesto_cirio_cristo.tipo_puesto
+
+        puesto_virgen = Puesto.objects.create(
+            nombre="Cirio Virgen Igual Tipo",
+            acto=self.acto,
+            tipo_puesto=tipo_del_puesto_cristo,
+            cortejo_cristo=False 
+        )
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=puesto_virgen,
+            es_solicitud_insignia=False
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=500
+                )
+
+        self.assertIn("Conflicto de sección: Uno va en Cristo y otro en Virgen.", str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_solicitante_con_dependientes(self):
+        """
+        Test: Un hermano no puede vincularse a otro si ya tiene a alguien vinculado a él.
+
+        Given: El hermano C está vinculado al hermano A.
+        When: El hermano A intenta vincularse al hermano B.
+        Then: Se lanza ValidationError impidiendo la cadena A -> B -> C.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 200
+        self.hermano_antiguo.save()
+        
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        hermano_c = Hermano.objects.create(
+            dni="11111112A",
+            username="11111112A",
+            password="password",
+            nombre="Antonio",
+            primer_apellido="Antiguo",
+            segundo_apellido="López",
+            email="antiguo@example.com",
+            telefono="600000001",
+            estado_civil=Hermano.EstadoCivil.CASADO,
+            genero=Hermano.Genero.MASCULINO,
+            estado_hermano=Hermano.EstadoHermano.ALTA,
+            numero_registro=150,
+            fecha_ingreso_corporacion=self.ahora.date(),
+            fecha_nacimiento="1980-01-01",
+            direccion="Calle A",
+            codigo_postal="41001",
+            localidad="Sevilla",
+            provincia="Sevilla",
+            comunidad_autonoma="Andalucía",
+            esAdmin=False
+        )
+
+        papeleta_a = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo
+        )
+
+        PapeletaSitio.objects.create(
+            hermano=hermano_c,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            vinculado_a=self.hermano_antiguo,
+            puesto=self.mi_puesto_cirio_cristo
+        )
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            puesto=self.mi_puesto_cirio_cristo
+        )
+
+        papeleta_a.delete()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=500
+                )
+
+        mensaje_esperado = (
+            "No puedes vincularte a otro hermano porque ya tienes a otros hermanos vinculados a ti. "
+            "No se permiten cadenas de vinculación (A->B->C). Diles que se vinculen directamente al hermano objetivo."
+        )
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_vinculacion_error_modalidad_distinta(self):
+        """
+        Test: No se puede vincular a un hermano cuya solicitud no sea de modalidad tradicional.
+
+        Given: El hermano objetivo tiene una solicitud activa pero para una INSIGNIA.
+        When: El hermano solicitante intenta vincularse a él mediante cirio tradicional.
+        Then: Se lanza ValidationError: "Solo puedes vincularte a hermanos que participen en la modalidad tradicional."
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+        
+        self.hermano_nuevo.numero_registro = 500
+        self.hermano_nuevo.save()
+
+        PapeletaSitio.objects.create(
+            hermano=self.hermano_nuevo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True,
+            puesto=None
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=500
+                )
+
+        self.assertIn(
+            "No puedes vincularte a un hermano que solicita Insignia.", 
+            str(cm.exception)
+        )
+
+
+
+    def test_procesar_solicitud_vinculacion_error_numero_registro_invalido(self):
+        """
+        Test: La vinculación falla si el número de registro es explícitamente inválido.
+        
+        Para que el service entre en la lógica de vinculación, el valor debe ser 
+        distinto de None, 0 o "". Usamos un valor que no corresponda a un hermano.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo,
+                    numero_registro_vinculado=-1 
+                )
+
+        self.assertIn(
+            "No existe hermano con Nº -1.", 
+            str(cm.exception)
+        )
+
+
+
+    def test_procesar_solicitud_rollback_anulacion_si_falla_creacion(self):
+        """
+        Test: Si la creación de la papeleta falla, la anulación de la insignia previa
+        no debe persistir (Rollback).
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        insignia_previa = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True
+        )
+
+        with patch.object(self.service, '_crear_papeleta_base', side_effect=Exception("Error fatal en BD")):
+            with patch("django.utils.timezone.now", return_value=self.ahora):
+                with self.assertRaises(Exception) as cm:
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo
+                    )
+
+        insignia_previa.refresh_from_db()
+        self.assertEqual(
+            insignia_previa.estado_papeleta, 
+            PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            "La anulación de la insignia debería haberse revertido tras el error."
+        )
+        self.assertIn("Error fatal en BD", str(cm.exception))
+
+
+
+    from django.db import transaction
+
+    def test_procesar_solicitud_anulacion_y_creacion_en_misma_transaccion(self):
+        """
+        Test: Verifica que la anulación de la insignia y la creación de la nueva 
+        papeleta se ejecutan dentro de un bloque atómico.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        insignia_previa = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with transaction.atomic():
+                nueva_papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+                insignia_previa.refresh_from_db()
+
+                self.assertEqual(insignia_previa.estado_papeleta, PapeletaSitio.EstadoPapeleta.ANULADA)
+                self.assertIsNotNone(nueva_papeleta.id)
+                self.assertEqual(nueva_papeleta.hermano.id, self.hermano_antiguo.id)
+
+        self.assertTrue(PapeletaSitio.objects.filter(pk=nueva_papeleta.pk).exists())
+
+
+
+    def test_procesar_solicitud_rollback_integral_ante_error(self):
+        """
+        Test: Verifica que si la creación de la papeleta falla al final,
+        la anulación de la insignia previa se deshace (Rollback).
+
+        Given: Un hermano con una solicitud de insignia activa.
+        When: Se procesa el cirio pero ocurre un error al guardar el puesto.
+        Then: La insignia vuelve a su estado SOLICITADA y no se crea el cirio.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        insignia_previa = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True
+        )
+
+        with patch("api.models.PapeletaSitio.save", side_effect=Exception("Fallo crítico de base de datos")):
+            with patch("django.utils.timezone.now", return_value=self.ahora):
+                with self.assertRaises(Exception):
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo
+                    )
+
+        insignia_previa.refresh_from_db()
+        self.assertEqual(
+            insignia_previa.estado_papeleta, 
+            PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            "La anulación de la insignia debió revertirse por el Rollback."
+        )
 
         self.assertEqual(
-            err.messages,
-            [
-                "Ya existe una papeleta activa para este acto. "
-                "Si has pulsado dos veces, espera unos segundos y recarga."
-            ],
+            PapeletaSitio.objects.filter(es_solicitud_insignia=False).count(), 
+            0,
+            "No debe persistir ninguna papeleta de cirio si hubo error."
         )
+
+
+
+    def test_procesar_solicitud_error_concurrencia_cambio_estado_insignia(self):
+        """
+        Test: Si la insignia a anular cambia de estado justo antes del update,
+        el servicio debe detectar que no se ha actualizado nada y fallar.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        insignia_previa = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True
+        )
+        
+        with patch("api.models.PapeletaSitio.objects.exclude", return_value=PapeletaSitio.objects.all()):
+            with patch("django.db.models.query.QuerySet.update", return_value=0):
+                with patch("django.utils.timezone.now", return_value=self.ahora):
+                    
+                    with self.assertRaises(ValidationError) as cm:
+                        self.service.procesar_solicitud_cirio_tradicional(
+                            hermano=self.hermano_antiguo,
+                            acto=self.acto,
+                            puesto=self.mi_puesto_cirio_cristo
+                        )
+
+        self.assertIn(
+            "Tu solicitud de insignia cambió de estado durante el proceso", 
+            str(cm.exception)
+        )
+
+
+
+    def test_procesar_solicitud_concurrente_mismo_hermano_error(self):
+        """
+        Test: Verifica que el sistema gestiona el IntegrityError si dos solicitudes
+        intentan persistirse casi simultáneamente.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with patch.object(PapeletaSitio, 'save', side_effect=IntegrityError("Duplicate entry")):
+                
+                with self.assertRaises(ValidationError) as cm:
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo
+                    )
+
+        mensaje_esperado = (
+            "Ya existe una papeleta activa para este acto. "
+            "Si has pulsado dos veces, espera unos segundos y recarga."
+        )
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_error_condicion_carrera_anulacion_insignia(self):
+        """
+        Test: Controla que si la insignia cambia de estado justo antes de ser anulada
+        por el service, se lance un error de concurrencia.
+        
+        Escenario:
+        1. El service identifica que el hermano tiene una insignia SOLICITADA.
+        2. Justo antes del .update(), el estado de la insignia cambia (en otro proceso).
+        3. El .update() afecta a 0 filas y debe disparar la ValidationError.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.numero_registro = 100
+        self.hermano_antiguo.save()
+
+        insignia_previa = PapeletaSitio.objects.create(
+            hermano=self.hermano_antiguo,
+            acto=self.acto,
+            anio=self.acto.fecha.year,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            es_solicitud_insignia=True
+        )
+
+        with patch("api.models.PapeletaSitio.objects.select_for_update") as mock_query:
+            mock_query.return_value.filter.return_value.update.return_value = 0
+            
+            with patch("django.utils.timezone.now", return_value=self.ahora):
+                with self.assertRaises(ValidationError) as cm:
+                    self.service.procesar_solicitud_cirio_tradicional(
+                        hermano=self.hermano_antiguo,
+                        acto=self.acto,
+                        puesto=self.mi_puesto_cirio_cristo
+                    )
+
+        mensaje_esperado = "Tu solicitud de insignia cambió de estado durante el proceso"
+        self.assertIn(mensaje_esperado, str(cm.exception))
+
+
+
+    def test_procesar_solicitud_hermano_sin_cuerpos_exito(self):
+        """
+        Edge Case: Un hermano sin cuerpos asignados debe poder solicitar 
+        un puesto estándar si este no es restringido.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        self.hermano_antiguo.estado_hermano = Hermano.EstadoHermano.ALTA
+        self.hermano_antiguo.cuerpos.clear()
+        self.hermano_antiguo.save()
+
+        Cuota.objects.create(
+            hermano=self.hermano_antiguo, anio=self.ahora.year - 1, 
+            importe=50, estado=Cuota.EstadoCuota.PAGADA
+        )
+
+        puesto_estandar = self.mi_puesto_cirio_cristo
+        puesto_estandar.tipo_puesto.solo_junta_gobierno = False
+        puesto_estandar.tipo_puesto.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=puesto_estandar
+            )
+
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.hermano, self.hermano_antiguo)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+
+
+    def test_procesar_solicitud_puesto_cupo_cero_edge_case(self):
+        """
+        Edge Case: El puesto tiene numero_maximo_asignaciones = 0.
+        Verifica que las propiedades calculadas del modelo Puesto no causen
+        errores de división por cero y que el servicio se comporte según lo esperado.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        puesto_agotado = self.mi_puesto_cirio_cristo
+        puesto_agotado.numero_maximo_asignaciones = 0
+        puesto_agotado.disponible = True
+        puesto_agotado.save()
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=puesto_agotado
+            )
+
+        self.assertIsNotNone(papeleta.id)
+
+        self.assertEqual(puesto_agotado.plazas_disponibles, 0)
+        self.assertEqual(puesto_agotado.porcentaje_ocupacion, 100)
+
+
+
+    def test_procesar_solicitud_exito_justo_antes_cierre_plazo(self):
+        """
+        Positivo - Edge Case: Permite solicitar si falta 1 minuto para el cierre, 
+        incluso si el acto es ese mismo día.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        fecha_acto = self.ahora.replace(hour=20, minute=0, second=0)
+        fin_plazo = self.ahora.replace(hour=14, minute=0, second=0)
+        
+        self.acto.fecha = fecha_acto
+        self.acto.inicio_solicitud_cirios = self.ahora - timezone.timedelta(days=1)
+        self.acto.fin_solicitud_cirios = fin_plazo
+        self.acto.save()
+
+        momento_exito = fin_plazo - timezone.timedelta(minutes=1)
+        
+        with patch("django.utils.timezone.now", return_value=momento_exito):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+            
+        self.assertIsNotNone(papeleta.id)
+        self.assertEqual(papeleta.estado_papeleta, PapeletaSitio.EstadoPapeleta.SOLICITADA)
+
+
+
+    def test_procesar_solicitud_error_justo_despues_cierre_plazo(self):
+        """
+        Negativo - Edge Case: Bloquea la solicitud si se intenta 1 minuto después 
+        de la hora de cierre configurada.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        fin_plazo = self.ahora.replace(hour=14, minute=0, second=0, microsecond=0)
+        
+        self.acto.fin_solicitud_cirios = fin_plazo
+        self.acto.inicio_solicitud_cirios = fin_plazo - timezone.timedelta(hours=5)
+        self.acto.save()
+
+        momento_error = fin_plazo + timezone.timedelta(minutes=1)
+        
+        with patch("django.utils.timezone.now", return_value=momento_error):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        nombre_plazo = "cirios"
+        mensaje_esperado = f"El plazo de solicitud de {nombre_plazo} ha finalizado."
+        
+        self.assertEqual(str(cm.exception.messages[0]), mensaje_esperado)
+
+
+
+    def test_procesar_solicitud_exito_momento_exacto_inicio_plazo(self):
+        """
+        Positivo - Edge Case: Verifica que el acceso se permite en el segundo exacto
+        en que comienza el plazo de solicitud.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        
+        inicio_exacto = self.ahora.replace(hour=9, minute=0, second=0, microsecond=0)
+        self.acto.inicio_solicitud_cirios = inicio_exacto
+        self.acto.fin_solicitud_cirios = inicio_exacto + timezone.timedelta(days=1)
+        self.acto.save()
+
+        with patch("django.utils.timezone.now", return_value=inicio_exacto):
+            papeleta = self.service.procesar_solicitud_cirio_tradicional(
+                hermano=self.hermano_antiguo,
+                acto=self.acto,
+                puesto=self.mi_puesto_cirio_cristo
+            )
+
+        self.assertIsNotNone(papeleta.id, "Debería permitir la solicitud en el segundo exacto de inicio.")
+
+
+
+    def test_procesar_solicitud_error_justo_tras_momento_exacto_fin_plazo(self):
+        """
+        Negativo - Edge Case: Verifica que inmediatamente después de cumplirse 
+        la hora de fin (1 segundo después), el sistema bloquea la solicitud.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+
+        fin_exacto = self.ahora.replace(hour=14, minute=0, second=0, microsecond=0)
+        self.acto.inicio_solicitud_cirios = fin_exacto - timezone.timedelta(days=1)
+        self.acto.fin_solicitud_cirios = fin_exacto
+        self.acto.save()
+
+        un_segundo_despues = fin_exacto + timezone.timedelta(seconds=1)
+        
+        with patch("django.utils.timezone.now", return_value=un_segundo_despues):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        nombre_plazo = "cirios"
+        mensaje_esperado = f"El plazo de solicitud de {nombre_plazo} ha finalizado."
+        
+        self.assertEqual(str(cm.exception.messages[0]), mensaje_esperado)
+
+
+
+    def test_procesar_solicitud_error_hermano_solo_cuota_anio_actual(self):
+        """
+        Negativo - Edge Case: Un hermano que solo tiene cuotas del año en curso
+        debe ser bloqueado si la lógica exige historial hasta el año anterior.
+        
+        Contexto: Es 2026. El hermano tiene cuota de 2026, pero ninguna de 2025 o antes.
+        """
+        PapeletaSitio.objects.filter(acto=self.acto).delete()
+        self.hermano_antiguo.cuotas.all().delete()
+
+        anio_actual = self.ahora.year
+        anio_limite = anio_actual - 1
+
+        Cuota.objects.create(
+            hermano=self.hermano_antiguo,
+            anio=anio_actual,
+            importe=50,
+            estado=Cuota.EstadoCuota.PAGADA,
+            tipo=Cuota.TipoCuota.ORDINARIA
+        )
+
+        with patch("django.utils.timezone.now", return_value=self.ahora):
+            with self.assertRaises(ValidationError) as cm:
+                self.service.procesar_solicitud_cirio_tradicional(
+                    hermano=self.hermano_antiguo,
+                    acto=self.acto,
+                    puesto=self.mi_puesto_cirio_cristo
+                )
+
+        mensaje_esperado = f"No constan cuotas registradas hasta el año {anio_limite}"
+        self.assertIn(mensaje_esperado, str(cm.exception))
