@@ -814,41 +814,47 @@ class DetalleVinculacionSerializer(serializers.ModelSerializer):
 # -----------------------------------------------------------------------------
 # SERIALIZERS DE COMUNICACIÓN Y NOTICIAS
 # -----------------------------------------------------------------------------
-class ComunicadoSerializer(serializers.ModelSerializer):
+class ComunicadoListSerializer(serializers.ModelSerializer):
     """
-    Gestiona la visualización y creación de comunicados.
-    El autor se asigna automáticamente en el backend basándose en el usuario logueado.
+    Optimizado para mostrar datos. 
+    Las relaciones M2M se muestran como Strings (nombres).
     """
-    autor_nombre = serializers.SerializerMethodField()
     tipo_display = serializers.CharField(source='get_tipo_comunicacion_display', read_only=True)
-    fecha_emision = serializers.DateTimeField(read_only=True)
-
-    areas_interes = serializers.PrimaryKeyRelatedField(many=True, queryset=AreaInteres.objects.all(), write_only=True, required=False, label="IDs de Áreas de Interés")
-    areas_interes_nombres = serializers.StringRelatedField(many=True, read_only=True, source='areas_interes')
+    # Mostramos los nombres directamente
+    areas_interes = serializers.StringRelatedField(many=True, read_only=True)
+    autor_nombre = serializers.SerializerMethodField()
 
     class Meta:
         model = Comunicado
         fields = [
-            'id', 
-            'titulo', 
-            'contenido', 
-            'fecha_emision', 
-            'tipo_comunicacion', 
-            'tipo_display', 
-            'autor', 
-            'autor_nombre',
-            'areas_interes',
-            'areas_interes_nombres'
+            'id', 'titulo', 'contenido', 'fecha_emision', 
+            'tipo_comunicacion', 'tipo_display', 'autor_nombre', 
+            'areas_interes'
         ]
-        read_only_fields = ['id', 'fecha_emision', 'autor', 'tipo_display', 'autor_nombre', 'areas_interes_nombres']
 
     def get_autor_nombre(self, obj):
-        """
-        Devuelve el nombre completo del autor para mostrarlo en la tarjeta de la noticia.
-        """
         if obj.autor:
             nombre = getattr(obj.autor, 'nombre', obj.autor.username)
             ap1 = getattr(obj.autor, 'primer_apellido', '')
-            ap2 = getattr(obj.autor, 'segundo_apellido', '')
-            return f"{nombre} {ap1} {ap2}".strip()
+            return f"{nombre} {ap1}".strip()
         return "Secretaría"
+    
+
+class ComunicadoFormSerializer(serializers.ModelSerializer):
+    """
+    Optimizado para recibir datos de formularios.
+    Recibe IDs para las relaciones.
+    """
+    areas_interes = serializers.PrimaryKeyRelatedField(
+        many=True, 
+        queryset=AreaInteres.objects.all(),
+        required=False,
+        label="IDs de Áreas de Interés"
+    )
+
+    class Meta:
+        model = Comunicado
+        fields = [
+            'id', 'titulo', 'contenido', 
+            'tipo_comunicacion', 'areas_interes'
+        ]

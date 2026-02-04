@@ -116,9 +116,9 @@ function AdminListadoComunicados() {
                                             </span>
                                         </td>
                                         <td style={tdStyle}>
-                                            {comunicado.areas_interes_nombres && comunicado.areas_interes_nombres.length > 0 ? (
+                                            {comunicado.areas_interes && comunicado.areas_interes.length > 0 ? (
                                                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                                                    {comunicado.areas_interes_nombres.map((area, idx) => (
+                                                    {comunicado.areas_interes.map((area, idx) => (
                                                         <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#eef2ff', color: '#4f46e5', padding: '2px 6px', borderRadius: '4px', border: '1px solid #c7d2fe' }}>
                                                             {area}
                                                         </span>

@@ -88,28 +88,23 @@ function AdminCreacionComunicado() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Manejo especial para la Selección Múltiple de Áreas
     const toggleArea = (areaId) => {
         setFormData(prev => {
             const currentAreas = prev.areas_interes;
             if (currentAreas.includes(areaId)) {
-                // Si ya está, lo quitamos
                 return { ...prev, areas_interes: currentAreas.filter(id => id !== areaId) };
             } else {
-                // Si no está, lo añadimos
                 return { ...prev, areas_interes: [...currentAreas, areaId] };
             }
         });
     };
 
-    // Manejo del Envío (Submit)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         setError("");
         setSuccessMsg("");
 
-        // Validación simple frontend
         if (!formData.titulo.trim() || !formData.contenido.trim()) {
             setError("El título y el contenido son obligatorios.");
             setSaving(false);
@@ -118,14 +113,12 @@ function AdminCreacionComunicado() {
         }
 
         try {
-            // Enviamos el payload. Django espera { areas_interes: [1, 2] }
             await api.post('api/comunicados/', formData);
             
             setSuccessMsg("Comunicado emitido correctamente.");
-            
-            // Redirigir tras éxito
+
             setTimeout(() => {
-                navigate("/home"); // O a la lista de comunicados si existe
+                navigate("/home");
             }, 1500);
 
         } catch (err) {
@@ -135,7 +128,6 @@ function AdminCreacionComunicado() {
                     setError("No tienes permisos (Solo Admins o Junta de Gobierno).");
                 } else if (err.response.data) {
                     const errorData = err.response.data;
-                    // Formateo de errores de Django DRF
                     if (errorData.detail) {
                         setError(errorData.detail);
                     } else {
