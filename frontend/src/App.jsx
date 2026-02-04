@@ -27,6 +27,7 @@ import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
+import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -173,6 +174,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminListadoComunicados />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/comunicados/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionComunicado />
             </ProtectedRoute>
           }
         />

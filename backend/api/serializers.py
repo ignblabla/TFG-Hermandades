@@ -805,12 +805,8 @@ class DetalleVinculacionSerializer(serializers.ModelSerializer):
         if obj.vinculado_a:
             return f"{obj.vinculado_a.nombre} {obj.vinculado_a.primer_apellido}"
         return None
-    
 
 
-# -----------------------------------------------------------------------------
-# SERIALIZERS PARA LA ENTIDAD COMUNICADO
-# -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
 # SERIALIZERS DE COMUNICACIÓN Y NOTICIAS
 # -----------------------------------------------------------------------------
