@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; // Tu configuración de axios
-import '../styles/AdminEdicionHermano.css'; // Reutilizamos estilos
+import api from '../api'; 
+import '../styles/AdminEdicionHermano.css'; 
 import { 
     Plus, 
     FileText, 
     Calendar, 
     User, 
     Megaphone,
-    Eye
+    Eye,
+    Image as ImageIcon 
 } from "lucide-react";
+
+// --- USAMOS LA VARIABLE DE ENTORNO ---
+// Vite expone las variables del .env en import.meta.env
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function AdminListadoComunicados() {
     const navigate = useNavigate();
@@ -33,6 +38,23 @@ function AdminListadoComunicados() {
 
         fetchComunicados();
     }, []);
+
+    // --- HELPER: CONSTRUIR URL DE IMAGEN ---
+    const getFullImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        
+        // Si ya es absoluta (ej: Amazon S3 o cloudinary), la dejamos igual
+        if (imagePath.startsWith('http')) return imagePath;
+        
+        // Si es relativa (ej: /media/...), le pegamos el dominio de la API
+        // Quitamos la barra final a la base si la tuviera para evitar dobles //
+        const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+        
+        // Nos aseguramos de que imagePath empiece por /
+        const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+        
+        return `${baseUrl}${path}`;
+    };
 
     // --- HELPER: FORMATO DE FECHA ---
     const formatFecha = (fechaISO) => {
@@ -85,6 +107,9 @@ function AdminListadoComunicados() {
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
                         <thead>
                             <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                                {/* COLUMNA PORTADA */}
+                                <th style={{...thStyle, width: '60px', textAlign: 'center'}}><ImageIcon size={16} /></th>
+                                
                                 <th style={thStyle}><Calendar size={16} style={{marginBottom: '-2px'}}/> Fecha</th>
                                 <th style={thStyle}><FileText size={16} style={{marginBottom: '-2px'}}/> Título</th>
                                 <th style={thStyle}>Tipo</th>
@@ -96,13 +121,68 @@ function AdminListadoComunicados() {
                         <tbody>
                             {comunicados.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>
+                                    <td colSpan="7" style={{ padding: '30px', textAlign: 'center', color: '#6b7280' }}>
                                         No hay comunicados registrados.
                                     </td>
                                 </tr>
                             ) : (
                                 comunicados.map((comunicado) => (
                                     <tr key={comunicado.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                        
+                                        {/* CELDA DE IMAGEN CON URL CORREGIDA */}
+                                        <td style={{...tdStyle, padding: '8px', textAlign: 'center'}}>
+                                            {comunicado.imagen_portada ? (
+                                                <img 
+                                                    src={getFullImageUrl(comunicado.imagen_portada)} 
+                                                    alt="Portada" 
+                                                    style={{ 
+                                                        width: '40px', 
+                                                        height: '40px', 
+                                                        objectFit: 'cover', 
+                                                        borderRadius: '6px',
+                                                        border: '1px solid #e5e7eb',
+                                                        display: 'block',
+                                                        margin: '0 auto'
+                                                    }}
+                                                    onError={(e) => {
+                                                        e.target.onerror = null; 
+                                                        e.target.style.display = 'none';
+                                                        // Mostramos el div hermano (fallback)
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : (
+                                                /* Fallback por si no hay imagen (null) */
+                                                <div style={{
+                                                    width: '40px', 
+                                                    height: '40px', 
+                                                    backgroundColor: '#f3f4f6', 
+                                                    borderRadius: '6px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    margin: '0 auto',
+                                                    color: '#d1d5db'
+                                                }}>
+                                                    <ImageIcon size={20} />
+                                                </div>
+                                            )}
+                                            {/* Fallback oculto por defecto (se muestra si falla la carga de img) */}
+                                            <div style={{
+                                                display: 'none',
+                                                width: '40px', 
+                                                height: '40px', 
+                                                backgroundColor: '#fee2e2', 
+                                                borderRadius: '6px',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                margin: '0 auto',
+                                                color: '#ef4444'
+                                            }}>
+                                                <ImageIcon size={20} />
+                                            </div>
+                                        </td>
+
                                         <td style={tdStyle}>{formatFecha(comunicado.fecha_emision)}</td>
                                         <td style={{...tdStyle, fontWeight: '600', color: '#111827'}}>
                                             {comunicado.titulo}

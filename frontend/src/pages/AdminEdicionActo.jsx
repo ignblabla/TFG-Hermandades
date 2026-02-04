@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'; // Importamos useParams para obtener el ID
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api';
-import '../styles/AdminEdicionActo.css';
+import '../styles/AdminCreacionActo.css';
 import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowLeft } from "lucide-react";
 
 function AdminEdicionActo() {
     const navigate = useNavigate();
-    const { id } = useParams(); // Obtenemos el ID de la URL
+    const { id } = useParams();
 
     const currentYear = new Date().getFullYear();
     const minDate = `${currentYear}-01-01T00:00`;
@@ -22,7 +22,6 @@ function AdminEdicionActo() {
     const [tiposActo, setTiposActo] = useState([]);
     const [requierePapeleta, setRequierePapeleta] = useState(false);
     
-    // Estado para controlar si la fecha principal está bloqueada por regla de negocio
     const [isDateLocked, setIsDateLocked] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -37,13 +36,9 @@ function AdminEdicionActo() {
         fin_solicitud_cirios: ''
     });
 
-    // --- HELPER: Formatear fecha para input datetime-local ---
-    // Django envía "2024-03-24T18:00:00Z" o similar. El input espera "yyyy-MM-ddThh:mm"
     const formatDateForInput = (isoString) => {
         if (!isoString) return '';
         const date = new Date(isoString);
-        // Ajuste básico a local para el input (o cortar el string si viene en UTC y queremos mostrarlo tal cual)
-        // Para simplificar, cortamos los segundos y la Z si existen
         return isoString.slice(0, 16); 
     };
 
@@ -53,7 +48,6 @@ function AdminEdicionActo() {
         
         const fetchData = async () => {
             try {
-                // 1. Verificar Usuario
                 const resUser = await api.get("api/me/");
                 const user = resUser.data;
                 if (isMounted) setCurrentUser(user);
@@ -64,21 +58,18 @@ function AdminEdicionActo() {
                     return;
                 }
 
-                // 2. Cargar Tipos de Acto
                 const resTipos = await api.get("api/tipos-acto/"); 
                 if (isMounted) setTiposActo(resTipos.data);
 
-                // 3. Cargar Datos del Acto a Editar
-                const resActo = await api.get(`api/actos/${id}/`); // Asumimos que tienes este endpoint GET detail
+                const resActo = await api.get(`api/actos/${id}/`);
                 const data = resActo.data;
 
                 if (isMounted) {
-                    // Preparamos el formulario
                     setFormData({
                         nombre: data.nombre,
                         descripcion: data.descripcion || '',
                         fecha: formatDateForInput(data.fecha),
-                        tipo_acto: data.tipo_acto, // Asumimos que viene el Slug o string
+                        tipo_acto: data.tipo_acto,
                         modalidad: data.modalidad,
                         inicio_solicitud: formatDateForInput(data.inicio_solicitud),
                         fin_solicitud: formatDateForInput(data.fin_solicitud),
@@ -86,10 +77,8 @@ function AdminEdicionActo() {
                         fin_solicitud_cirios: formatDateForInput(data.fin_solicitud_cirios)
                     });
 
-                    // Configurar visibilidad de secciones según el tipo cargado
                     setRequierePapeleta(data.requiere_papeleta);
 
-                    // Verificar regla de bloqueo de fecha
                     if (data.inicio_solicitud) {
                         const now = new Date();
                         const inicio = new Date(data.inicio_solicitud);
@@ -187,32 +176,86 @@ function AdminEdicionActo() {
 
     return (
         <div>
-            {/* ... (Sidebar Código Idéntico al anterior) ... */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
-               {/* Copiar exactamente el mismo sidebar que en Creación */}
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
                 </div>
                 <ul className="nav-list-dashboard">
-                    <li onClick={() => navigate("/home")} style={{cursor: 'pointer'}}>
-                        <a href="#">
-                            <i className='bx bx-arrow-back'></i>
-                            <span className="link_name-dashboard">Volver</span>
-                        </a>
-                        <span className="tooltip-dashboard">Volver</span>
+                    <li>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
                     </li>
-                    {/* Resto de items del sidebar... */}
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-grid-alt"></i>
+                            <span className="link_name-dashboard">Dashboard</span>
+                        </a>
+                        <span className="tooltip-dashboard">Dashboard</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
-                            <img src="/profile.jpeg" alt="profile" />
+                            <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre}` : "Usuario"}</div>
-                                <div className="designation-dashboard">Admin</div>
+                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i className="bx bx-log-out" id="log_out" onClick={handleLogout} style={{cursor: 'pointer'}}></i>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
                     </li>
                 </ul>
             </div>
@@ -229,15 +272,14 @@ function AdminEdicionActo() {
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         
-                        {/* ALERTAS */}
                         {error && (
-                            <div className="alert-banner-edicion error-edicion">
+                            <div className="alert-banner-creacion-acto error-creacion-acto">
                                 <AlertCircle size={20} />
                                 <span>{error}</span>
                             </div>
                         )}
                         {successMsg && (
-                            <div className="alert-banner-edicion success-edicion">
+                            <div className="alert-banner-creacion-acto success-creacion-acto">
                                 <CheckCircle size={20} />
                                 <span>{successMsg}</span>
                             </div>
@@ -245,10 +287,11 @@ function AdminEdicionActo() {
 
                         <form onSubmit={handleSubmit}>
                             {/* SECCIÓN 1: DATOS GENERALES */}
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><FileText size={18}/> Datos Generales</h3>
-                                <div className="form-grid-edicion grid-2-edicion">
-                                    <div className="form-group-edicion span-2-edicion">
+                            <div className="form-section-creacion-acto">
+                                <h3 className="section-title-creacion-acto"><FileText size={18}/> Datos Generales</h3>
+                                <div className="form-grid-creacion-acto">
+                                    
+                                    <div className="form-group-creacion-acto span-2-main">
                                         <label>Nombre del Acto *</label>
                                         <input 
                                             type="text" 
@@ -259,7 +302,7 @@ function AdminEdicionActo() {
                                         />
                                     </div>
 
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-acto">
                                         <label>Tipo de Acto *</label>
                                         <select 
                                             name="tipo_acto" 
@@ -270,16 +313,13 @@ function AdminEdicionActo() {
                                             <option value="">-- Seleccionar Tipo --</option>
                                             {tiposActo.map(tipo => (
                                                 <option key={tipo.id} value={tipo.tipo}>
-                                                    {tipo.nombre_mostrar || tipo.tipo}
+                                                    {tipo.nombre_mostrar}
                                                 </option>
                                             ))}
                                         </select>
-                                        <small style={{ color: '#ef4444', marginTop: '4px', display:'block', fontSize:'0.75rem' }}>
-                                            Nota: Si cambia el tipo y existen puestos generados, obtendrá un error al guardar.
-                                        </small>
                                     </div>
 
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-acto">
                                         <label>
                                             Fecha y Hora * {isDateLocked && <Lock size={14} style={{marginLeft: '5px', color: '#ef4444'}}/>}
                                         </label>
@@ -291,23 +331,19 @@ function AdminEdicionActo() {
                                             min={minDate} 
                                             max={maxDate}
                                             required
-                                            disabled={isDateLocked} // REGLA: Bloqueo si ya empezó solicitud
+                                            disabled={isDateLocked}
                                             className={isDateLocked ? 'input-disabled' : ''}
-                                            title={isDateLocked ? "No se puede cambiar la fecha porque el plazo de solicitud ya ha comenzado" : ""}
+                                            title={isDateLocked ? "Fecha bloqueada por inicio de plazo" : ""}
                                         />
-                                        {isDateLocked && (
-                                            <small style={{color: '#ef4444'}}>Fecha bloqueada (plazo iniciado)</small>
-                                        )}
                                     </div>
 
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-creacion-acto span-full">
                                         <label>Descripción</label>
                                         <textarea 
                                             name="descripcion" 
                                             value={formData.descripcion} 
                                             onChange={handleChange}
-                                            rows="3"
-                                            className="textarea-standard"
+                                            rows="4"
                                         />
                                     </div>
                                 </div>
@@ -316,28 +352,34 @@ function AdminEdicionActo() {
                             {/* SECCIÓN 2: CONFIGURACIÓN REPARTO */}
                             {requierePapeleta && (
                                 <>
-                                    <div className="form-section-edicion">
-                                        <h3 className="section-title-edicion"><Settings size={18}/> Configuración de Reparto</h3>
-                                        <div className="form-grid-edicion grid-2-edicion">
-                                            <div className="form-group-edicion">
+                                    <div className="form-section-creacion-acto">
+                                        <h3 className="section-title-creacion-acto"><Settings size={18}/> Configuración de Reparto</h3>
+                                        <div className="form-grid-creacion-acto">
+                                            
+                                            <div className="form-group-creacion-acto span-full">
                                                 <label>Modalidad de Reparto</label>
                                                 <select name="modalidad" value={formData.modalidad} onChange={handleChange}>
                                                     <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
                                                     <option value="UNIFICADO">Unificado / Express</option>
                                                 </select>
+                                                <small style={{ color: '#6b7280', display: 'block', marginTop: '5px' }}>
+                                                    {formData.modalidad === 'TRADICIONAL' 
+                                                        ? 'Primero se asignan insignias, luego cirios.' 
+                                                        : 'Todos los puestos se asignan en un mismo plazo.'}
+                                                </small>
                                             </div>
+
                                         </div>
                                     </div>
 
-                                    <div className="form-section-edicion admin-section-edicion">
-                                        <h3 className="section-title-edicion admin-title-edicion"><Clock size={18}/> Edición de Plazos</h3>
+                                    <div className="form-section-creacion-acto admin-section-creacion-acto">
+                                        <h3 className="section-title-creacion-acto admin-title-creacion-acto"><Clock size={18}/> Edición de Plazos</h3>
                                         
-                                        {/* BLOQUE INSIGNIAS / GENERAL */}
-                                        <h4 className="subsection-title">
+                                        <h4 style={{ margin: '15px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>
                                             {formData.modalidad === 'TRADICIONAL' ? '1. Solicitud de Insignias / Varas' : 'Plazo Único (General)'}
                                         </h4>
-                                        <div className="form-grid-edicion grid-2-edicion">
-                                            <div className="form-group-edicion">
+                                        <div className="grid-dates-row">
+                                            <div className="form-group-creacion-acto">
                                                 <label>Inicio Solicitud</label>
                                                 <input 
                                                     type="datetime-local" 
@@ -347,7 +389,7 @@ function AdminEdicionActo() {
                                                     min={minDate} max={maxDate}
                                                 />
                                             </div>
-                                            <div className="form-group-edicion">
+                                            <div className="form-group-creacion-acto">
                                                 <label>Fin Solicitud</label>
                                                 <input 
                                                     type="datetime-local" 
@@ -359,12 +401,11 @@ function AdminEdicionActo() {
                                             </div>
                                         </div>
 
-                                        {/* BLOQUE CIRIOS (SOLO TRADICIONAL) */}
                                         {formData.modalidad === 'TRADICIONAL' && (
                                             <>
-                                                <h4 className="subsection-title" style={{ marginTop: '20px' }}>2. Solicitud de Cirios / General</h4>
-                                                <div className="form-grid-edicion grid-2-edicion">
-                                                    <div className="form-group-edicion">
+                                                <h4 style={{ margin: '20px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>2. Solicitud de Cirios / General</h4>
+                                                <div className="grid-dates-row">
+                                                    <div className="form-group-creacion-acto">
                                                         <label>Inicio Solicitud</label>
                                                         <input 
                                                             type="datetime-local" 
@@ -374,7 +415,7 @@ function AdminEdicionActo() {
                                                             min={minDate} max={maxDate}
                                                         />
                                                     </div>
-                                                    <div className="form-group-edicion">
+                                                    <div className="form-group-creacion-acto">
                                                         <label>Fin Solicitud</label>
                                                         <input 
                                                             type="datetime-local" 
@@ -386,9 +427,9 @@ function AdminEdicionActo() {
                                                     </div>
                                                 </div>
                                                 
-                                                <div className="info-box-blue">
-                                                    <ShieldAlert size={16} />
-                                                    <span>Recuerda: Los plazos no deben solaparse y deben terminar antes del acto.</span>
+                                                <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#eff6ff', borderRadius: '6px', borderLeft: '4px solid #3b82f6', fontSize: '0.85rem', color: '#1e40af' }}>
+                                                    <ShieldAlert size={16} style={{ verticalAlign: 'text-bottom', marginRight: '5px' }}/>
+                                                    Recuerda: En modalidad tradicional, la solicitud de cirios no puede comenzar antes de que termine la de insignias.
                                                 </div>
                                             </>
                                         )}
@@ -396,12 +437,11 @@ function AdminEdicionActo() {
                                 </>
                             )}
 
-                            {/* BOTONES */}
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/home")}>
+                            <div className="form-actions-creacion-acto">
+                                <button type="button" className="btn-cancel-creacion-acto" onClick={() => navigate("/home")}>
                                     Cancelar
                                 </button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                <button type="submit" className="btn-save-creacion-acto" disabled={saving}>
                                     <Save size={18} />
                                     {saving ? "Guardando..." : "Guardar Cambios"}
                                 </button>

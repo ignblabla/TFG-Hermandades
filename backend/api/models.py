@@ -20,7 +20,7 @@ class AreaInteres(models.Model):
         PRIOSTIA = 'PRIOSTIA', 'Priostía'
         DIPUTACION_MAYOR_GOBIERNO = 'DIPUTACION_MAYOR_GOBIERNO', 'Diputación Mayor de Gobierno'
         COSTALEROS = 'COSTALEROS', 'Costaleros'
-        ACOLITOS = 'ACÓLITOS', 'Acólitos'
+        ACOLITOS = 'ACOLITOS', 'Acólitos'
 
     nombre_area = models.CharField(max_length=50, choices=NombreArea.choices, unique=True, verbose_name="Nombre del área")
 
@@ -279,6 +279,7 @@ class Comunicado(models.Model):
 
     titulo = models.CharField(max_length=200, verbose_name="Título")
     contenido = models.TextField(verbose_name="Contenido", help_text="Contenido del comunicado. Soporta texto enriquecido si el frontend lo implementa.")
+    imagen_portada = models.ImageField(upload_to='comunicados/portadas/', null=True, blank=True, verbose_name="Imagen de Portada", help_text="Imagen principal de la noticia o comunicado")
     fecha_emision = models.DateTimeField(default=timezone.now, verbose_name="Fecha de emisión")
     tipo_comunicacion = models.CharField(max_length=20, choices=TipoComunicacion.choices, default=TipoComunicacion.GENERAL, verbose_name="Tipo de comunicación")
 

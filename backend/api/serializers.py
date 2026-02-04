@@ -823,7 +823,7 @@ class ComunicadoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comunicado
         fields = [
-            'id', 'titulo', 'contenido', 'fecha_emision', 
+            'id', 'titulo', 'contenido', 'fecha_emision', 'imagen_portada',
             'tipo_comunicacion', 'tipo_display', 'autor_nombre', 
             'areas_interes'
         ]
@@ -851,6 +851,6 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comunicado
         fields = [
-            'id', 'titulo', 'contenido', 
+            'id', 'titulo', 'contenido', 'imagen_portada',
             'tipo_comunicacion', 'areas_interes'
         ]
