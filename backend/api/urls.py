@@ -8,7 +8,7 @@ from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAcce
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView, SolicitarInsigniaView
 from . import views
 
-from .views import ActoUpdateView, AreaInteresListView, ComunicadoDetailView, ComunicadoListCreateView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisPapeletasListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoUpdateView, AreaInteresListView, ComunicadoDetailView, ComunicadoListCreateView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -45,5 +45,6 @@ urlpatterns = [
 
     path("comunicados/", ComunicadoListCreateView.as_view(), name="lista-crear-comunicados"),
     path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
+    path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
     path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
 ]

@@ -28,6 +28,7 @@ import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnifica
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
 import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
+import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -182,6 +183,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mis-noticias"
+          element={
+            <ProtectedRoute>
+              <HermanoMuroNoticias />
             </ProtectedRoute>
           }
         />

@@ -491,7 +491,27 @@ class ComunicadoDetailView(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
+class MisComunicadosListView(generics.ListAPIView):
+    """
+    Devuelve los comunicados filtrados por las áreas de interés del usuario logueado.
+    Lógica: Si el usuario tiene el área 'Juventud', verá todos los comunicados
+    que tengan 'Juventud' entre sus destinatarios.
+    """
+    serializer_class = ComunicadoListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        usuario = self.request.user
+
+        mis_areas = usuario.areas_interes.all()
+
+        queryset = Comunicado.objects.filter(
+            areas_interes__in=mis_areas
+        ).distinct().order_by('-fecha_emision')
+
+        return queryset
 
 # -----------------------------------------------------------------------------
 # VISTA: LISTA DE ÁREAS DE INTERÉS (Para el Select del Frontend)
