@@ -48,7 +48,7 @@ class CuerpoPertenencia(models.Model):
 
     def __str__(self):
         return self.get_nombre_cuerpo_display()
-    
+
 # -----------------------------------------------------------------------------
 # ENTIDAD: HERMANO - CUERPO
 # -----------------------------------------------------------------------------    
@@ -264,6 +264,29 @@ class Hermano(AbstractUser):
         if not self.username:
             self.username = self.dni
         super().save(*args, **kwargs)
+
+# -----------------------------------------------------------------------------
+# ENTIDAD: COMUNICADO
+# -----------------------------------------------------------------------------
+class Comunicado(models.Model):
+    class TipoComunicacion(models.TextChoices):
+        GENERAL = 'GENERAL', 'General'
+        INFORMATIVO = 'INFORMATIVO', 'Informativo'
+        CULTOS = 'CULTOS', 'Cultos'
+        SECRETARIA = 'SECRETARIA', 'Secretaría'
+        URGENTE = 'URGENTE', 'Urgente'
+        EVENTOS = 'EVENTOS', 'Eventos y Caridad'
+
+    titulo = models.CharField(max_length=200, verbose_name="Título")
+    contenido = models.TextField(verbose_name="Contenido", help_text="Contenido del comunicado. Soporta texto enriquecido si el frontend lo implementa.")
+    fecha_emision = models.DateTimeField(default=timezone.now, verbose_name="Fecha de emisión")
+    tipo_comunicacion = models.CharField(max_length=20, choices=TipoComunicacion.choices, default=TipoComunicacion.GENERAL, verbose_name="Tipo de comunicación")
+
+    autor = models.ForeignKey(Hermano, on_delete=models.PROTECT, related_name='comunicados_emitidos', verbose_name="Autor (Emisor)")
+    areas_interes = models.ManyToManyField(AreaInteres, related_name='comunicados', verbose_name="Áreas destinatarias", blank=True, help_text="Seleccione las áreas a las que va dirigido este comunicado.")
+
+    def __str__(self):
+        return f"{self.fecha_emision.strftime('%d/%m/%Y')} - {self.titulo} ({self.get_tipo_comunicacion_display()})"
 
 # -----------------------------------------------------------------------------
 # ENTIDAD: TIPO DE ACTO

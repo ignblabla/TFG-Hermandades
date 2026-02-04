@@ -25,6 +25,10 @@ import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
+import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
+import AdminListadoComunicados from "./pages/AdminListadoComunicados"
+import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
+import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -155,6 +159,38 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/crear-comunicado"
+          element={
+            <ProtectedRoute>
+              <AdminCreacionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/comunicados"
+          element={
+            <ProtectedRoute>
+              <AdminListadoComunicados />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/comunicados/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mis-noticias"
+          element={
+            <ProtectedRoute>
+              <HermanoMuroNoticias />
             </ProtectedRoute>
           }
         />
