@@ -6,16 +6,16 @@ import {
     Save, 
     FileText, 
     Users, 
-    MessageSquare, 
     AlertCircle, 
     CheckCircle, 
-    Info,
     Church,
     Heart,
     Sun,
     Hammer,
     BookOpen,
-    Crown
+    Crown,
+    Image as ImageIcon,
+    X
 } from "lucide-react";
 
 function AdminCreacionComunicado() {
@@ -30,11 +30,14 @@ function AdminCreacionComunicado() {
     const [currentUser, setCurrentUser] = useState(null);
     const [areasDisponibles, setAreasDisponibles] = useState([]);
 
+    const [previewUrl, setPreviewUrl] = useState(null);
+
     const [formData, setFormData] = useState({
         titulo: '',
         contenido: '',
         tipo_comunicacion: 'GENERAL',
-        areas_interes: []
+        areas_interes: [],
+        imagen_portada: null
     });
 
     const tiposComunicacion = [
@@ -90,11 +93,32 @@ function AdminCreacionComunicado() {
         }
     }, [successMsg]);
 
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData(prev => ({ ...prev, imagen_portada: file }));
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const removeImage = () => {
+        setFormData(prev => ({ ...prev, imagen_portada: null }));
+        setPreviewUrl(null);
+        const fileInput = document.getElementById('imagen_portada');
+        if (fileInput) fileInput.value = "";
     };
 
     const toggleArea = (areaId) => {
@@ -122,7 +146,22 @@ function AdminCreacionComunicado() {
         }
 
         try {
-            await api.post('api/comunicados/', formData);
+            const dataToSend = new FormData();
+            dataToSend.append('titulo', formData.titulo);
+            dataToSend.append('contenido', formData.contenido);
+            dataToSend.append('tipo_comunicacion', formData.tipo_comunicacion);
+            
+            if (formData.imagen_portada) {
+                dataToSend.append('imagen_portada', formData.imagen_portada);
+            }
+
+            formData.areas_interes.forEach(id => {
+                dataToSend.append('areas_interes', id);
+            });
+
+            await api.post('api/comunicados/', dataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             
             setSuccessMsg("Comunicado emitido correctamente.");
 
@@ -305,6 +344,73 @@ function AdminCreacionComunicado() {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                        <label>Imagen de Portada (Opcional)</label>
+                                        
+                                        {!previewUrl ? (
+                                            <div 
+                                                className="image-upload-area"
+                                                onClick={() => document.getElementById('imagen_portada').click()}
+                                                style={{
+                                                    border: '2px dashed #d1d5db',
+                                                    borderRadius: '8px',
+                                                    padding: '20px',
+                                                    textAlign: 'center',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: '#f9fafb',
+                                                    transition: 'all 0.2s',
+                                                    color: '#6b7280'
+                                                }}
+                                            >
+                                                <input 
+                                                    type="file" 
+                                                    id="imagen_portada"
+                                                    name="imagen_portada"
+                                                    accept="image/*"
+                                                    onChange={handleImageChange}
+                                                    style={{ display: 'none' }}
+                                                />
+                                                <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
+                                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir una imagen de portada</p>
+                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>JPG, PNG (Max. 5MB)</p>
+                                            </div>
+                                        ) : (
+                                            <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                                                <img 
+                                                    src={previewUrl} 
+                                                    alt="Vista previa" 
+                                                    style={{ 
+                                                        maxWidth: '100%', 
+                                                        maxHeight: '300px', 
+                                                        borderRadius: '8px',
+                                                        border: '1px solid #e5e7eb'
+                                                    }} 
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={removeImage}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '10px',
+                                                        right: '10px',
+                                                        background: 'rgba(255, 255, 255, 0.9)',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        padding: '5px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                    }}
+                                                    title="Eliminar imagen"
+                                                >
+                                                    <X size={18} color="#ef4444" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group-creacion-comunicado span-2-creacion-comunicado">

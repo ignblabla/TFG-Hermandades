@@ -15,8 +15,12 @@ import {
     Sun,
     Hammer,
     BookOpen,
-    Crown
+    Crown,
+    Image as ImageIcon,
+    X
 } from "lucide-react";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL
 
 function AdminEdicionComunicado() {
     const navigate = useNavigate();
@@ -32,11 +36,14 @@ function AdminEdicionComunicado() {
     const [currentUser, setCurrentUser] = useState(null);
     const [areasDisponibles, setAreasDisponibles] = useState([]);
 
+    const [previewUrl, setPreviewUrl] = useState(null);
+
     const [formData, setFormData] = useState({
         titulo: '',
         contenido: '',
         tipo_comunicacion: '',
-        areas_interes: []
+        areas_interes: [],
+        imagen_portada: null
     });
 
     const tiposComunicacion = [
@@ -62,6 +69,19 @@ function AdminEdicionComunicado() {
         }
     };
 
+    const getFullImageUrl = (pathOrBlob) => {
+        if (!pathOrBlob) return null;
+        
+        if (pathOrBlob.startsWith('blob:') || pathOrBlob.startsWith('http')) {
+            return pathOrBlob;
+        }
+        
+        const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+        const path = pathOrBlob.startsWith('/') ? pathOrBlob : `/${pathOrBlob}`;
+        
+        return `${baseUrl}${path}`;
+    };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -81,8 +101,13 @@ function AdminEdicionComunicado() {
                         titulo: data.titulo,
                         contenido: data.contenido,
                         tipo_comunicacion: data.tipo_comunicacion,
-                        areas_interes: data.areas_interes || [] 
+                        areas_interes: data.areas_interes || [],
+                        imagen_portada: null
                     });
+
+                    if (data.imagen_portada) {
+                        setPreviewUrl(data.imagen_portada);
+                    }
                 }
 
             } catch (err) {
@@ -97,11 +122,34 @@ function AdminEdicionComunicado() {
         return () => { isMounted = false; };
     }, [id]);
 
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData(prev => ({ ...prev, imagen_portada: file }));
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+
+    const removeImage = () => {
+        setFormData(prev => ({ ...prev, imagen_portada: null }));
+        setPreviewUrl(null);
+        const fileInput = document.getElementById('imagen_portada');
+        if (fileInput) fileInput.value = "";
     };
 
     const toggleArea = (areaId) => {
@@ -122,13 +170,29 @@ function AdminEdicionComunicado() {
         setSuccessMsg("");
 
         try {
-            await api.put(`api/comunicados/${id}/`, formData);
+            const dataToSend = new FormData();
+            dataToSend.append('titulo', formData.titulo);
+            dataToSend.append('contenido', formData.contenido);
+            dataToSend.append('tipo_comunicacion', formData.tipo_comunicacion);
+
+            if (formData.imagen_portada instanceof File) {
+                dataToSend.append('imagen_portada', formData.imagen_portada);
+            }
+
+            formData.areas_interes.forEach(id => {
+                dataToSend.append('areas_interes', id);
+            });
+
+            await api.put(`api/comunicados/${id}/`, dataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
             setSuccessMsg("Comunicado actualizado correctamente.");
-            
-            setTimeout(() => navigate("/admin/comunicados"), 1500); 
+            setTimeout(() => navigate("/home"), 1500); 
         } catch (err) {
+            console.error(err);
             if (err.response && err.response.data) {
-                setError(JSON.stringify(err.response.data));
+                setError("Error al guardar. Verifique los campos.");
             } else {
                 setError("Error al guardar los cambios.");
             }
@@ -141,11 +205,10 @@ function AdminEdicionComunicado() {
         if (!window.confirm("¿Estás seguro de que deseas eliminar este comunicado? Esta acción es irreversible.")) {
             return;
         }
-
         setDeleting(true);
         try {
             await api.delete(`api/comunicados/${id}/`);
-            navigate("/admin/comunicados");
+            navigate("/home");
         } catch (err) {
             console.error(err);
             setError("Error al eliminar el comunicado. Verifica tus permisos.");
@@ -294,6 +357,113 @@ function AdminEdicionComunicado() {
                                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                        <label>Imagen de Portada</label>
+                                        
+                                        {!previewUrl ? (
+                                            <div 
+                                                className="image-upload-area"
+                                                onClick={() => document.getElementById('imagen_portada').click()}
+                                                style={{
+                                                    border: '2px dashed #d1d5db',
+                                                    borderRadius: '8px',
+                                                    padding: '20px',
+                                                    textAlign: 'center',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: '#f9fafb',
+                                                    transition: 'all 0.2s',
+                                                    color: '#6b7280'
+                                                }}
+                                            >
+                                                <input 
+                                                    type="file" 
+                                                    id="imagen_portada"
+                                                    name="imagen_portada"
+                                                    accept="image/*"
+                                                    onChange={handleImageChange}
+                                                    style={{ display: 'none' }}
+                                                />
+                                                <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
+                                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir o cambiar la imagen</p>
+                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>JPG, PNG (Max. 5MB)</p>
+                                            </div>
+                                        ) : (
+                                            // ESTADO: CON IMAGEN (Previsualización)
+                                            <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                                                <img 
+                                                    src={getFullImageUrl(previewUrl)} 
+                                                    alt="Portada" 
+                                                    style={{ 
+                                                        maxWidth: '100%', 
+                                                        maxHeight: '300px', 
+                                                        borderRadius: '8px',
+                                                        border: '1px solid #e5e7eb',
+                                                        display: 'block'
+                                                    }}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                    }}
+                                                />
+                                                
+                                                {/* Botón cambiar imagen (sobre la imagen) */}
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '10px',
+                                                    right: '10px',
+                                                    display: 'flex',
+                                                    gap: '8px'
+                                                }}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => document.getElementById('imagen_portada_edit').click()}
+                                                        style={{
+                                                            background: 'rgba(255, 255, 255, 0.9)',
+                                                            border: '1px solid #e5e7eb',
+                                                            borderRadius: '6px',
+                                                            padding: '6px 12px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            fontWeight: '600',
+                                                            color: '#374151',
+                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                        }}
+                                                    >
+                                                        Cambiar
+                                                    </button>
+                                                    <input 
+                                                        type="file" 
+                                                        id="imagen_portada_edit"
+                                                        accept="image/*"
+                                                        onChange={handleImageChange}
+                                                        style={{ display: 'none' }}
+                                                    />
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={removeImage}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: '10px',
+                                                        right: '10px',
+                                                        background: 'rgba(255, 255, 255, 0.9)',
+                                                        border: 'none',
+                                                        borderRadius: '50%',
+                                                        padding: '5px',
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                                    }}
+                                                    title="Eliminar imagen"
+                                                >
+                                                    <X size={18} color="#ef4444" />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
