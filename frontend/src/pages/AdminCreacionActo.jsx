@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import '../styles/AdminEdicionHermano.css';
+import '../styles/AdminCreacionActo.css';
 import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 function AdminCreacionActo() {
@@ -11,7 +11,7 @@ function AdminCreacionActo() {
     const minDate = `${currentYear}-01-01T00:00`;
     const maxDate = `${currentYear}-12-31T23:59`;
     
-    const [isOpen, setIsOpen] = useState(false); // Sidebar
+    const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -252,13 +252,13 @@ function AdminCreacionActo() {
                         
                         {/* BANNER DE ERRORES/EXITO */}
                         {error && (
-                            <div className="alert-banner-edicion error-edicion">
+                            <div className="alert-banner-creacion-acto error-creacion-acto">
                                 <AlertCircle size={20} />
                                 <span>{error}</span>
                             </div>
                         )}
                         {successMsg && (
-                            <div className="alert-banner-edicion success-edicion">
+                            <div className="alert-banner-creacion-acto success-creacion-acto">
                                 <CheckCircle size={20} />
                                 <span>{successMsg}</span>
                             </div>
@@ -266,10 +266,12 @@ function AdminCreacionActo() {
 
                         <form onSubmit={handleSubmit}>
                             {/* SECCIÓN 1: DATOS GENERALES */}
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><FileText size={18}/> Datos Generales</h3>
-                                <div className="form-grid-edicion grid-2-edicion">
-                                    <div className="form-group-edicion span-2-edicion">
+                            <div className="form-section-creacion-acto">
+                                <h3 className="section-title-creacion-acto"><FileText size={18}/> Datos Generales</h3>
+                                
+                                <div className="form-grid-creacion-acto">
+                                    
+                                    <div className="form-group-creacion-acto span-2-main">
                                         <label>Nombre del Acto *</label>
                                         <input 
                                             type="text" 
@@ -281,7 +283,7 @@ function AdminCreacionActo() {
                                         />
                                     </div>
 
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-acto">
                                         <label>Tipo de Acto *</label>
                                         <select 
                                             name="tipo_acto" 
@@ -289,7 +291,7 @@ function AdminCreacionActo() {
                                             onChange={handleChange} 
                                             required
                                         >
-                                            <option value="">-- Seleccionar Tipo --</option>
+                                            <option value="">-- Seleccionar --</option>
                                             {tiposActo.map(tipo => (
                                                 <option key={tipo.id} value={tipo.tipo}>
                                                     {tipo.nombre_mostrar}
@@ -298,7 +300,7 @@ function AdminCreacionActo() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-acto">
                                         <label>Fecha y Hora * ({currentYear})</label>
                                         <input 
                                             type="datetime-local" 
@@ -311,26 +313,25 @@ function AdminCreacionActo() {
                                         />
                                     </div>
 
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-creacion-acto span-full">
                                         <label>Descripción</label>
                                         <textarea 
                                             name="descripcion" 
                                             value={formData.descripcion} 
                                             onChange={handleChange}
-                                            rows="3"
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                                            rows="4"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* SECCIÓN 2: CONFIGURACIÓN REPARTO (Solo visible si requiere papeleta) */}
+                            {/* --- SECCIÓN 2: CONFIGURACIÓN REPARTO --- */}
                             {requierePapeleta && (
                                 <>
-                                    <div className="form-section-edicion">
-                                        <h3 className="section-title-edicion"><Settings size={18}/> Configuración de Reparto</h3>
-                                        <div className="form-grid-edicion grid-2-edicion">
-                                            <div className="form-group-edicion">
+                                    <div className="form-section-creacion-acto">
+                                        <h3 className="section-title-creacion-acto"><Settings size={18}/> Configuración de Reparto</h3>
+                                        <div className="form-grid-creacion-acto">
+                                            <div className="form-group-creacion-acto span-full">
                                                 <label>Modalidad de Reparto</label>
                                                 <select name="modalidad" value={formData.modalidad} onChange={handleChange}>
                                                     <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
@@ -339,72 +340,69 @@ function AdminCreacionActo() {
                                                 <small style={{ color: '#6b7280', display: 'block', marginTop: '5px' }}>
                                                     {formData.modalidad === 'TRADICIONAL' 
                                                         ? 'Primero se asignan insignias, luego cirios.' 
-                                                        : 'Todos los puestos se asignan en un mismo plazo (usando la fecha de inicio/fin general).'}
+                                                        : 'Todos los puestos se asignan en un mismo plazo.'}
                                                 </small>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="form-section-edicion admin-section-edicion">
-                                        <h3 className="section-title-edicion admin-title-edicion"><Clock size={18}/> Plazos de Solicitud Online</h3>
+                                    <div className="form-section-creacion-acto admin-section-creacion-acto">
+                                        <h3 className="section-title-creacion-acto admin-title-creacion-acto"><Clock size={18}/> Plazos de Solicitud Online</h3>
                                         
-                                        {/* BLOQUE 1: FECHAS PRINCIPALES (INSIGNIAS / GENERAL) */}
+                                        {/* BLOQUE 1: INSIGNIAS (USAMOS grid-dates-row PARA FILA DE 2) */}
                                         <h4 style={{ margin: '15px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>
                                             {formData.modalidad === 'TRADICIONAL' 
                                                 ? '1. Solicitud de Insignias / Varas' 
                                                 : 'Plazo Único de Solicitud (General)'}
                                         </h4>
-                                        <div className="form-grid-edicion grid-2-edicion">
-                                            <div className="form-group-edicion">
+                                        
+                                        <div className="grid-dates-row"> {/* CLASE NUEVA PARA FORZAR FILA */}
+                                            <div className="form-group-creacion-acto">
                                                 <label>Inicio Solicitud</label>
                                                 <input 
                                                     type="datetime-local" 
                                                     name="inicio_solicitud" 
                                                     value={formData.inicio_solicitud || ''} 
                                                     onChange={handleChange} 
-                                                    min={minDate} 
-                                                    max={maxDate}
+                                                    min={minDate} max={maxDate}
                                                 />
                                             </div>
-                                            <div className="form-group-edicion">
+                                            <div className="form-group-creacion-acto">
                                                 <label>Fin Solicitud</label>
                                                 <input 
                                                     type="datetime-local" 
                                                     name="fin_solicitud" 
                                                     value={formData.fin_solicitud || ''} 
                                                     onChange={handleChange}
-                                                    min={minDate} 
-                                                    max={maxDate}
+                                                    min={minDate} max={maxDate}
                                                 />
                                             </div>
                                         </div>
 
-                                        {/* BLOQUE 2: FECHAS CIRIOS (Solo visible si es TRADICIONAL) 
-                                        */}
+                                        {/* BLOQUE 2: CIRIOS (USAMOS grid-dates-row PARA FILA DE 2) */}
                                         {formData.modalidad === 'TRADICIONAL' && (
                                             <>
                                                 <h4 style={{ margin: '20px 0 10px', color: '#4b5563', fontSize: '0.95rem' }}>2. Solicitud de Cirios / General</h4>
-                                                <div className="form-grid-edicion grid-2-edicion">
-                                                    <div className="form-group-edicion">
+                                                
+                                                <div className="grid-dates-row"> {/* CLASE NUEVA */}
+                                                    <div className="form-group-creacion-acto">
                                                         <label>Inicio Solicitud</label>
                                                         <input 
                                                             type="datetime-local" 
                                                             name="inicio_solicitud_cirios" 
                                                             value={formData.inicio_solicitud_cirios || ''} 
                                                             onChange={handleChange} 
-                                                            min={minDate} 
-                                                            max={maxDate}
+                                                            min={minDate} max={maxDate}
                                                         />
                                                     </div>
-                                                    <div className="form-group-edicion">
+                                                    <div className="form-group-creacion-acto">
                                                         <label>Fin Solicitud</label>
                                                         <input 
                                                             type="datetime-local" 
                                                             name="fin_solicitud_cirios" 
                                                             value={formData.fin_solicitud_cirios || ''} 
                                                             onChange={handleChange}
-                                                            min={minDate} 
-                                                            max={maxDate}
+                                                            min={minDate} max={maxDate}
                                                         />
                                                     </div>
                                                 </div>
@@ -420,11 +418,11 @@ function AdminCreacionActo() {
                             )}
 
                             {/* --- BOTONES DE ACCIÓN --- */}
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/home")}>
+                            <div className="form-actions-creacion-acto">
+                                <button type="button" className="btn-cancel-creacion-acto" onClick={() => navigate("/home")}>
                                     Cancelar
                                 </button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                <button type="submit" className="btn-save-creacion-acto" disabled={saving}>
                                     <Save size={18} />
                                     {saving ? "Creando Acto..." : "Crear Acto"}
                                 </button>

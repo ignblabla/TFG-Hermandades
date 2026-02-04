@@ -1,0 +1,266 @@
+:root {
+    --burgundy-primary: #800020;
+    --border-color: #e2e8f0;
+    --bg-light: #f8fafc;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --focus-ring: rgba(128, 0, 32, 0.15);
+}
+
+/* SISTEMA DE GRID RESPONSIVE */
+.form-grid-creacion-acto {
+    display: grid;
+    gap: 1.25rem;
+    width: 100%;
+    grid-template-columns: 1fr;
+}
+
+.grid-dates-row {
+    display: grid;
+    gap: 1.25rem;
+    width: 100%;
+    grid-template-columns: 1fr;
+}
+
+/* PANTALLAS GRANDES (Desktop) */
+@media (min-width: 1024px) {
+    .form-grid-creacion-acto {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .span-2-main {
+        grid-column: span 2;
+    }
+    
+    .span-full {
+        grid-column: span 4;
+    }
+
+    .grid-dates-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* TABLETS (2 Columnas para todo) */
+@media (max-width: 1023px) and (min-width: 640px) {
+    .form-grid-creacion-acto {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .span-2-main {
+        grid-column: span 2;
+    }
+    
+    .span-full {
+        grid-column: span 2;
+    }
+
+    .grid-dates-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* MÓVILES (1 Columna) */
+@media (max-width: 639px) {
+    .form-grid-creacion-acto {
+        grid-template-columns: 1fr;
+    }
+    
+    .span-2-creacion-acto {
+        grid-column: auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .span-2-creacion-acto {
+        grid-column: span 2;
+    }
+}
+
+/* ESTILOS DE LOS INPUTS Y LABELS */
+.form-section-creacion-acto {
+    margin-bottom: 2rem;
+}
+
+.section-title-creacion-acto {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--burgundy-primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #fce7f3;
+    padding-bottom: 0.75rem;
+    width: 100%;
+}
+
+.form-group-creacion-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group-creacion-acto label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-group-creacion-acto input, 
+.form-group-creacion-acto select,
+.form-group-creacion-acto textarea {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: #fff;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group-creacion-acto input:focus, 
+.form-group-creacion-acto select:focus,
+.form-group-creacion-acto textarea:focus {
+    outline: none;
+    border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.form-group-creacion-acto input:hover, 
+.form-group-creacion-acto select:hover,
+.form-group-creacion-acto textarea:hover {
+    border-color: #cbd5e1;
+}
+
+.form-group-creacion-acto textarea {
+    resize: none;
+    min-height: 100px;
+}
+
+/* ESTILOS DE GESTIÓN INTERNA (ADMIN) */
+.admin-section-creacion-acto {
+    background-color: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.admin-title-creacion-acto {
+    border-bottom-color: #fda4af;
+    margin-bottom: 1.5rem;
+}
+
+/* BOTONES */
+.form-actions-creacion-acto {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-cancel-creacion-acto {
+    padding: 0.75rem 1.5rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-cancel-creacion-acto:hover {
+    background: #f1f5f9;
+    color: var(--text-dark);
+}
+
+.btn-save-creacion-acto {
+    padding: 0.75rem 2rem;
+    background: var(--burgundy-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(128, 0, 32, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-save-creacion-acto:hover {
+    background-color: #600018;
+    transform: translateY(-1px);
+}
+
+.btn-save-creacion-acto:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.alert-banner-creacion-acto {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Estilo para Errores */
+.alert-banner-creacion-acto.error-creacion-acto {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Estilo para Éxito */
+.alert-banner-creacion-acto.success-creacion-acto {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (min-width: 1024px) {
+    .span-2-creacion-acto {
+        grid-column: span 2;
+    }
+}
+
+/* PANTALLAS MEDIANAS (Tablets) */
+@media (max-width: 1023px) and (min-width: 640px) {
+    
+    .span-2-creacion-acto {
+        grid-column: auto;
+    }
+}
+
+/* MÓVILES */
+@media (max-width: 639px) {
+    .span-2-creacion-acto {
+        grid-column: auto;
+    }
+}
