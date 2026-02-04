@@ -25,6 +25,7 @@ import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
+import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -155,6 +156,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/crear-comunicado"
+          element={
+            <ProtectedRoute>
+              <AdminCreacionComunicado />
             </ProtectedRoute>
           }
         />

@@ -3,12 +3,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
 
-from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
+from api.servicios.comunicado.creacion_comunicado_service import CreacionComunicadoService
+
+from .serializers import ActoCreateSerializer, AreaInteresSerializer, ComunicadoSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import Acto, Puesto
+from .models import Acto, AreaInteres, Comunicado, Puesto
 from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
@@ -389,3 +391,51 @@ class ActoUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
+# -----------------------------------------------------------------------------
+# VIEWS: CREAR COMUNICADO
+# -----------------------------------------------------------------------------
+class ComunicadoListCreateView(APIView):
+    """
+    GET: Lista todos los comunicados ordenados por fecha.
+    POST: Crea un nuevo comunicado usando el Servicio de dominio.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Aquí podrías filtrar en el futuro para mostrar solo los de las áreas del usuario
+        # Por ahora, mostramos todos ordenados por fecha descendente
+        comunicados = Comunicado.objects.all().order_by('-fecha_emision')
+        serializer = ComunicadoSerializer(comunicados, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ComunicadoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            servicio = CreacionComunicadoService()
+            
+            nuevo_comunicado = servicio.create_comunicado_service(
+                usuario=request.user,
+                data_validada=serializer.validated_data
+            )
+
+            response_serializer = ComunicadoSerializer(nuevo_comunicado)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response(
+                {"detail": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+# -----------------------------------------------------------------------------
+# VISTA: LISTA DE ÁREAS DE INTERÉS (Para el Select del Frontend)
+# -----------------------------------------------------------------------------
+class AreaInteresListView(generics.ListAPIView):
+    """
+    Devuelve la lista de áreas disponibles para poblar los selectores en React.
+    """
+    queryset = AreaInteres.objects.all()
+    serializer_class = AreaInteresSerializer
+    permission_classes = [IsAuthenticated]
