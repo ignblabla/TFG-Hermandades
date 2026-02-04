@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-// Asegúrate de tener los estilos importados, igual que en tu ejemplo
-import '../styles/AdminEdicionHermano.css'; 
+import '../styles/AdminCreacionComunicado.css'; 
 import { 
     Save, 
     FileText, 
@@ -10,32 +9,34 @@ import {
     MessageSquare, 
     AlertCircle, 
     CheckCircle, 
-    Info 
+    Info,
+    Church,
+    Heart,
+    Sun,
+    Hammer,
+    BookOpen,
+    Crown
 } from "lucide-react";
 
 function AdminCreacionComunicado() {
     const navigate = useNavigate();
     
-    // --- ESTADOS DE UI ---
-    const [isOpen, setIsOpen] = useState(false); // Sidebar
+    const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
-    // --- DATOS DEL USUARIO Y MAESTROS ---
     const [currentUser, setCurrentUser] = useState(null);
     const [areasDisponibles, setAreasDisponibles] = useState([]);
 
-    // --- FORMULARIO ---
     const [formData, setFormData] = useState({
         titulo: '',
         contenido: '',
         tipo_comunicacion: 'GENERAL',
-        areas_interes: [] // Array de IDs [1, 2, ...]
+        areas_interes: []
     });
 
-    // Opciones estáticas del modelo (Hardcoded para coincidir con TextChoices de Django)
     const tiposComunicacion = [
         { value: 'GENERAL', label: 'General' },
         { value: 'INFORMATIVO', label: 'Informativo' },
@@ -45,17 +46,28 @@ function AdminCreacionComunicado() {
         { value: 'EVENTOS', label: 'Eventos y Caridad' },
     ];
 
-    // --- 1. CARGA INICIAL ---
+    const getAreaIcon = (nombreArea) => {
+        switch (nombreArea) {
+            case 'ACOLITOS': return <Church size={18} />;
+            case 'COSTALEROS': return <Users size={18} />;
+            case 'CARIDAD': return <Heart size={18} />;
+            case 'JUVENTUD': return <Sun size={18} />;
+            case 'PRIOSTIA': return <Hammer size={18} />;
+            case 'CULTOS_FORMACION': return <BookOpen size={18} />;
+            case 'PATRIMONIO': return <Church size={18} />;
+            case 'DIPUTACION_MAYOR_GOBIERNO': return <Crown size={18} />;
+            default: return <Users size={18} />;
+        }
+    };
+
     useEffect(() => {
         let isMounted = true;
         
         const fetchData = async () => {
             try {
-                // 1. Obtener usuario actual
                 const resUser = await api.get("api/me/");
                 if (isMounted) setCurrentUser(resUser.data);
 
-                // 2. Obtener Áreas de Interés para el selector múltiple
                 const resAreas = await api.get("api/areas-interes/");
                 if (isMounted) setAreasDisponibles(resAreas.data);
 
@@ -71,7 +83,6 @@ function AdminCreacionComunicado() {
         return () => { isMounted = false; };
     }, []);
 
-    // --- 2. MANEJO DE MENSAJES ---
     useEffect(() => {
         if (successMsg) {
             const timer = setTimeout(() => setSuccessMsg(""), 3000);
@@ -79,10 +90,8 @@ function AdminCreacionComunicado() {
         }
     }, [successMsg]);
 
-    // --- 3. HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
 
-    // Manejo de inputs de texto simple
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -158,33 +167,86 @@ function AdminCreacionComunicado() {
 
     return (
         <div>
-            {/* --- SIDEBAR (Idéntico a tu ejemplo) --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} id="btn" onClick={toggleSidebar}></i>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
                 </div>
                 <ul className="nav-list-dashboard">
-                    {/* ... (Items del menú igual que tu ejemplo) ... */}
                     <li>
-                        <a onClick={() => navigate("/home")} style={{cursor: 'pointer'}}>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
+                    </li>
+                    <li>
+                        <a href="#">
                             <i className="bx bx-grid-alt"></i>
                             <span className="link_name-dashboard">Dashboard</span>
                         </a>
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
-                     {/* ... Resto de items ... */}
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
-                            {/* Placeholder imagen */}
-                            <img src="https://via.placeholder.com/40" alt="profile" /> 
+                            <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
                                 <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
-                                <div className="designation-dashboard">{currentUser?.esAdmin ? "Administrador" : "Hermano"}</div>
+                                <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i className="bx bx-log-out" id="log_out" onClick={handleLogout} style={{cursor: 'pointer'}}></i>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
                     </li>
                 </ul>
             </div>
@@ -212,12 +274,12 @@ function AdminCreacionComunicado() {
 
                         <form onSubmit={handleSubmit}>
                             {/* SECCIÓN 1: DATOS BÁSICOS */}
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><FileText size={18}/> Información del Comunicado</h3>
-                                <div className="form-grid-edicion grid-2-edicion">
+                            <div className="form-section-creacion-comunicado">
+                                <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
+                                <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
                                     {/* Título */}
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -229,8 +291,7 @@ function AdminCreacionComunicado() {
                                         />
                                     </div>
 
-                                    {/* Tipo de Comunicación */}
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-creacion-comunicado">
                                         <label>Tipo de Comunicación *</label>
                                         <select 
                                             name="tipo_comunicacion" 
@@ -246,8 +307,7 @@ function AdminCreacionComunicado() {
                                         </select>
                                     </div>
 
-                                    {/* Contenido */}
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
                                         <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
@@ -263,8 +323,8 @@ function AdminCreacionComunicado() {
                             </div>
 
                             {/* SECCIÓN 2: DESTINATARIOS (Áreas de Interés) */}
-                            <div className="form-section-edicion admin-section-edicion">
-                                <h3 className="section-title-edicion admin-title-edicion">
+                            <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
+                                <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
                                     <Users size={18}/> Áreas de Interés (Destinatarios)
                                 </h3>
                                 
@@ -275,46 +335,34 @@ function AdminCreacionComunicado() {
                                     </small>
                                 </div>
 
-                                {/* Grid de Checkboxes personalizados */}
-                                <div className="areas-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                                <div className="areas-grid-creacion-comunicado">
                                     {areasDisponibles.map(area => {
                                         const isSelected = formData.areas_interes.includes(area.id);
+                                        
                                         return (
                                             <div 
                                                 key={area.id}
                                                 onClick={() => toggleArea(area.id)}
-                                                style={{
-                                                    padding: '10px 15px',
-                                                    border: isSelected ? '1px solid #2563eb' : '1px solid #e5e7eb',
-                                                    borderRadius: '8px',
-                                                    backgroundColor: isSelected ? '#eff6ff' : '#fff',
-                                                    color: isSelected ? '#1e40af' : '#374151',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    transition: 'all 0.2s'
-                                                }}
+                                                className={`area-card-creacion-comunicado ${isSelected ? 'selected' : ''}`}
                                             >
                                                 <input 
                                                     type="checkbox" 
                                                     checked={isSelected} 
-                                                    onChange={() => {}} // Controlado por el div padre
-                                                    style={{ cursor: 'pointer', accentColor: '#2563eb' }}
+                                                    onChange={() => {}}
                                                 />
-                                                <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}>
-                                                    {area.nombre_area} {/* O area.get_nombre_area_display si viene así del serializador */}
-                                                    {/* Nota: En tu serializer AreaInteresSerializer usaste fields=['id', 'nombre_area', 'get_nombre_area_display'] 
-                                                        Si el campo raw es 'CARIDAD', usamos el display del backend si está disponible.
-                                                        Si usaste source='get_nombre_area_display' en el campo nombre_area del serializer, aquí saldrá bien.
-                                                    */}
+
+                                                <div className="area-icon-creacion-comunicado">
+                                                    {getAreaIcon(area.nombre_area)}
+                                                </div>
+
+                                                <span className="area-name-creacion-comunicado">
+                                                    {area.get_nombre_area_display || area.nombre_area}
                                                 </span>
                                             </div>
                                         )
                                     })}
                                 </div>
-                                
-                                {/* Aviso visual si está vacío */}
+
                                 {formData.areas_interes.length === 0 && (
                                     <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#fff7ed', borderRadius: '6px', borderLeft: '4px solid #f97316', fontSize: '0.85rem', color: '#9a3412', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Info size={16} />

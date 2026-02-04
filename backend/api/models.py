@@ -20,7 +20,7 @@ class AreaInteres(models.Model):
         PRIOSTIA = 'PRIOSTIA', 'Priostía'
         DIPUTACION_MAYOR_GOBIERNO = 'DIPUTACION_MAYOR_GOBIERNO', 'Diputación Mayor de Gobierno'
         COSTALEROS = 'COSTALEROS', 'Costaleros'
-        ACOLITOS = 'ACÓLITOS', 'Acólitos'
+        ACOLITOS = 'ACOLITOS', 'Acólitos'
 
     nombre_area = models.CharField(max_length=50, choices=NombreArea.choices, unique=True, verbose_name="Nombre del área")
 
