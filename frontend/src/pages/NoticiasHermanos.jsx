@@ -3,22 +3,54 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
 
+const getCategoryColor = (tipo) => {
+    const colors = {
+        'GENERAL': '#5e5ce6',
+        'INFORMATIVO': '#3498db',
+        'CULTOS': '#9b59b6',
+        'SECRETARIA': '#f1c40f',
+        'URGENTE': '#e74c3c',
+        'EVENTOS': '#27a070',
+    };
+    return colors[tipo] || '#95a5a6';
+};
+
+const getTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    let interval = seconds / 31536000;
+    if (interval > 1) return `Hace ${Math.floor(interval)} años`;
+    interval = seconds / 2592000;
+    if (interval > 1) return `Hace ${Math.floor(interval)} meses`;
+    interval = seconds / 86400;
+    if (interval > 1) return `Hace ${Math.floor(interval)} días`;
+    interval = seconds / 3600;
+    if (interval > 1) return `Hace ${Math.floor(interval)} horas`;
+    interval = seconds / 60;
+    if (interval > 1) return `Hace ${Math.floor(interval)} min`;
+    return "Hace unos instantes";
+};
+
+const getReadTime = (content) => {
+    if (!content) return '1 min read';
+    const wordsPerMinute = 200;
+    const words = content.trim().split(/\s+/).length;
+    const time = Math.ceil(words / wordsPerMinute);
+    return `${time} min read`;
+};
+
+// --- FIN FUNCIONES AUXILIARES ---
+
 function NoticiasHermano() {
     const [isOpen, setIsOpen] = useState(false); 
     
     // Estados de datos
     const [user, setUser] = useState(null);
-    const [papeletas, setPapeletas] = useState([]);
+    const [noticias, setNoticias] = useState([]); 
     const [loading, setLoading] = useState(true);
-    const [downloadingId, setDownloadingId] = useState(null);
     
-    // Estados de paginación
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalRegistros, setTotalRegistros] = useState(0);
-    const [nextUrl, setNextUrl] = useState(null);
-    const [prevUrl, setPrevUrl] = useState(null);
-
     const navigate = useNavigate();
 
     // --- EFECTO DE CARGA ---
@@ -27,6 +59,7 @@ function NoticiasHermano() {
         const fetchData = async () => {
             setLoading(true);
             try {
+                // 1. Cargar Usuario
                 let userData = user;
                 if (!userData) {
                     const resUser = await api.get("api/me/");
@@ -34,18 +67,28 @@ function NoticiasHermano() {
                     if (isMounted) setUser(userData);
                 }
 
-                const resListado = await api.get(`api/papeletas/mis-papeletas/?page=${page}`);
+                const resNoticias = await api.get("api/comunicados/");
                 
                 if (isMounted) {
-                    setPapeletas(resListado.data.results);
-                    setTotalRegistros(resListado.data.count);
-                    setNextUrl(resListado.data.next);
-                    setPrevUrl(resListado.data.previous);
-                    const pageSize = 20; 
-                    setTotalPages(Math.ceil(resListado.data.count / pageSize));
+                    console.log("Datos recibidos de API:", resNoticias.data);
+
+                    const noticiasFormateadas = resNoticias.data.map(item => ({
+                        id: item.id,
+                        category: item.tipo_display || item.tipo_comunicacion, 
+                        categoryColor: getCategoryColor(item.tipo_comunicacion),
+                        image: item.imagen_portada || 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&q=80&w=500', 
+                        time: getTimeAgo(item.fecha_emision),
+                        readTime: getReadTime(item.contenido),
+                        title: item.titulo,
+                        description: item.contenido ? item.contenido.replace(/<[^>]+>/g, '').substring(0, 100) + '...' : '', 
+                        author: item.autor_nombre
+                    }));
+
+                    setNoticias(noticiasFormateadas);
                 }
+
             } catch (err) {
-                console.error("Error cargando papeletas:", err);
+                console.error("Error cargando datos:", err);
                 if (err.response && err.response.status === 401) {
                     navigate("/login");
                 }
@@ -55,7 +98,7 @@ function NoticiasHermano() {
         };
         fetchData();
         return () => { isMounted = false; };
-    }, [page, navigate]);
+    }, [navigate, user]); 
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
@@ -64,42 +107,6 @@ function NoticiasHermano() {
         setUser(null);
         navigate("/login");
     };
-
-    const newsData = [
-        {
-            id: 1,
-            category: 'TECHNOLOGY',
-            categoryColor: '#5e5ce6',
-            image: 'https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&q=80&w=500',
-            time: '45 min ago',
-            readTime: '4 min read',
-            title: 'AI Regulations Proposed by EU Commission',
-            description: 'The new framework aims to categorize AI systems based on risk levels, imposing stricter compliance...',
-            author: 'David Miller'
-        },
-        {
-            id: 2,
-            category: 'POLITICS',
-            categoryColor: '#eb4432',
-            image: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&q=80&w=500',
-            time: '3 hours ago',
-            readTime: '6 min read',
-            title: 'Senate Vote Scheduled for New Infrastructure Bill',
-            description: 'After weeks of deliberation, the Senate leadership has agreed to bring the comprehensive...',
-            author: 'Elena Ross'
-        },
-        {
-            id: 3,
-            category: 'BUSINESS',
-            categoryColor: '#27a070',
-            image: 'https://images.unsplash.com/photo-1611974714024-4607a5006300?auto=format&fit=crop&q=80&w=500',
-            time: '5 hours ago',
-            readTime: '3 min read',
-            title: 'Quarterly Earnings Report: Shift in Consumer Trends',
-            description: 'Retail giants report unexpected shifts in spending habits as consumers prioritize sustainable goods and...',
-            author: 'Michael Chang'
-        }
-    ];
 
     if (loading && !user) return <div className="site-wrapper loading-screen">Cargando histórico...</div>;
 
@@ -191,13 +198,20 @@ function NoticiasHermano() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Noticias</div>
+                <div className="text-dashboard">Noticias y Comunicados</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado-noticias" style={{ margin: '0', maxWidth: '100%' }}>
-                        {newsData.map(item => (
-                            <NewsCard key={item.id} item={item} />
-                        ))}
-                    </div>
+                    {noticias.length === 0 ? (
+                        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                            <p>No hay noticias recientes.</p>
+                        </div>
+                    ) : (
+                        <div className="card-container-listado-noticias" style={{ margin: '0', maxWidth: '100%' }}>
+                            {noticias.map(item => (
+                                <NewsCard key={item.id} item={item} />
+                            ))}
+                        </div>
+                    )}
+
                 </div>
             </section>
         </div>

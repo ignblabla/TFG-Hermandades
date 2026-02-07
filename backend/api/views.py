@@ -403,7 +403,7 @@ class ComunicadoListCreateView(APIView):
 
     def get(self, request):
         comunicados = Comunicado.objects.all().order_by('-fecha_emision')
-        serializer = ComunicadoListSerializer(comunicados, many=True)
+        serializer = ComunicadoListSerializer(comunicados, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

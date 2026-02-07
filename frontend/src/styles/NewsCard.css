@@ -17,13 +17,15 @@
 
 .card-header-noticias {
     position: relative;
-    height: 110px; 
+    height: 160px; 
+    width: 100%;
 }
 
 .card-image-noticias {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
 }
 
 .category-tag-noticias {
