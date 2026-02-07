@@ -1,24 +1,61 @@
-/* --- CONTENEDOR GRID MODIFICADO --- */
+/* --- VARIABLES --- */
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    
+    --border-color: #e5e7eb;
+}
+
+/* --- GRID --- */
 .card-container-listado-noticias {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
     width: 100%;
     padding-bottom: 20px;
 }
 
+@media (max-width: 1024px) {
+    .card-container-listado-noticias {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 650px) {
+    .card-container-listado-noticias {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- TARJETA CON BORDE BURDEOS --- */
 .card-noticias {
-    background-color: #1e293b;
+    background-color: var(--white);
+    border: 2px solid var(--burgundy-primary);
     border-radius: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-noticias:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(128, 0, 32, 0.15);
 }
 
 .card-header-noticias {
     position: relative;
-    height: 160px; 
+    height: 180px; 
     width: 100%;
+    padding: 8px; 
+    box-sizing: border-box;
 }
 
 .card-image-noticias {
@@ -26,85 +63,103 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
+    border-radius: 6px; 
 }
 
 .category-tag-noticias {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 12px;
+    left: 12px;
     color: white;
     font-size: 9px; 
     font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 3px;
+    padding: 2px 8px;
+    border-radius: 4px;
     letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-transform: uppercase;
 }
 
 .card-content-noticias {
-    padding: 12px; 
+    padding: 16px; 
     flex-grow: 1;
     display: flex;
     flex-direction: column;
 }
 
 .card-meta-noticias {
-    color: #94a3b8;
-    font-size: 10px;
-    margin-bottom: 6px;
+    color: var(--text-muted); 
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .card-title-noticias {
-    color: #ffffff;
-    font-size: 14px; 
+    color: var(--text-main); 
+    font-size: 16px; 
     font-weight: 700;
-    line-height: 1.3;
-    margin: 0 0 8px 0;
+    line-height: 1.4;
+    margin: 0 0 10px 0;
+}
+
+.card-noticias:hover .card-title-noticias {
+    color: var(--burgundy-primary);
+    transition: color 0.2s;
 }
 
 .card-description-noticias {
-    color: #94a3b8;
-    font-size: 12px;
-    line-height: 1.4;
-    margin: 0 0 12px 0;
+    color: #4b5563; 
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
     flex-grow: 1;
     display: -webkit-box;
-    -webkit-line-clamp: 2; 
+    -webkit-line-clamp: 3; 
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
+/* --- FOOTER --- */
 
 .card-footer-noticias {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 8px;
-    border-top: 1px solid #334155;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color); 
     margin-top: auto;
 }
 
 .author-info-noticias {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
 }
 
 .author-icon-noticias {
-    width: 14px;
-    height: 14px;
-    color: #94a3b8;
+    width: 16px;
+    height: 16px;
+    color: var(--burgundy-primary); 
 }
 
 .author-name-noticias {
-    color: #94a3b8;
-    font-size: 10px;
-}
-
-.read-link-noticias {
-    color: #3b82f6;
-    text-decoration: none;
+    color: var(--text-muted);
     font-size: 11px;
     font-weight: 600;
 }
+
+.read-link-noticias {
+    color: var(--burgundy-primary);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    transition: color 0.2s;
+}
+
 .read-link-noticias:hover {
+    color: var(--burgundy-dark);
     text-decoration: underline;
 }

@@ -3,17 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
 
-const getCategoryColor = (tipo) => {
-    const colors = {
-        'GENERAL': '#5e5ce6',
-        'INFORMATIVO': '#3498db',
-        'CULTOS': '#9b59b6',
-        'SECRETARIA': '#f1c40f',
-        'URGENTE': '#e74c3c',
-        'EVENTOS': '#27a070',
-    };
-    return colors[tipo] || '#95a5a6';
-};
+const getCategoryColor = () => '#800020';
 
 const getTimeAgo = (dateString) => {
     const date = new Date(dateString);

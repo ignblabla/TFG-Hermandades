@@ -28,7 +28,7 @@ const NewsCard = ({ item }) => {
                         </div>
                         <span className="author-name-noticias">{item.author}</span>
                     </div>
-                    <a href="#" className="read-link-noticias">Read</a>
+                    <a href="#" className="read-link-noticias">Leer noticia</a>
                     </div>
                 </div>
             </div>
