@@ -29,6 +29,7 @@ import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
 import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
 import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
+import NoticiasHermano from "./pages/NoticiasHermanos"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -77,6 +78,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/noticias-hermano"
+          element={
+            <ProtectedRoute>
+              <NoticiasHermano />
             </ProtectedRoute>
           }
         />

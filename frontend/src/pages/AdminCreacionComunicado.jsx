@@ -69,7 +69,15 @@ function AdminCreacionComunicado() {
         const fetchData = async () => {
             try {
                 const resUser = await api.get("api/me/");
-                if (isMounted) setCurrentUser(resUser.data);
+                const user = resUser.data;
+                
+                if (isMounted) setCurrentUser(user);
+
+                if (!user.esAdmin) {
+                    alert("No tienes permisos para crear comunicados.");
+                    navigate("/home");
+                    return;
+                }
 
                 const resAreas = await api.get("api/areas-interes/");
                 if (isMounted) setAreasDisponibles(resAreas.data);
@@ -84,7 +92,7 @@ function AdminCreacionComunicado() {
 
         fetchData();
         return () => { isMounted = false; };
-    }, []);
+    }, [navigate]);
 
     useEffect(() => {
         if (successMsg) {
@@ -108,9 +116,25 @@ function AdminCreacionComunicado() {
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
+        
         if (file) {
-            setFormData(prev => ({ ...prev, imagen_portada: file }));
-            setPreviewUrl(URL.createObjectURL(file));
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.src = objectUrl;
+
+            img.onload = () => {
+                const width = img.naturalWidth;
+                const height = img.naturalHeight;
+                if (width > height) {
+                    setFormData(prev => ({ ...prev, imagen_portada: file }));
+                    setPreviewUrl(objectUrl);
+                    setError("");
+                } else {
+                    setError("La imagen debe ser horizontal (formato paisaje).");
+                    e.target.value = ""; 
+                    URL.revokeObjectURL(objectUrl);
+                }
+            };
         }
     };
 
@@ -173,7 +197,7 @@ function AdminCreacionComunicado() {
             console.error(err);
             if (err.response) {
                 if (err.response.status === 403) {
-                    setError("No tienes permisos (Solo Admins o Junta de Gobierno).");
+                    setError("No tienes permisos (Solo administradores o Junta de Gobierno).");
                 } else if (err.response.data) {
                     const errorData = err.response.data;
                     if (errorData.detail) {
@@ -374,7 +398,9 @@ function AdminCreacionComunicado() {
                                                 />
                                                 <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
                                                 <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir una imagen de portada</p>
-                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>JPG, PNG (Max. 5MB)</p>
+                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>
+                                                    JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong>
+                                                </p>
                                             </div>
                                         ) : (
                                             <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
