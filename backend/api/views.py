@@ -441,7 +441,7 @@ class ComunicadoDetailView(APIView):
 
     def get(self, request, pk):
         comunicado = get_object_or_404(Comunicado, pk=pk)
-        serializer = ComunicadoFormSerializer(comunicado)
+        serializer = ComunicadoListSerializer(comunicado, context={'request': request})
         return Response(serializer.data)
 
 
@@ -459,7 +459,7 @@ class ComunicadoDetailView(APIView):
                 comunicado_instance=comunicado,
                 data_validada=serializer.validated_data
             )
-            return Response(ComunicadoFormSerializer(actualizado).data)
+            return Response(ComunicadoListSerializer(actualizado).data)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -477,7 +477,7 @@ class ComunicadoDetailView(APIView):
                 comunicado_instance=comunicado,
                 data_validada=serializer.validated_data
             )
-            return Response(ComunicadoFormSerializer(actualizado).data)
+            return Response(ComunicadoListSerializer(actualizado).data)
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
