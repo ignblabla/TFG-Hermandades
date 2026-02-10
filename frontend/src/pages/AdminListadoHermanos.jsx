@@ -5,6 +5,7 @@ import '../styles/AdminListadoHermanos.css';
 import { ChevronLeft, ChevronRight, UserCheck, Users, UserX } from "lucide-react";
 
 function AdminListadoHermanos() {
+    console.log("MONTANDO COMPONENTE CENSO");
     const [isOpen, setIsOpen] = useState(false);
     
     const [user, setUser] = useState(null);
