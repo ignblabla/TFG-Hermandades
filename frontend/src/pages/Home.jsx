@@ -30,28 +30,32 @@ function Home() {
     }, []);
 
     useEffect(() => {
-        const token = localStorage.getItem("access");
+        const usuarioGuardado = localStorage.getItem("user_data");
+        if (usuarioGuardado) {
+            setUser(JSON.parse(usuarioGuardado));
+        }
 
-        if (token) {
-            fetch("http://127.0.0.1:8000/api/me/", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                }
-            })
-            .then(async response => {
-                if (response.ok) {
-                    const data = await response.json();
-                    setUser(data);
-                } else {
-                    console.log("Token caducado o inválido");
-                    localStorage.removeItem("access"); 
+        const verificarSesion = async () => {
+            try {
+                const response = await api.get("/api/me/");
+                
+                setUser(response.data);
+                localStorage.setItem("user_data", JSON.stringify(response.data));
+
+            } catch (error) {
+                console.error("Error verificando sesión:", error);
+                
+                if (error.response && error.response.status === 401) {
+                    console.log("Sesión caducada");
+                    localStorage.removeItem("access");
+                    localStorage.removeItem("refresh");
+                    localStorage.removeItem("user_data");
                     setUser(null);
                 }
-            })
-            .catch(error => console.error("Error:", error));
-        }
+            }
+        };
+
+        verificarSesion();
     }, []);
 
     const handleLogout = () => {
