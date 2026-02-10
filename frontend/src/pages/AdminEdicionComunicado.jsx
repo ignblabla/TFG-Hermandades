@@ -91,17 +91,26 @@ function AdminEdicionComunicado() {
                 if (isMounted) setCurrentUser(resUser.data);
 
                 const resAreas = await api.get("api/areas-interes/");
-                if (isMounted) setAreasDisponibles(resAreas.data);
+                const listaAreas = resAreas.data; 
+                if (isMounted) setAreasDisponibles(listaAreas);
 
                 const resComunicado = await api.get(`api/comunicados/${id}/`);
                 const data = resComunicado.data;
 
                 if (isMounted) {
+                    const areasIds = (data.areas_interes || []).map(nombreRecibido => {
+                        const areaEncontrada = listaAreas.find(a => 
+                            a.get_nombre_area_display === nombreRecibido || 
+                            a.nombre_area === nombreRecibido
+                        );
+                        return areaEncontrada ? areaEncontrada.id : null;
+                    }).filter(id => id !== null);
+
                     setFormData({
                         titulo: data.titulo,
                         contenido: data.contenido,
                         tipo_comunicacion: data.tipo_comunicacion,
-                        areas_interes: data.areas_interes || [],
+                        areas_interes: areasIds,
                         imagen_portada: null
                     });
 
@@ -183,16 +192,15 @@ function AdminEdicionComunicado() {
                 dataToSend.append('areas_interes', id);
             });
 
-            await api.put(`api/comunicados/${id}/`, dataToSend, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await api.patch(`api/comunicados/${id}/`, dataToSend); 
 
             setSuccessMsg("Comunicado actualizado correctamente.");
-            setTimeout(() => navigate("/home"), 1500); 
+            setTimeout(() => navigate("/comunicados/mis-noticias"), 1500);
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data) {
-                setError("Error al guardar. Verifique los campos.");
+                console.log("Detalle error servidor:", err.response.data);
+                setError("Error al guardar: " + JSON.stringify(err.response.data));
             } else {
                 setError("Error al guardar los cambios.");
             }
