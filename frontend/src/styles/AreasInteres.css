@@ -285,11 +285,6 @@
         min-height: 120px;
     }
 
-    /* Si prefieres mantener el icono al lado (Opción B), comenta el bloque de arriba y usa este: */ */
-    /* .interest-card-area {
-        padding: 0.8rem;
-    } */
-
     .interest-icon-box-area {
         margin-bottom: 0.8rem; /* Separación si usamos Opción A */
     }
