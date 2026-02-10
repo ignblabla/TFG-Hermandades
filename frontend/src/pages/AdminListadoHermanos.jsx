@@ -7,7 +7,6 @@ import { ChevronLeft, ChevronRight, UserCheck, Users, UserX } from "lucide-react
 function AdminListadoHermanos() {
     const [isOpen, setIsOpen] = useState(false);
     
-    const [error, setError] = useState("");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [nextUrl, setNextUrl] = useState(null);
