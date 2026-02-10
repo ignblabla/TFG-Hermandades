@@ -39,7 +39,7 @@ function AdminListadoHermanos() {
             try {
                 let userData = user;
                 if (!userData) {
-                    const resUser = await api.get("api/me/");
+                    const resUser = await api.get("/api/me/");
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
                 }
@@ -50,7 +50,7 @@ function AdminListadoHermanos() {
                     return;
                 }
 
-                const resListado = await api.get(`api/hermanos/listado/?page=${page}`);
+                const resListado = await api.get(`/api/hermanos/listado/?page=${page}`);
                 
                 if (isMounted) {
                     setHermanos(resListado.data.results);
