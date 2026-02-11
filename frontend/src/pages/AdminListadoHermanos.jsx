@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'
 import '../styles/AdminListadoHermanos.css';
-import { ChevronLeft, ChevronRight, UserCheck, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, UserCheck, Users, UserX } from "lucide-react";
 
 function AdminListadoHermanos() {
+    console.log("MONTANDO COMPONENTE CENSO");
     const [isOpen, setIsOpen] = useState(false);
     
-    const [error, setError] = useState("");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [nextUrl, setNextUrl] = useState(null);
@@ -39,7 +39,7 @@ function AdminListadoHermanos() {
             try {
                 let userData = user;
                 if (!userData) {
-                    const resUser = await api.get("api/me/");
+                    const resUser = await api.get("/api/me/");
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
                 }
@@ -50,7 +50,7 @@ function AdminListadoHermanos() {
                     return;
                 }
 
-                const resListado = await api.get(`api/hermanos/listado/?page=${page}`);
+                const resListado = await api.get(`/api/hermanos/listado/?page=${page}`);
                 
                 if (isMounted) {
                     setHermanos(resListado.data.results);
