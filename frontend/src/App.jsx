@@ -31,6 +31,7 @@ import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
 import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
+import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -71,6 +72,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AreaInteres />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interes-hermanos"
+          element={
+            <ProtectedRoute>
+              <HermanoAreaInteres />
             </ProtectedRoute>
           }
         />
