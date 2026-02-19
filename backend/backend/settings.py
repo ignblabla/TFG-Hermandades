@@ -176,3 +176,5 @@ if 'pytest' in sys.modules or 'test' in sys.argv:
             'NAME': ':memory:',
         }
     }
+
+TELEGRAM_BOT_TOKEN = '8377438785:AAFVg2RX1arKE-Uf3rWDzu6-w-n4bpIMyD0'
