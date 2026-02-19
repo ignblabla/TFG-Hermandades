@@ -10,19 +10,20 @@ function HermanoAreaInteres() {
     const [isOpen, setIsOpen] = useState(false); 
     const [user, setUser] = useState({});
     const [selectedAreas, setSelectedAreas] = useState([]);
+    const [areasDB, setAreasDB] = useState([]);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const areas = [
-        { id: 'COSTALEROS', icon: <Users />, title: 'Costaleros', desc: 'Cuadrillas de hermanos costaleros de Nuestro Padre Jesús en Su Soberano Poder ante Caifás y Nuestra Señora de la Salud Coronada.' },
-        { id: 'CARIDAD', icon: <Heart />, title: 'Diputación de Caridad', desc: 'Acción social y ayuda al prójimo' },
-        { id: 'JUVENTUD', icon: <Sun />, title: 'Juventud', desc: 'Grupo joven y actividades formativas' },
-        { id: 'PRIOSTIA', icon: <Hammer />, title: 'Priostía', desc: 'Mantenimiento y montaje de altares' },
-        { id: 'CULTOS_FORMACION', icon: <BookOpen />, title: 'Cultos y Formación', desc: 'Liturgia, charlas y crecimiento espiritual' },
-        { id: 'PATRIMONIO', icon: <Landmark />, title: 'Patrimonio', desc: 'Conservación artística de la Hermandad' },
-        { id: 'ACOLITOS', icon: <Church />, title: 'Acólitos', desc: 'Cuerpo de acólitos y monaguillos' },
-        { id: 'DIPUTACION_MAYOR_GOBIERNO', icon: <Crown />, title: 'Diputación Mayor de Gobierno', desc: 'Organización de la Cofradía' },
-    ]
+    const areaInfoEstatica = {
+        'COSTALEROS': { icon: <Users />, title: 'Costaleros', desc: 'Cuadrillas de hermanos costaleros de Nuestro Padre Jesús en Su Soberano Poder ante Caifás y Nuestra Señora de la Salud Coronada.' },
+        'CARIDAD': { icon: <Heart />, title: 'Diputación de Caridad', desc: 'Acción social y ayuda al prójimo' },
+        'JUVENTUD': { icon: <Sun />, title: 'Juventud', desc: 'Grupo joven y actividades formativas' },
+        'PRIOSTIA': { icon: <Hammer />, title: 'Priostía', desc: 'Mantenimiento y montaje de altares' },
+        'CULTOS_FORMACION': { icon: <BookOpen />, title: 'Cultos y Formación', desc: 'Liturgia, charlas y crecimiento espiritual' },
+        'PATRIMONIO': { icon: <Landmark />, title: 'Patrimonio', desc: 'Conservación artística de la Hermandad' },
+        'ACOLITOS': { icon: <Church />, title: 'Acólitos', desc: 'Cuerpo de acólitos y monaguillos' },
+        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown />, title: 'Diputación Mayor de Gobierno', desc: 'Organización de la Cofradía' },
+    };
 
     useEffect(() => {
         const usuarioGuardado = localStorage.getItem("user_data");
@@ -48,6 +49,14 @@ function HermanoAreaInteres() {
             .catch(error => {
                 console.error("Error cargando perfil:", error);
             });
+
+        api.get("/api/areas-interes/")
+            .then(response => {
+                setAreasDB(response.data);
+            })
+            .catch(error => {
+                console.error("Error cargando las áreas de interés:", error);
+            });
     }, []);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
@@ -60,12 +69,12 @@ function HermanoAreaInteres() {
         navigate("/");
     };
 
-    const handleCheckboxChange = (areaId) => {
+    const handleCheckboxChange = (areaNombre) => {
         setSelectedAreas(prevAreas => {
-            if (prevAreas.includes(areaId)) {
-                return prevAreas.filter(id => id !== areaId);
+            if (prevAreas.includes(areaNombre)) {
+                return prevAreas.filter(nombre => nombre !== areaNombre);
             } else {
-                return [...prevAreas, areaId];
+                return [...prevAreas, areaNombre];
             }
         });
     };
@@ -187,15 +196,22 @@ function HermanoAreaInteres() {
                 <div className="text-dashboard">Áreas de interés</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="full-grid-layout">
-                        {areas.map(area => (
-                            <AreaCard 
-                                key={area.id}
-                                {...area}
-                                isFeatured={true}
-                                isSelected={selectedAreas.includes(area.id)}
-                                onClick={() => handleCheckboxChange(area.id)}
-                            />
-                        ))}
+                        {areasDB.map(area => {
+                            const visualInfo = areaInfoEstatica[area.nombre_area] || {};
+                            
+                            return (
+                                <AreaCard 
+                                    key={area.id}
+                                    icon={visualInfo.icon}
+                                    title={visualInfo.title || area.nombre_area}
+                                    desc={visualInfo.desc || ''}
+                                    telegramLink={area.telegram_invite_link}
+                                    isFeatured={true}
+                                    isSelected={selectedAreas.includes(area.nombre_area)}
+                                    onClick={() => handleCheckboxChange(area.nombre_area)}
+                                />
+                            );
+                        })}
                     </div>
 
                     <footer className="card-footer-area-interes">

@@ -177,7 +177,7 @@ class HermanoManagementSerializer(UserSerializer):
 class AreaInteresSerializer(serializers.ModelSerializer):
     class Meta:
         model = AreaInteres
-        fields = ['id', 'nombre_area', 'get_nombre_area_display']
+        fields = ['id', 'nombre_area', 'get_nombre_area_display', 'telegram_invite_link']
 
 class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
     class Meta:
