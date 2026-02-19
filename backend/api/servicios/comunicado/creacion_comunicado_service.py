@@ -4,8 +4,6 @@ import requests
 from api.models import AreaInteres, Comunicado, CuerpoPertenencia
 from django.conf import settings
 
-from api.servicios import comunicado
-
 
 class ComunicadoService:
 
