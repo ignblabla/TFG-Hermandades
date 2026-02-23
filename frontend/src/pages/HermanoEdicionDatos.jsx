@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import '../styles/AdminEdicionHermano.css';
-import { Save, User, MapPin, AlertCircle, CheckCircle, Info, Calendar, ShieldAlert } from "lucide-react";
+import { Save, User, MapPin, AlertCircle, CheckCircle, Info, Calendar, ShieldAlert, ListTodo,
+    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark
+ } from "lucide-react";
+import AreaCard from "../components/AreaCard";
+
 
 function EditarMiPerfil() {
     const navigate = useNavigate();
@@ -13,6 +17,7 @@ function EditarMiPerfil() {
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [currentUser, setCurrentUser] = useState(null);
+    const [areasDB, setAreasDB] = useState([]);
     
     // Estados separados: Datos de solo lectura (informativos) y Datos editables
     const [readOnlyData, setReadOnlyData] = useState({});
@@ -24,11 +29,21 @@ function EditarMiPerfil() {
         localidad: '', 
         provincia: '', 
         comunidad_autonoma: '',
-        email: ''
-        // Nota: áreas_interes y datos_bancarios requieren un manejo un poco más complejo 
-        // (selects múltiples y objetos anidados). Se omiten aquí para mantener la simplicidad, 
-        // pero tu backend ya los soporta.
+        email: '',
+        password: '',
+        areas_interes: []
     });
+
+    const areaInfoEstatica = {
+        'COSTALEROS': { icon: <Users />, title: 'Costaleros', desc: 'Cuadrillas de hermanos costaleros de Nuestro Padre Jesús en Su Soberano Poder ante Caifás y Nuestra Señora de la Salud Coronada.' },
+        'CARIDAD': { icon: <Heart />, title: 'Diputación de Caridad', desc: 'Acción social y ayuda al prójimo' },
+        'JUVENTUD': { icon: <Sun />, title: 'Juventud', desc: 'Grupo joven y actividades formativas' },
+        'PRIOSTIA': { icon: <Hammer />, title: 'Priostía', desc: 'Mantenimiento y montaje de altares' },
+        'CULTOS_FORMACION': { icon: <BookOpen />, title: 'Cultos y Formación', desc: 'Liturgia, charlas y crecimiento espiritual' },
+        'PATRIMONIO': { icon: <Landmark />, title: 'Patrimonio', desc: 'Conservación artística de la Hermandad' },
+        'ACOLITOS': { icon: <Church />, title: 'Acólitos', desc: 'Cuerpo de acólitos y monaguillos' },
+        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown />, title: 'Diputación Mayor de Gobierno', desc: 'Organización de la Cofradía' },
+    };
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -42,10 +57,17 @@ function EditarMiPerfil() {
         let isMounted = true;
         const fetchMyData = async () => {
             try {
-                const response = await api.get("api/me/");
+                const [resMe, resAreas] = await Promise.all([
+                    api.get("api/me/"),
+                    api.get("/api/areas-interes/")
+                ]);
                 
                 if (isMounted) {
-                    const data = response.data;
+                    const data = resMe.data;
+                    const dataAreas = resAreas.data;
+
+                    setCurrentUser(data);
+                    setAreasDB(dataAreas);
 
                     setReadOnlyData({
                         nombre: data.nombre,
@@ -73,7 +95,8 @@ function EditarMiPerfil() {
                         localidad: data.localidad || '',
                         provincia: data.provincia || '',
                         comunidad_autonoma: data.comunidad_autonoma || '',
-                        email: data.email
+                        email: data.email,
+                        areas_interes: data.areas_interes || []
                     });
                 }
             } catch (err) {
@@ -105,21 +128,36 @@ function EditarMiPerfil() {
         }));
     };
 
+    const handleAreaToggle = (areaNombre) => {
+        setFormData(prev => {
+            const currentAreas = prev.areas_interes;
+            if (currentAreas.includes(areaNombre)) {
+                return { ...prev, areas_interes: currentAreas.filter(a => a !== areaNombre) };
+            } else {
+                return { ...prev, areas_interes: [...currentAreas, areaNombre] };
+            }
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
         setError("");
         setSuccessMsg("");
 
+        const payload = { ...formData };
+        if (!payload.password || payload.password.trim() === "") {
+            delete payload.password;
+        }
+
         try {
-            // Usamos PATCH hacia api/me/ para que actúe el UserUpdateSerializer
-            await api.patch("api/me/", formData);
-            setSuccessMsg("Tus datos se han actualizado correctamente.");
-            window.scrollTo(0, 0);
+            await api.patch("api/me/", payload);
+            setSuccessMsg("Perfil y preferencias actualizadas correctamente.");
+            setFormData(prev => ({ ...prev, password: '' }));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data) {
-                // Manejo de errores de validación de Django/DRF
                 const errorData = err.response.data;
                 const errorMessages = Object.entries(errorData)
                     .map(([key, msg]) => `${key.toUpperCase()}: ${msg}`)
@@ -360,6 +398,39 @@ function EditarMiPerfil() {
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><ListTodo size={18}/> Mis Áreas de interés</h3>
+                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
+                                    Selecciona los grupos y boletines de los que quieres recibir comunicaciones.
+                                </p>
+                                
+                                {/* Contenedor flex/grid para las tarjetas basado en tu CSS HermanoAreaInteres */}
+                                <div className="full-grid-layout">
+                                    {areasDB.map(area => {
+                                        const visualInfo = areaInfoEstatica[area.nombre_area] || {};
+                                        // Verificamos si esta área está dentro del array del formData
+                                        const isSelected = formData.areas_interes.includes(area.nombre_area);
+                                        
+                                        return (
+                                            <AreaCard 
+                                                key={area.id}
+                                                icon={visualInfo.icon}
+                                                title={visualInfo.title || area.nombre_area}
+                                                desc={visualInfo.desc || ''}
+                                                telegramLink={area.telegram_invite_link}
+                                                isFeatured={true}
+                                                isSelected={isSelected}
+                                                onClick={() => handleAreaToggle(area.nombre_area)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><ListTodo size={18}/> Áreas de interés</h3>
+                            </div> */}
 
                             <div className="form-actions-edicion">
                                 <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
