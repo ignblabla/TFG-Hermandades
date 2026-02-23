@@ -24,6 +24,9 @@ class AreaInteres(models.Model):
 
     nombre_area = models.CharField(max_length=50, choices=NombreArea.choices, unique=True, verbose_name="Nombre del área")
 
+    telegram_channel_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="ID Canal Telegram", help_text="Ej: -100123456789. Deja vacío si esta área no tiene canal propio.")
+    telegram_invite_link = models.URLField(max_length=255, blank=True, null=True, verbose_name="Enlace de invitación de Telegram", help_text="Ej: https://t.me/+AbCdEfGhIjK. Enlace para que el hermano se una al canal desde la app.")
+
     def __str__(self):
         return self.get_nombre_area_display()
     
@@ -190,6 +193,8 @@ class Hermano(AbstractUser):
     fecha_baja_corporacion = models.DateField(null=True, blank=True, verbose_name="Fecha de baja",help_text="Fecha en la que se hizo efectiva la baja (si procede).")
 
     esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
+
+    telegram_chat_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="Chat ID de Telegram", help_text="ID único del usuario en Telegram para envío de notificaciones directas.")
 
     areas_interes = models.ManyToManyField(
         AreaInteres,

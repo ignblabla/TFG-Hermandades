@@ -1,8 +1,11 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
+from django.core.signing import Signer
+import base64
 
 User = get_user_model()
 
@@ -59,6 +62,9 @@ class UserSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    telegram_chat_id = serializers.CharField(read_only=True)
+    enlace_vinculacion_telegram = serializers.SerializerMethodField()
+
     antiguedad_anios = serializers.IntegerField(read_only=True)
     esta_al_corriente = serializers.BooleanField(read_only=True)
 
@@ -78,7 +84,8 @@ class UserSerializer(serializers.ModelSerializer):
             "datos_bancarios", "historial_cuotas", "esta_al_corriente",
             # Campos de gestión:
             "numero_registro", "estado_hermano", "esAdmin",
-            "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios"
+            "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios",
+            "telegram_chat_id", "enlace_vinculacion_telegram"
         ]
 
         read_only_fields = [
@@ -126,6 +133,22 @@ class UserSerializer(serializers.ModelSerializer):
         if value:
             return value.replace(" ", "").upper()
         return value
+    
+
+    def get_enlace_vinculacion_telegram(self, obj):
+        """
+        Genera el enlace Deep Link firmado criptográficamente y 
+        codificado en base64 para cumplir con las reglas de Telegram.
+        """
+        signer = Signer()
+        token_seguro = signer.sign(str(obj.id)) 
+        
+        token_base64 = base64.urlsafe_b64encode(token_seguro.encode()).decode()
+        token_limpio = token_base64.rstrip('=') 
+        
+        bot_username = getattr(settings, 'TELEGRAM_BOT_USERNAME', 'TuBot_bot')
+        
+        return f"https://t.me/{bot_username}?start={token_limpio}"
     
     
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -177,7 +200,7 @@ class HermanoManagementSerializer(UserSerializer):
 class AreaInteresSerializer(serializers.ModelSerializer):
     class Meta:
         model = AreaInteres
-        fields = ['id', 'nombre_area', 'get_nombre_area_display']
+        fields = ['id', 'nombre_area', 'get_nombre_area_display', 'telegram_invite_link']
 
 class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
     class Meta:

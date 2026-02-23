@@ -1,0 +1,161 @@
+:root {
+    --burgundy-primary: #800020; 
+    --burgundy-light: #f9ebeb;   
+}
+
+/* 2. ESTILO DE LA TARJETA (AreaCard) */
+.interest-card-area-interes {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px;
+    
+    padding: 20px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.interest-card-area-interes:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border-color: #dcbaba;
+}
+
+/* 3. ESTADO ACTIVO (SELECCIONADO) */
+.interest-card-area-interes.active {
+    border-color: var(--burgundy-primary); 
+    background-color: #fffbfc;
+    box-shadow: 0 0 0 1px var(--burgundy-primary);
+}
+
+/* 4. EL ICONO (MODIFICADO SEGÚN TU PETICIÓN) */
+.interest-icon-box-area-interes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    background-color: var(--burgundy-light);
+    color: var(--burgundy-primary);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.interest-card-area-interes.active .interest-icon-box-area-interes {
+    background-color: var(--burgundy-primary);
+    color: white;
+}
+
+/* 5. EL TEXTO */
+.interest-info-area-interes {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.interest-info-area-interes h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.2;
+}
+
+.interest-info-area-interes p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #777;
+    line-height: 1.3;
+}
+
+/* 6. EL CHECKBOX */
+.checkbox-wrapper-area-interes {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.checkbox-wrapper-area-interes input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark-area-interes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 22px;
+    width: 22px;
+    background-color: #eee;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    transition: all 0.2s;
+}
+
+.interest-card-area-interes.active .checkmark-area-interes {
+    background-color: var(--burgundy-primary);
+    border-color: var(--burgundy-primary);
+}
+
+.checkmark-area-interes:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.interest-card-area-interes.active .checkmark-area-interes:after {
+    display: block;
+}
+
+.checkmark-area-interes:after {
+    left: 7px;
+    top: 3px;
+    width: 6px;
+    height: 11px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.interest-actions-area-interes {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espacio entre el botón de telegram y el checkbox */
+    flex-shrink: 0;
+}
+
+/* 8. ESTILO DEL ENLACE DE TELEGRAM */
+.telegram-link {
+    text-decoration: none;
+    color: var(--burgundy-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background-color: var(--burgundy-light);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.telegram-link:hover {
+    background-color: var(--burgundy-primary);
+    color: white;
+    border-color: var(--burgundy-primary);
+}

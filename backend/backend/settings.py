@@ -176,3 +176,7 @@ if 'pytest' in sys.modules or 'test' in sys.argv:
             'NAME': ':memory:',
         }
     }
+
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+
+TELEGRAM_BOT_USERNAME = 'tfg_hermandad_bot'

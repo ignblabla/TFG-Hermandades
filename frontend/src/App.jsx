@@ -6,7 +6,6 @@ import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import EditMe from "./pages/EditMe"
-import AreaInteres from "./pages/AreasInteres"
 import CrearActo from "./pages/CrearActo"
 import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
@@ -31,6 +30,7 @@ import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
 import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
+import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -67,10 +67,10 @@ function App() {
           }
         />
         <Route
-          path="/areas-interes"
+          path="/interes-hermanos"
           element={
             <ProtectedRoute>
-              <AreaInteres />
+              <HermanoAreaInteres />
             </ProtectedRoute>
           }
         />

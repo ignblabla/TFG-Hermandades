@@ -1,6 +1,8 @@
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Max, F, Count, Q
+
+from api.servicios.papeleta_telegram import TelegramWebhookService
 from ..models import Acto, PapeletaSitio, Puesto
 from django.core.exceptions import ValidationError
 
@@ -99,6 +101,15 @@ class RepartoService:
                                 del mapa_puestos[puesto_id]
 
                             asignado = True
+
+                            if solicitud.hermano.telegram_chat_id:
+                                TelegramWebhookService.notificar_papeleta_asignada(
+                                    chat_id=solicitud.hermano.telegram_chat_id,
+                                    nombre_hermano=solicitud.hermano.nombre,
+                                    nombre_acto=acto.nombre,
+                                    estado="ASIGNADA",
+                                    nombre_puesto=puesto_obj.nombre
+                                )
                             break 
                 
                 if not asignado:
@@ -109,6 +120,14 @@ class RepartoService:
                         "nombre": f"{solicitud.hermano.nombre} {solicitud.hermano.primer_apellido}",
                         "num_registro": solicitud.hermano.numero_registro
                     })
+
+                    if solicitud.hermano.telegram_chat_id:
+                        TelegramWebhookService.notificar_papeleta_asignada(
+                            chat_id=solicitud.hermano.telegram_chat_id,
+                            nombre_hermano=solicitud.hermano.nombre,
+                            nombre_acto=acto.nombre,
+                            estado="NO_ASIGNADA"
+                        )
 
             acto.fecha_ejecucion_reparto = now
             acto.save()

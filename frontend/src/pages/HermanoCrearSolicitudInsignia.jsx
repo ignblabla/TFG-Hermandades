@@ -129,12 +129,12 @@ function HermanoCrearSolicitudInsignia() {
         setError("");
         setSuccess(false);
 
-        // Construir Payload según espera el Serializer
+        // Tu payload ya era estructuralmente perfecto para tu backend
         const payload = {
-            acto_id: selectedActoId,
+            acto_id: Number(selectedActoId),
             preferencias: preferencias.map((p, index) => ({
-                puesto_id: p.id,
-                orden_prioridad: index + 1 // El orden es su posición en el array + 1
+                puesto_id: Number(p.id),
+                orden_prioridad: index + 1
             }))
         };
 
@@ -143,17 +143,42 @@ function HermanoCrearSolicitudInsignia() {
             setSuccess(true);
             setPreferencias([]);
             setSelectedActoId("");
-            setTimeout(() => navigate("/home"), 3000); // Redirigir al perfil/home
+            setTimeout(() => navigate("/home"), 3000); 
         } catch (err) {
+            // AQUÍ ESTÁ LA MAGIA PARA VER QUÉ REGLA DE NEGOCIO FALLA
             if (err.response && err.response.data) {
-                // Manejo de errores anidados del serializer
                 const data = err.response.data;
-                if (data.detail) setError(data.detail);
-                else if (data.preferencias) setError(JSON.stringify(data.preferencias));
-                else if (data.non_field_errors) setError(data.non_field_errors[0]);
-                else setError("Error al procesar la solicitud. Revise los requisitos.");
+                console.error("DRF rechazó la petición. Motivo detallado:", data);
+
+                // 1. Errores genéricos del backend (raise ValidationError("..."))
+                if (data[0] && typeof data[0] === 'string') {
+                    setError(`⚠️ ${data[0]}`);
+                }
+                // 2. Errores que vienen en el campo "non_field_errors"
+                else if (data.non_field_errors) {
+                    setError(`⚠️ ${data.non_field_errors[0]}`);
+                }
+                // 3. Errores mapeados a campos específicos (ej. "preferencias" o "acto_id")
+                else {
+                    const firstKey = Object.keys(data)[0];
+                    const firstMsg = data[firstKey];
+                    
+                    if (Array.isArray(firstMsg)) {
+                        // Si el mensaje es un string simple dentro del array
+                        if (typeof firstMsg[0] === 'string') {
+                            setError(`⚠️ Error: ${firstMsg[0]}`);
+                        } else {
+                            // Si es un error anidado complejo (ej. dentro de preferencias)
+                            setError(`⚠️ Revisa la lista de preferencias. Algunos datos no son válidos.`);
+                        }
+                    } else if (typeof firstMsg === 'string') {
+                        setError(`⚠️ ${firstMsg}`);
+                    } else {
+                        setError("⚠️ Error de validación en los datos enviados.");
+                    }
+                }
             } else {
-                setError("Error de conexión.");
+                setError("Error de conexión con el servidor.");
             }
         } finally {
             setSubmitting(false);
