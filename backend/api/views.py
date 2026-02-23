@@ -5,6 +5,7 @@ from rest_framework import generics, status
 
 from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
 from api.servicios.papeleta_telegram import TelegramWebhookService
+from api.servicios.hermano.edicion_datos_hermano_service import update_mi_perfil_service
 
 from .serializers import ActoCreateSerializer, AreaInteresSerializer, ComunicadoFormSerializer, ComunicadoListSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -39,11 +40,19 @@ class UsuarioLogueadoView(APIView):
     
     def patch(self, request):
         user = request.user
-        serializer = UserUpdateSerializer(user, data = request.data, partial = True)
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            try:
+                usuario_actualizado = update_mi_perfil_service(
+                    usuario=user,
+                    data_validada=serializer.validated_data
+                )
+                response_serializer = UserUpdateSerializer(usuario_actualizado)
+                return Response(response_serializer.data, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
