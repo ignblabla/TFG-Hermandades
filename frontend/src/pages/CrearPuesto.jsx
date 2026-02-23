@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/CrearActo.css"; // Reutilizamos estilos para consistencia
+import "../styles/CrearActo.css";
 import logoEscudo from '../assets/escudo.png';
 import { ArrowLeft } from "lucide-react";
 
@@ -10,7 +10,6 @@ function CrearPuesto() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Estados para los selectores (Foreign Keys)
     const [listaActos, setListaActos] = useState([]);
     const [listaTiposPuesto, setListaTiposPuesto] = useState([]);
 
@@ -51,12 +50,8 @@ function CrearPuesto() {
 
         const fetchData = async () => {
             try {
-                const userRes = await fetch("http://127.0.0.1:8000/api/me/", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                
-                if (!userRes.ok) throw new Error("Auth Failed");
-                const userData = await userRes.json();
+                const userRes = await api.get("/api/me/");
+                const userData = userRes.data;
                 
                 if (!userData.esAdmin) {
                     alert("No tienes permisos de administrador para gestionar puestos.");
@@ -65,26 +60,19 @@ function CrearPuesto() {
                 }
                 setUser(userData);
 
-                const actosRes = await fetch("http://127.0.0.1:8000/api/actos/", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (actosRes.ok) {
-                    const actosData = await actosRes.json();
-                    const actosFiltrados = actosData.filter(acto => acto.requiere_papeleta === true);
-                    setListaActos(actosFiltrados);
-                }
+                const [actosRes, tiposRes] = await Promise.all([
+                    api.get("/api/actos/"),
+                    api.get("/api/tipos-puesto/")
+                ]);
 
-                const tiposRes = await fetch("http://127.0.0.1:8000/api/tipos-puesto/", {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (tiposRes.ok) {
-                    const tiposData = await tiposRes.json();
-                    setListaTiposPuesto(tiposData);
-                }
+                const actosFiltrados = actosRes.data.filter(acto => acto.requiere_papeleta === true);
+                setListaActos(actosFiltrados);
+                setListaTiposPuesto(tiposRes.data);
 
             } catch (err) {
                 console.error("Error cargando datos:", err);
-                localStorage.removeItem("access");
+
+                localStorage.removeItem("access"); 
                 navigate("/login");
             } finally {
                 setLoading(false);
@@ -110,31 +98,20 @@ function CrearPuesto() {
         setError("");
         setSuccess(false);
 
-        const token = localStorage.getItem("access");
-
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/puestos/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
+            const response = await api.post("/api/puestos/", formData);
 
-            const data = await response.json();
+            setSuccess(true);
+            setTimeout(() => navigate("/home"), 2000); 
 
-            if (response.ok) {
-                setSuccess(true);
-                setTimeout(() => navigate("/home"), 2000); 
-            } else {
-                // --- AQUÍ ESTÁ LA LÓGICA PERSONALIZADA ---
-                
-                // CASO 1: Error de Negocio (El acto no lleva papeleta)
+        } catch (err) {
+            console.error(err);
+
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+
                 if (data.acto) {
-                    // Django devuelve array: ["Mensaje..."], extraemos el texto
                     const msg = Array.isArray(data.acto) ? data.acto[0] : data.acto;
-                    // Lo guardamos tal cual, o le añadimos un prefijo si quieres
                     setError(`⚠️ ${msg}`); 
                 } 
                 else if (data.hora_citacion) {
@@ -144,22 +121,18 @@ function CrearPuesto() {
                 else if (data.detail) {
                     setError(data.detail);
                 }
-                // CASO 3: Errores en otros campos (ej. validación nombre)
                 else if (data.non_field_errors) {
                     setError(data.non_field_errors[0]);
                 }
-                // CASO 4: Fallback genérico
                 else {
-                    // Buscamos el primer error que encontremos en el objeto
                     const firstKey = Object.keys(data)[0];
                     const firstMsg = data[firstKey];
                     const msgTexto = Array.isArray(firstMsg) ? firstMsg[0] : firstMsg;
                     setError(`Error en ${firstKey}: ${msgTexto}`);
                 }
+            } else {
+                setError("Error de conexión con el servidor. Inténtelo más tarde.");
             }
-        } catch (err) {
-            console.error(err);
-            setError("Error de conexión con el servidor. Inténtelo más tarde.");
         } finally {
             setSubmitting(false);
         }
