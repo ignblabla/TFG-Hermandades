@@ -12,7 +12,7 @@ def update_mi_perfil_service(usuario, data_validada):
     """
     password = data_validada.pop('password', None)
     areas_data = data_validada.pop('areas_interes', None)
-    # datos_bancarios_data = data_validada.pop('datos_bancarios', None)
+    datos_bancarios_data = data_validada.pop('datos_bancarios', None)
 
     for attr, value in data_validada.items():
         setattr(usuario, attr, value)
@@ -25,11 +25,10 @@ def update_mi_perfil_service(usuario, data_validada):
     if areas_data is not None:
         usuario.areas_interes.set(areas_data)
 
-    # 5. Tratamiento para la relación One-to-One (Datos Bancarios)
-    # if datos_bancarios_data is not None:
-    #     DatosBancarios.objects.update_or_create(
-    #         hermano=usuario,
-    #         defaults=datos_bancarios_data
-    #     )
+    if datos_bancarios_data is not None:
+        DatosBancarios.objects.update_or_create(
+            hermano=usuario,
+            defaults=datos_bancarios_data
+        )
 
     return usuario

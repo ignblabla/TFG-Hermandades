@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import '../styles/AdminEdicionHermano.css';
 import { Save, User, MapPin, AlertCircle, CheckCircle, Info, Calendar, ShieldAlert, ListTodo,
-    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark
+    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, CreditCard
 } from "lucide-react";
 import AreaCard from "../components/AreaCard";
 
@@ -30,7 +30,13 @@ function EditarMiPerfil() {
         comunidad_autonoma: '',
         email: '',
         password: '',
-        areas_interes: []
+        areas_interes: [],
+        datos_bancarios: {
+            iban: '',
+            es_titular: true,
+            titular_cuenta: '',
+            periodicidad: 'ANUAL'
+        }
     });
 
     const areaInfoEstatica = {
@@ -69,24 +75,24 @@ function EditarMiPerfil() {
                     setAreasDB(dataAreas);
 
                     setReadOnlyData({
-                        nombre: data.nombre,
-                        primer_apellido: data.primer_apellido,
+                        nombre: data.nombre || '',
+                        primer_apellido: data.primer_apellido || '',
                         segundo_apellido: data.segundo_apellido || '',
-                        dni: data.dni,
-                        fecha_nacimiento: data.fecha_nacimiento,
-                        genero: data.genero,
+                        dni: data.dni || '',
+                        fecha_nacimiento: data.fecha_nacimiento || '',
+                        genero: data.genero || '',
                         fecha_bautismo: data.fecha_bautismo,
                         lugar_bautismo: data.lugar_bautismo,
                         parroquia_bautismo: data.parroquia_bautismo,
                         numero_registro: data.numero_registro || 'Pendiente',
-                        estado_hermano: data.estado_hermano,
+                        estado_hermano: data.estado_hermano || '',
                         fecha_ingreso: data.fecha_ingreso_corporacion,
                         fecha_baja: data.fecha_baja_corporacion
                     });
 
                     // Campos permitidos
                     setFormData({
-                        password: data.password,
+                        password: data.password || '',
                         telefono: data.telefono || '',
                         estado_civil: data.estado_civil || 'SOLTERO',
                         direccion: data.direccion || '',
@@ -95,7 +101,13 @@ function EditarMiPerfil() {
                         provincia: data.provincia || '',
                         comunidad_autonoma: data.comunidad_autonoma || '',
                         email: data.email,
-                        areas_interes: data.areas_interes || []
+                        areas_interes: data.areas_interes || [],
+                        datos_bancarios: data.datos_bancarios || {
+                            iban: '',
+                            es_titular: true,
+                            titular_cuenta: '',
+                            periodicidad: 'ANUAL'
+                        }
                     });
                 }
             } catch (err) {
@@ -127,6 +139,17 @@ function EditarMiPerfil() {
         }));
     };
 
+    const handleBankChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            datos_bancarios: {
+                ...prev.datos_bancarios,
+                [name]: type === 'checkbox' ? checked : value
+            }
+        }));
+    };
+
     const handleAreaToggle = (areaNombre) => {
         setFormData(prev => {
             const currentAreas = prev.areas_interes;
@@ -149,6 +172,10 @@ function EditarMiPerfil() {
             delete payload.password;
         }
 
+        if (payload.datos_bancarios.es_titular) {
+            payload.datos_bancarios.titular_cuenta = '';
+        }
+
         try {
             await api.patch("api/me/", payload);
             setSuccessMsg("Perfil y preferencias actualizadas correctamente.");
@@ -159,7 +186,12 @@ function EditarMiPerfil() {
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
                 const errorMessages = Object.entries(errorData)
-                    .map(([key, msg]) => `${key.toUpperCase()}: ${msg}`)
+                    .map(([key, msg]) => {
+                        if (typeof msg === 'object' && msg !== null) {
+                            return Object.entries(msg).map(([subKey, subMsg]) => `${subKey.toUpperCase()}: ${subMsg}`).join(" | ");
+                        }
+                        return `${key.toUpperCase()}: ${msg}`;
+                    })
                     .join(" | ");
                 setError(errorMessages);
             } else {
@@ -359,6 +391,57 @@ function EditarMiPerfil() {
                             </div>
 
                             <div className="form-section-edicion">
+                                <h3 className="section-title-edicion"><CreditCard size={18}/> Datos Bancarios</h3>
+                                <div className="form-grid-edicion grid-4-edicion">
+                                    <div className="form-group-edicion span-2-edicion">
+                                        <label>IBAN de la cuenta</label>
+                                        <input 
+                                            type="text" 
+                                            name="iban" 
+                                            value={formData.datos_bancarios.iban} 
+                                            onChange={handleBankChange} 
+                                            placeholder="ES00..." 
+                                            required 
+                                        />
+                                    </div>
+                                    <div className="form-group-edicion">
+                                        <label>Periodicidad de cobro</label>
+                                        <select name="periodicidad" value={formData.datos_bancarios.periodicidad} onChange={handleBankChange}>
+                                            <option value="TRIMESTRAL">Trimestral</option>
+                                            <option value="SEMESTRAL">Semestral</option>
+                                            <option value="ANUAL">Anual</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group-edicion checkbox-group-edicion" style={{ justifyContent: 'center' }}>
+                                        <label>
+                                            <input 
+                                                type="checkbox" 
+                                                name="es_titular" 
+                                                checked={formData.datos_bancarios.es_titular} 
+                                                onChange={handleBankChange} 
+                                            />
+                                            <span>Soy titular de la cuenta</span>
+                                        </label>
+                                    </div>
+                                    
+                                    {/* Mostrar solo si NO es titular */}
+                                    {!formData.datos_bancarios.es_titular && (
+                                        <div className="form-group-edicion span-2-edicion">
+                                            <label>Nombre y apellidos del titular de la cuenta</label>
+                                            <input 
+                                                type="text" 
+                                                name="titular_cuenta" 
+                                                value={formData.datos_bancarios.titular_cuenta || ''} 
+                                                onChange={handleBankChange} 
+                                                placeholder="Solo si no es tu cuenta"
+                                                required={!formData.datos_bancarios.es_titular} 
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="form-section-edicion">
                                 <h3 className="section-title-edicion"><Calendar size={18}/> Datos Eclesiásticos</h3>
                                 <div className="form-grid-edicion grid-3-edicion">
                                     <div className="form-group-edicion">
@@ -442,10 +525,6 @@ function EditarMiPerfil() {
                                 </div>
                             </div>
 
-                            {/* <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><ListTodo size={18}/> Áreas de interés</h3>
-                            </div> */}
-
                             <div className="form-actions-edicion">
                                 <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
                                 <button type="submit" className="btn-save-edicion" disabled={saving}>
@@ -457,117 +536,6 @@ function EditarMiPerfil() {
                     </div>
                 </div>
             </section>
-
-            {/* <div style={{ padding: '20px', maxWidth: '1000px', margin: '0 auto' }}>
-            <h2 className="text-dashboard" style={{ marginBottom: '20px' }}>Mi Perfil de Hermano</h2>
-            
-            <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}> */}
-                
-                {/* --- MENSAJES DE ALERTA --- */}
-                {/* {error && (
-                    <div className="alert-banner-edicion error-edicion">
-                        <AlertCircle size={20} />
-                        <span>{error}</span>
-                    </div>
-                )}
-                {successMsg && (
-                    <div className="alert-banner-edicion success-edicion">
-                        <CheckCircle size={20} />
-                        <span>{successMsg}</span>
-                    </div>
-                )} */}
-
-                {/* --- SECCIÓN DE SOLO LECTURA (Informativa) --- */}
-                {/* <div className="form-section-edicion" style={{ backgroundColor: '#f8f9fa', borderLeft: '4px solid #0056b3' }}>
-                    <h3 className="section-title-edicion"><Info size={18}/> Datos Identificativos (Solo Lectura)</h3>
-                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
-                        Para modificar tu nombre, DNI o correo electrónico, contacta con Secretaría.
-                    </p>
-                    <div className="form-grid-edicion grid-4-edicion">
-                        <div className="form-group-edicion">
-                            <label>Nombre Completo</label>
-                            <input type="text" value={readOnlyData.nombreCompleto} disabled style={{ backgroundColor: '#e9ecef' }} />
-                        </div>
-                        <div className="form-group-edicion">
-                            <label>DNI</label>
-                            <input type="text" value={readOnlyData.dni} disabled style={{ backgroundColor: '#e9ecef' }} />
-                        </div>
-                        <div className="form-group-edicion">
-                            <label>Nº de Registro</label>
-                            <input type="text" value={readOnlyData.numero_registro} disabled style={{ backgroundColor: '#e9ecef' }} />
-                        </div>
-                        <div className="form-group-edicion">
-                            <label>Correo Electrónico</label>
-                            <input type="email" value={readOnlyData.email} disabled style={{ backgroundColor: '#e9ecef' }} />
-                        </div>
-                    </div>
-                </div> */}
-
-                {/* --- FORMULARIO EDITABLE --- */}
-                {/* <form onSubmit={handleSubmit}> */}
-                    
-                    {/* Datos de Contacto y Dirección */}
-                    {/* <div className="form-section-edicion">
-                        <h3 className="section-title-edicion"><MapPin size={18}/> Datos de Contacto y Dirección</h3>
-                        <div className="form-grid-edicion grid-6-mixed-edicion">
-                            <div className="form-group-edicion span-3-edicion">
-                                <label>Dirección Postal</label>
-                                <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} required />
-                            </div>
-                            <div className="form-group-edicion span-3-edicion">
-                                <label>Localidad</label>
-                                <input type="text" name="localidad" value={formData.localidad} onChange={handleChange} required />
-                            </div>
-
-                            <div className="form-group-edicion span-2-edicion">
-                                <label>C. Postal</label>
-                                <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} required />
-                            </div>
-                            <div className="form-group-edicion span-2-edicion">
-                                <label>Provincia</label>
-                                <input type="text" name="provincia" value={formData.provincia} onChange={handleChange} required />
-                            </div>
-                            <div className="form-group-edicion span-2-edicion">
-                                <label>Comunidad Autónoma</label>
-                                <input type="text" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} required />
-                            </div>
-                        </div>
-                    </div> */}
-
-                    {/* Otros Datos Personales */}
-                    {/* <div className="form-section-edicion">
-                        <h3 className="section-title-edicion"><User size={18}/> Otros Datos</h3>
-                        <div className="form-grid-edicion grid-4-edicion">
-                            <div className="form-group-edicion">
-                                <label>Teléfono (9 dígitos)</label>
-                                <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} required />
-                            </div>
-                            <div className="form-group-edicion">
-                                <label>Estado Civil</label>
-                                <select name="estado_civil" value={formData.estado_civil} onChange={handleChange}>
-                                    <option value="SOLTERO">Soltero/a</option>
-                                    <option value="CASADO">Casado/a</option>
-                                    <option value="SEPARADO">Separado/a</option>
-                                    <option value="VIUDO">Viudo/a</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div> */}
-
-                    {/* Acciones */}
-                    {/* <div className="form-actions-edicion">
-                        <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/dashboard")}>
-                            Volver
-                        </button>
-                        <button type="submit" className="btn-save-edicion" disabled={saving}>
-                            <Save size={18} />
-                            {saving ? "Guardando..." : "Actualizar Mis Datos"}
-                        </button>
-                    </div> */}
-                {/* </form> */}
-
-            {/* </div> */}
-        {/* </div> */}
 
         </div>
     );
