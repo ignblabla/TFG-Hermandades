@@ -53,3 +53,51 @@ class TelegramWebhookService:
             "text": f"✅ ¡Hola {nombre_hermano}! Tu cuenta de la Hermandad ha sido vinculada correctamente a Telegram. A partir de ahora recibirás aquí los comunicados."
         }
         requests.post(url, json=payload, timeout=5)
+
+
+
+    @staticmethod
+    def notificar_papeleta_asignada(chat_id, nombre_hermano, nombre_acto, estado, nombre_puesto=None):
+        """
+        Envía un mensaje al hermano informándole del resultado del reparto.
+        """
+        token = getattr(settings, 'TELEGRAM_BOT_TOKEN', None)
+        # Asegúrate de configurar FRONTEND_URL en tu settings.py (o usa la de producción directamente)
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mi-web-frontend.onrender.com') 
+        
+        if not token or not chat_id:
+            return
+            
+        url_papeletas = f"{frontend_url}/mis-papeletas-de-sitio"
+        
+        if estado == "ASIGNADA":
+            mensaje = (
+                f"🕊️ <b>¡Notificación de Reparto!</b>\n\n"
+                f"Estimado/a {nombre_hermano},\n\n"
+                f"El algoritmo de reparto para <b>{nombre_acto}</b> ha finalizado.\n"
+                f"✅ Se le ha asignado el puesto: <b>{nombre_puesto}</b>.\n\n"
+                f"Puede consultar y descargar su papeleta de sitio desde su perfil:\n"
+                f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+            )
+        else:
+            mensaje = (
+                f"🕊️ <b>¡Notificación de Reparto!</b>\n\n"
+                f"Estimado/a {nombre_hermano},\n\n"
+                f"El algoritmo de reparto para <b>{nombre_acto}</b> ha finalizado.\n"
+                f"❌ Lamentablemente, no ha sido posible asignarle ninguno de los puestos solicitados por criterio de antigüedad o disponibilidad.\n\n"
+                f"Puede consultar el estado de su solicitud desde su perfil:\n"
+                f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+            )
+            
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": mensaje,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": True
+        }
+        
+        try:
+            requests.post(url, json=payload, timeout=5)
+        except Exception as e:
+            print(f"Error enviando notificación de papeleta a {chat_id}: {e}")
