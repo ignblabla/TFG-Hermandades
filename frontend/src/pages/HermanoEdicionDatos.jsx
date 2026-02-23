@@ -4,7 +4,7 @@ import api from '../api';
 import '../styles/AdminEdicionHermano.css';
 import { Save, User, MapPin, AlertCircle, CheckCircle, Info, Calendar, ShieldAlert, ListTodo,
     Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark
- } from "lucide-react";
+} from "lucide-react";
 import AreaCard from "../components/AreaCard";
 
 
@@ -19,7 +19,6 @@ function EditarMiPerfil() {
     const [currentUser, setCurrentUser] = useState(null);
     const [areasDB, setAreasDB] = useState([]);
     
-    // Estados separados: Datos de solo lectura (informativos) y Datos editables
     const [readOnlyData, setReadOnlyData] = useState({});
     const [formData, setFormData] = useState({
         telefono: '', 
@@ -35,14 +34,14 @@ function EditarMiPerfil() {
     });
 
     const areaInfoEstatica = {
-        'COSTALEROS': { icon: <Users />, title: 'Costaleros', desc: 'Cuadrillas de hermanos costaleros de Nuestro Padre Jesús en Su Soberano Poder ante Caifás y Nuestra Señora de la Salud Coronada.' },
-        'CARIDAD': { icon: <Heart />, title: 'Diputación de Caridad', desc: 'Acción social y ayuda al prójimo' },
-        'JUVENTUD': { icon: <Sun />, title: 'Juventud', desc: 'Grupo joven y actividades formativas' },
-        'PRIOSTIA': { icon: <Hammer />, title: 'Priostía', desc: 'Mantenimiento y montaje de altares' },
-        'CULTOS_FORMACION': { icon: <BookOpen />, title: 'Cultos y Formación', desc: 'Liturgia, charlas y crecimiento espiritual' },
-        'PATRIMONIO': { icon: <Landmark />, title: 'Patrimonio', desc: 'Conservación artística de la Hermandad' },
-        'ACOLITOS': { icon: <Church />, title: 'Acólitos', desc: 'Cuerpo de acólitos y monaguillos' },
-        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown />, title: 'Diputación Mayor de Gobierno', desc: 'Organización de la Cofradía' },
+        'COSTALEROS': { icon: <Users size={20} />, title: 'Costaleros' },
+        'CARIDAD': { icon: <Heart size={20} />, title: 'Diputación de Caridad' },
+        'JUVENTUD': { icon: <Sun size={20} />, title: 'Juventud' },
+        'PRIOSTIA': { icon: <Hammer size={20} />, title: 'Priostía' },
+        'CULTOS_FORMACION': { icon: <BookOpen size={20} />, title: 'Cultos y Formación' },
+        'PATRIMONIO': { icon: <Landmark size={20} />, title: 'Patrimonio' },
+        'ACOLITOS': { icon: <Church size={20} />, title: 'Acólitos' },
+        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown size={20} />, title: 'Dip. Mayor de Gobierno' },
     };
 
     const toggleSidebar = () => setIsOpen(!isOpen);
@@ -401,28 +400,43 @@ function EditarMiPerfil() {
 
                             <div className="form-section-edicion">
                                 <h3 className="section-title-edicion"><ListTodo size={18}/> Mis Áreas de interés</h3>
-                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '15px' }}>
-                                    Selecciona los grupos y boletines de los que quieres recibir comunicaciones.
+                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                                    Selecciona los grupos de los que quieres recibir notificaciones.
                                 </p>
                                 
-                                {/* Contenedor flex/grid para las tarjetas basado en tu CSS HermanoAreaInteres */}
-                                <div className="full-grid-layout">
+                                <div className="form-grid-edicion grid-4-edicion">
                                     {areasDB.map(area => {
                                         const visualInfo = areaInfoEstatica[area.nombre_area] || {};
-                                        // Verificamos si esta área está dentro del array del formData
                                         const isSelected = formData.areas_interes.includes(area.nombre_area);
                                         
                                         return (
-                                            <AreaCard 
+                                            <div 
                                                 key={area.id}
-                                                icon={visualInfo.icon}
-                                                title={visualInfo.title || area.nombre_area}
-                                                desc={visualInfo.desc || ''}
-                                                telegramLink={area.telegram_invite_link}
-                                                isFeatured={true}
-                                                isSelected={isSelected}
                                                 onClick={() => handleAreaToggle(area.nombre_area)}
-                                            />
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '12px',
+                                                    padding: '12px 16px',
+                                                    borderRadius: '8px',
+                                                    border: isSelected ? '2px solid var(--burgundy-primary)' : '1px solid var(--border-color)',
+                                                    backgroundColor: isSelected ? 'var(--focus-ring)' : '#fff',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    boxSizing: 'border-box'
+                                                }}
+                                            >
+                                                <div style={{ color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-muted)', display: 'flex' }}>
+                                                    {visualInfo.icon}
+                                                </div>
+                                                <span style={{ 
+                                                    fontSize: '0.9rem', 
+                                                    color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-dark)',
+                                                    fontWeight: isSelected ? '700' : '600'
+                                                }}>
+                                                    {visualInfo.title || area.nombre_area}
+                                                </span>
+                                            </div>
                                         );
                                     })}
                                 </div>
