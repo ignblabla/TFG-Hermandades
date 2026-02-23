@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import generics, status
 
 from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
+from api.servicios.papeleta_telegram import TelegramWebhookService
 
 from .serializers import ActoCreateSerializer, AreaInteresSerializer, ComunicadoFormSerializer, ComunicadoListSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -523,3 +524,22 @@ class AreaInteresListView(generics.ListAPIView):
     queryset = AreaInteres.objects.all()
     serializer_class = AreaInteresSerializer
     permission_classes = [IsAuthenticated]
+
+
+
+# -----------------------------------------------------------------------------
+# VISTA: PAPELETA TELEGRAM
+# -----------------------------------------------------------------------------
+class TelegramWebhookView(APIView):
+    """
+    Endpoint público para recibir notificaciones (Webhooks) directamente desde los servidores de Telegram.
+    """
+    permission_classes = [AllowAny] # IMPORTANTE: Debe ser público para Telegram
+
+    def post(self, request, *args, **kwargs):
+        # Le pasamos la información a nuestro servicio
+        TelegramWebhookService.procesar_actualizacion(request.data)
+        
+        # SIEMPRE debemos responder 200 OK a Telegram rápido. 
+        # Si no lo hacemos, Telegram pensará que nuestro servidor está caído y reenviará el mensaje repetidas veces.
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)

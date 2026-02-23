@@ -177,4 +177,7 @@ if 'pytest' in sys.modules or 'test' in sys.argv:
         }
     }
 
-TELEGRAM_BOT_TOKEN = '8377438785:AAFVg2RX1arKE-Uf3rWDzu6-w-n4bpIMyD0'
+# TELEGRAM_BOT_TOKEN = '8377438785:AAFVg2RX1arKE-Uf3rWDzu6-w-n4bpIMyD0'
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+
+TELEGRAM_BOT_USERNAME = 'tfg_hermandad_bot'

@@ -194,6 +194,8 @@ class Hermano(AbstractUser):
 
     esAdmin = models.BooleanField(default=False, verbose_name="Es Administrador")
 
+    telegram_chat_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="Chat ID de Telegram", help_text="ID único del usuario en Telegram para envío de notificaciones directas.")
+
     areas_interes = models.ManyToManyField(
         AreaInteres,
         verbose_name="Áreas de interés",
