@@ -80,6 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
             "password", "direccion", "codigo_postal", "localidad", 
             "provincia", "comunidad_autonoma", "lugar_bautismo", 
             "fecha_bautismo", "parroquia_bautismo", "areas_interes",
+            "email",
             # Nuevos campos anidados:
             "datos_bancarios", "historial_cuotas", "esta_al_corriente",
             # Campos de gestión:
@@ -166,19 +167,23 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = [
             "telefono", "direccion", "codigo_postal", "localidad", 
             "provincia", "comunidad_autonoma", "estado_civil", "areas_interes",
-            "datos_bancarios"
+            "datos_bancarios", "password", "email"
         ]
 
+        extra_kwargs = {
+                'password': {'write_only': True, 'required': False},
+            }
+
     def update(self, instance, validated_data):
-        """
-        Sobrescribimos update para asegurar una gestión limpia, 
-        aunque el update por defecto de DRF suele manejar bien los M2M.
-        """
         areas_data = validated_data.pop('areas_interes', None)
+        password = validated_data.pop('password', None)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         
+        if password:
+            instance.set_password(password)
+
         instance.save()
 
         if areas_data is not None:

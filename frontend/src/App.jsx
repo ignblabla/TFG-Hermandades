@@ -31,6 +31,7 @@ import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres"
+import EditarMiPerfil from "./pages/HermanoEdicionDatos"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 function Logout() {
@@ -63,6 +64,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditMe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editar-mi-perfil"
+          element={
+            <ProtectedRoute>
+              <EditarMiPerfil />
             </ProtectedRoute>
           }
         />
