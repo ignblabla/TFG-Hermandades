@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/CrearActo.css";
+import api from '../api';
 import logoEscudo from '../assets/escudo.png';
 import { ArrowLeft } from "lucide-react";
 
