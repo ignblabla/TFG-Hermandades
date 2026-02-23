@@ -2,6 +2,7 @@ from django.core.signing import Signer, BadSignature
 from django.contrib.auth import get_user_model
 import requests
 from django.conf import settings
+import base64
 
 User = get_user_model()
 
@@ -16,27 +17,26 @@ class TelegramWebhookService:
             chat_id = message.get('chat', {}).get('id')
             text = message.get('text', '')
 
-            # Si el mensaje empieza por '/start ' significa que viene del Deep Link
             if text.startswith('/start '):
-                # Extraemos el token que va después del espacio
-                token = text.split(' ')[1] 
+                token_limpio = text.split(' ')[1] 
+                
+                padding = 4 - (len(token_limpio) % 4)
+                token_base64 = token_limpio + ("=" * padding)
                 
                 signer = Signer()
                 try:
-                    # Desciframos el ID del hermano
-                    user_id = signer.unsign(token)
+                    token_decodificado = base64.urlsafe_b64decode(token_base64.encode()).decode()
+
+                    user_id = signer.unsign(token_decodificado)
                     hermano = User.objects.get(id=user_id)
-                    
-                    # Guardamos el chat_id
+
                     hermano.telegram_chat_id = str(chat_id)
                     hermano.save()
 
-                    # Opcional: Enviarle un mensaje dándole la bienvenida
                     TelegramWebhookService._enviar_bienvenida(chat_id, hermano.nombre)
                     
-                except (BadSignature, User.DoesNotExist):
-                    # El token ha sido manipulado o el usuario no existe
-                    print(f"Intento de vinculación fallido con token: {token}")
+                except (BadSignature, User.DoesNotExist, ValueError) as e:
+                    print(f"Intento de vinculación fallido. Error: {e}")
                     
         except Exception as e:
             print(f"Error procesando webhook de Telegram: {e}")

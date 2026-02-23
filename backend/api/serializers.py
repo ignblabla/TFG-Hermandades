@@ -5,6 +5,7 @@ from rest_framework import serializers
 from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
 from django.core.signing import Signer
+import base64
 
 User = get_user_model()
 
@@ -136,15 +137,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_enlace_vinculacion_telegram(self, obj):
         """
-        Genera el enlace Deep Link firmado criptográficamente.
+        Genera el enlace Deep Link firmado criptográficamente y 
+        codificado en base64 para cumplir con las reglas de Telegram.
         """
         signer = Signer()
-        token_seguro = signer.sign(obj.id) # Ejemplo: "45:1xpZ...firma_segura"
+        token_seguro = signer.sign(str(obj.id)) 
         
-        # Debes definir TELEGRAM_BOT_USERNAME en tu settings.py (ej: 'MiHermandadBot')
+        token_base64 = base64.urlsafe_b64encode(token_seguro.encode()).decode()
+        token_limpio = token_base64.rstrip('=') 
+        
         bot_username = getattr(settings, 'TELEGRAM_BOT_USERNAME', 'TuBot_bot')
         
-        return f"https://t.me/{bot_username}?start={token_seguro}"
+        return f"https://t.me/{bot_username}?start={token_limpio}"
     
     
 class UserUpdateSerializer(serializers.ModelSerializer):
