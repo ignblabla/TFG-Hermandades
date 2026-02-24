@@ -31,6 +31,7 @@ import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos"
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
+import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 // import CrearActo from "./pages/CrearActo"
@@ -156,6 +157,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminCrearPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/editar-puesto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionPuesto />
             </ProtectedRoute>
           }
         />

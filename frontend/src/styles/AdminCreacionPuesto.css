@@ -7,7 +7,6 @@
     --focus-ring: rgba(128, 0, 32, 0.15);
 }
 
-/* SISTEMA DE GRID RESPONSIVE - 2 CAMPOS POR FILA */
 .form-grid-creacion-puesto {
     display: grid;
     gap: 1.25rem;
@@ -58,7 +57,6 @@
     letter-spacing: 0.05em;
 }
 
-/* AQUI ESTÁ LA SOLUCIÓN: Excluimos los checkboxes del estilo general */
 .form-group-creacion-puesto input:not([type="checkbox"]), 
 .form-group-creacion-puesto select,
 .form-group-creacion-puesto textarea {
@@ -96,7 +94,7 @@
 .checkbox-label-puesto {
     display: flex !important;
     align-items: center;
-    flex-direction: row !important; /* Asegura que vaya en fila */
+    flex-direction: row !important;
     gap: 12px;
     cursor: pointer;
     padding: 12px;
@@ -113,13 +111,13 @@
 }
 
 .checkbox-input-puesto {
-    width: 20px !important; /* Fuerza el ancho a 20px */
-    height: 20px !important; /* Fuerza el alto a 20px */
+    width: 20px !important;
+    height: 20px !important;
     accent-color: var(--burgundy-primary);
     cursor: pointer;
     flex-shrink: 0;
-    margin: 0 !important; /* Evita márgenes indeseados */
-    padding: 0 !important; /* Evita que el padding general lo rompa */
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .checkbox-text-puesto {
