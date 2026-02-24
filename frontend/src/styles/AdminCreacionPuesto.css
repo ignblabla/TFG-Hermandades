@@ -1,0 +1,178 @@
+:root {
+    --burgundy-primary: #800020;
+    --border-color: #e2e8f0;
+    --bg-light: #f8fafc;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --focus-ring: rgba(128, 0, 32, 0.15);
+}
+
+/* SISTEMA DE GRID RESPONSIVE - 2 CAMPOS POR FILA */
+.form-grid-creacion-puesto {
+    display: grid;
+    gap: 1.25rem;
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* MÓVILES (1 Columna) */
+@media (max-width: 639px) {
+    .form-grid-creacion-puesto {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ESTILOS DE LOS INPUTS Y LABELS */
+.form-section-creacion-puesto {
+    margin-bottom: 2rem;
+}
+
+.section-title-creacion-puesto {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--burgundy-primary);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 2px solid #fce7f3;
+    padding-bottom: 0.75rem;
+    width: 100%;
+}
+
+.form-group-creacion-puesto {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group-creacion-puesto label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* AQUI ESTÁ LA SOLUCIÓN: Excluimos los checkboxes del estilo general */
+.form-group-creacion-puesto input:not([type="checkbox"]), 
+.form-group-creacion-puesto select,
+.form-group-creacion-puesto textarea {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: #fff;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group-creacion-puesto input:not([type="checkbox"]):focus, 
+.form-group-creacion-puesto select:focus,
+.form-group-creacion-puesto textarea:focus {
+    outline: none;
+    border-color: var(--burgundy-primary);
+    box-shadow: 0 0 0 4px var(--focus-ring);
+}
+
+.form-group-creacion-puesto input:not([type="checkbox"]):hover, 
+.form-group-creacion-puesto select:hover,
+.form-group-creacion-puesto textarea:hover {
+    border-color: #cbd5e1;
+}
+
+.form-group-creacion-puesto textarea {
+    resize: none;
+    min-height: 100px;
+}
+
+
+.checkbox-label-puesto {
+    display: flex !important;
+    align-items: center;
+    flex-direction: row !important; /* Asegura que vaya en fila */
+    gap: 12px;
+    cursor: pointer;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: #f9fafb;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label-puesto:hover {
+    border-color: var(--burgundy-primary);
+}
+
+.checkbox-input-puesto {
+    width: 20px !important; /* Fuerza el ancho a 20px */
+    height: 20px !important; /* Fuerza el alto a 20px */
+    accent-color: var(--burgundy-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin: 0 !important; /* Evita márgenes indeseados */
+    padding: 0 !important; /* Evita que el padding general lo rompa */
+}
+
+.checkbox-text-puesto {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkbox-title-puesto {
+    display: block;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.checkbox-desc-puesto {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: normal;
+}
+
+/* BANNERS DE ALERTAS (Error y Éxito) */
+.alert-banner-creacion-puesto {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    animation: slideDown 0.3s ease-out;
+}
+
+.alert-banner-creacion-puesto.error-creacion-puesto {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert-banner-creacion-puesto.success-creacion-puesto {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
