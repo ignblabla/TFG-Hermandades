@@ -176,9 +176,12 @@ if 'pytest' in sys.modules or 'test' in sys.argv:
         }
     }
 
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+# TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
-TELEGRAM_BOT_USERNAME = 'tfg_hermandad_bot'
+# TELEGRAM_BOT_USERNAME = 'tfg_hermandad_bot'
+
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_BOT_USERNAME = os.getenv('TELEGRAM_BOT_USERNAME')
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
