@@ -32,6 +32,7 @@ import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos"
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
+import ChatAsistente from "./pages/ChatAsistente"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 // import CrearActo from "./pages/CrearActo"
@@ -108,6 +109,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoConsultaNoticia />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat-asistente"
+          element={
+            <ProtectedRoute>
+              <ChatAsistente />
             </ProtectedRoute>
           }
         />
