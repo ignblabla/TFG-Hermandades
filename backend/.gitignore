@@ -1,0 +1,27 @@
+# Archivos de entorno (¡Seguridad!)
+.env
+.env.*
+!.env.example
+
+# Base de datos local de desarrollo
+db.sqlite3
+db.sqlite3-journal
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales (por si acaso)
+venv/
+env/
+.venv/
+
+# Archivos de subidas de usuarios
+media/
+
+# Archivos de testing / coverage (que veo que los tienes)
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/

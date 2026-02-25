@@ -5,8 +5,6 @@ import Register from "./pages/Register"
 import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
-import EditMe from "./pages/EditMe"
-import CrearActo from "./pages/CrearActo"
 import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
@@ -32,7 +30,14 @@ import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos"
+import AdminCrearPuesto from "./pages/AdminCrearPuesto"
+import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
+import ChatAsistente from "./pages/ChatAsistente"
 import ProtectedRoute from "./components/ProtectedRoute"
+
+// import CrearActo from "./pages/CrearActo"
+import EditMe from "./pages/EditMe"
+
 
 function Logout() {
   localStorage.clear()
@@ -59,14 +64,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/editar-perfil"
           element={
             <ProtectedRoute>
               <EditMe />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/editar-mi-perfil"
           element={
@@ -83,14 +88,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/crear-acto"
           element={
             <ProtectedRoute>
               <CrearActo />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/noticias-hermano"
           element={
@@ -104,6 +109,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoConsultaNoticia />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat-asistente"
+          element={
+            <ProtectedRoute>
+              <ChatAsistente />
             </ProtectedRoute>
           }
         />
@@ -145,6 +158,22 @@ function App() {
           element={
             <ProtectedRoute>
               <CrearPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/crear-puesto"
+          element={
+            <ProtectedRoute>
+              <AdminCrearPuesto />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/editar-puesto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionPuesto />
             </ProtectedRoute>
           }
         />
