@@ -29,7 +29,7 @@ import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres"
-import EditarMiPerfil from "./pages/HermanoEdicionDatos"
+import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"

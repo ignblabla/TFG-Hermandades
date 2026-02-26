@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import generics, status
+from django.db.models import Q
 
 from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
 from api.servicios.papeleta_telegram import TelegramWebhookService
@@ -506,20 +507,19 @@ class ComunicadoDetailView(APIView):
 
 class MisComunicadosListView(generics.ListAPIView):
     """
-    Devuelve los comunicados filtrados por las áreas de interés del usuario logueado.
-    Lógica: Si el usuario tiene el área 'Juventud', verá todos los comunicados
-    que tengan 'Juventud' entre sus destinatarios.
+    Devuelve los comunicados filtrados por las áreas de interés del usuario logueado,
+    INCLUYENDO siempre los comunicados dirigidos a 'Todos los Hermanos'.
     """
     serializer_class = ComunicadoListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         usuario = self.request.user
-
         mis_areas = usuario.areas_interes.all()
 
         queryset = Comunicado.objects.filter(
-            areas_interes__in=mis_areas
+            Q(areas_interes__in=mis_areas) | 
+            Q(areas_interes__nombre_area=AreaInteres.NombreArea.TODOS_HERMANOS)
         ).distinct().order_by('-fecha_emision')
 
         return queryset
