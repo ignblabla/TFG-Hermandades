@@ -173,7 +173,7 @@
     font-weight: 600;
 }
 
-.form-actions-edicion {
+.form-actions-creacion-comunicado {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -182,7 +182,7 @@
     border-top: 1px solid var(--border-color);
 }
 
-.btn-cancel-edicion {
+.btn-cancel-creacion-comunicado {
     padding: 0.75rem 1.5rem;
     background: white;
     border: 1px solid var(--border-color);
@@ -193,12 +193,12 @@
     transition: 0.2s;
 }
 
-.btn-cancel-edicion:hover {
+.btn-cancel-creacion-comunicado:hover {
     background: #f1f5f9;
     color: var(--text-dark);
 }
 
-.btn-save-edicion {
+.btn-save-creacion-comunicado {
     padding: 0.75rem 2rem;
     background: var(--burgundy-primary);
     color: white;
@@ -213,12 +213,12 @@
     transition: all 0.2s;
 }
 
-.btn-save-edicion:hover {
+.btn-save-creacion-comunicado:hover {
     background-color: #600018;
     transform: translateY(-1px);
 }
 
-.btn-save-edicion:disabled {
+.btn-save-creacion-comunicado:disabled {
     opacity: 0.7;
     cursor: not-allowed;
     transform: none;
@@ -250,11 +250,15 @@
 
 @media (min-width: 1024px) {
     .form-grid-creacion-comunicado {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
     
-    .span-2-creacion-comunicado {
-        grid-column: span 2;
+    .span-3-creacion-comunicado {
+        grid-column: span 3;
+    }
+
+    .span-full-creacion-comunicado {
+        grid-column: span 4;
     }
 }
 
@@ -263,7 +267,8 @@
         grid-template-columns: 1fr;
     }
     
-    .span-2-creacion-comunicado {
+    .span-3-creacion-comunicado,
+    .span-full-creacion-comunicado {
         grid-column: auto;
     }
 
@@ -277,7 +282,8 @@
         grid-template-columns: 1fr;
     }
     
-    .span-2-creacion-comunicado {
+    .span-3-creacion-comunicado,
+    .span-full-creacion-comunicado {
         grid-column: auto;
     }
 
@@ -285,13 +291,13 @@
         grid-template-columns: 1fr;
     }
 
-    .form-actions-edicion {
+    .form-actions-creacion-comunicado {
         flex-direction: column;
         gap: 0.75rem;
     }
 
-    .btn-cancel-edicion, 
-    .btn-save-edicion {
+    .btn-cancel-creacion-comunicado, 
+    .btn-save-creacion-comunicado {
         width: 100%;
         justify-content: center;
     }

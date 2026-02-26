@@ -329,7 +329,6 @@ function AdminCreacionComunicado() {
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         
-                        {/* BANNER DE ERRORES/ÉXITO */}
                         {error && (
                             <div className="alert-banner-edicion error-edicion">
                                 <AlertCircle size={20} />
@@ -348,7 +347,7 @@ function AdminCreacionComunicado() {
                                 <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
                                 <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
-                                    <div className="form-group-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-3-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -376,7 +375,7 @@ function AdminCreacionComunicado() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Imagen de Portada (Opcional)</label>
                                         
                                         {!previewUrl ? (
@@ -445,7 +444,7 @@ function AdminCreacionComunicado() {
                                         )}
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
@@ -502,18 +501,17 @@ function AdminCreacionComunicado() {
                             </div>
 
                             {/* BOTONES DE ACCIÓN */}
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/home")}>
+                            <div className="form-actions-creacion-comunicado">
+                                <button type="button" className="btn-cancel-creacion-comunicado" onClick={() => navigate("/home")}>
                                     Cancelar
                                 </button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                <button type="submit" className="btn-save-creacion-comunicado" disabled={saving}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Save size={18} />
                                         {saving ? "Emitiendo..." : "Emitir Comunicado"}
                                     </div>
                                 </button>
                             </div>
-
                         </form>
                     </div>
                 </div>

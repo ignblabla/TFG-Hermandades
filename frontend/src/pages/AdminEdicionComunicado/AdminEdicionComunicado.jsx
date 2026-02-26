@@ -325,11 +325,11 @@ function AdminEdicionComunicado() {
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><FileText size={18}/> Datos del Comunicado</h3>
-                                <div className="form-grid-edicion grid-2-edicion">
+                            <div className="form-section-creacion-comunicado">
+                                <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
+                                <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
-                                    <div className="form-group-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-3-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -354,7 +354,7 @@ function AdminEdicionComunicado() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Imagen de Portada</label>
                                         
                                         {!previewUrl ? (
@@ -459,7 +459,7 @@ function AdminEdicionComunicado() {
                                         )}
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
@@ -516,7 +516,7 @@ function AdminEdicionComunicado() {
                             </div>
 
                             {/* ACCIONES DEL FORMULARIO */}
-                            <div className="form-actions-edicion" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
+                            <div className="form-actions-creacion-comunicado" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
                                 
                                 <button 
                                     type="button" 
@@ -541,10 +541,10 @@ function AdminEdicionComunicado() {
                                 </button>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/admin/comunicados")}>
+                                    <button type="button" className="btn-cancel-creacion-comunicado" onClick={() => navigate("/admin/comunicados")}>
                                         Cancelar
                                     </button>
-                                    <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                    <button type="submit" className="btn-save-creacion-comunicado" disabled={saving}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <Save size={18} />
                                             {saving ? "Guardando..." : "Guardar Cambios"}
