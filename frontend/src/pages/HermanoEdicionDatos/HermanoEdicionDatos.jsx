@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
-import '../../styles/AdminEdicionHermano.css';
 import '../HermanoEdicionDatos/HermanoEdicionDatos.css'
 import { Save, User, MapPin, AlertCircle, CheckCircle, Calendar, ShieldAlert, ListTodo,
     Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, CreditCard, Bell
@@ -549,7 +548,6 @@ function EditarMiPerfil() {
                                                             </span>
                                                         )}
                                                     </div>
-                                                    {/* Opcional: mostrar la descripción para que llene el ancho de la tarjeta gigante */}
                                                     {isMandatory && visualInfo.desc && (
                                                         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                                                             {visualInfo.desc}

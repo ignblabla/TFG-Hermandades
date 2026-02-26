@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
-import '../styles/AdminCreacionComunicado.css'; 
+import api from '../../api';
+import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
 import { 
     Save, 
     FileText, 
@@ -51,6 +51,7 @@ function AdminCreacionComunicado() {
 
     const getAreaIcon = (nombreArea) => {
         switch (nombreArea) {
+            case 'TODOS_HERMANOS': return <Users size={18} />;
             case 'ACOLITOS': return <Church size={18} />;
             case 'COSTALEROS': return <Users size={18} />;
             case 'CARIDAD': return <Heart size={18} />;
@@ -80,7 +81,14 @@ function AdminCreacionComunicado() {
                 }
 
                 const resAreas = await api.get("api/areas-interes/");
-                if (isMounted) setAreasDisponibles(resAreas.data);
+                if (isMounted) {
+                    const sortedAreas = resAreas.data.sort((a, b) => {
+                        if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+                        if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+                        return a.nombre_area.localeCompare(b.nombre_area);
+                    });
+                    setAreasDisponibles(sortedAreas);
+                }
 
             } catch (err) {
                 console.error(err);
@@ -336,12 +344,10 @@ function AdminCreacionComunicado() {
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            {/* SECCIÓN 1: DATOS BÁSICOS */}
                             <div className="form-section-creacion-comunicado">
                                 <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
                                 <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
-                                    {/* Título */}
                                     <div className="form-group-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
@@ -454,7 +460,6 @@ function AdminCreacionComunicado() {
                                 </div>
                             </div>
 
-                            {/* SECCIÓN 2: DESTINATARIOS (Áreas de Interés) */}
                             <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
                                 <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
                                     <Users size={18}/> Áreas de Interés (Destinatarios)
