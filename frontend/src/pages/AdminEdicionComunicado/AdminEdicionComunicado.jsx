@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
+import '../AdminEdicionComunicado/AdminEdicionComunicado.css'
 import { Save, FileText, Users, Trash2, AlertCircle, CheckCircle, Church, Heart, Sun, Hammer, BookOpen, Crown, Image as ImageIcon, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -361,16 +362,6 @@ function AdminEdicionComunicado() {
                                             <div 
                                                 className="image-upload-area"
                                                 onClick={() => document.getElementById('imagen_portada').click()}
-                                                style={{
-                                                    border: '2px dashed #d1d5db',
-                                                    borderRadius: '8px',
-                                                    padding: '20px',
-                                                    textAlign: 'center',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: '#f9fafb',
-                                                    transition: 'all 0.2s',
-                                                    color: '#6b7280'
-                                                }}
                                             >
                                                 <input 
                                                     type="file" 
@@ -378,50 +369,27 @@ function AdminEdicionComunicado() {
                                                     name="imagen_portada"
                                                     accept="image/*"
                                                     onChange={handleImageChange}
-                                                    style={{ display: 'none' }}
                                                 />
-                                                <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
-                                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir o cambiar la imagen</p>
-                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>JPG, PNG (Max. 5MB)</p>
+                                                <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
+                                                <p>Haz clic para subir o cambiar la imagen</p>
+                                                <small>JPG, PNG (Max. 5MB)</small>
                                             </div>
                                         ) : (
-                                            <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                                            <div className="image-preview-container">
                                                 <img 
                                                     src={getFullImageUrl(previewUrl)} 
                                                     alt="Portada" 
-                                                    style={{ 
-                                                        maxWidth: '100%', 
-                                                        maxHeight: '300px', 
-                                                        borderRadius: '8px',
-                                                        border: '1px solid #e5e7eb',
-                                                        display: 'block'
-                                                    }}
+                                                    className="image-preview-img"
                                                     onError={(e) => {
                                                         e.target.style.display = 'none';
                                                     }}
                                                 />
                                                 
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    bottom: '10px',
-                                                    right: '10px',
-                                                    display: 'flex',
-                                                    gap: '8px'
-                                                }}>
+                                                <div className="image-actions-overlay">
                                                     <button
                                                         type="button"
                                                         onClick={() => document.getElementById('imagen_portada_edit').click()}
-                                                        style={{
-                                                            background: 'rgba(255, 255, 255, 0.9)',
-                                                            border: '1px solid #e5e7eb',
-                                                            borderRadius: '6px',
-                                                            padding: '6px 12px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.85rem',
-                                                            fontWeight: '600',
-                                                            color: '#374151',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                        }}
+                                                        className="btn-change-image"
                                                     >
                                                         Cambiar
                                                     </button>
@@ -430,27 +398,14 @@ function AdminEdicionComunicado() {
                                                         id="imagen_portada_edit"
                                                         accept="image/*"
                                                         onChange={handleImageChange}
-                                                        style={{ display: 'none' }}
+                                                        className="hidden-file-input"
                                                     />
                                                 </div>
 
                                                 <button
                                                     type="button"
                                                     onClick={removeImage}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: '10px',
-                                                        right: '10px',
-                                                        background: 'rgba(255, 255, 255, 0.9)',
-                                                        border: 'none',
-                                                        borderRadius: '50%',
-                                                        padding: '5px',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }}
+                                                    className="btn-delete-image"
                                                     title="Eliminar imagen"
                                                 >
                                                     <X size={18} color="#ef4444" />
@@ -522,19 +477,7 @@ function AdminEdicionComunicado() {
                                     type="button" 
                                     onClick={handleDelete} 
                                     disabled={deleting}
-                                    style={{ 
-                                        backgroundColor: '#fee2e2', 
-                                        color: '#991b1b', 
-                                        border: '1px solid #fca5a5', 
-                                        padding: '10px 20px', 
-                                        borderRadius: '6px', 
-                                        cursor: 'pointer', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '8px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '500'
-                                    }} 
+                                    className="btn-delete-comunicado"
                                 >
                                     <Trash2 size={18} />
                                     {deleting ? "Eliminando..." : "Eliminar Comunicado"}
