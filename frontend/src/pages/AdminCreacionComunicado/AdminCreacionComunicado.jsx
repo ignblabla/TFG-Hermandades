@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
-import '../styles/AdminCreacionComunicado.css'; 
+import api from '../../api';
+import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
 import { 
     Save, 
     FileText, 
@@ -51,6 +51,7 @@ function AdminCreacionComunicado() {
 
     const getAreaIcon = (nombreArea) => {
         switch (nombreArea) {
+            case 'TODOS_HERMANOS': return <Users size={18} />;
             case 'ACOLITOS': return <Church size={18} />;
             case 'COSTALEROS': return <Users size={18} />;
             case 'CARIDAD': return <Heart size={18} />;
@@ -80,7 +81,14 @@ function AdminCreacionComunicado() {
                 }
 
                 const resAreas = await api.get("api/areas-interes/");
-                if (isMounted) setAreasDisponibles(resAreas.data);
+                if (isMounted) {
+                    const sortedAreas = resAreas.data.sort((a, b) => {
+                        if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+                        if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+                        return a.nombre_area.localeCompare(b.nombre_area);
+                    });
+                    setAreasDisponibles(sortedAreas);
+                }
 
             } catch (err) {
                 console.error(err);
@@ -321,7 +329,6 @@ function AdminCreacionComunicado() {
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         
-                        {/* BANNER DE ERRORES/ÉXITO */}
                         {error && (
                             <div className="alert-banner-edicion error-edicion">
                                 <AlertCircle size={20} />
@@ -336,13 +343,11 @@ function AdminCreacionComunicado() {
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            {/* SECCIÓN 1: DATOS BÁSICOS */}
                             <div className="form-section-creacion-comunicado">
                                 <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
                                 <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
-                                    {/* Título */}
-                                    <div className="form-group-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-3-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -370,23 +375,13 @@ function AdminCreacionComunicado() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Imagen de Portada (Opcional)</label>
                                         
                                         {!previewUrl ? (
                                             <div 
                                                 className="image-upload-area"
                                                 onClick={() => document.getElementById('imagen_portada').click()}
-                                                style={{
-                                                    border: '2px dashed #d1d5db',
-                                                    borderRadius: '8px',
-                                                    padding: '20px',
-                                                    textAlign: 'center',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: '#f9fafb',
-                                                    transition: 'all 0.2s',
-                                                    color: '#6b7280'
-                                                }}
                                             >
                                                 <input 
                                                     type="file" 
@@ -394,43 +389,23 @@ function AdminCreacionComunicado() {
                                                     name="imagen_portada"
                                                     accept="image/*"
                                                     onChange={handleImageChange}
-                                                    style={{ display: 'none' }}
                                                 />
-                                                <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
-                                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir una imagen de portada</p>
-                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>
-                                                    JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong>
-                                                </p>
+                                                <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
+                                                <p>Haz clic para subir una imagen de portada</p>
+                                                <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
                                             </div>
                                         ) : (
-                                            <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                                            <div className="image-preview-container">
                                                 <img 
                                                     src={previewUrl} 
                                                     alt="Vista previa" 
-                                                    style={{ 
-                                                        maxWidth: '100%', 
-                                                        maxHeight: '300px', 
-                                                        borderRadius: '8px',
-                                                        border: '1px solid #e5e7eb'
-                                                    }} 
+                                                    className="image-preview-img"
                                                 />
+                                                
                                                 <button
                                                     type="button"
                                                     onClick={removeImage}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: '10px',
-                                                        right: '10px',
-                                                        background: 'rgba(255, 255, 255, 0.9)',
-                                                        border: 'none',
-                                                        borderRadius: '50%',
-                                                        padding: '5px',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }}
+                                                    className="btn-delete-image"
                                                     title="Eliminar imagen"
                                                 >
                                                     <X size={18} color="#ef4444" />
@@ -439,7 +414,7 @@ function AdminCreacionComunicado() {
                                         )}
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
@@ -454,7 +429,6 @@ function AdminCreacionComunicado() {
                                 </div>
                             </div>
 
-                            {/* SECCIÓN 2: DESTINATARIOS (Áreas de Interés) */}
                             <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
                                 <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
                                     <Users size={18}/> Áreas de Interés (Destinatarios)
@@ -497,18 +471,17 @@ function AdminCreacionComunicado() {
                             </div>
 
                             {/* BOTONES DE ACCIÓN */}
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/home")}>
+                            <div className="form-actions-creacion-comunicado">
+                                <button type="button" className="btn-cancel-creacion-comunicado" onClick={() => navigate("/home")}>
                                     Cancelar
                                 </button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                <button type="submit" className="btn-save-creacion-comunicado" disabled={saving}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Save size={18} />
                                         {saving ? "Emitiendo..." : "Emitir Comunicado"}
                                     </div>
                                 </button>
                             </div>
-
                         </form>
                     </div>
                 </div>

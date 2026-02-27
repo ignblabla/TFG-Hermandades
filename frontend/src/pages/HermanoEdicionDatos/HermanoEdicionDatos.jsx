@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
-import '../styles/AdminEdicionHermano.css';
-import { Save, User, MapPin, AlertCircle, CheckCircle, Info, Calendar, ShieldAlert, ListTodo,
-    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, CreditCard
+import api from '../../api';
+import '../HermanoEdicionDatos/HermanoEdicionDatos.css'
+import { Save, User, MapPin, AlertCircle, CheckCircle, Calendar, ShieldAlert, ListTodo,
+    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, CreditCard, Bell
 } from "lucide-react";
-import AreaCard from "../components/AreaCard";
 
 
 function EditarMiPerfil() {
@@ -40,6 +39,7 @@ function EditarMiPerfil() {
     });
 
     const areaInfoEstatica = {
+        'TODOS_HERMANOS': { icon: <Bell size={20} />, title: 'Todos los Hermanos' },
         'COSTALEROS': { icon: <Users size={20} />, title: 'Costaleros' },
         'CARIDAD': { icon: <Heart size={20} />, title: 'Diputación de Caridad' },
         'JUVENTUD': { icon: <Sun size={20} />, title: 'Juventud' },
@@ -89,6 +89,11 @@ function EditarMiPerfil() {
                         fecha_ingreso: data.fecha_ingreso_corporacion,
                         fecha_baja: data.fecha_baja_corporacion
                     });
+
+                    const areasUsuario = data.areas_interes || [];
+                    if (!areasUsuario.includes('TODOS_HERMANOS')) {
+                        areasUsuario.push('TODOS_HERMANOS');
+                    }
 
                     // Campos permitidos
                     setFormData({
@@ -151,6 +156,8 @@ function EditarMiPerfil() {
     };
 
     const handleAreaToggle = (areaNombre) => {
+        if (areaNombre === 'TODOS_HERMANOS') return;
+
         setFormData(prev => {
             const currentAreas = prev.areas_interes;
             if (currentAreas.includes(areaNombre)) {
@@ -174,6 +181,10 @@ function EditarMiPerfil() {
 
         if (payload.datos_bancarios.es_titular) {
             payload.datos_bancarios.titular_cuenta = '';
+        }
+
+        if (!payload.areas_interes.includes('TODOS_HERMANOS')) {
+            payload.areas_interes.push('TODOS_HERMANOS');
         }
 
         try {
@@ -203,6 +214,12 @@ function EditarMiPerfil() {
     };
 
     if (loading) return <div className="loading-screen">Cargando tu perfil...</div>;
+
+    const sortedAreasDB = [...areasDB].sort((a, b) => {
+        if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+        if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+        return a.nombre_area.localeCompare(b.nombre_area); 
+    });
 
     return (
         <div>
@@ -295,47 +312,47 @@ function EditarMiPerfil() {
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         {error && (
-                            <div className="alert-banner-edicion error-edicion">
+                            <div className="alert-banner-edicion-hermano error-edicion-hermano">
                                 <AlertCircle size={20} />
                                 <span>{error}</span>
                             </div>
                         )}
                         {successMsg && (
-                            <div className="alert-banner-edicion success-edicion">
+                            <div className="alert-banner-edicion-hermano success-edicion-hermano">
                                 <CheckCircle size={20} />
                                 <span>{successMsg}</span>
                             </div>
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><User size={18}/> Datos personales</h3>
-                                <div className="form-grid-edicion grid-4-edicion">
-                                    <div className="form-group-edicion">
+                            <div className="form-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano"><User size={18}/> Datos personales</h3>
+                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Nombre</label>
                                         <input type="text" name="nombre" value={readOnlyData.nombre} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Primer apellido</label>
                                         <input type="text" name="primer_apellido" value={readOnlyData.primer_apellido} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Segundo apellido</label>
                                         <input type="text" name="segundo_apellido" value={readOnlyData.segundo_apellido} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>DNI</label>
                                         <input type="text" name="dni" value={readOnlyData.dni} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Fecha de nacimiento</label>
                                         <input type="date" name="fecha_nacimiento" value={readOnlyData.fecha_nacimiento || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Género</label>
                                         <input type="text" name="genero" value={readOnlyData.genero} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Estado Civil</label>
                                         <select name="estado_civil" value={formData.estado_civil} onChange={handleChange}>
                                             <option value="SOLTERO">Soltero/a</option>
@@ -344,7 +361,7 @@ function EditarMiPerfil() {
                                             <option value="VIUDO">Viudo/a</option>
                                         </select>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Nueva Contraseña</label>
                                         <input 
                                             type="password" name="password" value={formData.password} 
@@ -354,46 +371,46 @@ function EditarMiPerfil() {
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><MapPin size={18}/> Dirección y contacto</h3>
-                                <div className="form-grid-edicion grid-6-mixed-edicion">
-                                    <div className="form-group-edicion span-3-edicion">
+                            <div className="form-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano"><MapPin size={18}/> Dirección y contacto</h3>
+                                <div className="form-grid-edicion-hermano grid-6-mixed-edicion-hermano">
+                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
                                         <label>Dirección Postal</label>
                                         <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group-edicion span-3-edicion">
+                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
                                         <label>Localidad</label>
                                         <input type="text" name="localidad" value={formData.localidad} onChange={handleChange} />
                                     </div>
 
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
                                         <label>C. Postal</label>
                                         <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
                                         <label>Provincia</label>
                                         <input type="text" name="provincia" value={formData.provincia} onChange={handleChange} />
                                     </div>
-                                    <div className="form-group-edicion span-2-edicion">
+                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
                                         <label>Comunidad Autónoma</label>
                                         <input type="text" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} />
                                     </div>
 
-                                    <div className="form-group-edicion span-3-edicion">
+                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
                                         <label>Teléfono</label>
                                         <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} required />
                                     </div>
-                                    <div className="form-group-edicion span-3-edicion">
+                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
                                         <label>Email</label>
                                         <input type="email" name="email" value={formData.email} onChange={handleChange} required />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><CreditCard size={18}/> Datos Bancarios</h3>
-                                <div className="form-grid-edicion grid-4-edicion">
-                                    <div className="form-group-edicion span-2-edicion">
+                            <div className="form-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano"><CreditCard size={18}/> Datos Bancarios</h3>
+                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
+                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
                                         <label>IBAN de la cuenta</label>
                                         <input 
                                             type="text" 
@@ -404,7 +421,7 @@ function EditarMiPerfil() {
                                             required 
                                         />
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Periodicidad de cobro</label>
                                         <select name="periodicidad" value={formData.datos_bancarios.periodicidad} onChange={handleBankChange}>
                                             <option value="TRIMESTRAL">Trimestral</option>
@@ -412,7 +429,7 @@ function EditarMiPerfil() {
                                             <option value="ANUAL">Anual</option>
                                         </select>
                                     </div>
-                                    <div className="form-group-edicion checkbox-group-edicion" style={{ justifyContent: 'center' }}>
+                                    <div className="form-group-edicion-hermano checkbox-group-edicion-hermano" style={{ justifyContent: 'center' }}>
                                         <label>
                                             <input 
                                                 type="checkbox" 
@@ -426,7 +443,7 @@ function EditarMiPerfil() {
                                     
                                     {/* Mostrar solo si NO es titular */}
                                     {!formData.datos_bancarios.es_titular && (
-                                        <div className="form-group-edicion span-2-edicion">
+                                        <div className="form-group-edicion-hermano span-2-edicion-hermano">
                                             <label>Nombre y apellidos del titular de la cuenta</label>
                                             <input 
                                                 type="text" 
@@ -441,61 +458,64 @@ function EditarMiPerfil() {
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><Calendar size={18}/> Datos Eclesiásticos</h3>
-                                <div className="form-grid-edicion grid-3-edicion">
-                                    <div className="form-group-edicion">
+                            <div className="form-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano"><Calendar size={18}/> Datos Eclesiásticos</h3>
+                                <div className="form-grid-edicion-hermano grid-3-edicion-hermano">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Fecha Bautismo</label>
                                         <input type="date" name="fecha_bautismo" value={readOnlyData.fecha_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Lugar Bautismo</label>
                                         <input type="text" name="lugar_bautismo" value={readOnlyData.lugar_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Parroquia</label>
                                         <input type="text" name="parroquia_bautismo" value={readOnlyData.parroquia_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion admin-section-edicion">
-                                <h3 className="section-title-edicion admin-title-edicion"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
-                                <div className="form-grid-edicion grid-4-edicion">
-                                    <div className="form-group-edicion">
+                            <div className="form-section-edicion-hermano admin-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano admin-title-edicion-hermano"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
+                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Nº Registro Hermandad</label>
                                         <input type="number" name="numero_registro" value={readOnlyData.numero_registro} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Estado</label>
                                         <input type="text" name="estado_hermano" value={readOnlyData.estado_hermano} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Fecha Ingreso</label>
                                         <input type="date" name="fecha_ingreso_corporacion" value={readOnlyData.fecha_ingreso} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
-                                    <div className="form-group-edicion">
+                                    <div className="form-group-edicion-hermano">
                                         <label>Fecha Baja</label>
                                         <input type="date" name="fecha_baja_corporacion" value={readOnlyData.fecha_baja || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><ListTodo size={18}/> Mis Áreas de interés</h3>
+                            <div className="form-section-edicion-hermano">
+                                <h3 className="section-title-edicion-hermano"><ListTodo size={18}/> Mis Áreas de interés</h3>
                                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                                     Selecciona los grupos de los que quieres recibir notificaciones.
                                 </p>
                                 
-                                <div className="form-grid-edicion grid-4-edicion">
-                                    {areasDB.map(area => {
+                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
+                                    {sortedAreasDB.map(area => {
                                         const visualInfo = areaInfoEstatica[area.nombre_area] || {};
-                                        const isSelected = formData.areas_interes.includes(area.nombre_area);
+                                        const isMandatory = area.nombre_area === 'TODOS_HERMANOS';
+                                        const isSelected = isMandatory ? true : formData.areas_interes.includes(area.nombre_area);
                                         
                                         return (
                                             <div 
                                                 key={area.id}
                                                 onClick={() => handleAreaToggle(area.nombre_area)}
+                                                // Asignamos la nueva clase si es la tarjeta general
+                                                className={isMandatory ? 'span-full-edicion' : ''}
                                                 style={{
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -504,30 +524,45 @@ function EditarMiPerfil() {
                                                     borderRadius: '8px',
                                                     border: isSelected ? '2px solid var(--burgundy-primary)' : '1px solid var(--border-color)',
                                                     backgroundColor: isSelected ? 'var(--focus-ring)' : '#fff',
-                                                    cursor: 'pointer',
+                                                    cursor: isMandatory ? 'not-allowed' : 'pointer',
                                                     transition: 'all 0.2s ease',
-                                                    boxSizing: 'border-box'
+                                                    boxSizing: 'border-box',
+                                                    opacity: isMandatory ? 0.9 : 1
                                                 }}
                                             >
                                                 <div style={{ color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-muted)', display: 'flex' }}>
                                                     {visualInfo.icon}
                                                 </div>
-                                                <span style={{ 
-                                                    fontSize: '0.9rem', 
-                                                    color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-dark)',
-                                                    fontWeight: isSelected ? '700' : '600'
-                                                }}>
-                                                    {visualInfo.title || area.nombre_area}
-                                                </span>
+                                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ 
+                                                            fontSize: '0.9rem', 
+                                                            color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-dark)',
+                                                            fontWeight: isSelected ? '700' : '600'
+                                                        }}>
+                                                            {visualInfo.title || area.nombre_area}
+                                                        </span>
+                                                        {isMandatory && (
+                                                            <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#6c757d', backgroundColor: '#e9ecef', padding: '3px 8px', borderRadius: '12px' }}>
+                                                                OBLIGATORIO
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {isMandatory && visualInfo.desc && (
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                                            {visualInfo.desc}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
+                            <div className="form-actions-edicion-hermano">
+                                <button type="button" className="btn-cancel-edicion-hermano" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
+                                <button type="submit" className="btn-save-edicion-hermano" disabled={saving}>
                                     <Save size={18} />
                                     {saving ? "Guardando..." : "Guardar Cambios"}
                                 </button>

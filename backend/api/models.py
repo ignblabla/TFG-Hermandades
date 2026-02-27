@@ -15,6 +15,7 @@ from google.genai import types
 # -----------------------------------------------------------------------------
 class AreaInteres(models.Model):
     class NombreArea(models.TextChoices):
+        TODOS_HERMANOS = 'TODOS_HERMANOS', 'Todos los Hermanos'
         CARIDAD = 'CARIDAD', 'Caridad'
         CULTOS_FORMACION = 'CULTOS_FORMACION', 'Cultos y Formación'
         JUVENTUD = 'JUVENTUD', 'Juventud'

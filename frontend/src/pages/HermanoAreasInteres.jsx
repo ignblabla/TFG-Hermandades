@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/HermanoAreaInteres.css";
 import AreaCard from "../components/AreaCard"
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell } from "lucide-react";
 
 function HermanoAreaInteres() {
 
@@ -15,6 +15,7 @@ function HermanoAreaInteres() {
     const navigate = useNavigate();
 
     const areaInfoEstatica = {
+        'TODOS_HERMANOS': { icon: <Bell />, title: 'Todos los Hermanos', desc: 'Comunicados generales de la Hermandad (Suscripción obligatoria)' },
         'COSTALEROS': { icon: <Users />, title: 'Costaleros', desc: 'Cuadrillas de hermanos costaleros de Nuestro Padre Jesús en Su Soberano Poder ante Caifás y Nuestra Señora de la Salud Coronada.' },
         'CARIDAD': { icon: <Heart />, title: 'Diputación de Caridad', desc: 'Acción social y ayuda al prójimo' },
         'JUVENTUD': { icon: <Sun />, title: 'Juventud', desc: 'Grupo joven y actividades formativas' },
@@ -32,7 +33,9 @@ function HermanoAreaInteres() {
                 const parsedUser = JSON.parse(usuarioGuardado);
                 setUser(parsedUser);
                 if (parsedUser.areas_interes) {
-                    setSelectedAreas(parsedUser.areas_interes);
+                    const areasLocal = parsedUser.areas_interes;
+                    if (!areasLocal.includes('TODOS_HERMANOS')) areasLocal.push('TODOS_HERMANOS');
+                    setSelectedAreas(areasLocal);
                 }
             } catch (e) {
                 console.error("Error al leer user_data", e);
@@ -43,7 +46,11 @@ function HermanoAreaInteres() {
             .then(response => {
                 const data = response.data;
                 setUser(data);
-                setSelectedAreas(data.areas_interes || []);
+                
+                const areasBackend = data.areas_interes || [];
+                if (!areasBackend.includes('TODOS_HERMANOS')) areasBackend.push('TODOS_HERMANOS');
+                
+                setSelectedAreas(areasBackend);
                 localStorage.setItem("user_data", JSON.stringify(data));
             })
             .catch(error => {
@@ -70,6 +77,10 @@ function HermanoAreaInteres() {
     };
 
     const handleCheckboxChange = (areaNombre) => {
+        if (areaNombre === 'TODOS_HERMANOS') {
+            return;
+        }
+
         setSelectedAreas(prevAreas => {
             if (prevAreas.includes(areaNombre)) {
                 return prevAreas.filter(nombre => nombre !== areaNombre);
@@ -82,8 +93,12 @@ function HermanoAreaInteres() {
     const handleSave = async () => {
         setLoading(true);
         try {
+            const areasToSave = selectedAreas.includes('TODOS_HERMANOS') 
+                ? selectedAreas 
+                : [...selectedAreas, 'TODOS_HERMANOS'];
+
             const response = await api.patch("/api/me/", {
-                areas_interes: selectedAreas
+                areas_interes: areasToSave
             });
             const data = response.data;
             const updatedUser = { ...user, ...data };
@@ -105,6 +120,12 @@ function HermanoAreaInteres() {
             setLoading(false);
         }
     };
+
+    const sortedAreasDB = [...areasDB].sort((a, b) => {
+        if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+        if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+        return a.nombre_area.localeCompare(b.nombre_area); 
+    });
 
     return (
         <div>
@@ -195,9 +216,13 @@ function HermanoAreaInteres() {
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Áreas de interés</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
+                    <p style={{ marginBottom: '20px', color: 'var(--text-muted)' }}>
+                        Gestiona tus preferencias de comunicación. El canal general de <strong>Todos los Hermanos</strong> es obligatorio para mantenerte informado de la actualidad de la Hermandad.
+                    </p>
                     <div className="full-grid-layout">
-                        {areasDB.map(area => {
+                        {sortedAreasDB.map(area => {
                             const visualInfo = areaInfoEstatica[area.nombre_area] || {};
+                            const isMandatory = area.nombre_area === 'TODOS_HERMANOS';
                             
                             return (
                                 <AreaCard 
@@ -207,8 +232,10 @@ function HermanoAreaInteres() {
                                     desc={visualInfo.desc || ''}
                                     telegramLink={area.telegram_invite_link}
                                     isFeatured={true}
-                                    isSelected={selectedAreas.includes(area.nombre_area)}
+                                    isSelected={isMandatory ? true : selectedAreas.includes(area.nombre_area)}
                                     onClick={() => handleCheckboxChange(area.nombre_area)}
+
+                                    isLocked={isMandatory} 
                                 />
                             );
                         })}

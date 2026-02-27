@@ -1,24 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api';
-import '../styles/AdminEdicionActo.css';
-import { 
-    Save,
-    FileText,
-    Users,
-    Trash2,
-    AlertCircle,
-    CheckCircle,
-    Info,
-    Church,
-    Heart,
-    Sun,
-    Hammer,
-    BookOpen,
-    Crown,
-    Image as ImageIcon,
-    X
-} from "lucide-react";
+import api from '../../api';
+import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
+import '../AdminEdicionComunicado/AdminEdicionComunicado.css'
+import { Save, FileText, Users, Trash2, AlertCircle, CheckCircle, Church, Heart, Sun, Hammer, BookOpen, Crown, Image as ImageIcon, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -57,6 +42,7 @@ function AdminEdicionComunicado() {
 
     const getAreaIcon = (nombreArea) => {
         switch (nombreArea) {
+            case 'TODOS_HERMANOS': return <Users size={18} />;
             case 'ACOLITOS': return <Church size={18} />;
             case 'COSTALEROS': return <Users size={18} />;
             case 'CARIDAD': return <Heart size={18} />;
@@ -91,7 +77,11 @@ function AdminEdicionComunicado() {
                 if (isMounted) setCurrentUser(resUser.data);
 
                 const resAreas = await api.get("api/areas-interes/");
-                const listaAreas = resAreas.data; 
+                const listaAreas = resAreas.data.sort((a, b) => {
+                    if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+                    if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+                    return a.nombre_area.localeCompare(b.nombre_area);
+                });
                 if (isMounted) setAreasDisponibles(listaAreas);
 
                 const resComunicado = await api.get(`api/comunicados/${id}/`);
@@ -324,7 +314,6 @@ function AdminEdicionComunicado() {
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
                         
-                        {/* ALERTAS */}
                         {error && (
                             <div className="alert-banner-edicion error-edicion">
                                 <AlertCircle size={20} /> <span>{error}</span>
@@ -337,12 +326,11 @@ function AdminEdicionComunicado() {
                         )}
 
                         <form onSubmit={handleSubmit}>
-                            {/* SECCIÓN 1: DATOS */}
-                            <div className="form-section-edicion">
-                                <h3 className="section-title-edicion"><FileText size={18}/> Datos del Comunicado</h3>
-                                <div className="form-grid-edicion grid-2-edicion">
+                            <div className="form-section-creacion-comunicado">
+                                <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
+                                <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
                                     
-                                    <div className="form-group-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-3-creacion-comunicado">
                                         <label>Título *</label>
                                         <input 
                                             type="text" 
@@ -367,23 +355,13 @@ function AdminEdicionComunicado() {
                                         </select>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Imagen de Portada</label>
                                         
                                         {!previewUrl ? (
                                             <div 
                                                 className="image-upload-area"
                                                 onClick={() => document.getElementById('imagen_portada').click()}
-                                                style={{
-                                                    border: '2px dashed #d1d5db',
-                                                    borderRadius: '8px',
-                                                    padding: '20px',
-                                                    textAlign: 'center',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: '#f9fafb',
-                                                    transition: 'all 0.2s',
-                                                    color: '#6b7280'
-                                                }}
                                             >
                                                 <input 
                                                     type="file" 
@@ -391,52 +369,27 @@ function AdminEdicionComunicado() {
                                                     name="imagen_portada"
                                                     accept="image/*"
                                                     onChange={handleImageChange}
-                                                    style={{ display: 'none' }}
                                                 />
-                                                <ImageIcon size={32} style={{ margin: '0 auto 10px', color: '#9ca3af' }}/>
-                                                <p style={{ fontSize: '0.9rem', margin: 0 }}>Haz clic para subir o cambiar la imagen</p>
-                                                <p style={{ fontSize: '0.8rem', color: '#9ca3af', margin: '5px 0 0' }}>JPG, PNG (Max. 5MB)</p>
+                                                <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
+                                                <p>Haz clic para subir o cambiar la imagen</p>
+                                                <small>JPG, PNG (Max. 5MB)</small>
                                             </div>
                                         ) : (
-                                            // ESTADO: CON IMAGEN (Previsualización)
-                                            <div className="image-preview-container" style={{ position: 'relative', width: 'fit-content' }}>
+                                            <div className="image-preview-container">
                                                 <img 
                                                     src={getFullImageUrl(previewUrl)} 
                                                     alt="Portada" 
-                                                    style={{ 
-                                                        maxWidth: '100%', 
-                                                        maxHeight: '300px', 
-                                                        borderRadius: '8px',
-                                                        border: '1px solid #e5e7eb',
-                                                        display: 'block'
-                                                    }}
+                                                    className="image-preview-img"
                                                     onError={(e) => {
                                                         e.target.style.display = 'none';
                                                     }}
                                                 />
                                                 
-                                                {/* Botón cambiar imagen (sobre la imagen) */}
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    bottom: '10px',
-                                                    right: '10px',
-                                                    display: 'flex',
-                                                    gap: '8px'
-                                                }}>
+                                                <div className="image-actions-overlay">
                                                     <button
                                                         type="button"
                                                         onClick={() => document.getElementById('imagen_portada_edit').click()}
-                                                        style={{
-                                                            background: 'rgba(255, 255, 255, 0.9)',
-                                                            border: '1px solid #e5e7eb',
-                                                            borderRadius: '6px',
-                                                            padding: '6px 12px',
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.85rem',
-                                                            fontWeight: '600',
-                                                            color: '#374151',
-                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                        }}
+                                                        className="btn-change-image"
                                                     >
                                                         Cambiar
                                                     </button>
@@ -445,27 +398,14 @@ function AdminEdicionComunicado() {
                                                         id="imagen_portada_edit"
                                                         accept="image/*"
                                                         onChange={handleImageChange}
-                                                        style={{ display: 'none' }}
+                                                        className="hidden-file-input"
                                                     />
                                                 </div>
 
                                                 <button
                                                     type="button"
                                                     onClick={removeImage}
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: '10px',
-                                                        right: '10px',
-                                                        background: 'rgba(255, 255, 255, 0.9)',
-                                                        border: 'none',
-                                                        borderRadius: '50%',
-                                                        padding: '5px',
-                                                        cursor: 'pointer',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }}
+                                                    className="btn-delete-image"
                                                     title="Eliminar imagen"
                                                 >
                                                     <X size={18} color="#ef4444" />
@@ -474,7 +414,7 @@ function AdminEdicionComunicado() {
                                         )}
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-2-creacion-comunicado">
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
                                         <label>Contenido del Mensaje *</label>
                                         <textarea 
                                             name="contenido" 
@@ -488,7 +428,6 @@ function AdminEdicionComunicado() {
                                 </div>
                             </div>
 
-                            {/* SECCIÓN 2: ÁREAS DE INTERÉS (M2M) */}
                             <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
                                 <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
                                     <Users size={18}/> Áreas de Interés (Destinatarios)
@@ -532,35 +471,23 @@ function AdminEdicionComunicado() {
                             </div>
 
                             {/* ACCIONES DEL FORMULARIO */}
-                            <div className="form-actions-edicion" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
+                            <div className="form-actions-creacion-comunicado" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
                                 
                                 <button 
                                     type="button" 
                                     onClick={handleDelete} 
                                     disabled={deleting}
-                                    style={{ 
-                                        backgroundColor: '#fee2e2', 
-                                        color: '#991b1b', 
-                                        border: '1px solid #fca5a5', 
-                                        padding: '10px 20px', 
-                                        borderRadius: '6px', 
-                                        cursor: 'pointer', 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        gap: '8px',
-                                        fontSize: '0.9rem',
-                                        fontWeight: '500'
-                                    }} 
+                                    className="btn-delete-comunicado"
                                 >
                                     <Trash2 size={18} />
                                     {deleting ? "Eliminando..." : "Eliminar Comunicado"}
                                 </button>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/admin/comunicados")}>
+                                    <button type="button" className="btn-cancel-creacion-comunicado" onClick={() => navigate("/admin/comunicados")}>
                                         Cancelar
                                     </button>
-                                    <button type="submit" className="btn-save-edicion" disabled={saving}>
+                                    <button type="submit" className="btn-save-creacion-comunicado" disabled={saving}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                             <Save size={18} />
                                             {saving ? "Guardando..." : "Guardar Cambios"}

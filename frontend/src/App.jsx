@@ -22,20 +22,21 @@ import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
-import AdminCreacionComunicado from "./pages/AdminCreacionComunicado"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
-import AdminEdicionComunicado from "./pages/AdminEdicionComunicado";
 import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres"
-import EditarMiPerfil from "./pages/HermanoEdicionDatos"
+
+import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
+import AdminCreacionComunicado from "./pages/AdminCreacionComunicado/AdminCreacionComunicado"
+import AdminEdicionComunicado from "./pages/AdminEdicionComunicado/AdminEdicionComunicado"
+
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import ProtectedRoute from "./components/ProtectedRoute"
 
-// import CrearActo from "./pages/CrearActo"
 import EditMe from "./pages/EditMe"
 
 
@@ -64,14 +65,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
-          path="/editar-perfil"
-          element={
-            <ProtectedRoute>
-              <EditMe />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/editar-mi-perfil"
           element={
@@ -80,6 +73,24 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/crear-comunicado"
+          element={
+            <ProtectedRoute>
+              <AdminCreacionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/editar-comunicado/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionComunicado />
+            </ProtectedRoute>
+          }
+        />
+
+
         <Route
           path="/interes-hermanos"
           element={
@@ -219,26 +230,10 @@ function App() {
           }
         />
         <Route
-          path="/admin/crear-comunicado"
-          element={
-            <ProtectedRoute>
-              <AdminCreacionComunicado />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin/comunicados"
           element={
             <ProtectedRoute>
               <AdminListadoComunicados />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/comunicados/:id"
-          element={
-            <ProtectedRoute>
-              <AdminEdicionComunicado />
             </ProtectedRoute>
           }
         />
