@@ -1,3 +1,5 @@
+import os
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -833,52 +835,3 @@ class DetalleVinculacionSerializer(serializers.ModelSerializer):
         if obj.vinculado_a:
             return f"{obj.vinculado_a.nombre} {obj.vinculado_a.primer_apellido}"
         return None
-
-
-# -----------------------------------------------------------------------------
-# SERIALIZERS DE COMUNICACIÓN Y NOTICIAS
-# -----------------------------------------------------------------------------
-class ComunicadoListSerializer(serializers.ModelSerializer):
-    """
-    Optimizado para mostrar datos. 
-    Las relaciones M2M se muestran como Strings (nombres).
-    """
-    tipo_display = serializers.CharField(source='get_tipo_comunicacion_display', read_only=True)
-    # Mostramos los nombres directamente
-    areas_interes = serializers.StringRelatedField(many=True, read_only=True)
-    autor_nombre = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Comunicado
-        fields = [
-            'id', 'titulo', 'contenido', 'fecha_emision', 'imagen_portada',
-            'tipo_comunicacion', 'tipo_display', 'autor_nombre', 
-            'areas_interes'
-        ]
-
-    def get_autor_nombre(self, obj):
-        if obj.autor:
-            nombre = getattr(obj.autor, 'nombre', obj.autor.username)
-            ap1 = getattr(obj.autor, 'primer_apellido', '')
-            return f"{nombre} {ap1}".strip()
-        return "Secretaría"
-    
-
-class ComunicadoFormSerializer(serializers.ModelSerializer):
-    """
-    Optimizado para recibir datos de formularios.
-    Recibe IDs para las relaciones.
-    """
-    areas_interes = serializers.PrimaryKeyRelatedField(
-        many=True, 
-        queryset=AreaInteres.objects.all(),
-        required=False,
-        label="IDs de Áreas de Interés"
-    )
-
-    class Meta:
-        model = Comunicado
-        fields = [
-            'id', 'titulo', 'contenido', 'imagen_portada',
-            'tipo_comunicacion', 'areas_interes'
-        ]

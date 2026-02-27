@@ -8,8 +8,10 @@ from api.servicios.comunicado.creacion_comunicado_service import ComunicadoServi
 from api.servicios.papeleta_telegram import TelegramWebhookService
 from api.servicios.hermano.edicion_datos_hermano_service import update_mi_perfil_service
 from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
+from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
+from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
 
-from .serializers import ActoCreateSerializer, AreaInteresSerializer, ComunicadoFormSerializer, ComunicadoListSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
+from .serializers import ActoCreateSerializer, AreaInteresSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -406,105 +408,6 @@ class ActoUpdateView(APIView):
 # -----------------------------------------------------------------------------
 # VIEWS: CREAR COMUNICADO
 # -----------------------------------------------------------------------------
-class ComunicadoListCreateView(APIView):
-    """
-    GET: Lista todos los comunicados ordenados por fecha.
-    POST: Crea un nuevo comunicado usando el Servicio de dominio.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        comunicados = Comunicado.objects.all().order_by('-fecha_emision')
-        serializer = ComunicadoListSerializer(comunicados, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-    def post(self, request):
-        serializer = ComunicadoFormSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            servicio = ComunicadoService()
-            
-            nuevo_comunicado = servicio.create_comunicado(
-                usuario=request.user,
-                data_validada=serializer.validated_data
-            )
-
-            response_serializer = ComunicadoListSerializer(nuevo_comunicado)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-
-        except Exception as e:
-            return Response(
-                {"detail": str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-
-class ComunicadoDetailView(APIView):
-    """
-    Gestiona operaciones sobre un comunicado específico.
-    GET: Ver detalle
-    PUT: Actualizar (Reemplazo total)
-    PATCH: Actualizar parcialmente (Solo campos enviados)
-    DELETE: Eliminar
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        comunicado = get_object_or_404(Comunicado, pk=pk)
-        serializer = ComunicadoListSerializer(comunicado, context={'request': request})
-        return Response(serializer.data)
-
-
-    def put(self, request, pk):
-        """Actualización total (espera todos los campos)"""
-        comunicado = get_object_or_404(Comunicado, pk=pk)
-        
-        serializer = ComunicadoFormSerializer(comunicado, data=request.data) 
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            servicio = ComunicadoService()
-            actualizado = servicio.update_comunicado(
-                usuario=request.user,
-                comunicado_instance=comunicado,
-                data_validada=serializer.validated_data
-            )
-            return Response(ComunicadoListSerializer(actualizado).data)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-    def patch(self, request, pk):
-        """Actualización parcial (solo modifica los campos enviados)"""
-        comunicado = get_object_or_404(Comunicado, pk=pk)
-        serializer = ComunicadoFormSerializer(comunicado, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            servicio = ComunicadoService()
-            actualizado = servicio.update_comunicado(
-                usuario=request.user,
-                comunicado_instance=comunicado,
-                data_validada=serializer.validated_data
-            )
-            return Response(ComunicadoListSerializer(actualizado).data)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-    def delete(self, request, pk):
-        comunicado = get_object_or_404(Comunicado, pk=pk)
-        
-        try:
-            servicio = ComunicadoService()
-            servicio.delete_comunicado(usuario=request.user, comunicado_instance=comunicado)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
 class MisComunicadosListView(generics.ListAPIView):
     """
     Devuelve los comunicados filtrados por las áreas de interés del usuario logueado,

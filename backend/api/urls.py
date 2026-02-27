@@ -6,9 +6,11 @@ from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
 # from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView, SolicitarInsigniaView
+from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
+from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from . import views
 
-from .views import ActoUpdateView, AreaInteresListView, ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoUpdateView, AreaInteresListView, ChatComunicadosView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
