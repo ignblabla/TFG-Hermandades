@@ -26,7 +26,6 @@ urlpatterns = [
     path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
     path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
 
-    # path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
     path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
 
     path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
