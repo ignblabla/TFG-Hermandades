@@ -9,14 +9,18 @@ class ComunicadoService:
 
     def _verificar_permisos(self, usuario):
         """Helper interno para validar permisos de Admin o Junta."""
+        if not usuario.is_authenticated or not hasattr(usuario, 'cuerpos'):
+            raise PermissionDenied("No tienes permisos para gestionar comunicados.")
+
         es_admin = getattr(usuario, 'esAdmin', False)
+
         es_junta = usuario.cuerpos.filter(
             nombre_cuerpo=CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO
         ).exists()
 
         if not (es_admin or es_junta):
             raise PermissionDenied("No tienes permisos para gestionar comunicados.")
-        
+
 
     @transaction.atomic
     def create_comunicado(self, usuario, data_validada):
@@ -99,6 +103,9 @@ class ComunicadoService:
             comunicado_instance.areas_interes.set(areas)
 
         for attr, value in data_validada.items():
+            if not hasattr(comunicado_instance, attr):
+                raise AttributeError(f"El campo '{attr}' no existe en el modelo Comunicado.")
+            
             setattr(comunicado_instance, attr, value)
 
         comunicado_instance.save()

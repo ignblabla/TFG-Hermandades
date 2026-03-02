@@ -31,6 +31,10 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
             'tipo_comunicacion', 'areas_interes'
         ]
 
+        extra_kwargs = {
+            'id': {'read_only': True}
+        }
+
 
     def validate_titulo(self, value):
         """

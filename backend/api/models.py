@@ -297,6 +297,8 @@ class Comunicado(models.Model):
     embedding = models.JSONField(null=True, blank=True, help_text="Vector semántico generado por Gemini para búsquedas RAG")
 
     def save(self, *args, **kwargs):
+        self.full_clean()
+
         generar_nuevo_vector = False
         
         if self.pk is None:
@@ -321,6 +323,7 @@ class Comunicado(models.Model):
                 self.embedding = resultado.embeddings[0].values
             except Exception as e:
                 print(f"⚠️ Error generando embedding para '{self.titulo}': {e}")
+                raise e
 
         super().save(*args, **kwargs)
 
