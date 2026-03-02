@@ -4,6 +4,8 @@ import requests
 from api.models import AreaInteres, Comunicado, CuerpoPertenencia
 from django.conf import settings
 
+from api.servicios.comunicado.gemini_service import generar_y_guardar_embedding_async
+
 
 class ComunicadoService:
 
@@ -33,6 +35,7 @@ class ComunicadoService:
             comunicado.areas_interes.set(areas)
 
         self._notificar_telegram(comunicado, areas)
+        generar_y_guardar_embedding_async(comunicado.id)
 
         return comunicado
     
@@ -102,6 +105,14 @@ class ComunicadoService:
             areas = data_validada.pop('areas_interes')
             comunicado_instance.areas_interes.set(areas)
 
+        generar_nuevo_vector = False
+        titulo_nuevo = data_validada.get('titulo')
+        contenido_nuevo = data_validada.get('contenido')
+
+        if (titulo_nuevo and titulo_nuevo != comunicado_instance.titulo) or \
+            (contenido_nuevo and contenido_nuevo != comunicado_instance.contenido):
+            generar_nuevo_vector = True
+
         for attr, value in data_validada.items():
             if not hasattr(comunicado_instance, attr):
                 raise AttributeError(f"El campo '{attr}' no existe en el modelo Comunicado.")
@@ -109,6 +120,12 @@ class ComunicadoService:
             setattr(comunicado_instance, attr, value)
 
         comunicado_instance.save()
+
+        if generar_nuevo_vector:
+            transaction.on_commit(
+                lambda: generar_y_guardar_embedding_async(comunicado_instance.id)
+            )
+            
         return comunicado_instance
 
     @transaction.atomic

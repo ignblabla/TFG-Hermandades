@@ -476,23 +476,16 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_solo_contenido_genera_nuevo_embedding(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_solo_contenido_genera_nuevo_embedding(self, mock_generar_embedding):
         """
         Test: Actualizar solo el contenido de un comunicado
 
         Given: Un comunicado con título y contenido previos.
         When: se actualiza el campo 'contenido'.
-        Then: el título se mantiene, el contenido cambia y se genera un 
-            nuevo vector de embedding mediante la API de Gemini.
+        Then: el título se mantiene, el contenido cambia y se encola la 
+            regeneración del vector semántico en segundo plano.
         """
-        nuevo_valor_embedding = [0.123, 0.456, 0.789]
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=nuevo_valor_embedding)]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
-
         titulo_original = self.comunicado_existente.titulo
         nuevo_contenido = "Este es el nuevo cuerpo del mensaje, mucho más detallado."
 
@@ -502,20 +495,19 @@ class ActualizarComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=self.comunicado_existente, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=self.comunicado_existente, 
+                data_validada=data_validada
+            )
 
         self.comunicado_existente.refresh_from_db()
 
         self.assertEqual(self.comunicado_existente.contenido, nuevo_contenido)
-
         self.assertEqual(self.comunicado_existente.titulo, titulo_original)
 
-        mock_client_instance.models.embed_content.assert_called_once()
-        self.assertEqual(self.comunicado_existente.embedding, nuevo_valor_embedding)
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
 
 
 
@@ -600,23 +592,17 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_multiples_campos_simultaneamente_ok(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_multiples_campos_simultaneamente_ok(self, mock_generar_embedding):
         """
         Test: Actualizar múltiples campos a la vez
 
         Given: Un comunicado existente y un usuario con permisos.
         When: se envían nuevos valores para título, contenido, tipo e imagen.
         Then: todos los campos se actualizan correctamente en una sola operación
-            y se genera el nuevo embedding correspondiente.
+            y se delega correctamente la regeneración del embedding.
         """
         nueva_img = SimpleUploadedFile(name='multi.jpg', content=b'file_content', content_type='image/jpeg')
-
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=[0.8, 0.8, 0.8])]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
 
         data_validada = {
             "titulo": "Título Multicampo",
@@ -627,26 +613,26 @@ class ActualizarComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=self.comunicado_existente, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=self.comunicado_existente, 
+                data_validada=data_validada
+            )
 
         self.comunicado_existente.refresh_from_db()
-        
+
         self.assertEqual(self.comunicado_existente.titulo, "Título Multicampo")
         self.assertEqual(self.comunicado_existente.contenido, "Nuevo contenido para el test masivo.")
         self.assertEqual(self.comunicado_existente.tipo_comunicacion, "URGENTE")
-
         self.assertIn('multi', self.comunicado_existente.imagen_portada.name)
 
-        self.assertEqual(self.comunicado_existente.embedding, [0.8, 0.8, 0.8])
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_absolutamente_todos_los_campos_ok(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_absolutamente_todos_los_campos_ok(self, mock_generar_embedding):
         """
         Test: Actualización integral de todos los campos editables
 
@@ -654,7 +640,7 @@ class ActualizarComunicadoServiceTest(TestCase):
         When: Se envía un payload que modifica título, contenido, tipo, imagen 
             y la lista de áreas de interés.
         Then: El servicio actualiza cada campo, sincroniza la relación M2M 
-            y regenera el embedding por el cambio de texto.
+            y encola correctamente la tarea asíncrona del embedding.
         """
         nueva_img = SimpleUploadedFile(name='full_update.png', content=b'imgdata', content_type='image/png')
         
@@ -662,13 +648,6 @@ class ActualizarComunicadoServiceTest(TestCase):
             nombre_area=AreaInteres.NombreArea.CARIDAD, 
             telegram_channel_id="999888"
         )
-
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_resultado = MagicMock()
-        embedding_final = [0.99, 0.88, 0.77]
-        mock_resultado.embeddings = [MagicMock(values=embedding_final)]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
 
         data_validada = {
             "titulo": "Actualización Total",
@@ -680,11 +659,12 @@ class ActualizarComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=self.comunicado_existente, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True) as callbacks:
+            servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=self.comunicado_existente, 
+                data_validada=data_validada
+            )
 
         self.comunicado_existente.refresh_from_db()
 
@@ -697,7 +677,10 @@ class ActualizarComunicadoServiceTest(TestCase):
 
         self.assertEqual(self.comunicado_existente.areas_interes.count(), 1)
         self.assertIn(area_nueva, self.comunicado_existente.areas_interes.all())
-        self.assertEqual(self.comunicado_existente.embedding, embedding_final)
+
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
+
+        self.assertEqual(len(callbacks), 1)
 
 
 
@@ -775,41 +758,38 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_titulo_dispara_metodo_save(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_titulo_dispara_metodo_save(self, mock_generar_embedding):
         """
         Test: Actualizar título y verificar que el método save() se ejecuta
 
         Given: Un comunicado existente y un nuevo título.
         When: Se llama a update_comunicado.
         Then: El método save() de la instancia debe ser invocado exactamente una vez
-            para persistir los cambios y el embedding actualizado.
+            para persistir los cambios y se debe encolar la actualización del embedding.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=[0.5, 0.6, 0.7])]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
-
         nuevo_titulo = "Título verificado con save"
         data_validada = {"titulo": nuevo_titulo}
         
         servicio = ComunicadoService()
 
-        with patch.object(self.comunicado_existente, 'save', wraps=self.comunicado_existente.save) as mock_save:
-            servicio.update_comunicado(
-                usuario=self.admin, 
-                comunicado_instance=self.comunicado_existente, 
-                data_validada=data_validada
-            )
+        with self.captureOnCommitCallbacks(execute=True):
 
-            self.assertTrue(mock_save.called)
-            self.assertEqual(mock_save.call_count, 1)
+            with patch.object(self.comunicado_existente, 'save', wraps=self.comunicado_existente.save) as mock_save:
+                servicio.update_comunicado(
+                    usuario=self.admin, 
+                    comunicado_instance=self.comunicado_existente, 
+                    data_validada=data_validada
+                )
+
+                self.assertTrue(mock_save.called)
+                self.assertEqual(mock_save.call_count, 1)
 
         self.comunicado_existente.refresh_from_db()
+
         self.assertEqual(self.comunicado_existente.titulo, nuevo_titulo)
-        self.assertEqual(self.comunicado_existente.embedding, [0.5, 0.6, 0.7])
+
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
 
 
 
@@ -1067,49 +1047,46 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_comunicado_sin_areas_no_toca_relacion_m2m(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_comunicado_sin_areas_no_toca_relacion_m2m(self, mock_generar_embedding):
         """
         Test: Si 'areas_interes' no está en data_validada, no se llama a .set().
 
         Given: Un comunicado que ya tiene áreas asociadas.
         When: Se actualiza solo el título (u otro campo).
         Then: El método .set() del manager M2M no debe ejecutarse, 
-            manteniendo las áreas que ya tenía.
+            manteniendo las áreas que ya tenía, y se lanza la actualización del vector.
         """
         self.comunicado_existente.areas_interes.set([self.area_con_telegram])
-
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=[0.5, 0.5, 0.5])]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
 
         data_validada = {
             "titulo": "Título cambiado sin tocar áreas"
         }
         
         servicio = ComunicadoService()
-
         ManagerClass = type(self.comunicado_existente.areas_interes)
-        
-        with patch.object(ManagerClass, 'set', autospec=True) as mock_set:
-            servicio.update_comunicado(
-                usuario=self.admin, 
-                comunicado_instance=self.comunicado_existente, 
-                data_validada=data_validada
-            )
 
-            self.assertFalse(
-                mock_set.called, 
-                "Se llamó a .set() a pesar de que 'areas_interes' no venía en el payload"
-            )
+        with self.captureOnCommitCallbacks(execute=True):
+            with patch.object(ManagerClass, 'set', autospec=True) as mock_set:
+                servicio.update_comunicado(
+                    usuario=self.admin, 
+                    comunicado_instance=self.comunicado_existente, 
+                    data_validada=data_validada
+                )
+
+                self.assertFalse(
+                    mock_set.called, 
+                    "Se llamó a .set() a pesar de que 'areas_interes' no venía en el payload"
+                )
 
         self.comunicado_existente.refresh_from_db()
+
+        self.assertEqual(self.comunicado_existente.titulo, "Título cambiado sin tocar áreas")
+
         self.assertEqual(self.comunicado_existente.areas_interes.count(), 1)
         self.assertIn(self.area_con_telegram, self.comunicado_existente.areas_interes.all())
-        self.assertEqual(self.comunicado_existente.embedding, [0.5, 0.5, 0.5])
+
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
 
 
 
@@ -1250,21 +1227,16 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_transaccion_confirmada_cuando_datos_son_validos(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_transaccion_confirmada_cuando_datos_son_validos(self, mock_generar_embedding):
         """
         Test: Confirmar que los cambios persisten en la BD al finalizar el servicio.
         
         Given: Un comunicado existente y datos válidos para actualizar.
         When: Se ejecuta update_comunicado satisfactoriamente.
-        Then: Al recuperar el objeto de nuevo de la BD, los cambios deben estar allí.
+        Then: Al recuperar el objeto de nuevo de la BD, los cambios deben estar allí
+            y la tarea del embedding debe encolarse correctamente.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=[0.9, 0.9, 0.9])]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
-
         nuevo_titulo = "Título Post-Transacción"
         nuevas_areas = [self.area_con_telegram]
         data_validada = {
@@ -1274,36 +1246,32 @@ class ActualizarComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        resultado = servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=self.comunicado_existente, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            resultado = servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=self.comunicado_existente, 
+                data_validada=data_validada
+            )
 
         comunicado_db = Comunicado.objects.get(pk=self.comunicado_existente.pk)
-        
+
         self.assertEqual(comunicado_db.titulo, nuevo_titulo)
         self.assertEqual(list(comunicado_db.areas_interes.all()), nuevas_areas)
-        self.assertEqual(comunicado_db.embedding, [0.9, 0.9, 0.9])
+
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.pk)
 
 
 
-    @patch('api.models.genai.Client')
-    def test_persistencia_total_tras_actualizacion_exitosa(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_persistencia_total_tras_actualizacion_exitosa(self, mock_generar_embedding):
         """
         Test: Verificación de persistencia completa (Campos + M2M + Embedding).
 
         Given: Un comunicado con datos antiguos.
         When: Se actualizan múltiples campos y las áreas de interés.
-        Then: La base de datos debe reflejar todos los cambios tras el commit.
+        Then: La base de datos debe reflejar todos los cambios tras el commit
+            y la regeneración del vector debe encolarse correctamente.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_resultado = MagicMock()
-        nuevo_vector = [0.77, 0.88, 0.99]
-        mock_resultado.embeddings = [MagicMock(values=nuevo_vector)]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
-
         nuevas_areas = [self.area_con_telegram]
         data_validada = {
             "titulo": "Título Definitivo",
@@ -1313,11 +1281,12 @@ class ActualizarComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=self.comunicado_existente, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=self.comunicado_existente, 
+                data_validada=data_validada
+            )
 
         comunicado_final = Comunicado.objects.get(pk=self.comunicado_existente.pk)
 
@@ -1327,7 +1296,7 @@ class ActualizarComunicadoServiceTest(TestCase):
         self.assertEqual(comunicado_final.areas_interes.count(), 1)
         self.assertIn(self.area_con_telegram, comunicado_final.areas_interes.all())
 
-        self.assertEqual(comunicado_final.embedding, nuevo_vector)
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.pk)
 
 
 
@@ -1369,23 +1338,17 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_update_comunicado_mantiene_referencia_de_memoria(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_update_comunicado_mantiene_referencia_de_memoria(self, mock_generar_embedding):
         """
         Test: Verificación de identidad del objeto retornado (Referencia de memoria).
 
         Given: Una instancia de comunicado existente.
         When: Se actualiza el comunicado a través del servicio.
         Then: El método debe retornar exactamente la misma instancia física en memoria 
-            que se pasó como argumento, asegurando que no se realizan consultas redundantes.
+            que se pasó como argumento, asegurando que no se realizan consultas redundantes,
+            y encolar la tarea del embedding.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        
-        mock_resultado = MagicMock()
-        mock_resultado.embeddings = [MagicMock(values=[0.1, 0.2, 0.3])]
-        mock_client_instance.models.embed_content.return_value = mock_resultado
-
         data_validada = {
             "titulo": "Cambio de título para verificar referencia",
             "areas_interes": [self.area_con_telegram]
@@ -1394,11 +1357,12 @@ class ActualizarComunicadoServiceTest(TestCase):
         servicio = ComunicadoService()
         instancia_original = self.comunicado_existente
 
-        instancia_retornada = servicio.update_comunicado(
-            usuario=self.admin, 
-            comunicado_instance=instancia_original, 
-            data_validada=data_validada
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            instancia_retornada = servicio.update_comunicado(
+                usuario=self.admin, 
+                comunicado_instance=instancia_original, 
+                data_validada=data_validada
+            )
 
         self.assertIs(
             instancia_retornada, 
@@ -1408,7 +1372,7 @@ class ActualizarComunicadoServiceTest(TestCase):
 
         self.assertEqual(instancia_original.titulo, "Cambio de título para verificar referencia")
 
-        mock_client_instance.models.embed_content.assert_called()
+        mock_generar_embedding.assert_called_once_with(instancia_original.id)
 
 
 
@@ -1899,65 +1863,65 @@ class ActualizarComunicadoServiceTest(TestCase):
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_comunicado_rollback_si_falla_ia(self, mock_genai_client):
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    def test_actualizar_comunicado_ok_incluso_si_falla_ia(self, mock_generar_embedding):
         """
-        Test: Atomicidad de la transacción.
+        Test: Tolerancia a fallos de servicios externos (No debe haber rollback).
         
-        Given: Un comunicado con título "Comunicado Original".
-        When: Se intenta actualizar el título pero la IA de Gemini lanza un error.
-        Then: La base de datos debe hacer rollback y mantener el título "Comunicado Original".
+        Given: Un comunicado existente.
+        When: Se intenta actualizar el título, pero simulamos que el encolado de la tarea de IA falla.
+        Then: La base de datos DEBE guardar los cambios exitosamente, aislando el 
+            fallo de la IA del flujo principal del usuario.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_client_instance.models.embed_content.side_effect = Exception("Google AI Service Unavailable")
+        mock_generar_embedding.side_effect = Exception("Google AI Service Unavailable")
 
         data_validada = {
-            "titulo": "ESTE TITULO NO DEBE GUARDARSE",
+            "titulo": "ESTE TITULO SÍ DEBE GUARDARSE",
             "contenido": "Contenido nuevo"
         }
         
         servicio = ComunicadoService()
 
-        with self.assertRaises(Exception) as context:
-            servicio.update_comunicado(
-                usuario=self.admin, 
-                comunicado_instance=self.comunicado_existente, 
-                data_validada=data_validada
-            )
-        
-        self.assertIn("Google AI Service Unavailable", str(context.exception))
+        try:
+            with self.captureOnCommitCallbacks(execute=True) as callbacks:
+                servicio.update_comunicado(
+                    usuario=self.admin, 
+                    comunicado_instance=self.comunicado_existente, 
+                    data_validada=data_validada
+                )
+        except Exception as e:
+            self.assertIn("Google AI Service Unavailable", str(e))
 
         self.comunicado_existente.refresh_from_db()
 
         self.assertEqual(
             self.comunicado_existente.titulo, 
-            "Comunicado Original",
-            "ERROR: La transacción no hizo rollback. El título se actualizó a pesar del fallo en la IA."
+            "ESTE TITULO SÍ DEBE GUARDARSE",
+            "ERROR: Ocurrió un rollback inesperado."
         )
 
-        self.assertIn("Este es el texto original", self.comunicado_existente.contenido)
+        self.assertEqual(self.comunicado_existente.contenido, "Contenido nuevo")
+
+        mock_generar_embedding.assert_called_once_with(self.comunicado_existente.id)
 
 
 
-    @patch('api.models.genai.Client')
-    def test_actualizar_comunicado_rollback_areas_si_falla_save(self, mock_genai_client):
+    @patch('api.models.Comunicado.save')
+    def test_actualizar_comunicado_rollback_areas_si_falla_save(self, mock_save):
         """
         Test: Atomicidad de la transacción al fallar el guardado final.
 
         Given: Un comunicado existente y un payload que modifica las áreas de interés.
-        When: Se aplica el .set() en BD, pero luego Gemini explota en el .save().
+        When: Se aplica el .set() en BD, pero ocurre un error inesperado al guardar el modelo.
         Then: @transaction.atomic debe revertir la asignación de las áreas en la BD.
         """
-        mock_client_instance = MagicMock()
-        mock_genai_client.return_value = mock_client_instance
-        mock_client_instance.models.embed_content.side_effect = Exception("Fallo catastrófico en Gemini")
+        mock_save.side_effect = Exception("Fallo catastrófico en base de datos")
 
         areas_originales = list(self.comunicado_existente.areas_interes.all())
         titulo_original = self.comunicado_existente.titulo
 
         data_validada = {
-            "titulo": "Título para activar Gemini",
+            "titulo": "Título nuevo que no se guardará",
             "areas_interes": [self.area_con_telegram]
         }
         
@@ -1970,7 +1934,7 @@ class ActualizarComunicadoServiceTest(TestCase):
                 data_validada=data_validada
             )
         
-        self.assertIn("Fallo catastrófico en Gemini", str(context.exception))
+        self.assertIn("Fallo catastrófico en base de datos", str(context.exception))
 
         self.comunicado_existente.refresh_from_db()
 
