@@ -1,4 +1,6 @@
 import os
+import bleach
+from PIL import Image
 from rest_framework import serializers
 from api.models import AreaInteres, Comunicado
 
@@ -67,64 +69,111 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
         """
         Valida y sanea el campo 'contenido' del comunicado.
 
-        Aplica una limpieza de espacios en blanco al inicio y al final del texto
-        para asegurar que el cuerpo del mensaje tenga sustancia real y no esté 
-        compuesto únicamente por caracteres en blanco o retornos de carro.
+        Aplica una limpieza de espacios en blanco y utiliza Bleach para 
+        sanitizar el HTML entrante, previniendo ataques XSS al permitir 
+        exclusivamente un subconjunto seguro de etiquetas y atributos.
 
         Args:
             value (str): El texto original del contenido enviado en la petición HTTP.
 
         Returns:
-            str: El contenido saneado, listo para ser almacenado en la base de datos.
+            str: El contenido HTML saneado, seguro para renderizar y almacenar.
 
         Raises:
-            serializers.ValidationError: Si, tras la limpieza, la cadena de texto 
-                                        resultante está completamente vacía.
+            serializers.ValidationError: Si, tras la limpieza, la cadena resultante 
+                                        está completamente vacía o solo contenía 
+                                        código malicioso/no permitido.
         """
         clean_value = value.strip()
+        
         if not clean_value:
             raise serializers.ValidationError("El contenido no puede estar vacío.")
+
+        etiquetas_permitidas = [
+            'p', 'b', 'i', 'u', 'em', 'strong', 
+            'a', 'ul', 'ol', 'li', 'br', 'h1', 'h2', 'h3'
+        ]
+
+        atributos_permitidas = {
+            'a': ['href', 'title', 'target'],
+        }
+
+        clean_value = bleach.clean(
+            clean_value,
+            tags=etiquetas_permitidas,
+            attributes=atributos_permitidas,
+            strip=True
+        )
+
+        if not clean_value.strip():
+            raise serializers.ValidationError("El contenido no contiene texto o formato válido tras la limpieza de seguridad.")
+
         return clean_value
 
 
     def validate_imagen_portada(self, value):
         """
-        Valida el tamaño y el formato del archivo de imagen subido como portada.
+        Valida el tamaño, el formato real y las dimensiones del archivo de imagen.
 
-        Garantiza que el archivo cumpla con los límites de peso del servidor y con 
-        los requisitos de compatibilidad multimedia de la API de Telegram para el envío 
-        de notificaciones con adjuntos.
-
-        Reglas aplicadas:
-            - Límite máximo de tamaño: 5 MB.
-            - Formatos permitidos: .jpg, .jpeg, .png.
+        Garantiza que el archivo no solo cumpla con los límites de peso y extensión,
+        sino que su contenido binario sea genuinamente una imagen válida (previniendo 
+        archivos maliciosos renombrados) y que sus dimensiones sean razonables para
+        su procesamiento y envío por Telegram.
 
         Args:
-            value (django.core.files.uploadedfile.UploadedFile o None): El archivo 
-                    de imagen recibido en la petición HTTP. Puede ser None si el campo es opcional.
+            value (django.core.files.uploadedfile.UploadedFile o None): El archivo.
 
         Returns:
-            django.core.files.uploadedfile.UploadedFile o None: El mismo archivo original, 
-                    inalterado, en caso de superar todas las validaciones exitosamente.
+            django.core.files.uploadedfile.UploadedFile o None: El archivo validado.
 
         Raises:
-            serializers.ValidationError: Si el archivo supera el tamaño máximo permitido
-                                        o si la extensión no está dentro de la lista blanca.
+            serializers.ValidationError: Si falla cualquier control de seguridad o tamaño.
         """
-        if value:
-            max_size_mb = 5
-            if value.size > (max_size_mb * 1024 * 1024):
-                raise serializers.ValidationError(f"La imagen es demasiado grande. El máximo permitido es de {max_size_mb}MB.")
+        if not value:
+            return value
 
+        max_size_mb = 5
+        if value.size > (max_size_mb * 1024 * 1024):
+            raise serializers.ValidationError(
+                f"La imagen es demasiado grande. El máximo permitido es de {max_size_mb}MB."
+            )
 
-            extension = os.path.splitext(value.name)[1].lower()
-            extensiones_permitidas = ['.jpg', '.jpeg', '.png']
-            
-            if extension not in extensiones_permitidas:
+        extension = os.path.splitext(value.name)[1].lower()
+        extensiones_permitidas = ['.jpg', '.jpeg', '.png']
+        
+        if extension not in extensiones_permitidas:
+            raise serializers.ValidationError(
+                f"Formato de archivo no permitido ({extension}). "
+                "Solo se admiten imágenes JPG, JPEG o PNG."
+            )
+
+        try:
+            value.seek(0)
+
+            img = Image.open(value)
+
+            formato_real = img.format.lower()
+            if formato_real not in ['jpeg', 'png']:
                 raise serializers.ValidationError(
-                    f"Formato de archivo no permitido ({extension}). "
-                    "Solo se admiten imágenes JPG, JPEG o PNG para asegurar el envío a Telegram."
+                    "El archivo parece tener una extensión falsa o está corrupto. "
+                    "Asegúrese de subir una imagen real."
                 )
+
+            max_width, max_height = 4000, 4000
+            if img.width > max_width or img.height > max_height:
+                raise serializers.ValidationError(
+                    f"Las dimensiones de la imagen son demasiado grandes ({img.width}x{img.height}). "
+                    f"El máximo permitido es {max_width}x{max_height} píxeles."
+                )
+
+        except Exception as e:
+            if isinstance(e, serializers.ValidationError):
+                raise e
+            raise serializers.ValidationError("El archivo subido no es una imagen válida o está dañado.")
+            
+        finally:
+            value.seek(0)
+
         return value
 
 

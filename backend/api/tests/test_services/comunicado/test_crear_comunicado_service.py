@@ -1,11 +1,11 @@
 from django.conf import settings
-from django.db import IntegrityError
 from django.utils import timezone
 from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
+from django.core.exceptions import ValidationError
 import sys
 from io import StringIO
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -520,7 +520,7 @@ class CrearComunicadoServiceTest(TestCase):
         Given: Un payload donde el 'titulo' es None.
         When: se llama a create_comunicado.
         Then: 
-            1. Se lanza un IntegrityError por la restricción NOT NULL de la BD.
+            1. Se lanza un ValidationError por la validación del modelo (full_clean).
             2. El registro no se crea.
             3. No se envía notificación.
         """
@@ -529,11 +529,10 @@ class CrearComunicadoServiceTest(TestCase):
         
         servicio = ComunicadoService()
 
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(ValidationError):
             servicio.create_comunicado(self.admin, data_erronea)
 
         self.assertEqual(Comunicado.objects.count(), 0)
-
         mock_post.assert_not_called()
 
 
