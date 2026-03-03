@@ -128,10 +128,25 @@ class ComunicadoService:
             
         return comunicado_instance
 
+
     @transaction.atomic
     def delete_comunicado(self, usuario, comunicado_instance):
         """
-        Borra un comunicado.
+        Borra un comunicado y limpia los archivos multimedia asociados del servidor.
         """
         self._verificar_permisos(usuario)
+
+        imagen_adjunta = comunicado_instance.imagen_portada
+
         comunicado_instance.delete()
+
+        if imagen_adjunta:
+            def eliminar_archivo_seguro():
+                try:
+                    imagen_adjunta.delete(save=False)
+                except Exception:
+                    pass
+            
+            transaction.on_commit(eliminar_archivo_seguro)
+            
+        return True

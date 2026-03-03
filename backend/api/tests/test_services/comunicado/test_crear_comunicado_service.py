@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.models import AnonymousUser
 from django.db import DatabaseError, IntegrityError
 from django.core.exceptions import ValidationError
 import sys
@@ -341,6 +342,39 @@ class CrearComunicadoServiceTest(TestCase):
             servicio.create_comunicado(self.usuario_base, data_validada)
 
         self.assertEqual(str(cm.exception), "No tienes permisos para gestionar comunicados.")
+
+        self.assertEqual(Comunicado.objects.count(), 0)
+
+        mock_post.assert_not_called()
+        mock_generar_embedding.assert_not_called()
+
+
+
+    @patch('api.servicios.comunicado.creacion_comunicado_service.generar_y_guardar_embedding_async')
+    @patch('requests.post')
+    def test_verificar_permisos_deniega_acceso_a_usuario_anonimo(self, mock_post, mock_generar_embedding):
+        """
+        Test: Validación de seguridad para usuarios no autenticados.
+
+        Given: Un objeto AnonymousUser (is_authenticated = False).
+        When: Se intenta llamar a create_comunicado.
+        Then: 
+            1. Se lanza PermissionDenied ("No tienes permisos para gestionar comunicados.").
+            2. Se garantiza que no se crea nada en la BD.
+            3. No se llama a la API de Telegram ni al embedding de Gemini.
+        """
+        usuario_anonimo = AnonymousUser()
+        data_validada = self.payload_comunicado_valido.copy()
+        servicio = ComunicadoService()
+
+        # Acción y Verificación de Excepción
+        with self.assertRaises(PermissionDenied) as cm:
+            servicio.create_comunicado(usuario_anonimo, data_validada)
+
+        self.assertEqual(
+            str(cm.exception), 
+            "No tienes permisos para gestionar comunicados."
+        )
 
         self.assertEqual(Comunicado.objects.count(), 0)
 
