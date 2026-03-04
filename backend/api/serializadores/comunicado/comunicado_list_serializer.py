@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from django.core.exceptions import ObjectDoesNotExist
 from api.models import Comunicado
 
 
@@ -18,8 +18,9 @@ class ComunicadoListSerializer(serializers.ModelSerializer):
         - Campos dinámicos (autor_nombre): Construye y formatea el nombre completo del emisor en tiempo de ejecución, con "Secretaría" como valor de respaldo (fallback).
     """
     tipo_display = serializers.CharField(source='get_tipo_comunicacion_display', read_only=True)
-    areas_interes = serializers.StringRelatedField(many=True, read_only=True)
+    areas_interes = serializers.SerializerMethodField()
     autor_nombre = serializers.SerializerMethodField()
+
 
     class Meta:
         model = Comunicado
@@ -28,6 +29,7 @@ class ComunicadoListSerializer(serializers.ModelSerializer):
             'tipo_comunicacion', 'tipo_display', 'autor_nombre', 
             'areas_interes'
         ]
+
 
     def get_autor_nombre(self, obj):
         """
@@ -46,8 +48,37 @@ class ComunicadoListSerializer(serializers.ModelSerializer):
             str: El nombre formateado del autor (ej. "Juan Pérez"). Si no hay 
                 autor asociado, devuelve la cadena por defecto "Secretaría".
         """
-        if obj.autor:
-            nombre = getattr(obj.autor, 'nombre', obj.autor.username)
-            ap1 = getattr(obj.autor, 'primer_apellido', '')
-            return f"{nombre} {ap1}".strip()
+        try:
+            autor = obj.autor
+            
+            if autor:
+                nombre_raw = getattr(autor, 'nombre', None) or getattr(autor, 'username', None) or ""
+                nombre = str(nombre_raw).strip()
+                
+                ap1_raw = getattr(autor, 'primer_apellido', '') or ""
+                ap1 = str(ap1_raw).strip()
+
+                if not nombre and not ap1:
+                    return "Secretaría"
+
+                return f"{nombre} {ap1}".strip()
+                
+        except Exception: 
+            pass
+            
         return "Secretaría"
+
+
+    def get_areas_interes(self, obj):
+        """
+        Serializa las áreas de interés capturando posibles fallos 
+        en la representación de texto (__str__) del modelo.
+        """
+        nombres_areas = []
+        for area in obj.areas_interes.all():
+            try:
+                nombres_areas.append(str(area))
+            except Exception:
+                nombres_areas.append(f"Área (ID: {area.id})")
+                
+        return nombres_areas
