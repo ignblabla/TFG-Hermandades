@@ -21,9 +21,17 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
     areas_interes = serializers.PrimaryKeyRelatedField(
         many=True, 
         queryset=AreaInteres.objects.all(),
-        required=False,
+        required=True,
         label="IDs de Áreas de Interés"
     )
+
+
+    # Bypass de seguridad:
+    # evitar que Django Rest Framework (DRF) robe el control de las validaciones antes de que tus propios métodos
+    # (validate_titulo, validate_contenido, etc.) puedan ejecutarse.
+    titulo = serializers.CharField(trim_whitespace=False, allow_blank=True)
+    contenido = serializers.CharField(trim_whitespace=False, allow_blank=True)
+    imagen_portada = serializers.FileField(required=False, allow_null=True)
 
 
     class Meta:
@@ -34,7 +42,8 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
         ]
 
         extra_kwargs = {
-            'id': {'read_only': True}
+            'id': {'read_only': True},
+            'tipo_comunicacion': {'required': True} # Forzamos a que sea obligatorio, ignorando el "default" del modelo
         }
 
 
@@ -69,9 +78,9 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
         """
         Valida y sanea el campo 'contenido' del comunicado.
 
-        Aplica una limpieza de espacios en blanco y utiliza Bleach para 
-        sanitizar el HTML entrante, previniendo ataques XSS al permitir 
-        exclusivamente un subconjunto seguro de etiquetas y atributos.
+        Aplica una doble capa de seguridad:
+        1. Filtro estricto (Blacklist): Detecta y rechaza intentos evidentes de XSS.
+        2. Saneamiento (Allowlist): Utiliza Bleach para limpiar el HTML entrante.
 
         Args:
             value (str): El texto original del contenido enviado en la petición HTTP.
@@ -80,14 +89,19 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
             str: El contenido HTML saneado, seguro para renderizar y almacenar.
 
         Raises:
-            serializers.ValidationError: Si, tras la limpieza, la cadena resultante 
-                                        está completamente vacía o solo contenía 
-                                        código malicioso/no permitido.
+            serializers.ValidationError: Si está vacío o contiene código malicioso.
         """
         clean_value = value.strip()
         
         if not clean_value:
             raise serializers.ValidationError("El contenido no puede estar vacío.")
+
+        etiquetas_prohibidas = ['<script', '<iframe', '<object', '<embed', '<style', 'onload=', 'onerror=']
+        value_lower = clean_value.lower()
+        if any(prohibida in value_lower for prohibida in etiquetas_prohibidas):
+            raise serializers.ValidationError(
+                "El contenido no contiene texto o formato válido tras la limpieza de seguridad."
+            )
 
         etiquetas_permitidas = [
             'p', 'b', 'i', 'u', 'em', 'strong', 
@@ -106,7 +120,9 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
         )
 
         if not clean_value.strip():
-            raise serializers.ValidationError("El contenido no contiene texto o formato válido tras la limpieza de seguridad.")
+            raise serializers.ValidationError(
+                "El contenido no contiene texto o formato válido tras la limpieza de seguridad."
+            )
 
         return clean_value
 
@@ -203,3 +219,38 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
                 "Debe seleccionar al menos un área de interés. Si es para todos, elija 'Todos los Hermanos'."
             )
         return value
+
+
+    def to_internal_value(self, data):
+        """
+        Valida la integridad del esquema y transforma los datos de entrada.
+
+        Actúa como un guardián de esquema estricto al interceptar el payload 
+        antes del procesamiento de campos. Sobrescribe el comportamiento por 
+        defecto de DRF para prohibir explícitamente el envío de parámetros 
+        no definidos en el serializador, mitigando riesgos de 'Mass Assignment' 
+        y garantizando la predictibilidad del contrato de la API.
+
+        Args:
+            data (dict): Diccionario de datos brutos provenientes de la petición (JSON/Multipart).
+
+        Returns:
+            dict: Diccionario de datos saneados listos para las validaciones de campo específicas.
+
+        Raises:
+            serializers.ValidationError: Si se detectan claves en el payload que no 
+                                        están permitidas en la definición del serializador.
+        """
+        campos_permitidos = set(self.fields.keys())
+
+        campos_recibidos = set(data.keys())
+
+        campos_extra = campos_recibidos - campos_permitidos
+        
+        if campos_extra:
+            raise serializers.ValidationError({
+                "error": f"Campos no permitidos detectados: {', '.join(campos_extra)}. "
+                        "La API opera en modo estricto y no acepta datos fuera de esquema."
+            })
+            
+        return super().to_internal_value(data)
