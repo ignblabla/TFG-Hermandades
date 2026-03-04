@@ -43,7 +43,6 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
 
         extra_kwargs = {
             'id': {'read_only': True},
-            'tipo_comunicacion': {'required': True} # Forzamos a que sea obligatorio, ignorando el "default" del modelo
         }
 
 
