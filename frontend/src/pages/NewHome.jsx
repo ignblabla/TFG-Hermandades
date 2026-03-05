@@ -4,16 +4,16 @@ import api from '../api';
 import '../styles/AdminCreacionActo.css';
 import '../styles/HomeCard.css';
 import HomeCard from '../components/HomeCard';
+import CultoCard from '../components/CultoCard';
 import { User, Medal, CreditCard, Church, Bookmark } from "lucide-react";
 
 function HermanoNewHome() {
     const navigate = useNavigate();
 
-    const currentYear = new Date().getFullYear();
-    
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
+    const [tiposActo, setTiposActo] = useState([]);
     
     const [currentUser, setCurrentUser] = useState(null);
 
@@ -183,6 +183,34 @@ function HermanoNewHome() {
                         title="Áreas de interés" 
                         value={currentUser?.areas_interes?.length ?? 0} 
                     />
+                </div>
+
+                <h2 className="text-dashboard">Próximos actos y cultos</h2>
+                <div className="cultos-section-dashboard">
+                    <div className="cultos-list">
+                        <CultoCard 
+                            mes="MAYO"
+                            dia="15"
+                            titulo="Misa de Hermandad"
+                            hora="20:30h"
+                            lugar="Capilla de la Hermandad"
+                        />
+
+                        <CultoCard 
+                            mes="MAYO"
+                            dia="20"
+                            titulo="Triduo a San Gonzalo"
+                            hora="20:00h"
+                            lugar="Parroquia de San Gonzalo"
+                        />
+                        <CultoCard 
+                            mes="MAYO"
+                            dia="21"
+                            titulo="Triduo a San Gonzalo"
+                            hora="20:00h"
+                            lugar="Parroquia de San Gonzalo"
+                        />
+                    </div>
                 </div>
             </section>
         </div>
