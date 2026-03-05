@@ -39,7 +39,7 @@ class ComunicadoListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        comunicados = Comunicado.objects.all().order_by('-fecha_emision')
+        comunicados = Comunicado.objects.select_related('autor').prefetch_related('areas_interes').all().order_by('-fecha_emision')
         serializer = ComunicadoListSerializer(comunicados, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
