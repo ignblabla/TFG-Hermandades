@@ -164,9 +164,15 @@ function AdminEdicionComunicado() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setSaving(true);
         setError("");
         setSuccessMsg("");
+
+        if (formData.areas_interes.length === 0) {
+            setError("Debe seleccionar al menos un área de interés. Si es para todos, elija 'Todos los Hermanos'.");
+            return;
+        }
+
+        setSaving(true);
 
         try {
             const dataToSend = new FormData();

@@ -25,3 +25,6 @@ htmlcov/
 .coverage
 .tox/
 .pytest_cache/
+
+# Archivos estáticos y de sistema
+staticfiles/

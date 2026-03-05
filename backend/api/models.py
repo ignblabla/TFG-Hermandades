@@ -289,7 +289,7 @@ class Comunicado(models.Model):
     contenido = models.TextField(verbose_name="Contenido", help_text="Contenido del comunicado. Soporta texto enriquecido si el frontend lo implementa.")
     imagen_portada = models.ImageField(upload_to='comunicados/portadas/', null=True, blank=True, verbose_name="Imagen de Portada", help_text="Imagen principal de la noticia o comunicado")
     fecha_emision = models.DateTimeField(default=timezone.now, verbose_name="Fecha de emisión")
-    tipo_comunicacion = models.CharField(max_length=20, choices=TipoComunicacion.choices, default=TipoComunicacion.GENERAL, verbose_name="Tipo de comunicación")
+    tipo_comunicacion = models.CharField(max_length=20, choices=TipoComunicacion.choices, verbose_name="Tipo de comunicación")
 
     autor = models.ForeignKey(Hermano, on_delete=models.PROTECT, related_name='comunicados_emitidos', verbose_name="Autor (Emisor)")
     areas_interes = models.ManyToManyField(AreaInteres, related_name='comunicados', verbose_name="Áreas destinatarias", blank=True, help_text="Seleccione las áreas a las que va dirigido este comunicado.")
@@ -297,31 +297,7 @@ class Comunicado(models.Model):
     embedding = models.JSONField(null=True, blank=True, help_text="Vector semántico generado por Gemini para búsquedas RAG")
 
     def save(self, *args, **kwargs):
-        generar_nuevo_vector = False
-        
-        if self.pk is None:
-            generar_nuevo_vector = True
-        else:
-            try:
-                viejo = Comunicado.objects.get(pk=self.pk)
-                if viejo.contenido != self.contenido or viejo.titulo != self.titulo:
-                    generar_nuevo_vector = True
-            except Comunicado.DoesNotExist:
-                generar_nuevo_vector = True
-
-        if generar_nuevo_vector and (self.titulo or self.contenido):
-            texto = f"Título: {self.titulo}\nContenido: {self.contenido}"
-            try:
-                client = genai.Client(api_key=settings.GEMINI_API_KEY)
-                resultado = client.models.embed_content(
-                    model='gemini-embedding-001',
-                    contents=texto,
-                    config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
-                )
-                self.embedding = resultado.embeddings[0].values
-            except Exception as e:
-                print(f"⚠️ Error generando embedding para '{self.titulo}': {e}")
-
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

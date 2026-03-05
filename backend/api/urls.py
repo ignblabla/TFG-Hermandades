@@ -6,9 +6,11 @@ from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
 # from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView, SolicitarInsigniaView
+from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
+from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from . import views
 
-from .views import ActoUpdateView, AreaInteresListView, ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoUpdateView, AreaInteresListView, ChatComunicadosView, CrearActoView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoListCreateView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -24,7 +26,6 @@ urlpatterns = [
     path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
     path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
 
-    # path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
     path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
 
     path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
