@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import '../styles/AdminCreacionActo.css';
+// import '../styles/AdminCreacionActo.css';
 import '../styles/HomeCard.css';
+import '../styles/HermanoNewHome.css'
 import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
+import NewsCardHome from '../components/NewsCardHome';
 import { User, Medal, CreditCard, Church, Bookmark } from "lucide-react";
 
 function HermanoNewHome() {
@@ -60,6 +62,8 @@ function HermanoNewHome() {
         localStorage.clear();
         navigate("/login");
     };
+
+    const imagenNoticia = "/portada-comunicado.png"
 
     if (loading) return <div className="loading-screen">Cargando configuración...</div>;
 
@@ -185,31 +189,57 @@ function HermanoNewHome() {
                     />
                 </div>
 
-                <h2 className="text-dashboard">Próximos actos y cultos</h2>
-                <div className="cultos-section-dashboard">
-                    <div className="cultos-list">
-                        <CultoCard 
-                            mes="MAYO"
-                            dia="15"
-                            titulo="Misa de Hermandad"
-                            hora="20:30h"
-                            lugar="Capilla de la Hermandad"
-                        />
+                <div className="new-home-dashboard-bottom-section">
+                    <div className="new-home-dashboard-cultos-column">
+                        <h2 className="text-dashboard" style={{ marginTop: 0 }}>Próximos actos y cultos</h2>
+                        <div className="cultos-section-dashboard">
+                            <div className="cultos-list">
+                                <CultoCard 
+                                    mes="MAYO"
+                                    dia="15"
+                                    titulo="Misa de Hermandad"
+                                    hora="20:30h"
+                                    lugar="Capilla de la Hermandad"
+                                />
 
-                        <CultoCard 
-                            mes="MAYO"
-                            dia="20"
-                            titulo="Triduo a San Gonzalo"
-                            hora="20:00h"
-                            lugar="Parroquia de San Gonzalo"
-                        />
-                        <CultoCard 
-                            mes="MAYO"
-                            dia="21"
-                            titulo="Triduo a San Gonzalo"
-                            hora="20:00h"
-                            lugar="Parroquia de San Gonzalo"
-                        />
+                                <CultoCard 
+                                    mes="MAYO"
+                                    dia="20"
+                                    titulo="Triduo a San Gonzalo"
+                                    hora="20:00h"
+                                    lugar="Parroquia de San Gonzalo"
+                                />
+                                <CultoCard 
+                                    mes="MAYO"
+                                    dia="21"
+                                    titulo="Triduo a San Gonzalo"
+                                    hora="20:00h"
+                                    lugar="Parroquia de San Gonzalo"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* COLUMNA DERECHA: NOTICIAS */}
+                    <div className="new-home-dashboard-news-column">
+                        <h2 className="text-dashboard" style={{ marginTop: 0 }}>Noticias recientes</h2>
+                        <div className="new-home-news-grid-container">
+                            <NewsCardHome 
+                                imagen={imagenNoticia}
+                                titulo="Nuevo horario de apertura de la Capilla para la época estival"
+                                fecha="10 de Mayo, 2026"
+                                contenido="A partir de la próxima semana, la Capilla abrirá sus puertas en horario de tarde desde las 19:00h hasta las 21:30h. Durante las mañanas el horario permanecerá igual."
+                                enlace="/noticias/horario-verano"
+                            />
+                            
+                            <NewsCardHome 
+                                imagen={imagenNoticia}
+                                titulo="Convocatoria de Cabildo General Ordinario"
+                                fecha="05 de Mayo, 2026"
+                                contenido="Se convoca a todos los hermanos mayores de 18 años y con al menos un año de antigüedad al Cabildo General que tendrá lugar el próximo día 28."
+                                enlace="/noticias/cabildo-ordinario"
+                            />
+                        </div>
                     </div>
                 </div>
             </section>

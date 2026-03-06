@@ -1,0 +1,49 @@
+.new-home-dashboard-bottom-section {
+    display: flex;
+    flex-direction: row;
+    padding: 0 20px 20px 20px;
+    gap: 30px;
+}
+
+.new-home-dashboard-cultos-column {
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+}
+
+.new-home-dashboard-news-column {
+    width: 75%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cultos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%; 
+}
+
+.new-home-news-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+@media (max-width: 1024px) {
+    .new-home-dashboard-bottom-section {
+        flex-direction: column;
+    }
+
+    .new-home-dashboard-cultos-column,
+    .new-home-dashboard-news-column {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .new-home-news-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
