@@ -23,6 +23,7 @@ function AdminCreacionActo() {
 
     const [formData, setFormData] = useState({
         nombre: '',
+        lugar: '',
         descripcion: '',
         fecha: '',
         tipo_acto: '',
@@ -279,6 +280,18 @@ function AdminCreacionActo() {
                                             value={formData.nombre} 
                                             onChange={handleChange} 
                                             placeholder={`Ej: Estación de Penitencia ${currentYear}`}
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="form-group-creacion-acto span-2-main">
+                                        <label>Lugar de celebración *</label>
+                                        <input 
+                                            type="text" 
+                                            name="lugar" 
+                                            value={formData.lugar} 
+                                            onChange={handleChange} 
+                                            placeholder="Ej: Parroquia de San Gonzalo"
                                             required 
                                         />
                                     </div>

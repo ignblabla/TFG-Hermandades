@@ -337,7 +337,7 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado']
+        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado']
 
     read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
@@ -729,6 +729,7 @@ class ActoCreateSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'nombre',
+            'lugar',
             'descripcion',
             'fecha',
             'modalidad',
@@ -740,8 +741,8 @@ class ActoCreateSerializer(serializers.ModelSerializer):
             'fin_solicitud_cirios'
         ]
 
-    
-    
+
+
 class ActoUpdateSerializer(serializers.ModelSerializer):
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
 
@@ -755,6 +756,7 @@ class ActoUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'nombre',
+            'lugar',
             'descripcion',
             'fecha',
             'modalidad',
