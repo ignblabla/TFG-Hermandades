@@ -36,6 +36,7 @@ import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
+import AdminCrearActo from "./pages/AdminCrearActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -279,6 +280,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/crear-acto"
+          element={
+            <ProtectedRoute>
+              <AdminCrearActo />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/new-home"
           element={

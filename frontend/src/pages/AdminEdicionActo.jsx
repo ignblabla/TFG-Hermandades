@@ -26,6 +26,7 @@ function AdminEdicionActo() {
 
     const [formData, setFormData] = useState({
         nombre: '',
+        lugar: '',
         descripcion: '',
         fecha: '',
         tipo_acto: '',
@@ -67,6 +68,7 @@ function AdminEdicionActo() {
                 if (isMounted) {
                     setFormData({
                         nombre: data.nombre,
+                        lugar: data.lugar || '',
                         descripcion: data.descripcion || '',
                         fecha: formatDateForInput(data.fecha),
                         tipo_acto: data.tipo_acto,
@@ -162,6 +164,7 @@ function AdminEdicionActo() {
                 const errorData = err.response?.data;
                 setError(typeof errorData === 'object' ? JSON.stringify(errorData) : "Error al validar.");
             }
+            window.scrollTo(0, 0);
         } finally {
             setSaving(false);
         }
@@ -298,6 +301,18 @@ function AdminEdicionActo() {
                                             name="nombre" 
                                             value={formData.nombre} 
                                             onChange={handleChange} 
+                                            required 
+                                        />
+                                    </div>
+
+                                    <div className="form-group-creacion-acto span-2-main">
+                                        <label>Lugar de celebración *</label>
+                                        <input 
+                                            type="text" 
+                                            name="lugar" 
+                                            value={formData.lugar} 
+                                            onChange={handleChange} 
+                                            placeholder="Ej: Parroquia de San Gonzalo"
                                             required 
                                         />
                                     </div>

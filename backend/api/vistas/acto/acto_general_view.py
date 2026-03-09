@@ -29,3 +29,5 @@ class ActoCreateView(APIView):
                 return Response({'detail': str(e)}, status=status.HTTP_403_FORBIDDEN)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

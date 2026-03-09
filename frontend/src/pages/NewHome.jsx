@@ -15,9 +15,9 @@ function HermanoNewHome() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
-    const [tiposActo, setTiposActo] = useState([]);
-    
+
     const [currentUser, setCurrentUser] = useState(null);
+    const [proximosActos, setProximosActos] = useState([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -28,18 +28,16 @@ function HermanoNewHome() {
                 
                 if (isMounted) setCurrentUser(user);
 
-                if (!user.esAdmin) {
-                    alert("No tienes permisos para crear actos.");
-                    navigate("/home");
-                    return;
-                }
-
-                const resTipos = await api.get("api/tipos-acto/"); 
-                if (isMounted) setTiposActo(resTipos.data);
+                const resProximos = await api.get("api/actos/proximos/");
+                if (isMounted) setProximosActos(resProximos.data);
 
             } catch (err) {
-                console.error(err);
+                console.error("Error al cargar configuración inicial:", err);
                 if (isMounted) setError("Error al cargar configuración inicial.");
+
+                if (err.response && err.response.status === 401) {
+                    navigate("/login");
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -194,28 +192,38 @@ function HermanoNewHome() {
                         <h2 className="cultos-section-title">Próximos actos y cultos</h2>
                         <div className="cultos-section-dashboard">
                             <div className="cultos-list">
-                                <CultoCard 
-                                    mes="MAYO"
-                                    dia="15"
-                                    titulo="Misa de Hermandad"
-                                    hora="20:30h"
-                                    lugar="Capilla de la Hermandad"
-                                />
+                                {proximosActos.length > 0 ? (
+                                    proximosActos.map((acto) => {
+                                        const fechaObj = new Date(acto.fecha);
 
-                                <CultoCard 
-                                    mes="MAYO"
-                                    dia="20"
-                                    titulo="Triduo a San Gonzalo"
-                                    hora="20:00h"
-                                    lugar="Parroquia de San Gonzalo"
-                                />
-                                <CultoCard 
-                                    mes="MAYO"
-                                    dia="21"
-                                    titulo="Triduo a San Gonzalo"
-                                    hora="20:00h"
-                                    lugar="Parroquia de San Gonzalo"
-                                />
+                                        const mesStr = fechaObj.toLocaleString('es-ES', { month: 'short' })
+                                            .toUpperCase()
+                                            .replace('.', '');
+
+                                        const diaStr = fechaObj.getDate().toString();
+
+                                        const horaStr = fechaObj.toLocaleTimeString('es-ES', { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit' 
+                                        }) + 'h';
+
+                                        return (
+                                            <CultoCard 
+                                                key={acto.id}
+                                                mes={mesStr}
+                                                dia={diaStr}
+                                                titulo={acto.nombre}
+                                                hora={horaStr}
+                                                lugar={acto.lugar || "Lugar por determinar"}
+                                            />
+                                        );
+                                    })
+                                ) : (
+                                    <p style={{ color: '#666', fontStyle: 'italic' }}>
+                                        No hay actos próximos programados en este momento.
+                                    </p>
+                                )}
+
                             </div>
                         </div>
                     </div>

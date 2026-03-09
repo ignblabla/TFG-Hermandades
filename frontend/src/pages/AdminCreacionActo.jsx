@@ -34,7 +34,6 @@ function AdminCreacionActo() {
         fin_solicitud_cirios: ''
     });
 
-    // --- CARGA INICIAL (Usuario + Tipos de Acto) ---
     useEffect(() => {
         let isMounted = true;
         const fetchData = async () => {
@@ -92,6 +91,9 @@ function AdminCreacionActo() {
                     newData.fin_solicitud = '';
                     newData.inicio_solicitud_cirios = '';
                     newData.fin_solicitud_cirios = '';
+                    newData.modalidad = '';
+                } else if (!newData.modalidad) {
+                    newData.modalidad = 'TRADICIONAL';
                 }
             }
         }
@@ -116,6 +118,10 @@ function AdminCreacionActo() {
         dateFields.forEach(field => {
             if (!payload[field]) payload[field] = null;
         });
+
+        if (!requierePapeleta) {
+            payload.modalidad = null;
+        }
 
         try {
             await api.post('api/actos/crear/', payload);

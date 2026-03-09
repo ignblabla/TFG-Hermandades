@@ -9,6 +9,7 @@ from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, Soli
 from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
 from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from api.vistas.acto.acto_general_view import ActoCreateView
+from api.vistas.acto.proximos_actos_view import ProximosActosView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -18,6 +19,9 @@ urlpatterns = [
     path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),
     path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
     # path("actos/", ActoCreateView.as_view(), name="crear-acto"),
+
+    path("actos/proximos/", ProximosActosView.as_view(), name="proximos-actos"),
+
     path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
     path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
