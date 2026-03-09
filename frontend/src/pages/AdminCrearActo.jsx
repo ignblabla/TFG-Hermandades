@@ -463,7 +463,7 @@ function AdminCrearActo() {
                         </form>
 
                         <div className="container-cultos-card">
-                            {/* <ResumenActoCard formData={formData} /> */}
+                            <ResumenActoCard formData={formData} />
                         </div>
                     </div>
                 </div>
