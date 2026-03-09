@@ -19,7 +19,6 @@ import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
-import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
@@ -31,12 +30,12 @@ import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado/AdminCreacionComunicado"
 import AdminEdicionComunicado from "./pages/AdminEdicionComunicado/AdminEdicionComunicado"
+import AdminCrearActo from "./pages/AdminCreacionActo/AdminCrearActo"
 
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
-import AdminCrearActo from "./pages/AdminCrearActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -88,6 +87,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/crear-acto"
+          element={
+            <ProtectedRoute>
+              <AdminCrearActo />
             </ProtectedRoute>
           }
         />
@@ -216,14 +223,6 @@ function App() {
           } 
         />
         <Route
-          path="/admin/crear-acto"
-          element={
-            <ProtectedRoute>
-              <AdminCreacionActo />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin/editar-acto/:id"
           element={
             <ProtectedRoute>
@@ -280,16 +279,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/crear-acto"
-          element={
-            <ProtectedRoute>
-              <AdminCrearActo />
-            </ProtectedRoute>
-          }
-        />
-
         <Route
           path="/new-home"
           element={

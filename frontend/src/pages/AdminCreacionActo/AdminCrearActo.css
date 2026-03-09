@@ -57,17 +57,47 @@
 .form-input-crear-acto {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #800020;
     border-radius: 6px;
     font-size: 0.9rem;
     color: #374151;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .form-input-crear-acto:focus {
+    background-color: #fce9ed;
     border-color: var(--burgundy-primary);
     box-shadow: 0 0 0 3px rgba(128, 0, 32, 0.1);
+}
+
+.form-input-crear-acto:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+
+select.form-input-crear-acto:disabled {
+    opacity: 0.8;
+}
+
+.input-wrapper-crear-acto {
+    position: relative;
+    width: 100%;
+}
+
+.input-lock-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.form-input-crear-acto.has-icon {
+    padding-right: 2.5rem; 
 }
 
 .form-row-2-cols-crear-acto {
