@@ -39,7 +39,7 @@
 }
 
 .culto-date-box {
-    background-color: var(--burgundy-light);
+    background-color: #800020;
     border-radius: 8px;
     padding: 6px 10px;
     display: flex;
@@ -52,7 +52,7 @@
 }
 
 .culto-month {
-    color: var(--burgundy-primary);
+    color: #ffffff;
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -61,7 +61,7 @@
 }
 
 .culto-day {
-    color: var(--burgundy-dark);
+    color: #ffffff;
     font-size: 1.4rem;
     font-weight: 900;
     line-height: 1;

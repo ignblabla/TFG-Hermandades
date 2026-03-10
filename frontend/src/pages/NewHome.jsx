@@ -190,7 +190,7 @@ function HermanoNewHome() {
 
                 <div className="new-home-dashboard-bottom-section">
                     <div className="new-home-dashboard-cultos-column">
-                        <h2 className="cultos-section-title">Próximos actos y cultos</h2>
+                        <h2 className="cultos-section-title">Próximos eventos</h2>
                         <div className="cultos-section-dashboard">
                             <div className="cultos-list">
                                 {proximosActos.length > 0 ? (
@@ -230,7 +230,7 @@ function HermanoNewHome() {
                     </div>
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
-                    {/* <div className="new-home-dashboard-news-column">
+                    <div className="new-home-dashboard-news-column">
                         <h2 className="cultos-section-title">Noticias recientes</h2>
                         <div className="new-home-news-grid-container">
                             <NewsCardHome 
@@ -240,23 +240,8 @@ function HermanoNewHome() {
                                 contenido="A partir de la próxima semana, la Capilla abrirá sus puertas en horario de tarde desde las 19:00h hasta las 21:30h. Durante las mañanas el horario permanecerá igual."
                                 enlace="/noticias/horario-verano"
                             />
-                            
-                            <NewsCardHome 
-                                imagen={imagenNoticia}
-                                titulo="Convocatoria de Cabildo General Ordinario"
-                                fecha="05 de Mayo, 2026"
-                                contenido="Se convoca a todos los hermanos mayores de 18 años y con al menos un año de antigüedad al Cabildo General que tendrá lugar el próximo día 28."
-                                enlace="/noticias/cabildo-ordinario"
-                            />
-                            <NewsCardHome 
-                                imagen={imagenNoticia}
-                                titulo="Convocatoria de Cabildo General Ordinario"
-                                fecha="05 de Mayo, 2026"
-                                contenido="Se convoca a todos los hermanos mayores de 18 años y con al menos un año de antigüedad al Cabildo General que tendrá lugar el próximo día 28."
-                                enlace="/noticias/cabildo-ordinario"
-                            />
                         </div>
-                    </div> */}
+                    </div>
                 </div>
             </section>
         </div>
