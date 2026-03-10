@@ -10,6 +10,7 @@ from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateVi
 from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from api.vistas.acto.acto_general_view import ActoCreateView
 from api.vistas.acto.proximos_actos_view import ProximosActosView
+from api.vistas.comunicado.ultimo_comunicado_view import UltimoComunicadoAreaInteresView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -53,6 +54,7 @@ urlpatterns = [
     path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
     path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
     path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
+    path('comunicados/ultimo-area-interes/', UltimoComunicadoAreaInteresView.as_view(), name='ultimo-comunicado-areas'),
 
     path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
 

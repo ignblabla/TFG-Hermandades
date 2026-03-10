@@ -20,14 +20,14 @@ function HermanoNewHome() {
     const [currentUser, setCurrentUser] = useState(null);
     const [proximosActos, setProximosActos] = useState([]);
 
+    const [ultimoComunicado, setUltimoComunicado] = useState(null);
+
     useEffect(() => {
         let isMounted = true;
         const fetchData = async () => {
             try {
                 const resUser = await api.get("api/me/");
-                const user = resUser.data;
-                
-                if (isMounted) setCurrentUser(user);
+                if (isMounted) setCurrentUser(resUser.data);
 
                 const resProximos = await api.get("api/actos/proximos/");
                 if (isMounted) setProximosActos(resProximos.data);
@@ -38,6 +38,17 @@ function HermanoNewHome() {
 
                 if (err.response && err.response.status === 401) {
                     navigate("/login");
+                }
+            } 
+
+            try {
+                const resNoticia = await api.get("api/comunicados/ultimo-area-interes/");
+                if (isMounted) setUltimoComunicado(resNoticia.data);
+            } catch (err) {
+                if (err.response && err.response.status === 404) {
+                    if (isMounted) setUltimoComunicado(null);
+                } else {
+                    console.error("Error al cargar la última noticia:", err);
                 }
             } finally {
                 if (isMounted) setLoading(false);
@@ -62,7 +73,12 @@ function HermanoNewHome() {
         navigate("/login");
     };
 
-    const imagenNoticia = "/portada-comunicado.png"
+    const imagenFallback = "/portada-comunicado.png";
+
+    const formatearFechaNoticia = (fechaString) => {
+        const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+        return new Date(fechaString).toLocaleDateString('es-ES', opciones);
+    };
 
     if (loading) return <div className="loading-screen">Cargando configuración...</div>;
 
@@ -233,13 +249,19 @@ function HermanoNewHome() {
                     <div className="new-home-dashboard-news-column">
                         <h2 className="cultos-section-title">Noticias recientes</h2>
                         <div className="new-home-news-grid-container">
-                            <NewsCardHome 
-                                imagen={imagenNoticia}
-                                titulo="Nuevo horario de apertura de la Capilla para la época estival"
-                                fecha="10 de Mayo, 2026"
-                                contenido="A partir de la próxima semana, la Capilla abrirá sus puertas en horario de tarde desde las 19:00h hasta las 21:30h. Durante las mañanas el horario permanecerá igual."
-                                enlace="/noticias/horario-verano"
-                            />
+                            {ultimoComunicado ? (
+                                <NewsCardHome 
+                                    imagen={ultimoComunicado.imagen_portada || imagenFallback}
+                                    titulo={ultimoComunicado.titulo}
+                                    fecha={formatearFechaNoticia(ultimoComunicado.fecha_emision)}
+                                    contenido={ultimoComunicado.contenido}
+                                    enlace={`/comunicados/${ultimoComunicado.id}`}
+                                />
+                            ) : (
+                                <p style={{ color: '#666', fontStyle: 'italic' }}>
+                                    No hay comunicados recientes para mostrar.
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
