@@ -15,6 +15,7 @@ function HermanoNewHome() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
+    const [error, setError] = useState("");
 
     const [currentUser, setCurrentUser] = useState(null);
     const [proximosActos, setProximosActos] = useState([]);
@@ -229,7 +230,7 @@ function HermanoNewHome() {
                     </div>
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
-                    <div className="new-home-dashboard-news-column">
+                    {/* <div className="new-home-dashboard-news-column">
                         <h2 className="cultos-section-title">Noticias recientes</h2>
                         <div className="new-home-news-grid-container">
                             <NewsCardHome 
@@ -255,7 +256,7 @@ function HermanoNewHome() {
                                 enlace="/noticias/cabildo-ordinario"
                             />
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </section>
         </div>

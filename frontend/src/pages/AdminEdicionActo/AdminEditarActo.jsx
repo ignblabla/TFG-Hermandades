@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionActo/AdminCrearActo.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock } from "lucide-react";
+import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowLeft } from "lucide-react";
 import ResumenActoCard from '../../components/ResumenActoCard';
 
-function AdminCrearActo() {
+function AdminEditarActo() {
     const navigate = useNavigate();
+    const { id } = useParams();
 
     const currentYear = new Date().getFullYear();
     const minDate = `${currentYear}-01-01T00:00`;
@@ -21,32 +22,40 @@ function AdminCrearActo() {
     const [currentUser, setCurrentUser] = useState(null);
     const [tiposActo, setTiposActo] = useState([]);
     const [requierePapeleta, setRequierePapeleta] = useState(false);
+    
+    const [isDateLocked, setIsDateLocked] = useState(false);
 
-    // 1. Inicializamos modalidad vacía
     const [formData, setFormData] = useState({
         nombre: '',
         lugar: '',
         descripcion: '',
         fecha: '',
         tipo_acto: '',
-        modalidad: '', // Antes era 'TRADICIONAL'
+        modalidad: '',
         inicio_solicitud: '',
         fin_solicitud: '',
         inicio_solicitud_cirios: '',
         fin_solicitud_cirios: ''
     });
 
+    const formatDateForInput = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return isoString.slice(0, 16); 
+    };
+
+    // --- CARGA INICIAL ---
     useEffect(() => {
         let isMounted = true;
+        
         const fetchData = async () => {
             try {
                 const resUser = await api.get("api/me/");
                 const user = resUser.data;
-                
                 if (isMounted) setCurrentUser(user);
 
                 if (!user.esAdmin) {
-                    alert("No tienes permisos para crear actos.");
+                    alert("No tienes permisos para editar actos.");
                     navigate("/home");
                     return;
                 }
@@ -54,9 +63,37 @@ function AdminCrearActo() {
                 const resTipos = await api.get("api/tipos-acto/"); 
                 if (isMounted) setTiposActo(resTipos.data);
 
+                const resActo = await api.get(`api/actos/${id}/`);
+                const data = resActo.data;
+
+                if (isMounted) {
+                    setFormData({
+                        nombre: data.nombre,
+                        lugar: data.lugar || '',
+                        descripcion: data.descripcion || '',
+                        fecha: formatDateForInput(data.fecha),
+                        tipo_acto: data.tipo_acto,
+                        modalidad: data.modalidad,
+                        inicio_solicitud: formatDateForInput(data.inicio_solicitud),
+                        fin_solicitud: formatDateForInput(data.fin_solicitud),
+                        inicio_solicitud_cirios: formatDateForInput(data.inicio_solicitud_cirios),
+                        fin_solicitud_cirios: formatDateForInput(data.fin_solicitud_cirios)
+                    });
+
+                    setRequierePapeleta(data.requiere_papeleta);
+
+                    if (data.inicio_solicitud) {
+                        const now = new Date();
+                        const inicio = new Date(data.inicio_solicitud);
+                        if (now >= inicio) {
+                            setIsDateLocked(true);
+                        }
+                    }
+                }
+
             } catch (err) {
                 console.error(err);
-                if (isMounted) setError("Error al cargar configuración inicial.");
+                if (isMounted) setError("Error al cargar los datos del acto.");
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -64,38 +101,26 @@ function AdminCrearActo() {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [navigate]);
-
-    // --- EFECTO MENSAJES ---
-    useEffect(() => {
-        if (successMsg) {
-            const timer = setTimeout(() => setSuccessMsg(""), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [successMsg]);
+    }, [id, navigate]);
 
     // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
         let newData = { ...formData, [name]: value };
 
-        // Lógica especial para TIPO DE ACTO
         if (name === 'tipo_acto') {
             const tipoSeleccionado = tiposActo.find(t => t.tipo === value);
             if (tipoSeleccionado) {
                 setRequierePapeleta(tipoSeleccionado.requiere_papeleta);
-                
                 if (!tipoSeleccionado.requiere_papeleta) {
+                    newData.modalidad = '';
                     newData.inicio_solicitud = '';
                     newData.fin_solicitud = '';
                     newData.inicio_solicitud_cirios = '';
                     newData.fin_solicitud_cirios = '';
-                    newData.modalidad = '';
                 } else {
-                    // 2. Forzamos a que vuelva a elegir la modalidad
                     newData.modalidad = '';
                 }
             }
@@ -105,7 +130,6 @@ function AdminCrearActo() {
             newData.inicio_solicitud_cirios = '';
             newData.fin_solicitud_cirios = '';
         }
-
         setFormData(newData);
     };
 
@@ -113,41 +137,41 @@ function AdminCrearActo() {
         e.preventDefault();
         setSaving(true);
         setError("");
-        setSuccessMsg("");
 
         const payload = { ...formData };
-        const dateFields = ['inicio_solicitud', 'fin_solicitud', 'inicio_solicitud_cirios', 'fin_solicitud_cirios'];
-        
-        dateFields.forEach(field => {
-            if (!payload[field]) payload[field] = null;
+
+        Object.keys(payload).forEach(key => {
+            if (payload[key] === '') payload[key] = null;
         });
 
         if (!requierePapeleta) {
             payload.modalidad = null;
+            payload.inicio_solicitud = null;
+            payload.fin_solicitud = null;
+            payload.inicio_solicitud_cirios = null;
+            payload.fin_solicitud_cirios = null;
+        } else if (payload.modalidad === 'UNIFICADO') {
+            payload.inicio_solicitud_cirios = null;
+            payload.fin_solicitud_cirios = null;
         }
 
         try {
-            await api.post('api/actos/crear/', payload);
-            setSuccessMsg("Acto creado correctamente.");
-            
-            setTimeout(() => {
-                navigate("/home");
-            }, 1500);
-
+            await api.put(`api/actos/${id}/editar/`, payload);
+            setSuccessMsg("Acto actualizado correctamente.");
+            setTimeout(() => navigate("/home"), 1500);
         } catch (err) {
-            console.error(err);
-            // 5. Mismo sistema de errores que en Editar
             if (err.response?.status === 500) {
                 setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
             } else {
                 const errorData = err.response?.data;
+
                 if (typeof errorData === 'object' && errorData !== null) {
                     const mensajesLimpios = Object.values(errorData)
                         .flat()
                         .join(" | ");
                     setError(mensajesLimpios || "Error al validar los datos del acto.");
                 } else {
-                    setError(typeof errorData === 'string' ? errorData : "Error al crear el acto.");
+                    setError(typeof errorData === 'string' ? errorData : "Error al guardar el acto.");
                 }
             }
             window.scrollTo(0, 0);
@@ -161,7 +185,7 @@ function AdminCrearActo() {
         navigate("/login");
     };
 
-    if (loading) return <div className="loading-screen">Cargando configuración...</div>;
+    if (loading) return <div className="loading-screen">Cargando datos del acto...</div>;
 
     return (
         <div>
@@ -249,18 +273,12 @@ function AdminCrearActo() {
                 </ul>
             </div>
 
-            {/* --- CONTENIDO PRINCIPAL --- */}
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Crear nuevo acto</div>
+                <div className="text-dashboard">Editar acto</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="dashboard-layout-wrapper">
                         <form className="container-crear-acto" onSubmit={handleSubmit}>
-                            
-                            <h3 className="section-title-crear-acto">
-                                <FileText size={18} /> Información general
-                            </h3>
 
-                            {/* 4. Bloques de Error y Éxito integrados DENTRO del form */}
                             {error && (
                                 <div className="alert-error-crear-acto" style={{ 
                                     backgroundColor: '#fee2e2', 
@@ -293,15 +311,18 @@ function AdminCrearActo() {
                                 </div>
                             )}
 
+                            <h3 className="section-title-crear-acto">
+                                <FileText size={18} /> Información general
+                            </h3>
+
                             <div className="form-group-crear-acto">
                                 <label htmlFor="nombre">Nombre del acto</label>
-                                <input 
+                                <input
                                     type="text"
                                     id="nombre"
                                     name="nombre"
                                     value={formData.nombre}
                                     onChange={handleChange}
-                                    placeholder={`Ej: Estación de Penitencia ${currentYear}`}
                                     className="form-input-crear-acto"
                                     required
                                 />
@@ -315,7 +336,6 @@ function AdminCrearActo() {
                                     name="lugar"
                                     value={formData.lugar}
                                     onChange={handleChange}
-                                    placeholder="Ej: Parroquia de San Ildefonso"
                                     className="form-input-crear-acto"
                                     required
                                 />
@@ -373,7 +393,7 @@ function AdminCrearActo() {
                             <h3 className="section-title-crear-acto mt-section">
                                 <Settings size={18}/> Configuración de Reparto
                             </h3>
-                            
+
                             <div className="form-group-crear-acto">
                                 <label htmlFor="modalidad">Modalidad de Reparto</label>
                                 <select 
@@ -383,10 +403,10 @@ function AdminCrearActo() {
                                     onChange={handleChange}
                                     className="form-input-crear-acto"
                                     disabled={!requierePapeleta}
-                                    required={requierePapeleta} // 3. Se hace obligatorio si requiere papeleta
+                                    required={requierePapeleta}
                                 >
-                                    {/* Opción por defecto vacía */}
                                     <option value="" disabled>Seleccione una opción</option>
+                                    
                                     <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
                                     <option value="UNIFICADO">Unificado / Express (Todo a la vez)</option>
                                 </select>
@@ -395,8 +415,8 @@ function AdminCrearActo() {
                                         ? 'Este tipo de acto no requiere reparto de papeletas.'
                                         : formData.modalidad === 'TRADICIONAL' 
                                             ? 'Primero se asignan insignias, luego cirios.' 
-                                            : formData.modalidad === 'UNIFICADO'
-                                                ? 'Todos los puestos se asignan en un mismo plazo.'
+                                            : formData.modalidad === 'UNIFICADO' 
+                                                ? 'Todos los puestos se asignan en un mismo plazo.' 
                                                 : 'Seleccione una modalidad para continuar.'}
                                 </small>
                             </div>
@@ -404,13 +424,13 @@ function AdminCrearActo() {
                             <h3 className="section-title-crear-acto mt-section">
                                 <Clock size={18}/> Plazos de Solicitud Online
                             </h3>
-                            
+
                             <h4 className="subtitle-crear-acto">
                                 {formData.modalidad === 'TRADICIONAL' && requierePapeleta
                                     ? '1. Solicitud de Insignias / Varas' 
                                     : 'Plazo Único de Solicitud (General)'}
                             </h4>
-                            
+
                             <div className="form-row-2-cols-crear-acto">
                                 <div className="form-group-crear-acto">
                                     <label htmlFor="inicio_solicitud">Inicio Solicitud</label>
@@ -449,7 +469,7 @@ function AdminCrearActo() {
                             <h4 className="subtitle-crear-acto mt-subtitle">
                                 2. Solicitud de Cirios / General
                             </h4>
-                            
+
                             <div className="form-row-2-cols-crear-acto">
                                 <div className="form-group-crear-acto">
                                     <label htmlFor="inicio_solicitud_cirios">Inicio Solicitud</label>
@@ -484,7 +504,7 @@ function AdminCrearActo() {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {requierePapeleta && formData.modalidad === 'TRADICIONAL' && (
                                 <div className="alert-info-crear-acto">
                                     <ShieldAlert size={18} />
@@ -507,7 +527,7 @@ function AdminCrearActo() {
                                     disabled={saving}
                                 >
                                     <Save size={18} />
-                                    {saving ? "Creando Acto..." : "Crear Acto"}
+                                    {saving ? "Actualizando acto..." : "Actualizar Acto"}
                                 </button>
                             </div>
                         </form>
@@ -522,4 +542,4 @@ function AdminCrearActo() {
     );
 }
 
-export default AdminCrearActo;
+export default AdminEditarActo;

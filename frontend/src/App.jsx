@@ -31,6 +31,7 @@ import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado/AdminCreacionComunicado"
 import AdminEdicionComunicado from "./pages/AdminEdicionComunicado/AdminEdicionComunicado"
 import AdminCrearActo from "./pages/AdminCreacionActo/AdminCrearActo"
+import AdminEditarActo from "./pages/AdminEdicionActo/AdminEditarActo"
 
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
@@ -230,6 +231,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="editar-acto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEditarActo />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/comunicados"
           element={
