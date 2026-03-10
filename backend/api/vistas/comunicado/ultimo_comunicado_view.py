@@ -4,16 +4,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from api.serializadores.comunicado.ultimo_comunicado_serializer import ComunicadoSerializer
-from api.servicios.comunicado.ultimo_comunicado_service import obtener_ultimo_comunicado_areas_usuario
+from api.servicios.comunicado.ultimo_comunicado_service import obtener_ultimos_comunicados_areas_usuario
 
-class UltimoComunicadoAreaInteresView(APIView):
+
+class UltimosComunicadosAreaInteresView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        comunicado = obtener_ultimo_comunicado_areas_usuario(request.user)
+        comunicados = obtener_ultimos_comunicados_areas_usuario(request.user)
         
-        if comunicado:
-            serializer = ComunicadoSerializer(comunicado, context={'request': request})
+        if comunicados.exists():
+            serializer = ComunicadoSerializer(comunicados, many=True, context={'request': request})
             return Response(serializer.data, status=status.HTTP_200_OK)
             
         return Response(

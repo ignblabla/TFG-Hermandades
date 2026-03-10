@@ -20,7 +20,7 @@ function HermanoNewHome() {
     const [currentUser, setCurrentUser] = useState(null);
     const [proximosActos, setProximosActos] = useState([]);
 
-    const [ultimoComunicado, setUltimoComunicado] = useState(null);
+    const [ultimosComunicados, setUltimosComunicados] = useState([]);
 
     useEffect(() => {
         let isMounted = true;
@@ -42,8 +42,8 @@ function HermanoNewHome() {
             } 
 
             try {
-                const resNoticia = await api.get("api/comunicados/ultimo-area-interes/");
-                if (isMounted) setUltimoComunicado(resNoticia.data);
+                const resNoticia = await api.get("api/comunicados/ultimos-area-interes/");
+                if (isMounted) setUltimosComunicados(resNoticia.data);
             } catch (err) {
                 if (err.response && err.response.status === 404) {
                     if (isMounted) setUltimoComunicado(null);
@@ -206,23 +206,17 @@ function HermanoNewHome() {
 
                 <div className="new-home-dashboard-bottom-section">
                     <div className="new-home-dashboard-cultos-column">
+                        
+                        {/* 1. SECCIÓN DE EVENTOS */}
                         <h2 className="cultos-section-title">Próximos eventos</h2>
                         <div className="cultos-section-dashboard">
                             <div className="cultos-list">
                                 {proximosActos.length > 0 ? (
                                     proximosActos.map((acto) => {
                                         const fechaObj = new Date(acto.fecha);
-
-                                        const mesStr = fechaObj.toLocaleString('es-ES', { month: 'short' })
-                                            .toUpperCase()
-                                            .replace('.', '');
-
+                                        const mesStr = fechaObj.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
                                         const diaStr = fechaObj.getDate().toString();
-
-                                        const horaStr = fechaObj.toLocaleTimeString('es-ES', { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        }) + 'h';
+                                        const horaStr = fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) + 'h';
 
                                         return (
                                             <CultoCard 
@@ -240,22 +234,46 @@ function HermanoNewHome() {
                                         No hay actos próximos programados en este momento.
                                     </p>
                                 )}
-
                             </div>
                         </div>
+
+                        {/* 2. SECCIÓN DE NOTICIAS MOVIDA AQUÍ */}
+                        <h2 className="cultos-section-title" style={{ marginTop: '30px', marginBottom: '15px' }}>Últimas noticias</h2>
+                        <div className="new-home-news-horizontal-container">
+                            {ultimosComunicados && ultimosComunicados.length > 0 ? (
+                                ultimosComunicados.map((comunicado) => (
+                                    <NewsCardHome 
+                                        key={comunicado.id}
+                                        imagen={comunicado.imagen_portada || imagenFallback}
+                                        titulo={comunicado.titulo}
+                                        fecha={formatearFechaNoticia(comunicado.fecha_emision)}
+                                        contenido={comunicado.contenido}
+                                        enlace={`/comunicados/${comunicado.id}`}
+                                    />
+                                ))
+                            ) : (
+                                <p style={{ color: '#666', fontStyle: 'italic' }}>
+                                    No hay comunicados recientes para mostrar.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* 3. PAPELETAS DE SITIO */}
+                        <h2 className="cultos-section-title" style={{ marginTop: '30px' }}>Papeletas de sitio</h2>
+
                     </div>
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
                     <div className="new-home-dashboard-news-column">
-                        <h2 className="cultos-section-title">Noticias recientes</h2>
+                        <h2 className="cultos-section-title">Última noticia</h2>
                         <div className="new-home-news-grid-container">
-                            {ultimoComunicado ? (
+                            {ultimosComunicados ? (
                                 <NewsCardHome 
-                                    imagen={ultimoComunicado.imagen_portada || imagenFallback}
-                                    titulo={ultimoComunicado.titulo}
-                                    fecha={formatearFechaNoticia(ultimoComunicado.fecha_emision)}
-                                    contenido={ultimoComunicado.contenido}
-                                    enlace={`/comunicados/${ultimoComunicado.id}`}
+                                    imagen={ultimosComunicados.imagen_portada || imagenFallback}
+                                    titulo={ultimosComunicados.titulo}
+                                    fecha={formatearFechaNoticia(ultimosComunicados.fecha_emision)}
+                                    contenido={ultimosComunicados.contenido}
+                                    enlace={`/comunicados/${ultimosComunicados.id}`}
                                 />
                             ) : (
                                 <p style={{ color: '#666', fontStyle: 'italic' }}>
