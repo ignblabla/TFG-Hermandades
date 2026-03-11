@@ -9,7 +9,9 @@ const NewsCardHome = ({ imagen, titulo, fecha, contenido, enlace }) => {
 
     return (
         <div className="news-card">
-            <img src={imagen} alt={titulo} className="news-image" />
+            <div className="news-image-container">
+                <img src={imagen} alt={titulo} className="news-image" />
+            </div>
             
             <div className="news-content">
                 <span className="news-date">{fecha}</span>

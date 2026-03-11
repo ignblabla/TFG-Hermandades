@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Pencil, CreditCard, Mail, Phone } from 'lucide-react';
+import { User, Pencil, CreditCard, Mail, Phone, MapPin } from 'lucide-react';
 import '../styles/ProfileCard.css';
 
 const ProfileCard = ({ hermano }) => {
@@ -10,6 +10,11 @@ const ProfileCard = ({ hermano }) => {
     const dni = hermano?.dni || 'Sin DNI';
     const email = hermano?.email || 'Sin email';
     const telefono = hermano?.telefono || 'Sin teléfono';
+
+    const direccion = hermano?.direccion || 'Sin dirección';
+    const codigoPostal = hermano?.codigo_postal || '';
+
+    const direccionCompleta = codigoPostal ? `${direccion}, ${codigoPostal}` : direccion;
 
     return (
         <div className="card-container">
@@ -34,6 +39,10 @@ const ProfileCard = ({ hermano }) => {
                     <span className="contact-item">
                         <Phone size={14} />
                         {telefono}
+                    </span>
+                    <span className="contact-item">
+                        <MapPin size={14} />
+                        {direccionCompleta}
                     </span>
                 </div>
             </div>

@@ -8,7 +8,8 @@
     --border-light: #eff2f5;
     --white: #ffffff;
     --burgundy-primary: #800020;
-    --burgundy-light: #f8eaff; 
+    --burgundy-light: #f8eaff;
+    --burgundy-dark: #4d0013;
 }
 
 .card-container {
@@ -73,7 +74,7 @@
 .card-contact-info {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 25px;
     align-items: center;
 }
 
@@ -102,8 +103,9 @@
 }
 
 .edit-profile-btn:hover {
-    background-color: var(--white);
-    color: var(--burgundy-primary);
+    background-color: var(--burgundy-dark);
+    border-color: var(--burgundy-dark);
+    color: var(--white);
 }
 
 .edit-icon {
@@ -112,7 +114,7 @@
 }
 
 .edit-profile-btn:hover .edit-icon {
-    color: var(--burgundy-primary);
+    color: var(--white);
 }
 
 /* ========================================= */

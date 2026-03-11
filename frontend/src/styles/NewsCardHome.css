@@ -17,14 +17,20 @@
     border-color: var(--burgundy-primary);
 }
 
+.news-image-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background-color: #f1f5f9;
+    border-bottom: 1px solid var(--border-color);
+}
+
 .news-image {
     width: 100%;
-    height: 180px;
+    height: 100%;
     object-fit: cover;
     object-position: center;
-    border-bottom: 1px solid var(--border-color);
     display: block;
-    background-color: #f1f5f9;
 }
 
 .news-content {
