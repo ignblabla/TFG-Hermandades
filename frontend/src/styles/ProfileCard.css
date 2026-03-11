@@ -1,0 +1,130 @@
+:root {
+    --primary-dark: #001c39;
+    --text-main: #0d2b45;
+    --text-muted: #8e9aaf;
+    --admin-gold: #c08b1c;
+    --bg-green-light: #e8f9ee;
+    --status-green: #2d8b55;
+    --border-light: #eff2f5;
+    --white: #ffffff;
+    --burgundy-primary: #800020;
+    --burgundy-light: #f8eaff; 
+}
+
+.card-container {
+    background-color: var(--white);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    padding: 16px 20px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 100px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+}
+
+.card-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--burgundy-primary);
+}
+
+/* ========================================= */
+/* NUEVAS CLASES PARA EL ICONO Y CONTENIDO   */
+/* ========================================= */
+
+.card-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background-color: var(--burgundy-light);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.lucide-icon {
+    width: 24px;
+    height: 24px;
+    color: var(--burgundy-primary);
+    stroke-width: 2px;
+}
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+
+.card-user-name {
+    margin: 0 0 6px 0; 
+    font-size: 1.15rem;
+    color: var(--text-main);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.card-contact-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.edit-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border: 1px solid var(--burgundy-primary);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.edit-profile-btn:hover {
+    background-color: var(--white);
+    color: var(--burgundy-primary);
+}
+
+.edit-icon {
+    color: var(--white);
+    transition: color 0.2s ease;
+}
+
+.edit-profile-btn:hover .edit-icon {
+    color: var(--burgundy-primary);
+}
+
+/* ========================================= */
+/* REGLAS RESPONSIVE (MEDIA QUERIES)         */
+/* ========================================= */
+
+@media (max-width: 640px) {
+    .edit-text {
+        display: none;
+    }
+
+    .edit-profile-btn {
+        padding: 10px;
+    }
+}

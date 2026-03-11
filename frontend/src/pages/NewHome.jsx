@@ -7,8 +7,8 @@ import '../styles/HermanoNewHome.css'
 import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
 import NewsCardHome from '../components/NewsCardHome';
-import MemberCard from '../components/MemberCard';
-import { User, Medal, CreditCard, Church, Bookmark } from "lucide-react";
+import ProfileCard from '../components/ProfileCard';
+import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
 
 function HermanoNewHome() {
     const navigate = useNavigate();
@@ -172,10 +172,14 @@ function HermanoNewHome() {
             {/* --- CONTENIDO PRINCIPAL --- */}
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Panel del Hermano</div>
+
+                <div className="profile-card-wrapper" style={{ margin: '0 20px 24px 20px' }}>
+                    <ProfileCard hermano={currentUser || {}} />
+                </div>
                 
                 <div className="home-cards-container">
                     <HomeCard 
-                        icon={User}
+                        icon={ListOrdered}
                         title="Número de registro" 
                         value={currentUser?.numero_registro || "-"}
                     />
@@ -265,8 +269,8 @@ function HermanoNewHome() {
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
                     <div className="new-home-dashboard-profile-column">
-                        <h2 className="cultos-section-title">Perfil del Hermano</h2>
-                        <MemberCard currentUser={currentUser} />
+                        {/* <h2 className="cultos-section-title">Perfil del Hermano</h2>
+                        <MemberCard currentUser={currentUser} /> */}
                     </div>
                 </div>
             </section>
