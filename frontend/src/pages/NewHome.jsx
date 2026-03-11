@@ -259,28 +259,13 @@ function HermanoNewHome() {
                         </div>
 
                         {/* 3. PAPELETAS DE SITIO */}
-                        <h2 className="cultos-section-title" style={{ marginTop: '30px' }}>Papeletas de sitio</h2>
-
+                        <h2 className="cultos-section-title" style={{ marginTop: '25px' }}>Papeletas de sitio</h2>
                     </div>
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
-                    <div className="new-home-dashboard-news-column">
-                        <h2 className="cultos-section-title">Última noticia</h2>
-                        <div className="new-home-news-grid-container">
-                            {ultimosComunicados ? (
-                                <NewsCardHome 
-                                    imagen={ultimosComunicados.imagen_portada || imagenFallback}
-                                    titulo={ultimosComunicados.titulo}
-                                    fecha={formatearFechaNoticia(ultimosComunicados.fecha_emision)}
-                                    contenido={ultimosComunicados.contenido}
-                                    enlace={`/comunicados/${ultimosComunicados.id}`}
-                                />
-                            ) : (
-                                <p style={{ color: '#666', fontStyle: 'italic' }}>
-                                    No hay comunicados recientes para mostrar.
-                                </p>
-                            )}
-                        </div>
+                    <div className="new-home-dashboard-profile-column">
+                        <h2 className="cultos-section-title">Perfil del Hermano</h2>
+                        
                     </div>
                 </div>
             </section>

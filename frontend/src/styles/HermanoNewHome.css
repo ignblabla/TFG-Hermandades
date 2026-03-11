@@ -11,7 +11,7 @@
     flex-direction: column;
 }
 
-.new-home-dashboard-news-column {
+.new-home-dashboard-profile-column {
     grid-column: span 3;
     display: flex;
     flex-direction: column;
@@ -29,14 +29,6 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     width: 100%;
-}
-
-.news-image {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    border-bottom: 1px solid var(--border-color);
-    display: block;
 }
 
 @media (max-width: 1024px) {
