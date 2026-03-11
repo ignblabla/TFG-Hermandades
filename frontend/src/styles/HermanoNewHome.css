@@ -31,6 +31,13 @@
     width: 100%;
 }
 
+.new-home-dashboard-news-column {
+    /* Mantenemos span 15 para que respete el mismo ancho que los eventos y quede el hueco derecho libre (como en tu foto) */
+    grid-column: span 14; 
+    display: flex;
+    flex-direction: column;
+}
+
 @media (max-width: 1024px) {
     .new-home-dashboard-bottom-section {
         display: flex;

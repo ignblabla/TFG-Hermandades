@@ -20,10 +20,10 @@ const PapeletaCard = () => {
                 </div>
 
                 <h2 className="card-title">Papeleta de Sitio</h2>
-                <p className="card-description">
+                {/* <p className="card-description">
                 Ya está abierto el plazo para solicitar su papeleta de sitio 
                 para la próxima estación de penitencia.
-                </p>
+                </p> */}
 
                 <button className="cta-button">
                 Solicitar ahora 

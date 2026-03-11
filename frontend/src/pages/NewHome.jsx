@@ -211,9 +211,8 @@ function HermanoNewHome() {
                 </div>
 
                 <div className="new-home-dashboard-bottom-section">
+                    {/* 1. COLUMNA IZQUIERDA: SÓLO EVENTOS */}
                     <div className="new-home-dashboard-cultos-column">
-                        
-                        {/* 1. SECCIÓN DE EVENTOS */}
                         <h2 className="cultos-section-title">Próximos eventos</h2>
                         <div className="cultos-section-dashboard">
                             <div className="cultos-list">
@@ -242,9 +241,17 @@ function HermanoNewHome() {
                                 )}
                             </div>
                         </div>
+                    </div>
 
-                        {/* 2. SECCIÓN DE NOTICIAS MOVIDA AQUÍ */}
-                        <h2 className="cultos-section-title" style={{ marginTop: '30px', marginBottom: '15px' }}>Últimas noticias</h2>
+                    {/* 2. COLUMNA DERECHA: PAPELETA */}
+                    <div className="new-home-dashboard-profile-column">
+                        <h2 className="cultos-section-title">Solicitud de papeleta</h2>
+                        <PapeletaCard />
+                    </div>
+
+                    {/* 3. NUEVA FILA: NOTICIAS (Fuera de la columna de eventos) */}
+                    <div className="new-home-dashboard-news-column">
+                        <h2 className="cultos-section-title" style={{ marginTop: '20px', marginBottom: '15px' }}>Últimas noticias</h2>
                         <div className="new-home-news-horizontal-container">
                             {ultimosComunicados && ultimosComunicados.length > 0 ? (
                                 ultimosComunicados.map((comunicado) => (
@@ -263,15 +270,6 @@ function HermanoNewHome() {
                                 </p>
                             )}
                         </div>
-
-                        {/* 3. PAPELETAS DE SITIO */}
-                        {/* <h2 className="cultos-section-title" style={{ marginTop: '25px' }}>Papeletas de sitio</h2> */}
-                    </div>
-
-                    {/* COLUMNA DERECHA: NOTICIAS */}
-                    <div className="new-home-dashboard-profile-column">
-                        <h2 className="cultos-section-title">Solicitud de papeletas de sitio</h2>
-                        <PapeletaCard />
                     </div>
                 </div>
             </section>
