@@ -1,0 +1,109 @@
+:root {
+    --primary-maroon: #82001c;
+    --bg-white: #ffffff;
+    --text-dark: #232d3f;
+    --text-gray: #718096;
+    --text-light-gray: #a0aec0;
+    --icon-bg: #fff1f2;
+}
+
+.papeleta-card {
+    width: 100%;
+    background-color: var(--bg-white);
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0 auto 16px auto;
+    display: flex; 
+    flex-direction: column;
+}
+
+.top-accent {
+    height: 6px; 
+    background-color: var(--primary-maroon);
+    width: 100%;
+}
+
+.card-content {
+    padding: 24px 20px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.icon-container {
+    margin-bottom: 16px; 
+}
+
+.icon-circle {
+    width: 70px; 
+    height: 70px; 
+    background-color: var(--icon-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-icon {
+    width: 36px; 
+    height: 36px; 
+    color: var(--primary-maroon);
+    transform: rotate(-45deg);
+}
+
+.card-title {
+    color: var(--text-dark);
+    font-size: 24px; 
+    font-weight: 700;
+    margin: 0 0 10px 0; 
+}
+
+.card-description {
+    color: var(--text-gray);
+    font-size: 15px; 
+    line-height: 1.4;
+    margin: 0 0 20px 0; 
+    padding: 0 10px;
+}
+
+.cta-button {
+    background-color: var(--primary-maroon);
+    color: white;
+    border: none;
+    border-radius: 10px; 
+    padding: 12px 24px; 
+    font-size: 16px; 
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(130, 0, 28, 0.2);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    margin-bottom: 16px; 
+}
+
+.cta-button:hover {
+    background-color: #6a0017;
+    transform: translateY(-1px);
+}
+
+.arrow {
+    font-size: 20px; 
+    line-height: 1;
+}
+
+.deadline-text {
+    color: var(--text-light-gray);
+    font-size: 12px; 
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    margin: 0;
+    text-transform: uppercase;
+}

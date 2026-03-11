@@ -8,6 +8,7 @@ import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
 import NewsCardHome from '../components/NewsCardHome';
 import ProfileCard from '../components/ProfileCard';
+import PapeletaCard from '../components/PapeletaCard';
 import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
 
 function HermanoNewHome() {
@@ -264,13 +265,13 @@ function HermanoNewHome() {
                         </div>
 
                         {/* 3. PAPELETAS DE SITIO */}
-                        <h2 className="cultos-section-title" style={{ marginTop: '25px' }}>Papeletas de sitio</h2>
+                        {/* <h2 className="cultos-section-title" style={{ marginTop: '25px' }}>Papeletas de sitio</h2> */}
                     </div>
 
                     {/* COLUMNA DERECHA: NOTICIAS */}
                     <div className="new-home-dashboard-profile-column">
-                        {/* <h2 className="cultos-section-title">Perfil del Hermano</h2>
-                        <MemberCard currentUser={currentUser} /> */}
+                        <h2 className="cultos-section-title">Solicitud de papeletas de sitio</h2>
+                        <PapeletaCard />
                     </div>
                 </div>
             </section>

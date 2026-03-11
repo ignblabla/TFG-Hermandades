@@ -19,7 +19,7 @@ const ProfileCard = ({ hermano }) => {
     return (
         <div className="card-container">
             <div className="card-icon-container">
-                <User className="lucide-icon" />
+                <User className="lucide-icon" fill="currentColor" />
             </div>
             
             <div className="card-info">
@@ -29,19 +29,19 @@ const ProfileCard = ({ hermano }) => {
 
                 <div className="card-contact-info">
                     <span className="contact-item">
-                        <CreditCard size={14} />
+                        <CreditCard size={14} className="contact-icon" />
                         {dni}
                     </span>
                     <span className="contact-item">
-                        <Mail size={14} />
+                        <Mail size={14} className="contact-icon" />
                         {email}
                     </span>
                     <span className="contact-item">
-                        <Phone size={14} />
+                        <Phone size={14} className="contact-icon" />
                         {telefono}
                     </span>
                     <span className="contact-item">
-                        <MapPin size={14} />
+                        <MapPin size={14} className="contact-icon" />
                         {direccionCompleta}
                     </span>
                 </div>
