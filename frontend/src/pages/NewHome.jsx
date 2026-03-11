@@ -7,6 +7,7 @@ import '../styles/HermanoNewHome.css'
 import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
 import NewsCardHome from '../components/NewsCardHome';
+import MemberCard from '../components/MemberCard';
 import { User, Medal, CreditCard, Church, Bookmark } from "lucide-react";
 
 function HermanoNewHome() {
@@ -265,7 +266,7 @@ function HermanoNewHome() {
                     {/* COLUMNA DERECHA: NOTICIAS */}
                     <div className="new-home-dashboard-profile-column">
                         <h2 className="cultos-section-title">Perfil del Hermano</h2>
-                        
+                        <MemberCard currentUser={currentUser} />
                     </div>
                 </div>
             </section>
