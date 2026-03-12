@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import '../styles/HermanoListadoCuotas.css'
-import { Save, User, MapPin, AlertCircle, CheckCircle, Calendar, ShieldAlert, ListTodo,
-    Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, CreditCard, Bell
-} from "lucide-react";
+import { AlertCircle, CheckCircle, ListTodo, CreditCard } from "lucide-react";
+import HomeCard from '../components/HomeCard';
 
 
 function HermanoListadoCuotas() {
@@ -13,6 +12,13 @@ function HermanoListadoCuotas() {
 
     const [currentUser, setCurrentUser] = useState(null);
     const [cuotas, setCuotas] = useState([]);
+
+    const [resumen, setResumen] = useState({
+        total_cuotas: 0,
+        total_pagadas: 0,
+        total_pendientes: 0,
+        total_pendiente_euros: 0
+    });
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -28,7 +34,6 @@ function HermanoListadoCuotas() {
 
     useEffect(() => {
         let isMounted = true;
-        
         const fetchData = async () => {
             setLoading(true);
             setError("");
@@ -44,6 +49,10 @@ function HermanoListadoCuotas() {
                 if (isMounted) {
                     setCuotas(cuotasRes.data.results);
                     setTotalPages(Math.ceil(cuotasRes.data.count / 10));
+
+                    if (cuotasRes.data.resumen) {
+                        setResumen(cuotasRes.data.resumen);
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -168,7 +177,29 @@ function HermanoListadoCuotas() {
 
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Mis Cuotas</div>
-                <div style={{ padding: '0 20px 12px 20px' }}>
+                <div className="home-cards-container">
+                    <HomeCard 
+                        title="Total Cuotas" 
+                        value={resumen.total_cuotas} 
+                        icon={ListTodo} 
+                    />
+                    <HomeCard 
+                        title="Cuotas Pagadas" 
+                        value={resumen.total_pagadas} 
+                        icon={CheckCircle} 
+                    />
+                    <HomeCard 
+                        title="Cuotas Pendientes" 
+                        value={resumen.total_pendientes} 
+                        icon={AlertCircle} 
+                    />
+                    <HomeCard 
+                        title="Total Deuda" 
+                        value={`${Number(resumen.total_pendiente_euros).toFixed(2)} €`} 
+                        icon={CreditCard} 
+                    />
+                </div>
+                <div style={{ padding: '12px 20px 12px 20px' }}>
                     {error && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}><AlertCircle size={16} /> {error}</div>}
 
                     <div className="table-responsive">
