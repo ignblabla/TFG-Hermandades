@@ -18,35 +18,41 @@
     margin: 0;
     flex-grow: 1;
     height: 100%;
-    
     display: flex; 
     flex-direction: column;
 }
 
-.top-accent {
-    height: 6px; 
-    background-color: var(--primary-maroon);
-    width: 100%;
+.card-body {
+    display: flex;
+    flex-direction: row; 
+    align-items: stretch;
+    padding: 0;
+    flex-grow: 1;
 }
 
-.card-content {
-    padding: 16px 20px; /* Reducido de 24px para que ocupe menos alto */
+.icon-side {
+    flex: 0 0 20%; 
+    background-color: #800020;
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+}
+
+.content-side {
+    flex: 0 0 80%; 
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    flex-grow: 1;
+    align-items: flex-start; 
     justify-content: center;
-}
-
-.icon-container {
-    margin-bottom: 12px; /* Reducido de 16px */
+    text-align: left;
+    padding: 16px 20px;
+    box-sizing: border-box;
 }
 
 .icon-circle {
-    width: 54px; /* Reducido de 70px */
+    width: 54px;
     height: 54px; 
-    background-color: var(--icon-bg);
+    background-color: transparent;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -54,25 +60,33 @@
 }
 
 .ticket-icon {
-    width: 28px; /* Reducido de 36px */
+    width: 28px;
     height: 28px; 
-    color: var(--primary-maroon);
+    color: #ffffff;
     transform: rotate(-45deg);
 }
 
 .card-title {
     color: var(--text-dark);
-    font-size: 20px; /* Reducido de 24px */
+    font-size: 20px;
     font-weight: 700;
-    margin: 0 0 8px 0; /* Reducido el margen inferior */
+    margin: 0 0 4px 0; 
+}
+
+.act-name {
+    color: var(--text-gray);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0 0 16px 0;
 }
 
 .card-description {
     color: var(--text-gray);
-    font-size: 14px; /* Reducido de 15px */
+    font-size: 14px;
     line-height: 1.4;
-    margin: 0 0 16px 0; /* Reducido de 20px */
-    padding: 0 10px;
+    margin: 0 0 16px 0;
+    padding: 0;
 }
 
 .cta-button {
@@ -80,7 +94,7 @@
     color: white;
     border: none;
     border-radius: 10px; 
-    padding: 10px 20px; /* Botón un poco más fino */
+    padding: 10px 20px;
     font-size: 15px; 
     font-weight: 600;
     cursor: pointer;
@@ -104,7 +118,7 @@
 
 .deadline-text {
     color: var(--text-light-gray);
-    font-size: 11px; /* Reducido de 12px */
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.1px;
     margin: 0;

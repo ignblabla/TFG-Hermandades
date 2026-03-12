@@ -174,7 +174,7 @@ function HermanoNewHome() {
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Panel del Hermano</div>
 
-                <div className="profile-card-wrapper" style={{ margin: '0 20px 24px 20px' }}>
+                <div className="profile-card-wrapper" style={{ margin: '0 20px 12px 20px' }}>
                     <ProfileCard hermano={currentUser || {}} />
                 </div>
                 
