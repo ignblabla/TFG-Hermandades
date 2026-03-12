@@ -124,7 +124,7 @@ class Cuota(models.Model):
     tipo = models.CharField(max_length=20, choices=TipoCuota.choices, default=TipoCuota.ORDINARIA)
     descripcion = models.CharField(max_length=100, help_text="Ej: Cuota 2024")
 
-    fecha_emision = models.DateField(auto_now_add=True, verbose_name="Fecha de emisión")
+    fecha_emision = models.DateField(default=timezone.now, verbose_name="Fecha de emisión")
     fecha_pago = models.DateField(null=True, blank=True, verbose_name="Fecha de pago")
 
     importe = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)], verbose_name="Importe (€)")

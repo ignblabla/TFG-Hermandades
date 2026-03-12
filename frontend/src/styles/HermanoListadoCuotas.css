@@ -1,0 +1,78 @@
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    --border-color: #e5e7eb;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 0px;
+}
+
+.cuotas-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    background-color: var(--white);
+    border: 1px solid var(--burgundy-primary); 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    border-spacing: 0;
+}
+
+.cuotas-table thead tr {
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border-bottom: 2px solid var(--burgundy-dark);
+}
+
+.cuotas-table th {
+    font-weight: 600;
+    letter-spacing: 0.05em; 
+}
+
+.cuotas-table th,
+.cuotas-table td {
+    padding: 14px 16px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.cuotas-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    transition: background-color 0.2s ease;
+}
+
+.cuotas-table tbody tr:nth-of-type(even) {
+    background-color: var(--burgundy-light);
+}
+
+.cuotas-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.badge-estado {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-estado.pagado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-estado.pendiente {
+    background-color: #fef3c7;
+    color: #92400e;
+}

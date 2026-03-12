@@ -37,6 +37,7 @@ import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
+import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -295,6 +296,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoNewHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/listado-cuotas"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoCuotas />
             </ProtectedRoute>
           }
         />
