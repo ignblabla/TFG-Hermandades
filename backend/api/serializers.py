@@ -47,7 +47,7 @@ class CuotaSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'anio', 'tipo', 'tipo_display', 'descripcion', 
             'importe', 'estado', 'estado_display', 
-            'fecha_emision', 'fecha_pago', 'metodo_pago'
+            'fecha_emision', 'fecha_pago', 'metodo_pago', 'observaciones'
         ]
         read_only_fields = fields
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import '../styles/HermanoListadoCuotas.css'
-import { AlertCircle, CheckCircle, ListTodo, CreditCard } from "lucide-react";
+import { AlertCircle, CheckCircle, ListTodo, CreditCard, MessageCircle, X } from "lucide-react";
 import HomeCard from '../components/HomeCard';
 
 
@@ -24,6 +24,8 @@ function HermanoListadoCuotas() {
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+    const [observacionModal, setObservacionModal] = useState({ isOpen: false, texto: '' });
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -48,7 +50,7 @@ function HermanoListadoCuotas() {
                 
                 if (isMounted) {
                     setCuotas(cuotasRes.data.results);
-                    setTotalPages(Math.ceil(cuotasRes.data.count / 10));
+                    setTotalPages(Math.ceil(cuotasRes.data.count / 5));
 
                     if (cuotasRes.data.resumen) {
                         setResumen(cuotasRes.data.resumen);
@@ -238,8 +240,17 @@ function HermanoListadoCuotas() {
                                                 </span>
                                             </td>
                                             <td>{cuota.metodoPago || cuota.metodo_pago}</td>
-                                            <td style={{ color: !cuota.observaciones?.trim() ? '#9ca3af' : 'inherit', fontStyle: !cuota.observaciones?.trim() ? 'italic' : 'normal' }}>
-                                                {cuota.observaciones?.trim() ? cuota.observaciones : "Sin observaciones"}
+                                            <td style={{ color: !cuota.observaciones?.trim() ? '#9ca3af' : 'inherit', fontStyle: !cuota.observaciones?.trim() ? 'italic' : 'normal', textAlign: 'center' }}>
+                                                {cuota.observaciones?.trim() ? (
+                                                    <MessageCircle 
+                                                        className="icon-observacion"
+                                                        size={22} 
+                                                        onClick={() => setObservacionModal({ isOpen: true, texto: cuota.observaciones })}
+                                                        style={{ cursor: 'pointer', color: 'var(--burgundy-primary)' }}
+                                                    />
+                                                ) : (
+                                                    "Sin observaciones"
+                                                )}
                                             </td>
                                         </tr>
                                     ))
@@ -276,6 +287,24 @@ function HermanoListadoCuotas() {
                     )}
                 </div>
             </section>
+
+            {observacionModal.isOpen && (
+                <div className="modal-overlay-observacion" onClick={() => setObservacionModal({ isOpen: false, texto: '' })}>
+                    <div className="modal-content-observacion" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header-observacion">
+                            <h3>Observaciones</h3>
+                            <X 
+                                size={24} 
+                                style={{ cursor: 'pointer', color: 'var(--text-muted)' }} 
+                                onClick={() => setObservacionModal({ isOpen: false, texto: '' })} 
+                            />
+                        </div>
+                        <div className="modal-body-observacion">
+                            <p>{observacionModal.texto}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

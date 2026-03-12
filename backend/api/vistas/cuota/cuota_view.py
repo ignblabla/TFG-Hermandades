@@ -4,18 +4,18 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Sum, Q
 
 from api.serializers import CuotaSerializer
-from api.pagination import PaginacionDiezElementos
+from api.pagination import PaginacionCincoElementos
 from api.models import Cuota
 
 class MisCuotasListView(generics.ListAPIView):
     """
     Lista las cuotas exclusivas del hermano autenticado.
-    Paginadas de 10 en 10 y ordenadas de más recientes a más antiguas.
+    Paginadas de 5 en 5 y ordenadas de más recientes a más antiguas.
     Incluye un resumen de los totales del hermano.
     """
     serializer_class = CuotaSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = PaginacionDiezElementos
+    pagination_class = PaginacionCincoElementos
 
     def get_queryset(self):
         return Cuota.objects.filter(
