@@ -205,6 +205,11 @@ function HermanoListadoCuotas() {
                     <div className="table-responsive">
                         <table className="cuotas-table">
                             <thead>
+                                <tr className="tabla-titulo-row">
+                                    <th colSpan="9" className="tabla-titulo-texto">
+                                        Histórico de movimientos
+                                    </th>
+                                </tr>
                                 <tr>
                                     <th>Año</th>
                                     <th>Tipo</th>
