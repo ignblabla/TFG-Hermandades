@@ -168,3 +168,13 @@
         box-sizing: border-box;
     }
 }
+
+@media (min-width: 801px) {
+    .countdown-board {
+        height: 220px; 
+        min-height: 220px;
+        justify-content: center;
+        gap: 15px; 
+        padding: 20px 30px 25px 30px; 
+    }
+}
