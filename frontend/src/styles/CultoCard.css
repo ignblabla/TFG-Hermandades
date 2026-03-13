@@ -1,5 +1,5 @@
 .cultos-section-dashboard {
-    padding: 0; /* ✅ Eliminamos el padding inferior */
+    padding: 0;
     height: 100%;
     display: flex;
     flex-direction: column;

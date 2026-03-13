@@ -8,7 +8,7 @@ import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
 import NewsCardHome from '../components/NewsCardHome';
 import ProfileCard from '../components/ProfileCard';
-import PapeletaCard from '../components/PapeletaCard';
+import PapeletaCard from '../components/ContadorCard';
 import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
 
 function HermanoNewHome() {
