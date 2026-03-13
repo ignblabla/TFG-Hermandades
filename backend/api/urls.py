@@ -12,6 +12,7 @@ from api.vistas.acto.acto_general_view import ActoCreateView
 from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.comunicado.ultimo_comunicado_view import UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
+from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -23,6 +24,7 @@ urlpatterns = [
     # path("actos/", ActoCreateView.as_view(), name="crear-acto"),
 
     path("actos/proximos/", ProximosActosView.as_view(), name="proximos-actos"),
+    path("actos/proxima-estacion/", ProximaEstacionPenitenciaView.as_view(), name="proxima-estacion"), # NUEVA RUTA
 
     path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
