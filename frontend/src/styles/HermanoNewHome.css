@@ -26,14 +26,13 @@
 
 .new-home-news-horizontal-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
     width: 100%;
 }
 
 .new-home-dashboard-news-column {
-    /* Mantenemos span 15 para que respete el mismo ancho que los eventos y quede el hueco derecho libre (como en tu foto) */
-    grid-column: span 14; 
+    grid-column: span 10; 
     display: flex;
     flex-direction: column;
 }

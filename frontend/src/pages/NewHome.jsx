@@ -245,13 +245,13 @@ function HermanoNewHome() {
 
                     {/* 2. COLUMNA DERECHA: PAPELETA */}
                     <div className="new-home-dashboard-profile-column">
-                        <h2 className="cultos-section-title">Solicitud de papeleta</h2>
+                        <h2 className="cultos-section-title">Estación de penitencia</h2>
                         <ContadorCard />
                     </div>
 
                     {/* 3. NUEVA FILA: NOTICIAS (Fuera de la columna de eventos) */}
                     <div className="new-home-dashboard-news-column">
-                        <h2 className="cultos-section-title" style={{ marginTop: '20px', marginBottom: '15px' }}>Últimas noticias</h2>
+                        <h2 className="cultos-section-title">Últimas noticias</h2>
                         <div className="new-home-news-horizontal-container">
                             {ultimosComunicados && ultimosComunicados.length > 0 ? (
                                 ultimosComunicados.map((comunicado) => (
