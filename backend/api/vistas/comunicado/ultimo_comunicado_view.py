@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
 from api.serializadores.comunicado.ultimo_comunicado_serializer import ComunicadoSerializer
-from api.servicios.comunicado.ultimo_comunicado_service import obtener_ultimos_comunicados_areas_usuario
+from api.servicios.comunicado.ultimo_comunicado_service import obtener_comunicados_relacionados_usuario, obtener_ultimos_comunicados_areas_usuario
 
 
 class UltimosComunicadosAreaInteresView(APIView):
@@ -21,3 +21,14 @@ class UltimosComunicadosAreaInteresView(APIView):
             {'detail': 'No hay comunicados recientes en sus áreas de interés.'}, 
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+
+class ComunicadosRelacionadosView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, exclude_id):
+        comunicados = obtener_comunicados_relacionados_usuario(request.user, exclude_id)
+
+        serializer = ComunicadoSerializer(comunicados, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

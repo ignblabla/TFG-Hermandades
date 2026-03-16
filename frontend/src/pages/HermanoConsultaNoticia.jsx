@@ -12,6 +12,7 @@ function HermanoConsultaNoticia() {
     const [noticia, setNoticia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [ultimasNoticias, setUltimasNoticias] = useState([]);
 
     const navigate = useNavigate();
 
@@ -68,10 +69,15 @@ function HermanoConsultaNoticia() {
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
                 }
-                const resNoticia = await api.get(`api/comunicados/${id}/`);
+
+                const [resNoticia, resUltimas] = await Promise.all([
+                    api.get(`api/comunicados/${id}/`),
+                    api.get(`api/comunicados/${id}/relacionados/`)
+                ]);
                 
                 if (isMounted) {
                     setNoticia(resNoticia.data);
+                    setUltimasNoticias(resUltimas.data); 
                 }
             } catch (err) {
                 console.error("Error cargando noticia:", err);
@@ -267,6 +273,34 @@ function HermanoConsultaNoticia() {
                                     )}
                                 </aside>
                             </div>
+
+                            {ultimasNoticias.length > 0 && (
+                                <div className="ultimas-noticias-seccion">
+                                    <h2 className="ultimas-noticias-titulo">Últimas noticias de tu interés</h2>
+                                    <div className="ultimas-noticias-grid">
+                                        {ultimasNoticias.map((item) => (
+                                            <div 
+                                                key={item.id} 
+                                                className="ultima-noticia-card" 
+                                                onClick={() => navigate(`/noticia/${item.id}`)}
+                                            >
+                                                <div className="ultima-noticia-img-container">
+                                                    <img 
+                                                        src={item.imagen_portada || "/portada-comunicado.png"} 
+                                                        alt={item.titulo} 
+                                                    />
+                                                </div>
+                                                <div className="ultima-noticia-info">
+                                                    <h4>{item.titulo}</h4>
+                                                    <span className="ultima-noticia-fecha">
+                                                        {formatearFecha(item.fecha_emision)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

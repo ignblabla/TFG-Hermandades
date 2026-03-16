@@ -10,7 +10,7 @@ from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateVi
 from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from api.vistas.acto.acto_general_view import ActoCreateView
 from api.vistas.acto.proximos_actos_view import ProximosActosView
-from api.vistas.comunicado.ultimo_comunicado_view import UltimosComunicadosAreaInteresView
+from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from . import views
@@ -56,6 +56,7 @@ urlpatterns = [
     path("comunicados/", ComunicadoListCreateView.as_view(), name="lista-crear-comunicados"),
     path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
     path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
+    path('comunicados/<int:exclude_id>/relacionados/', ComunicadosRelacionadosView.as_view(), name='comunicados-relacionados'),
     path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
     path('comunicados/ultimos-area-interes/', UltimosComunicadosAreaInteresView.as_view(), name='ultimos-comunicado-areas'),
 
