@@ -1,210 +1,129 @@
-/* HermanoConsultaNoticia.css */
-
-/* --- VARIABLES Y FUENTES --- */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@300;400;500&display=swap');
-
-:root {
-  --color-hermandad-primary: #761818;
-  --color-hermandad-secondary: #cba135;
-  --color-text-dark: #2c2c2c;
-  --color-text-light: #555555;
-  --bg-card: #ffffff;
-  --font-dashboard: 'Roboto', sans-serif;
+/* --- CONTENEDOR PRINCIPAL --- */
+.noticia-detalle-container {
+    width: 100%; /* Volvemos al 100% para poder usar las dos columnas dentro */
+    margin: 20px 0 0 0; 
+    padding: 0; 
 }
 
-.card-container-listado {
-    background-color: var(--bg-card);
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-    padding: 40px;
-    margin-bottom: 30px;
-    border: 1px solid #eaeaea;
+/* --- CABECERA --- */
+.noticia-detalle-header {
+    width: 75%;
+    padding-right: 40px; /* Para alinearse perfectamente con el texto de abajo */
+    box-sizing: border-box;
+    margin-bottom: 20px;
 }
 
-/* --- 1. TÍTULO (Arriba de la imagen) --- */
-.comunicado-title-container {
-    margin-bottom: 25px;
-}
-
-.comunicado-title {
-    font-family: var(--font-dashboard) !important;
-    color: var(--color-hermandad-primary);
-    font-size: 2.4rem;
-    line-height: 1.2;
+.noticia-detalle-titulo {
+    font-size: 2.2rem;
+    color: #11101d;
+    font-weight: 700;
+    line-height: 1.3;
     margin: 0;
-    font-weight: 500;
-    letter-spacing: -0.5px;
 }
 
-/* --- 2. CABECERA CON IMAGEN (Full Width) --- */
-.comunicado-header {
-    position: relative;
-    width: 100%;
-    height: 450px;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 30px;
-    background-color: #f4f4f4;
-}
-
-.comunicado-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
-}
-
-.comunicado-header:hover .comunicado-img {
-    transform: scale(1.02);
-}
-
-.comunicado-img-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, var(--color-hermandad-primary), #4a0e0e);
-    color: #fff;
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    letter-spacing: 2px;
-}
-
-/* --- OVERLAY (Fecha y Badge sobre la imagen) --- */
-.comunicado-meta-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 20px 30px;
-    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    pointer-events: none;
-}
-
-.badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    background-color: var(--color-hermandad-secondary);
-    color: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.badge-urgente { background-color: #d32f2f; }
-.badge-cultos { background-color: #6a1b9a; }
-.badge-secretaria { background-color: #0277bd; }
-
-time {
-    font-family: 'Roboto', sans-serif;
+.noticia-detalle-fecha {
     font-size: 0.95rem;
-    font-weight: 400;
-    opacity: 0.95;
+    color: #6c757d;
+    margin-top: 8px;
+    margin-bottom: 0;
+    text-align: left;
 }
 
-/* --- 3. CUERPO DE LA NOTICIA --- */
-.comunicado-body {
-    margin-bottom: 30px;
+/* --- LAYOUT DE COLUMNAS (CONTENIDO + SIDEBAR) --- */
+.noticia-cuerpo-columnas {
+    display: flex;
+    width: 100%;
+    align-items: flex-start; /* Hace que el sidebar empiece arriba del todo */
 }
 
-.comunicado-content {
-    font-family: 'Roboto', sans-serif;
-    color: var(--color-text-dark);
+/* COLUMNA IZQUIERDA (75%) */
+.noticia-detalle-texto-layout {
+    width: 75%;
+    padding-right: 40px; /* Separación con el área de interés */
+    box-sizing: border-box;
+    margin-top: 0;
     font-size: 1.1rem;
-    line-height: 1.8;
-    white-space: pre-line;
+    color: #333333;
+    line-height: 1.7;
     text-align: justify;
 }
 
-.comunicado-content p {
-    margin-bottom: 1.5rem;
+/* COLUMNA DERECHA (25%) */
+.noticia-area-interes {
+    width: 25%;
+    background-color: #f8f9fa; /* Fondo gris muy suave para que destaque */
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
 }
 
-/* --- 4. PIE Y ETIQUETAS --- */
-.comunicado-footer {
-    padding-top: 20px;
-    border-top: 1px solid #eeeeee;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.noticia-area-interes h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #800020; /* Tono burdeos sutil */
+    border-bottom: 2px solid #800020;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
 }
 
-.comunicado-info {
-    font-size: 0.9rem;
-    color: var(--color-text-light);
+.noticia-area-interes p {
+    font-size: 0.95rem;
+    color: #555;
 }
 
-.tags-container {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
+/* --- ELEMENTOS DEL TEXTO --- */
+.noticia-parrafo {
+    margin-top: 0;
+    margin-bottom: 18px;
 }
 
-.tags-label {
+.noticia-detalle-imagen-flotante {
+    float: left;
+    width: 40%;
+    margin-top: 6px;
+    margin-right: 30px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+.error-msg {
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
     font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--color-text-dark);
-}
-
-.tags-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tag-chip {
-    background-color: #f0f0f0;
-    color: #444;
-    padding: 5px 12px;
-    border-radius: 16px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    border: 1px solid #e0e0e0;
-    transition: all 0.2s ease;
-}
-
-.tag-chip:hover {
-    background-color: var(--color-hermandad-primary);
-    color: #fff;
-    border-color: var(--color-hermandad-primary);
-}
-
-/* --- ANIMACIONES --- */
-.animated-fade-in {
-    animation: fadeIn 0.6s ease-out forwards;
-    opacity: 0;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
-    .card-container-listado > div {
-        padding: 20px;
+    .noticia-cuerpo-columnas {
+        flex-direction: column; /* Apila el contenido y el sidebar en móviles */
     }
 
-    .comunicado-title {
-        font-size: 1.8rem;
+    .noticia-detalle-header,
+    .noticia-detalle-texto-layout,
+    .noticia-area-interes {
+        width: 100%;
+        padding-right: 0;
     }
 
-    .comunicado-header {
-        height: 250px;
+    .noticia-area-interes {
+        margin-top: 30px;
     }
 
-    .comunicado-content {
-        font-size: 1rem;
+    .noticia-detalle-imagen-flotante {
+        float: none;
+        width: 100%;
+        margin-right: 0;
+        margin-top: 0;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .noticia-detalle-texto-layout {
         text-align: left;
     }
 }
