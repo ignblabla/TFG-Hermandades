@@ -50,7 +50,7 @@ function HermanoListadoCuotas() {
                 
                 if (isMounted) {
                     setCuotas(cuotasRes.data.results);
-                    setTotalPages(Math.ceil(cuotasRes.data.count / 5));
+                    setTotalPages(Math.ceil(cuotasRes.data.count / 10));
 
                     if (cuotasRes.data.resumen) {
                         setResumen(cuotasRes.data.resumen);
@@ -88,8 +88,6 @@ function HermanoListadoCuotas() {
 
         return `${day}-${month}-${year}`;
     };
-
-    if (loading) return <div className="loading-screen">Cargando tu perfil...</div>;
 
     return (
         <div>
@@ -178,7 +176,7 @@ function HermanoListadoCuotas() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Mis Cuotas</div>
+                <div className="text-dashboard">Resumen de cuotas</div>
                 <div className="home-cards-container">
                     <HomeCard 
                         title="Total Cuotas" 
@@ -201,17 +199,17 @@ function HermanoListadoCuotas() {
                         icon={CreditCard} 
                     />
                 </div>
-                <div style={{ padding: '12px 20px 12px 20px' }}>
+
+                <div className="text-dashboard" style={{ marginTop: '20px', marginBottom: '8px', fontSize: '1.5rem' }}>
+                    Histórico de movimientos
+                </div>
+
+                <div style={{ padding: '10px 20px 12px 20px' }}>
                     {error && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}><AlertCircle size={16} /> {error}</div>}
 
                     <div className="table-responsive">
                         <table className="cuotas-table">
                             <thead>
-                                <tr className="tabla-titulo-row">
-                                    <th colSpan="9" className="tabla-titulo-texto">
-                                        Histórico de movimientos
-                                    </th>
-                                </tr>
                                 <tr>
                                     <th>Año</th>
                                     <th>Tipo</th>
