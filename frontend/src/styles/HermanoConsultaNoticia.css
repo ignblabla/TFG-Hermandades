@@ -1,14 +1,12 @@
-/* --- CONTENEDOR PRINCIPAL --- */
 .noticia-detalle-container {
-    width: 100%; /* Volvemos al 100% para poder usar las dos columnas dentro */
+    width: 100%;
     margin: 20px 0 0 0; 
     padding: 0; 
 }
 
-/* --- CABECERA --- */
 .noticia-detalle-header {
     width: 75%;
-    padding-right: 40px; /* Para alinearse perfectamente con el texto de abajo */
+    padding-right: 40px;
     box-sizing: border-box;
     margin-bottom: 20px;
 }
@@ -29,17 +27,15 @@
     text-align: left;
 }
 
-/* --- LAYOUT DE COLUMNAS (CONTENIDO + SIDEBAR) --- */
 .noticia-cuerpo-columnas {
     display: flex;
     width: 100%;
-    align-items: flex-start; /* Hace que el sidebar empiece arriba del todo */
+    align-items: flex-start;
 }
 
-/* COLUMNA IZQUIERDA (75%) */
 .noticia-detalle-texto-layout {
     width: 75%;
-    padding-right: 40px; /* Separación con el área de interés */
+    padding-right: 40px;
     box-sizing: border-box;
     margin-top: 0;
     font-size: 1.1rem;
@@ -48,10 +44,9 @@
     text-align: justify;
 }
 
-/* COLUMNA DERECHA (25%) */
 .noticia-area-interes {
     width: 25%;
-    background-color: #f8f9fa; /* Fondo gris muy suave para que destaque */
+    background-color: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
     border: 1px solid #e9ecef;
@@ -60,7 +55,7 @@
 .noticia-area-interes h3 {
     margin-top: 0;
     font-size: 1.1rem;
-    color: #800020; /* Tono burdeos sutil */
+    color: #800020;
     border-bottom: 2px solid #800020;
     padding-bottom: 8px;
     margin-bottom: 15px;
@@ -71,7 +66,6 @@
     color: #555;
 }
 
-/* --- ELEMENTOS DEL TEXTO --- */
 .noticia-parrafo {
     margin-top: 0;
     margin-bottom: 18px;
@@ -97,10 +91,44 @@
     font-weight: 600;
 }
 
+.lista-areas-interes {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.item-area-interes {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #444;
+}
+
+.item-area-interes:last-child {
+    margin-bottom: 0;
+}
+
+.icono-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    color: #800020;
+    background-color: #fff;
+    padding: 6px;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.titulo-area {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
 /* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .noticia-cuerpo-columnas {
-        flex-direction: column; /* Apila el contenido y el sidebar en móviles */
+        flex-direction: column;
     }
 
     .noticia-detalle-header,
