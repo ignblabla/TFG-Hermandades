@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoConsultaNoticia.css';
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 import NewsCard from '../components/NewsCard';
+import AreasAsociadas from '../components/areas_asociadas/AreasAsociadas';
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 function HermanoConsultaNoticia() {
     const { id } = useParams();
@@ -16,18 +17,6 @@ function HermanoConsultaNoticia() {
     const [ultimasNoticias, setUltimasNoticias] = useState([]);
 
     const navigate = useNavigate();
-
-    const areaInfoEstatica = {
-        'TODOS_HERMANOS': { icon: <Bell size={18} />, title: 'Todos los Hermanos' },
-        'COSTALEROS': { icon: <Users size={18} />, title: 'Costaleros' },
-        'CARIDAD': { icon: <Heart size={18} />, title: 'Diputación de Caridad' },
-        'JUVENTUD': { icon: <Sun size={18} />, title: 'Juventud' },
-        'PRIOSTIA': { icon: <Hammer size={18} />, title: 'Priostía' },
-        'CULTOS_FORMACION': { icon: <BookOpen size={18} />, title: 'Cultos y Formación' },
-        'PATRIMONIO': { icon: <Landmark size={18} />, title: 'Patrimonio' },
-        'ACOLITOS': { icon: <Church size={18} />, title: 'Acólitos' },
-        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown size={18} />, title: 'Diputación Mayor de Gobierno' },
-    };
 
     // --- FORMATEADORES ---
     const formatearFecha = (fechaInput) => {
@@ -59,33 +48,9 @@ function HermanoConsultaNoticia() {
     };
 
     const adaptarNoticiaACard = (item) => {
-        // Determinar categoría y color principal
-        let categoryName = "General";
-        let categoryColor = "#800020"; // Burdeos por defecto
-
-        if (item.areas_interes && item.areas_interes.length > 0) {
-            const firstArea = item.areas_interes[0];
-            const areaKey = typeof firstArea === 'object' ? (firstArea.nombre_area || firstArea.nombre) : firstArea;
-            
-            let visualInfo = areaInfoEstatica[areaKey];
-            if (!visualInfo) {
-                const foundKey = Object.keys(areaInfoEstatica).find(key => areaInfoEstatica[key].title === areaKey);
-                if (foundKey) visualInfo = areaInfoEstatica[foundKey];
-            }
-
-            if (visualInfo) {
-                categoryName = visualInfo.title;
-                if (visualInfo.color) categoryColor = visualInfo.color;
-            } else {
-                categoryName = areaKey;
-            }
-        }
-
-        // Calcular tiempo de lectura estimado (aprox. 200 palabras por minuto)
         const wordCount = item.contenido ? item.contenido.split(/\s+/).length : 0;
         const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
-        // Limpiar un poco el texto para la descripción si es necesario (y truncarlo)
         const descripcionCorta = item.contenido 
             ? item.contenido.substring(0, 120) + '...'
             : 'Sin descripción disponible.';
@@ -94,8 +59,6 @@ function HermanoConsultaNoticia() {
             id: item.id,
             title: item.titulo,
             image: item.imagen_portada || "/portada-comunicado.png",
-            category: categoryName,
-            categoryColor: categoryColor,
             time: formatearFecha(item.fecha_emision),
             readTime: `${readTimeMinutes} min lectura`,
             description: descripcionCorta
@@ -147,9 +110,6 @@ function HermanoConsultaNoticia() {
         setUser(null);
         navigate("/login");
     };
-
-
-    if (loading && !user) return <div className="site-wrapper loading-screen">Cargando histórico...</div>;
 
     return (
         <div>
@@ -273,50 +233,7 @@ function HermanoConsultaNoticia() {
                                     })}
                                 </div>
 
-                                <aside className="noticia-area-interes">
-                                    <h3>Área de interés:</h3>
-                                    
-                                    {noticia.areas_interes && noticia.areas_interes.length > 0 ? (
-                                        <ul className="lista-areas-interes">
-                                            {[...noticia.areas_interes]
-                                                .sort((a, b) => {
-                                                    const keyA = typeof a === 'object' ? (a.nombre_area || a.nombre) : a;
-                                                    const keyB = typeof b === 'object' ? (b.nombre_area || b.nombre) : b;
-
-                                                    if (keyA === 'TODOS_HERMANOS' || keyA === 'Todos los Hermanos') return -1;
-                                                    if (keyB === 'TODOS_HERMANOS' || keyB === 'Todos los Hermanos') return 1;
-                                                    return 0; 
-                                                })
-                                                .map((areaItem, index) => {
-                                                    const areaKey = typeof areaItem === 'object' ? (areaItem.nombre_area || areaItem.nombre) : areaItem;
-
-                                                    let visualInfo = areaInfoEstatica[areaKey];
-
-                                                    if (!visualInfo) {
-                                                        const foundKey = Object.keys(areaInfoEstatica).find(
-                                                            key => areaInfoEstatica[key].title === areaKey
-                                                        );
-                                                        if (foundKey) {
-                                                            visualInfo = areaInfoEstatica[foundKey];
-                                                        }
-                                                    }
-
-                                                    if (!visualInfo) {
-                                                        visualInfo = { icon: <Bell size={18} />, title: areaKey };
-                                                    }
-
-                                                    return (
-                                                        <li key={index} className="item-area-interes">
-                                                            <span className="icono-area">{visualInfo.icon}</span>
-                                                            <span className="titulo-area">{visualInfo.title}</span>
-                                                        </li>
-                                                    );
-                                                })}
-                                        </ul>
-                                    ) : (
-                                        <p>General</p> 
-                                    )}
-                                </aside>
+                                <AreasAsociadas areas={noticia?.areas_interes} />
                             </div>
 
                             {ultimasNoticias.length > 0 && (

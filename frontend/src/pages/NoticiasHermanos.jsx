@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
+import MisAreasCard from '../components/mis_areas_card/MisAreasCard';
 import '../styles/ListadoNoticias.css'
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
-
-const getCategoryColor = () => '#800020';
 
 const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -26,11 +25,11 @@ const getTimeAgo = (dateString) => {
 };
 
 const getReadTime = (content) => {
-    if (!content) return '1 min read';
+    if (!content) return '1 min lectura';
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
     const time = Math.ceil(words / wordsPerMinute);
-    return `${time} min read`;
+    return `${time} min lectura`;
 };
 
 // --- FIN FUNCIONES AUXILIARES ---
@@ -43,18 +42,6 @@ function NoticiasHermano() {
     const [loading, setLoading] = useState(true);
     
     const navigate = useNavigate();
-
-    const areaInfoEstatica = {
-        'TODOS_HERMANOS': { icon: <Bell size={18} />, title: 'Todos los Hermanos' },
-        'COSTALEROS': { icon: <Users size={18} />, title: 'Costaleros' },
-        'CARIDAD': { icon: <Heart size={18} />, title: 'Diputación de Caridad' },
-        'JUVENTUD': { icon: <Sun size={18} />, title: 'Juventud' },
-        'PRIOSTIA': { icon: <Hammer size={18} />, title: 'Priostía' },
-        'CULTOS_FORMACION': { icon: <BookOpen size={18} />, title: 'Cultos y Formación' },
-        'PATRIMONIO': { icon: <Landmark size={18} />, title: 'Patrimonio' },
-        'ACOLITOS': { icon: <Church size={18} />, title: 'Acólitos' },
-        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown size={18} />, title: 'Diputación Mayor de Gobierno' },
-    };
 
     // --- EFECTO DE CARGA ---
     useEffect(() => {
@@ -76,8 +63,6 @@ function NoticiasHermano() {
 
                     const noticiasFormateadas = resNoticias.data.map(item => ({
                         id: item.id,
-                        category: item.tipo_display || item.tipo_comunicacion, 
-                        categoryColor: getCategoryColor(item.tipo_comunicacion),
                         image: item.imagen_portada || 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&q=80&w=500', 
                         time: getTimeAgo(item.fecha_emision),
                         readTime: getReadTime(item.contenido),
@@ -100,7 +85,7 @@ function NoticiasHermano() {
         };
         fetchData();
         return () => { isMounted = false; };
-    }, [navigate, user]); 
+    }, [navigate, user]);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
@@ -221,50 +206,7 @@ function NoticiasHermano() {
                     </div>
 
                     {/* COLUMNA DERECHA: ASIDE DE ÁREAS (25%) */}
-                    <aside className="noticia-area-interes" style={{ flex: '1 1 25%', minWidth: '250px' }}>
-                        <h3>Tus Áreas de interés:</h3>
-                        
-                        {user?.areas_interes && user.areas_interes.length > 0 ? (
-                            <ul className="lista-areas-interes">
-                                {[...user.areas_interes]
-                                    .sort((a, b) => {
-                                        const keyA = typeof a === 'object' ? (a.nombre_area || a.nombre) : a;
-                                        const keyB = typeof b === 'object' ? (b.nombre_area || b.nombre) : b;
-
-                                        if (keyA === 'TODOS_HERMANOS' || keyA === 'Todos los Hermanos') return -1;
-                                        if (keyB === 'TODOS_HERMANOS' || keyB === 'Todos los Hermanos') return 1;
-                                        return 0; 
-                                    })
-                                    .map((areaItem, index) => {
-                                        const areaKey = typeof areaItem === 'object' ? (areaItem.nombre_area || areaItem.nombre) : areaItem;
-
-                                        let visualInfo = areaInfoEstatica[areaKey];
-
-                                        if (!visualInfo) {
-                                            const foundKey = Object.keys(areaInfoEstatica).find(
-                                                key => areaInfoEstatica[key].title === areaKey
-                                            );
-                                            if (foundKey) {
-                                                visualInfo = areaInfoEstatica[foundKey];
-                                            }
-                                        }
-
-                                        if (!visualInfo) {
-                                            visualInfo = { icon: <Bell size={18} />, title: areaKey };
-                                        }
-
-                                        return (
-                                            <li key={index} className="item-area-interes">
-                                                <span className="icono-area">{visualInfo.icon}</span>
-                                                <span className="titulo-area">{visualInfo.title}</span>
-                                            </li>
-                                        );
-                                    })}
-                            </ul>
-                        ) : (
-                            <p>No estás suscrito a ninguna área específica.</p> 
-                        )}
-                    </aside>
+                    <MisAreasCard userAreas={user?.areas_interes} />
 
                 </div>
             </section>

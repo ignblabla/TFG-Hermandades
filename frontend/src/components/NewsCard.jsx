@@ -1,6 +1,5 @@
-/* Cada prueba debe tener un comentario como el que te pasé antes. */
 import React from "react";
-import { Link } from "react-router-dom"; // Importamos Link de React Router
+import { Link } from "react-router-dom";
 import '../styles/NewsCard.css'; 
 
 const NewsCard = ({ item }) => {
@@ -8,9 +7,6 @@ const NewsCard = ({ item }) => {
         <div className="card-noticias">
             <div className="card-header-noticias">
                 <img src={item.image} alt={item.title} className="card-image-noticias" />
-                <span className="category-tag-noticias" style={{ backgroundColor: item.categoryColor }}>
-                {item.category}
-                </span>
             </div>
             
             <div className="card-content-noticias">

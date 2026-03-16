@@ -9,6 +9,7 @@ import CultoCard from '../components/CultoCard';
 import NewsCardHome from '../components/NewsCardHome';
 import ProfileCard from '../components/ProfileCard';
 import ContadorCard from '../components/ContadorCard';
+import NewsCard from '../components/NewsCard';
 import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
 
 function HermanoNewHome() {
@@ -23,6 +24,18 @@ function HermanoNewHome() {
     const [proximosActos, setProximosActos] = useState([]);
 
     const [ultimosComunicados, setUltimosComunicados] = useState([]);
+
+    const areaInfoEstatica = {
+        'TODOS_HERMANOS': { title: 'Todos los Hermanos' },
+        'COSTALEROS': { title: 'Costaleros' },
+        'CARIDAD': { title: 'Diputación de Caridad' },
+        'JUVENTUD': { title: 'Juventud' },
+        'PRIOSTIA': { title: 'Priostía' },
+        'CULTOS_FORMACION': { title: 'Cultos y Formación' },
+        'PATRIMONIO': { title: 'Patrimonio' },
+        'ACOLITOS': { title: 'Acólitos' },
+        'DIPUTACION_MAYOR_GOBIERNO': { title: 'Diputación Mayor de Gobierno' },
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -73,6 +86,47 @@ function HermanoNewHome() {
     const handleLogout = () => {
         localStorage.clear();
         navigate("/login");
+    };
+
+    const adaptarNoticiaACard = (item) => {
+        let categoryName = "General";
+        let categoryColor = "#800020";
+
+        if (item.areas_interes && item.areas_interes.length > 0) {
+            const firstArea = item.areas_interes[0];
+            const areaKey = typeof firstArea === 'object' ? (firstArea.nombre_area || firstArea.nombre) : firstArea;
+            
+            let visualInfo = areaInfoEstatica[areaKey];
+            if (!visualInfo) {
+                const foundKey = Object.keys(areaInfoEstatica).find(key => areaInfoEstatica[key].title === areaKey);
+                if (foundKey) visualInfo = areaInfoEstatica[foundKey];
+            }
+
+            if (visualInfo) {
+                categoryName = visualInfo.title;
+                if (visualInfo.color) categoryColor = visualInfo.color;
+            } else {
+                categoryName = areaKey;
+            }
+        }
+
+        const wordCount = item.contenido ? item.contenido.split(/\s+/).length : 0;
+        const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
+
+        const descripcionCorta = item.contenido 
+            ? item.contenido.substring(0, 120) + '...'
+            : 'Sin descripción disponible.';
+
+        return {
+            id: item.id,
+            title: item.titulo,
+            image: item.imagen_portada || imagenFallback,
+            category: categoryName,
+            categoryColor: categoryColor,
+            time: formatearFechaNoticia(item.fecha_emision),
+            readTime: `${readTimeMinutes} min lectura`,
+            description: descripcionCorta
+        };
     };
 
     const imagenFallback = "/portada-comunicado.png";
@@ -255,13 +309,9 @@ function HermanoNewHome() {
                         <div className="new-home-news-horizontal-container">
                             {ultimosComunicados && ultimosComunicados.length > 0 ? (
                                 ultimosComunicados.map((comunicado) => (
-                                    <NewsCardHome 
-                                        key={comunicado.id}
-                                        imagen={comunicado.imagen_portada || imagenFallback}
-                                        titulo={comunicado.titulo}
-                                        fecha={formatearFechaNoticia(comunicado.fecha_emision)}
-                                        contenido={comunicado.contenido}
-                                        enlace={`/comunicados/${comunicado.id}`}
+                                    <NewsCard 
+                                        key={comunicado.id} 
+                                        item={adaptarNoticiaACard(comunicado)} 
                                     />
                                 ))
                             ) : (
