@@ -12,8 +12,8 @@ def obtener_ultimos_comunicados_areas_usuario(usuario):
     if not areas_usuario.exists():
         return Comunicado.objects.filter(
             areas_interes__nombre_area=AreaInteres.NombreArea.TODOS_HERMANOS
-        ).order_by('-fecha_emision')[:2]
+        ).distinct().order_by('-fecha_emision')[:2]
 
     return Comunicado.objects.filter(
         areas_interes__in=areas_usuario
-    ).order_by('-fecha_emision')[:2]
+    ).distinct().order_by('-fecha_emision')[:2]

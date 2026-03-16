@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
+import '../styles/ListadoNoticias.css'
 
 const getCategoryColor = () => '#800020';
 
@@ -49,7 +50,6 @@ function NoticiasHermano() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 1. Cargar Usuario
                 let userData = user;
                 if (!userData) {
                     const resUser = await api.get("api/me/");
@@ -70,7 +70,7 @@ function NoticiasHermano() {
                         time: getTimeAgo(item.fecha_emision),
                         readTime: getReadTime(item.contenido),
                         title: item.titulo,
-                        description: item.contenido ? item.contenido.replace(/<[^>]+>/g, '').substring(0, 100) + '...' : '', 
+                        description: item.contenido ? item.contenido.replace(/<[^>]+>/g, '').substring(0, 150) + '...' : '', 
                         author: item.autor_nombre
                     }));
 
@@ -188,14 +188,14 @@ function NoticiasHermano() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Noticias y Comunicados</div>
+                <div className="text-dashboard">Noticias</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     {noticias.length === 0 ? (
                         <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
                             <p>No hay noticias recientes.</p>
                         </div>
                     ) : (
-                        <div className="card-container-listado-noticias" style={{ margin: '0', maxWidth: '100%' }}>
+                        <div className="card-container-listado-noticias">
                             {noticias.map(item => (
                                 <NewsCard key={item.id} item={item} />
                             ))}
