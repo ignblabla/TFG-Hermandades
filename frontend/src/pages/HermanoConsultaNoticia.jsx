@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoConsultaNoticia.css';
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
+import NewsCard from '../components/NewsCard';
 
 function HermanoConsultaNoticia() {
     const { id } = useParams();
@@ -55,6 +56,50 @@ function HermanoConsultaNoticia() {
             month: 'long', 
             year: 'numeric'
         }).format(date);
+    };
+
+    const adaptarNoticiaACard = (item) => {
+        // Determinar categoría y color principal
+        let categoryName = "General";
+        let categoryColor = "#800020"; // Burdeos por defecto
+
+        if (item.areas_interes && item.areas_interes.length > 0) {
+            const firstArea = item.areas_interes[0];
+            const areaKey = typeof firstArea === 'object' ? (firstArea.nombre_area || firstArea.nombre) : firstArea;
+            
+            let visualInfo = areaInfoEstatica[areaKey];
+            if (!visualInfo) {
+                const foundKey = Object.keys(areaInfoEstatica).find(key => areaInfoEstatica[key].title === areaKey);
+                if (foundKey) visualInfo = areaInfoEstatica[foundKey];
+            }
+
+            if (visualInfo) {
+                categoryName = visualInfo.title;
+                if (visualInfo.color) categoryColor = visualInfo.color;
+            } else {
+                categoryName = areaKey;
+            }
+        }
+
+        // Calcular tiempo de lectura estimado (aprox. 200 palabras por minuto)
+        const wordCount = item.contenido ? item.contenido.split(/\s+/).length : 0;
+        const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
+
+        // Limpiar un poco el texto para la descripción si es necesario (y truncarlo)
+        const descripcionCorta = item.contenido 
+            ? item.contenido.substring(0, 120) + '...'
+            : 'Sin descripción disponible.';
+
+        return {
+            id: item.id,
+            title: item.titulo,
+            image: item.imagen_portada || "/portada-comunicado.png",
+            category: categoryName,
+            categoryColor: categoryColor,
+            time: formatearFecha(item.fecha_emision),
+            readTime: `${readTimeMinutes} min lectura`,
+            description: descripcionCorta
+        };
     };
 
     // --- EFECTO DE CARGA ---
@@ -279,24 +324,10 @@ function HermanoConsultaNoticia() {
                                     <h2 className="ultimas-noticias-titulo">Últimas noticias de tu interés</h2>
                                     <div className="ultimas-noticias-grid">
                                         {ultimasNoticias.map((item) => (
-                                            <div 
+                                            <NewsCard 
                                                 key={item.id} 
-                                                className="ultima-noticia-card" 
-                                                onClick={() => navigate(`/noticia/${item.id}`)}
-                                            >
-                                                <div className="ultima-noticia-img-container">
-                                                    <img 
-                                                        src={item.imagen_portada || "/portada-comunicado.png"} 
-                                                        alt={item.titulo} 
-                                                    />
-                                                </div>
-                                                <div className="ultima-noticia-info">
-                                                    <h4>{item.titulo}</h4>
-                                                    <span className="ultima-noticia-fecha">
-                                                        {formatearFecha(item.fecha_emision)}
-                                                    </span>
-                                                </div>
-                                            </div>
+                                                item={adaptarNoticiaACard(item)} 
+                                            />
                                         ))}
                                     </div>
                                 </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
 import '../styles/ListadoNoticias.css'
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 const getCategoryColor = () => '#800020';
 
@@ -36,13 +37,24 @@ const getReadTime = (content) => {
 
 function NoticiasHermano() {
     const [isOpen, setIsOpen] = useState(false); 
-    
-    // Estados de datos
+
     const [user, setUser] = useState(null);
     const [noticias, setNoticias] = useState([]); 
     const [loading, setLoading] = useState(true);
     
     const navigate = useNavigate();
+
+    const areaInfoEstatica = {
+        'TODOS_HERMANOS': { icon: <Bell size={18} />, title: 'Todos los Hermanos' },
+        'COSTALEROS': { icon: <Users size={18} />, title: 'Costaleros' },
+        'CARIDAD': { icon: <Heart size={18} />, title: 'Diputación de Caridad' },
+        'JUVENTUD': { icon: <Sun size={18} />, title: 'Juventud' },
+        'PRIOSTIA': { icon: <Hammer size={18} />, title: 'Priostía' },
+        'CULTOS_FORMACION': { icon: <BookOpen size={18} />, title: 'Cultos y Formación' },
+        'PATRIMONIO': { icon: <Landmark size={18} />, title: 'Patrimonio' },
+        'ACOLITOS': { icon: <Church size={18} />, title: 'Acólitos' },
+        'DIPUTACION_MAYOR_GOBIERNO': { icon: <Crown size={18} />, title: 'Diputación Mayor de Gobierno' },
+    };
 
     // --- EFECTO DE CARGA ---
     useEffect(() => {
@@ -189,18 +201,70 @@ function NoticiasHermano() {
 
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Noticias</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    {noticias.length === 0 ? (
-                        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
-                            <p>No hay noticias recientes.</p>
-                        </div>
-                    ) : (
-                        <div className="card-container-listado-noticias">
-                            {noticias.map(item => (
-                                <NewsCard key={item.id} item={item} />
-                            ))}
-                        </div>
-                    )}
+                
+                {/* Contenedor Flex para alinear la lista y el aside */}
+                <div style={{ padding: '0 20px 40px 20px', display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    
+                    {/* COLUMNA IZQUIERDA: LISTA DE NOTICIAS (75%) */}
+                    <div style={{ flex: '1 1 70%', maxWidth: '100%' }}>
+                        {noticias.length === 0 ? (
+                            <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                                <p>No hay noticias recientes.</p>
+                            </div>
+                        ) : (
+                            <div className="card-container-listado-noticias">
+                                {noticias.map(item => (
+                                    <NewsCard key={item.id} item={item} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* COLUMNA DERECHA: ASIDE DE ÁREAS (25%) */}
+                    <aside className="noticia-area-interes" style={{ flex: '1 1 25%', minWidth: '250px' }}>
+                        <h3>Tus Áreas de interés:</h3>
+                        
+                        {user?.areas_interes && user.areas_interes.length > 0 ? (
+                            <ul className="lista-areas-interes">
+                                {[...user.areas_interes]
+                                    .sort((a, b) => {
+                                        const keyA = typeof a === 'object' ? (a.nombre_area || a.nombre) : a;
+                                        const keyB = typeof b === 'object' ? (b.nombre_area || b.nombre) : b;
+
+                                        if (keyA === 'TODOS_HERMANOS' || keyA === 'Todos los Hermanos') return -1;
+                                        if (keyB === 'TODOS_HERMANOS' || keyB === 'Todos los Hermanos') return 1;
+                                        return 0; 
+                                    })
+                                    .map((areaItem, index) => {
+                                        const areaKey = typeof areaItem === 'object' ? (areaItem.nombre_area || areaItem.nombre) : areaItem;
+
+                                        let visualInfo = areaInfoEstatica[areaKey];
+
+                                        if (!visualInfo) {
+                                            const foundKey = Object.keys(areaInfoEstatica).find(
+                                                key => areaInfoEstatica[key].title === areaKey
+                                            );
+                                            if (foundKey) {
+                                                visualInfo = areaInfoEstatica[foundKey];
+                                            }
+                                        }
+
+                                        if (!visualInfo) {
+                                            visualInfo = { icon: <Bell size={18} />, title: areaKey };
+                                        }
+
+                                        return (
+                                            <li key={index} className="item-area-interes">
+                                                <span className="icono-area">{visualInfo.icon}</span>
+                                                <span className="titulo-area">{visualInfo.title}</span>
+                                            </li>
+                                        );
+                                    })}
+                            </ul>
+                        ) : (
+                            <p>No estás suscrito a ninguna área específica.</p> 
+                        )}
+                    </aside>
 
                 </div>
             </section>
