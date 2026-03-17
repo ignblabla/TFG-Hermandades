@@ -16,7 +16,6 @@ import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 // import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
-import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
@@ -38,6 +37,7 @@ import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
+import AdminCenso from "./pages/AdminCenso"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -207,15 +207,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/censo"
-          element={
-            <ProtectedRoute>
-              <AdminListadoHermanos />
-            </ProtectedRoute>
-          }
-        />
         <Route 
           path="/gestion/hermanos/:id" 
           element={
@@ -304,6 +295,15 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoListadoCuotas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/censo-hermanos"
+          element={
+            <ProtectedRoute>
+              <AdminCenso />
             </ProtectedRoute>
           }
         />

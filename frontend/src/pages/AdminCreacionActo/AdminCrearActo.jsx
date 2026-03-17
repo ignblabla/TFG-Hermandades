@@ -29,7 +29,7 @@ function AdminCrearActo() {
         descripcion: '',
         fecha: '',
         tipo_acto: '',
-        modalidad: '', // Antes era 'TRADICIONAL'
+        modalidad: '',
         inicio_solicitud: '',
         fin_solicitud: '',
         inicio_solicitud_cirios: '',
@@ -82,7 +82,6 @@ function AdminCrearActo() {
         
         let newData = { ...formData, [name]: value };
 
-        // Lógica especial para TIPO DE ACTO
         if (name === 'tipo_acto') {
             const tipoSeleccionado = tiposActo.find(t => t.tipo === value);
             if (tipoSeleccionado) {
@@ -95,7 +94,6 @@ function AdminCrearActo() {
                     newData.fin_solicitud_cirios = '';
                     newData.modalidad = '';
                 } else {
-                    // 2. Forzamos a que vuelva a elegir la modalidad
                     newData.modalidad = '';
                 }
             }
@@ -136,7 +134,6 @@ function AdminCrearActo() {
 
         } catch (err) {
             console.error(err);
-            // 5. Mismo sistema de errores que en Editar
             if (err.response?.status === 500) {
                 setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
             } else {
