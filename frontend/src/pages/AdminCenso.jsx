@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'
-import '../styles/AdminListadoHermanos.css';
-import { ChevronLeft, ChevronRight, UserCheck, Users, UserX } from "lucide-react";
+import '../styles/AdminCenso.css';
+import { ChevronLeft, ChevronRight, UserCheck, Users, UserX, AlertCircle } from "lucide-react";
 
-function AdminListadoHermanos() {
-    console.log("MONTANDO COMPONENTE CENSO");
+function AdminCenso() {
     const [isOpen, setIsOpen] = useState(false);
     
     const [user, setUser] = useState(null);
@@ -21,14 +20,19 @@ function AdminListadoHermanos() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalRegistros, setTotalRegistros] = useState(0);
 
-    const formatearFecha = (fechaString) => {
-        if (!fechaString) return "-";
-        const fecha = new Date(fechaString);
-        return fecha.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+    const [error, setError] = useState("");
+
+    const formatearFecha = (dateString) => {
+        if (!dateString) return "-";
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+        
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+
+        return `${day}-${month}-${year}`;
     };
 
     useEffect(() => {
@@ -103,8 +107,6 @@ function AdminListadoHermanos() {
     const irAlDetalle = (id) => {
         navigate(`/gestion/hermanos/${id}`);
     };
-
-    if (loading && !user) return <div className="site-wrapper loading-screen">Cargando censo...</div>;
 
     if (accesoDenegado) {
         return (
@@ -203,108 +205,81 @@ function AdminListadoHermanos() {
             </div>
 
             <section className="home-section-dashboard">
-                
-                <div className="text-dashboard">Gestión de Usuarios</div>
-
+                <div className="text-dashboard">Censo de la Hermandad</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
-                    
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
-                        
-                        <header className="content-header-area">
-                            <div className="title-row-area">
-                                <div style={{display:'flex', alignItems:'center', gap: '10px'}}>
-                                    <Users size={28} className="text-purple" />
-                                    <h2>Censo de Hermanos</h2>
-                                </div>
-                            </div>
-                            <p className="description-area">
-                                Total registros encontrados: <strong>{totalRegistros}</strong>
-                            </p>
-                        </header>
-
-                        <div className="table-responsive">
-                            {loading ? (
-                                <div className="loading-state">Cargando censo...</div>
-                            ) : (
-                                <table className="hermanos-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Nº Reg.</th>
-                                            <th>DNI</th>
-                                            <th>Apellidos y Nombre</th>
-                                            <th>F. Nacimiento</th>
-                                            <th>F. Ingreso</th>
-                                            <th>Dirección</th>
-                                            <th>Teléfono</th>
-                                            <th>Estado</th>
-                                            <th>Perfil</th>
+                    {error && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}><AlertCircle size={16} /> {error}</div>}
+                    <div className="table-responsive-censo">
+                        <table className="censo-table">
+                            <thead>
+                                <tr>
+                                    <th className="col-num-reg">Nº Reg.</th>
+                                    <th>DNI</th>
+                                    <th>Apellidos y Nombre</th>
+                                    <th>F. Nacimiento</th>
+                                    <th>F. Ingreso</th>
+                                    <th>Dirección</th>
+                                    <th>Teléfono</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {hermanos.length > 0 ? (
+                                    hermanos.map((hermano) => (
+                                        <tr key={hermano.id} onClick={() => irAlDetalle(hermano.id)} style={{ cursor: 'pointer' }}>
+                                            <td className="col-num-reg">
+                                                <span className="badge-reg-censo">{hermano.numero_registro || "-"}</span>
+                                            </td>
+                                            <td>{hermano.dni}</td>
+                                            <td style={{ fontWeight: 'bold' }}>
+                                                {hermano.primer_apellido} {hermano.segundo_apellido}, {hermano.nombre}
+                                            </td>
+                                            <td>{formatearFecha(hermano.fecha_nacimiento)}</td>
+                                            <td>{formatearFecha(hermano.fecha_ingreso_corporacion)}</td>
+                                            <td title={hermano.direccion}>
+                                                {hermano.direccion && hermano.direccion.length > 20 ? hermano.direccion.substring(0, 20) + '...' : hermano.direccion || "-"}
+                                            </td>
+                                            <td>{hermano.telefono}</td>
+                                            <td>
+                                                {hermano.estado_hermano === 'ALTA' ? (
+                                                    <span className="badge-estado-censo alta"><UserCheck size={14} style={{verticalAlign: 'middle', marginRight: '4px'}}/> Alta</span>
+                                                ) : (
+                                                    <span className="badge-estado-censo baja"><UserX size={14} style={{verticalAlign: 'middle', marginRight: '4px'}}/> Baja</span>
+                                                )}
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {hermanos.length > 0 ? (
-                                            hermanos.map((hermano) => (
-                                                <tr key={hermano.id} onClick={() => irAlDetalle(hermano.id)} style={{borderBottom: '1px solid #f1f5f9', cursor: 'pointer'}} className="row-hover">
-                                                    <td><span className="badge-reg">{hermano.numero_registro || "-"}</span></td>
-                                                    <td>{hermano.dni}</td>
-                                                    <td className="fw-bold">
-                                                        {hermano.primer_apellido} {hermano.segundo_apellido}, {hermano.nombre}
-                                                    </td>
-                                                    <td>{formatearFecha(hermano.fecha_nacimiento)}</td>
-                                                    <td>{formatearFecha(hermano.fecha_ingreso_corporacion)}</td>
-                                                    <td className="cell-direccion" title={hermano.direccion}>
-                                                        {hermano.direccion || "-"}
-                                                    </td>
-                                                    <td>{hermano.telefono}</td>
-                                                    <td>
-                                                        {hermano.estado_hermano === 'ALTA' ? (
-                                                            <span className="status-badge success"><UserCheck size={14}/> Alta</span>
-                                                        ) : (
-                                                            <span className="status-badge error"><UserX size={14}/> Baja</span>
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        {hermano.esAdmin && <span className="admin-tag">ADMIN</span>}
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="6" className="text-center">No se encontraron hermanos.</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No se encontraron hermanos.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>  
 
-                        <footer className="pagination-footer">
-                            <span className="page-info">
-                                Página {page} de {totalPages}
-                            </span>
-                            <div className="pagination-controls">
+                    {totalPages > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
                                 <button 
-                                    className="btn-pagination" 
                                     onClick={handlePrev} 
                                     disabled={!prevUrl || loading}
+                                    className="btn-paginacion-censo cancel"
                                 >
-                                    <ChevronLeft size={16} /> Anterior
+                                    <ChevronLeft size={16} style={{verticalAlign: 'middle'}}/> Anterior
                                 </button>
-                                
+                                <span>Página {page} de {totalPages}</span>
                                 <button 
-                                    className="btn-pagination" 
                                     onClick={handleNext} 
                                     disabled={!nextUrl || loading}
+                                    className="btn-paginacion-censo save"
                                 >
-                                    Siguiente <ChevronRight size={16} />
+                                    Siguiente <ChevronRight size={16} style={{verticalAlign: 'middle'}}/>
                                 </button>
                             </div>
-                        </footer>
-
-                    </div>
+                        )}
                 </div>
             </section>
         </div>
     );
 }
 
-export default AdminListadoHermanos;
+export default AdminCenso;

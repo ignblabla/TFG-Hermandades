@@ -1,0 +1,115 @@
+.cultos-section-dashboard {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.cultos-section-title {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: var(--text-main);
+    font-weight: 700;
+    font-family: var(--font-family);
+}
+
+.cultos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+}
+
+.culto-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 6px 12px;
+    gap: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+}
+
+.culto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--burgundy-primary);
+}
+
+.culto-date-box {
+    background-color: #800020;
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+}
+
+.culto-month {
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0px;
+}
+
+.culto-day {
+    color: #ffffff;
+    font-size: 1.4rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.culto-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.culto-title {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.culto-time-location {
+    margin: 0;
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+@media (max-width: 800px) {
+    .cultos-list {
+        width: 100%;
+    }
+
+    .culto-card {
+        padding: 12px;
+        gap: 16px;
+        width: 100%; 
+    }
+    .culto-date-box {
+        padding: 10px 12px;
+        min-width: 60px;
+    }
+    .culto-day {
+        font-size: 1.5rem;
+    }
+    .culto-title {
+        font-size: 1.05rem;
+    }
+}

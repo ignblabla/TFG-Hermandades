@@ -124,7 +124,7 @@ class Cuota(models.Model):
     tipo = models.CharField(max_length=20, choices=TipoCuota.choices, default=TipoCuota.ORDINARIA)
     descripcion = models.CharField(max_length=100, help_text="Ej: Cuota 2024")
 
-    fecha_emision = models.DateField(auto_now_add=True, verbose_name="Fecha de emisión")
+    fecha_emision = models.DateField(default=timezone.now, verbose_name="Fecha de emisión")
     fecha_pago = models.DateField(null=True, blank=True, verbose_name="Fecha de pago")
 
     importe = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)], verbose_name="Importe (€)")
@@ -332,6 +332,7 @@ class Acto(models.Model):
         UNIFICADO = 'UNIFICADO', 'Unificado / Express (Todo en un plazo)'
 
     nombre = models.CharField(max_length=100, verbose_name="Nombre del acto")
+    lugar = models.CharField(max_length=200, verbose_name="Lugar de celebración")
     descripcion = models.TextField(verbose_name="Descripción", blank=True, null=True)
     fecha = models.DateTimeField(verbose_name="Fecha y hora")
     modalidad = models.CharField(max_length=20, choices=ModalidadReparto.choices, verbose_name="Modalidad de reparto", blank=True, null=True)
@@ -352,6 +353,9 @@ class Acto(models.Model):
 
         if self.nombre is not None and not self.nombre.strip():
             errors["nombre"] = "El nombre del acto no puede estar vacío."
+
+        if self.lugar is not None and not self.lugar.strip():
+            errors["lugar"] = "El lugar de celebración no puede estar vacío."
 
         if self.tipo_acto_id is None:
             raise ValidationError({"tipo_acto": "El tipo de acto es obligatorio."})

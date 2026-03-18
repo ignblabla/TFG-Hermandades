@@ -1,0 +1,21 @@
+.card-container-listado-noticias {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin: 0;
+    padding-bottom: 20px;
+}
+
+@media (max-width: 1024px) {
+    .card-container-listado-noticias {
+        grid-template-columns: repeat(2, 1fr);
+        width: 90%;
+    }
+}
+@media (max-width: 650px) {
+    .card-container-listado-noticias {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+}

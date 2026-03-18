@@ -52,7 +52,7 @@
 
 .card-header-noticias {
     position: relative;
-    height: 180px; 
+    height: 220px; 
     width: 100%;
     padding: 8px; 
     box-sizing: border-box;
@@ -63,22 +63,7 @@
     height: 100%;
     object-fit: cover;
     object-position: center;
-    border-radius: 6px; 
-}
-
-.category-tag-noticias {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    color: white;
-    font-size: 9px; 
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 4px;
-    letter-spacing: 0.5px;
-    z-index: 2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    text-transform: uppercase;
+    border-radius: 6px;
 }
 
 .card-content-noticias {
@@ -126,7 +111,7 @@
 
 .card-footer-noticias {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding-top: 12px;
     border-top: 1px solid var(--border-color); 

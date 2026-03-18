@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import NewsCard from '../components/NewsCard';
-
-const getCategoryColor = () => '#800020';
+import MisAreasCard from '../components/mis_areas_card/MisAreasCard';
+import '../styles/ListadoNoticias.css'
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -24,19 +25,18 @@ const getTimeAgo = (dateString) => {
 };
 
 const getReadTime = (content) => {
-    if (!content) return '1 min read';
+    if (!content) return '1 min lectura';
     const wordsPerMinute = 200;
     const words = content.trim().split(/\s+/).length;
     const time = Math.ceil(words / wordsPerMinute);
-    return `${time} min read`;
+    return `${time} min lectura`;
 };
 
 // --- FIN FUNCIONES AUXILIARES ---
 
 function NoticiasHermano() {
     const [isOpen, setIsOpen] = useState(false); 
-    
-    // Estados de datos
+
     const [user, setUser] = useState(null);
     const [noticias, setNoticias] = useState([]); 
     const [loading, setLoading] = useState(true);
@@ -49,7 +49,6 @@ function NoticiasHermano() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // 1. Cargar Usuario
                 let userData = user;
                 if (!userData) {
                     const resUser = await api.get("api/me/");
@@ -64,13 +63,11 @@ function NoticiasHermano() {
 
                     const noticiasFormateadas = resNoticias.data.map(item => ({
                         id: item.id,
-                        category: item.tipo_display || item.tipo_comunicacion, 
-                        categoryColor: getCategoryColor(item.tipo_comunicacion),
                         image: item.imagen_portada || 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&q=80&w=500', 
                         time: getTimeAgo(item.fecha_emision),
                         readTime: getReadTime(item.contenido),
                         title: item.titulo,
-                        description: item.contenido ? item.contenido.replace(/<[^>]+>/g, '').substring(0, 100) + '...' : '', 
+                        description: item.contenido ? item.contenido.replace(/<[^>]+>/g, '').substring(0, 150) + '...' : '', 
                         author: item.autor_nombre
                     }));
 
@@ -88,7 +85,7 @@ function NoticiasHermano() {
         };
         fetchData();
         return () => { isMounted = false; };
-    }, [navigate, user]); 
+    }, [navigate, user]);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
@@ -188,19 +185,28 @@ function NoticiasHermano() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Noticias y Comunicados</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    {noticias.length === 0 ? (
-                        <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
-                            <p>No hay noticias recientes.</p>
-                        </div>
-                    ) : (
-                        <div className="card-container-listado-noticias" style={{ margin: '0', maxWidth: '100%' }}>
-                            {noticias.map(item => (
-                                <NewsCard key={item.id} item={item} />
-                            ))}
-                        </div>
-                    )}
+                <div className="text-dashboard">Noticias</div>
+                
+                {/* Contenedor Flex para alinear la lista y el aside */}
+                <div style={{ padding: '0 20px 40px 20px', display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                    
+                    {/* COLUMNA IZQUIERDA: LISTA DE NOTICIAS (75%) */}
+                    <div style={{ flex: '1 1 70%', maxWidth: '100%' }}>
+                        {noticias.length === 0 ? (
+                            <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
+                                <p>No hay noticias recientes.</p>
+                            </div>
+                        ) : (
+                            <div className="card-container-listado-noticias">
+                                {noticias.map(item => (
+                                    <NewsCard key={item.id} item={item} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* COLUMNA DERECHA: ASIDE DE ÁREAS (25%) */}
+                    <MisAreasCard userAreas={user?.areas_interes} />
 
                 </div>
             </section>

@@ -1,0 +1,144 @@
+:root {
+    --burgundy-primary: #800020;
+    --burgundy-ultra-light: #c7748b;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    --border-color: #e5e7eb;
+}
+
+.table-responsive-censo {
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 0px;
+    padding: 2px; 
+}
+
+.censo-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+    background-color: var(--white);
+    border: 1px solid var(--burgundy-primary); 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.censo-table thead tr:last-child {
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+}
+
+.censo-table th {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--burgundy-dark);
+}
+
+.censo-table th,
+.censo-table td {
+    padding: 8px 16px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.censo-table .col-num-reg {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.censo-table tbody tr {
+    color: var(--text-main);
+    transition: background-color 0.2s ease;
+}
+
+.censo-table tbody tr td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.censo-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.censo-table tbody tr:nth-of-type(even) {
+    background-color: var(--burgundy-light);
+}
+
+.censo-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.badge-estado-censo {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-estado-censo.alta {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-estado-censo.baja {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.badge-estado-censo.admin {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    font-size: 0.75em;
+    letter-spacing: 0.05em;
+}
+
+.badge-reg-censo {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid #d1d5db;
+}
+
+.btn-paginacion-censo {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-paginacion-censo:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-paginacion-censo.cancel {
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.btn-paginacion-censo.cancel:hover:not(:disabled) {
+    background-color: #d1d5db;
+}
+
+.btn-paginacion-censo.save {
+    background-color: var(--burgundy-primary);
+    color: white;
+}
+
+.btn-paginacion-censo.save:hover:not(:disabled) {
+    background-color: var(--burgundy-dark);
+}

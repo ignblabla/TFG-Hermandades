@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoConsultaNoticia.css';
+import NewsCard from '../components/NewsCard';
+import AreasAsociadas from '../components/areas_asociadas/AreasAsociadas';
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 function HermanoConsultaNoticia() {
     const { id } = useParams();
@@ -11,17 +14,55 @@ function HermanoConsultaNoticia() {
     const [noticia, setNoticia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [ultimasNoticias, setUltimasNoticias] = useState([]);
 
     const navigate = useNavigate();
 
     // --- FORMATEADORES ---
-    const formatearFecha = (fechaISO) => {
-        if (!fechaISO) return '';
-        const date = new Date(fechaISO);
+    const formatearFecha = (fechaInput) => {
+        if (!fechaInput) return '';
+        
+        let date = new Date(fechaInput);
+
+        if (isNaN(date.getTime()) && typeof fechaInput === 'string' && fechaInput.includes('/')) {
+            const partes = fechaInput.split('/');
+            if (partes.length === 3) {
+                const dia = parseInt(partes[0], 10);
+                const mes = parseInt(partes[1], 10) - 1;
+                let anio = parseInt(partes[2], 10);
+
+                if (anio < 100) {
+                    anio += anio > 50 ? 1900 : 2000;
+                }
+                date = new Date(anio, mes, dia);
+            }
+        }
+
+        if (isNaN(date.getTime())) return fechaInput;
+
         return new Intl.DateTimeFormat('es-ES', {
-            day: 'numeric', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+            day: 'numeric', 
+            month: 'long', 
+            year: 'numeric'
         }).format(date);
+    };
+
+    const adaptarNoticiaACard = (item) => {
+        const wordCount = item.contenido ? item.contenido.split(/\s+/).length : 0;
+        const readTimeMinutes = Math.max(1, Math.ceil(wordCount / 200));
+
+        const descripcionCorta = item.contenido 
+            ? item.contenido.substring(0, 120) + '...'
+            : 'Sin descripción disponible.';
+
+        return {
+            id: item.id,
+            title: item.titulo,
+            image: item.imagen_portada || "/portada-comunicado.png",
+            time: formatearFecha(item.fecha_emision),
+            readTime: `${readTimeMinutes} min lectura`,
+            description: descripcionCorta
+        };
     };
 
     // --- EFECTO DE CARGA ---
@@ -36,10 +77,15 @@ function HermanoConsultaNoticia() {
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
                 }
-                const resNoticia = await api.get(`api/comunicados/${id}/`);
+
+                const [resNoticia, resUltimas] = await Promise.all([
+                    api.get(`api/comunicados/${id}/`),
+                    api.get(`api/comunicados/${id}/relacionados/`)
+                ]);
                 
                 if (isMounted) {
                     setNoticia(resNoticia.data);
+                    setUltimasNoticias(resUltimas.data); 
                 }
             } catch (err) {
                 console.error("Error cargando noticia:", err);
@@ -64,9 +110,6 @@ function HermanoConsultaNoticia() {
         setUser(null);
         navigate("/login");
     };
-
-
-    if (loading && !user) return <div className="site-wrapper loading-screen">Cargando histórico...</div>;
 
     return (
         <div>
@@ -157,87 +200,59 @@ function HermanoConsultaNoticia() {
 
             {/* --- SECCIÓN PRINCIPAL --- */}
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Comunicados</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
+                    {error && <p className="error-msg">{error}</p>}
+                    
+                    {noticia && (
+                        <div className="noticia-detalle-container">
 
-                        {error && (
-                            <div style={{ padding: 20, textAlign: 'center', color: '#761818' }}>
-                                <h3>{error}</h3>
+                            <header className="noticia-detalle-header">
+                                <h1 className="noticia-detalle-titulo">{noticia.titulo}</h1>
+                                <p className="noticia-detalle-fecha">
+                                    {formatearFecha(noticia.fecha_emision)}
+                                </p>
+                            </header>
+                            
+                            <div className="noticia-cuerpo-columnas">
+                                <div className="noticia-detalle-texto-layout">
+                                    <img 
+                                        src={noticia.imagen_portada || "/portada-comunicado.png"} 
+                                        alt={`Portada de ${noticia.titulo}`} 
+                                        className="noticia-detalle-imagen-flotante"
+                                    />
+
+                                    {noticia.contenido.split('\n').map((parrafo, index) => {
+                                        if (parrafo.trim() !== '') {
+                                            return (
+                                                <p key={index} className="noticia-parrafo">
+                                                    {parrafo}
+                                                </p>
+                                            );
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+
+                                <AreasAsociadas areas={noticia?.areas_interes} />
                             </div>
-                        )}
 
-                        {!loading && noticia && (
-                            <div>
-                                {/* --- TÍTULO DE LA NOTICIA (Aquí, dentro del contenedor) --- */}
-                                    <h1 className="comunicado-title" style={{ 
-                                        fontFamily: "'Playfair Display', serif", 
-                                        color: '#761818', 
-                                        fontSize: '2.2rem', 
-                                        marginBottom: '10px', 
-                                        lineHeight: '1.2' 
-                                    }}>
-                                        {noticia.titulo}
-                                    </h1>
-                                {/* Cabecera con Imagen */}
-                                <header className="comunicado-header">
-                                    {noticia.imagen_portada ? (
-                                        <img 
-                                            src={noticia.imagen_portada} 
-                                            alt={noticia.titulo} 
-                                            className="comunicado-img"
-                                        />
-                                    ) : (
-                                        <div className="comunicado-img-placeholder">
-                                            <span>{noticia.tipo_display}</span>
-                                        </div>
-                                    )}
-                                    
-                                    <div className="comunicado-meta-overlay">
-                                        <span className={`badge badge-${noticia.tipo_comunicacion ? noticia.tipo_comunicacion.toLowerCase() : 'general'}`}>
-                                            {noticia.tipo_display}
-                                        </span>
-                                        <time dateTime={noticia.fecha_emision}>
-                                            {formatearFecha(noticia.fecha_emision)}
-                                        </time>
-                                    </div>
-                                </header>
-
-                                {/* Cuerpo de la Noticia */}
-                                <div className="comunicado-body">
-
-                                    {/* Contenido Texto */}
-                                    <div className="comunicado-content">
-                                        {noticia.contenido.split('\n').map((parrafo, index) => (
-                                            parrafo.trim() !== "" && <p key={index}>{parrafo}</p>
+                            {ultimasNoticias.length > 0 && (
+                                <div className="ultimas-noticias-seccion">
+                                    <h2 className="ultimas-noticias-titulo">Últimas noticias de tu interés</h2>
+                                    <div className="ultimas-noticias-grid">
+                                        {ultimasNoticias.map((item) => (
+                                            <NewsCard 
+                                                key={item.id} 
+                                                item={adaptarNoticiaACard(item)} 
+                                            />
                                         ))}
                                     </div>
                                 </div>
-
-                                {/* Pie: Etiquetas */}
-                                <footer className="comunicado-footer">
-                                    <div className="comunicado-info">
-                                        <span className="author">Publicado por: <strong>{noticia.autor_nombre}</strong></span>
-                                    </div>
-                                    {noticia.areas_interes && noticia.areas_interes.length > 0 && (
-                                        <div className="tags-container">
-                                            <span className="tags-label">Temas:</span>
-                                            <div className="tags-list">
-                                                {noticia.areas_interes.map((area, idx) => (
-                                                    <span key={idx} className="tag-chip">
-                                                        {area}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </footer>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </section>
-
         </div>
     );
 }

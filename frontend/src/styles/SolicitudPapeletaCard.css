@@ -1,0 +1,93 @@
+.card-container {
+    background-color: #050505;
+    background-image: radial-gradient(circle at 90% 50%, #20050a 0%, #050505 60%);
+    border-radius: 16px;
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 850px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #1a1a1a;
+}
+
+.content-side {
+    flex: 1;
+    z-index: 2;
+}
+
+.status-badge {
+    background-color: #e61944;
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    background-color: white;
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+    letter-spacing: -0.5px;
+}
+
+.description {
+    color: #9ca3af;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 32px;
+    max-width: 480px;
+}
+
+.cta-button {
+    background-color: #e61944;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cta-button:hover {
+    background-color: #c41236;
+}
+
+.icon-side {
+    padding-left: 40px;
+    opacity: 0.6;
+}
+
+.ticket-icon {
+    filter: drop-shadow(0 0 20px rgba(180, 0, 0, 0.1));
+}
+
+@media (max-width: 600px) {
+    .card-container {
+        flex-direction: column;
+        text-align: left;
+        padding: 30px;
+    }
+    .icon-side {
+        display: none;
+    }
+}

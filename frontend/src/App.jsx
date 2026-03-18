@@ -16,10 +16,8 @@ import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 // import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
-import AdminListadoHermanos from "./pages/AdminListadoHermanos"
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
-import AdminCreacionActo from "./pages/AdminCreacionActo"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
@@ -31,10 +29,15 @@ import HermanoAreaInteres from "./pages/HermanoAreasInteres"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado/AdminCreacionComunicado"
 import AdminEdicionComunicado from "./pages/AdminEdicionComunicado/AdminEdicionComunicado"
+import AdminCrearActo from "./pages/AdminCreacionActo/AdminCrearActo"
+import AdminEditarActo from "./pages/AdminEdicionActo/AdminEditarActo"
 
 import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
+import HermanoNewHome from "./pages/NewHome"
+import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
+import AdminCenso from "./pages/AdminCenso"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -86,6 +89,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEdicionComunicado />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/crear-acto"
+          element={
+            <ProtectedRoute>
+              <AdminCrearActo />
             </ProtectedRoute>
           }
         />
@@ -196,15 +207,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        <Route
-          path="/censo"
-          element={
-            <ProtectedRoute>
-              <AdminListadoHermanos />
-            </ProtectedRoute>
-          }
-        />
         <Route 
           path="/gestion/hermanos/:id" 
           element={
@@ -214,14 +216,6 @@ function App() {
           } 
         />
         <Route
-          path="/admin/crear-acto"
-          element={
-            <ProtectedRoute>
-              <AdminCreacionActo />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/admin/editar-acto/:id"
           element={
             <ProtectedRoute>
@@ -229,6 +223,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="editar-acto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEditarActo />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/comunicados"
           element={
@@ -275,6 +279,31 @@ function App() {
           element={
             <ProtectedRoute>
               <MisPapeletas />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/new-home"
+          element={
+            <ProtectedRoute>
+              <HermanoNewHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/listado-cuotas"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoCuotas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/censo-hermanos"
+          element={
+            <ProtectedRoute>
+              <AdminCenso />
             </ProtectedRoute>
           }
         />

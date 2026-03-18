@@ -1,7 +1,7 @@
-from ...models import DatosBancarios, Hermano
+from ...models import Comunicado, Cuota, DatosBancarios, Hermano
 from datetime import date
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db import connection, transaction
 
 class Command(BaseCommand):
     help = 'Puebla la base de datos con hermanos de prueba'
@@ -10,7 +10,10 @@ class Command(BaseCommand):
         self.stdout.write("Iniciando el poblado de datos...")
 
         with transaction.atomic():
-            
+
+            Comunicado.objects.all().delete()
+            Cuota.objects.all().delete()
+
             Hermano.objects.all().delete()
 
             if not Hermano.objects.filter(dni="11111111A").exists():
@@ -445,5 +448,41 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('¡Proceso finalizado con éxito!'))
 
-    
 
+
+        # =========================================================================
+        # POBLADO DE CUOTAS
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado masivo de Cuotas...")
+        
+        Cuota.objects.all().delete()
+
+        with connection.cursor() as cursor:
+            cursor.execute(f"ALTER TABLE {Cuota._meta.db_table} AUTO_INCREMENT = 1;")
+
+        hermanos_a_poblar = Hermano.objects.all()
+
+        cuotas_a_crear = []
+        anio_actual = 2026
+
+        for hermano in hermanos_a_poblar:
+            anio_ingreso = hermano.fecha_ingreso_corporacion.year if hermano.fecha_ingreso_corporacion else 1974
+            anio_inicio_cuotas = max(1974, anio_ingreso)
+
+            for anio in range(anio_inicio_cuotas, anio_actual + 1):
+                cuota = Cuota(
+                    hermano=hermano,
+                    anio=anio,
+                    tipo="ORDINARIA",
+                    descripcion=f"Cuota Ordinaria {anio}",
+                    importe=45.00,
+                    estado="PAGADA",
+                    metodo_pago="DOMICILIACION",
+                    fecha_emision=f"{anio}-05-15",
+                    fecha_pago=f"{anio}-06-15"
+                )
+                cuotas_a_crear.append(cuota)
+
+        Cuota.objects.bulk_create(cuotas_a_crear)
+        
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han generado {len(cuotas_a_crear)} cuotas anuales masivamente.'))

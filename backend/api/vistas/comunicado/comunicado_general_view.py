@@ -1,9 +1,10 @@
 from rest_framework import status
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.models import Comunicado
+from api.models import AreaInteres, Comunicado
 from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
 from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
@@ -39,7 +40,17 @@ class ComunicadoListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        comunicados = Comunicado.objects.select_related('autor').prefetch_related('areas_interes').all().order_by('-fecha_emision')
+        usuario = request.user
+
+        filtro_areas = Q(areas_interes__in=usuario.areas_interes.all()) | \
+                    Q(areas_interes__nombre_area=AreaInteres.NombreArea.TODOS_HERMANOS)
+
+        comunicados = Comunicado.objects.select_related('autor') \
+                                        .prefetch_related('areas_interes') \
+                                        .filter(filtro_areas) \
+                                        .distinct() \
+                                        .order_by('-fecha_emision')
+
         serializer = ComunicadoListSerializer(comunicados, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
