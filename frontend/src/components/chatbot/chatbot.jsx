@@ -90,7 +90,9 @@ const ChatBot = () => {
                                     )}
                                     <div className={`aura-bubble ${msg.isBot ? 'aura-bot' : 'aura-user'}`}>
                                         {msg.isBot ? (
-                                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                            <div className="markdown-content">
+                                                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                            </div>
                                         ) : (
                                             msg.text
                                         )}
