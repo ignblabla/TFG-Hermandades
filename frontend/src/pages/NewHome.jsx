@@ -6,10 +6,10 @@ import '../styles/HomeCard.css';
 import '../styles/HermanoNewHome.css'
 import HomeCard from '../components/HomeCard';
 import CultoCard from '../components/CultoCard';
-import NewsCardHome from '../components/NewsCardHome';
 import ProfileCard from '../components/ProfileCard';
 import ContadorCard from '../components/ContadorCard';
 import NewsCard from '../components/NewsCard';
+import ChatBot from '../components/chatbot/chatbot';
 import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
 
 function HermanoNewHome() {
@@ -135,8 +135,6 @@ function HermanoNewHome() {
         const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
         return new Date(fechaString).toLocaleDateString('es-ES', opciones);
     };
-
-    if (loading) return <div className="loading-screen">Cargando configuración...</div>;
 
     return (
         <div>
@@ -323,6 +321,8 @@ function HermanoNewHome() {
                     </div>
                 </div>
             </section>
+
+            <ChatBot />
         </div>
     );
 }
