@@ -97,6 +97,10 @@
     text-align: left;
 }
 
+.rotate-icon-vertical {
+    transform: rotate(90deg);
+}
+
 @media (max-width: 1024px) {
     .new-home-dashboard-bottom-section {
         display: flex;

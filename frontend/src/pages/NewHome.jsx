@@ -10,7 +10,7 @@ import ProfileCard from '../components/ProfileCard';
 import ContadorCard from '../components/ContadorCard';
 import NewsCard from '../components/NewsCard';
 import ChatBot from '../components/chatbot/chatbot';
-import { User, Medal, CreditCard, Church, Bookmark, ListOrdered, ScrollText } from "lucide-react";
+import { Medal, CreditCard, Bookmark, ListOrdered, ScrollText, Ticket, Map } from "lucide-react";
 
 function HermanoNewHome() {
     const navigate = useNavigate();
@@ -325,7 +325,18 @@ function HermanoNewHome() {
                         <div className="extra-rectangles-wrapper">
 
                             <div className="independent-rectangle">
-                                <p>Contenido 1 aquí</p>
+                                <div className="independent-rectangle-content-wrapper">
+                                    <Ticket size={90} color="#800020" className="independent-rectangle-icon rotate-icon-vertical" />
+                                    
+                                    <div className="independent-rectangle-text-content">
+                                        <h3 className="independent-rectangle-title">
+                                            SOLICITUD DE PAPELETA <br /> DE SITIO
+                                        </h3>
+                                        <p className="independent-rectangle-description">
+                                            Formulario para solicitar su lugar de la cofradía en la Estación de Penitencia.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="independent-rectangle">
@@ -337,14 +348,25 @@ function HermanoNewHome() {
                                             REGLAS DE LA ESTACIÓN <br /> DE PENITENCIA
                                         </h3>
                                         <p className="independent-rectangle-description">
-                                            Normas y directrices para la correcta y respetuosa participación en la Estación de penitencia.
+                                            Normas y directrices para la correcta participación en la Estación de penitencia.
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="independent-rectangle">
-                                <p>Contenido 3 aquí</p>
+                                <div className="independent-rectangle-content-wrapper">
+                                    <Map size={90} color="#800020" className="independent-rectangle-icon" />
+                                    
+                                    <div className="independent-rectangle-text-content">
+                                        <h3 className="independent-rectangle-title">
+                                            HORARIO E ITINERARIO DE LA <br /> ESTACIÓN DE PENITENCIA
+                                        </h3>
+                                        <p className="independent-rectangle-description">
+                                            Información detallada sobre el recorrido, calles y horarios de la Estación de Penitencia.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             
                         </div>
