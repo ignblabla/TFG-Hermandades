@@ -38,6 +38,7 @@ import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
+import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -110,14 +111,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
-          path="/crear-acto"
-          element={
-            <ProtectedRoute>
-              <CrearActo />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/noticias-hermano"
           element={
@@ -143,14 +136,6 @@ function App() {
           }
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
-        {/* <Route
-          path="/mis-papeletas"
-          element={
-            <ProtectedRoute>
-              <MisPapeletas />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/gestionar-reparto/:id"
           element={
@@ -229,6 +214,15 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminEditarActo />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/solicitud-insignias"
+          element={
+            <ProtectedRoute>
+              <HermanoSolicitudInsignia />
             </ProtectedRoute>
           }
         />

@@ -324,7 +324,11 @@ function HermanoNewHome() {
                         <h2 className="cultos-section-title">Papeleta de sitio</h2>
                         <div className="extra-rectangles-wrapper">
 
-                            <div className="independent-rectangle">
+                            <div 
+                                className="independent-rectangle" 
+                                onClick={() => navigate('/solicitud-insignias')}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="independent-rectangle-content-wrapper">
                                     <Ticket size={90} color="#800020" className="independent-rectangle-icon rotate-icon-vertical" />
                                     

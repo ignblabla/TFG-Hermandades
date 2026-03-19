@@ -1,0 +1,197 @@
+:root {
+    --burgundy-primary: #800020;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+}
+
+.dashboard-layout-wrapper {
+    display: flex;
+    flex-direction: row; 
+    justify-content: space-between; 
+    align-items: flex-start;
+    width: 100%;
+    gap: 20px; 
+}
+
+.solicitud-insignia-container, 
+.resumen-solicitud-container {
+    width: 50%;
+    min-height: 60vh;
+    background-color: var(--white);
+    border: 2px solid var(--burgundy-primary);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.solicitud-insignia-container:hover,
+.resumen-solicitud-container:hover {
+    box-shadow: 0 10px 15px -3px rgba(128, 0, 32, 0.15);
+}
+
+.resumen-solicitud-container.drag-over-active {
+    background-color: #fff4f6;
+    border: 2px dashed var(--burgundy-primary);
+}
+
+.solicitud-insignia-title {
+    color: var(--text-main);
+    font-size: 20px;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 2px; 
+}
+
+.solicitud-insignia-description {
+    color: #4b5563;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.cortejo-subtitle {
+    color: #333;
+    border-bottom: 2px solid var(--burgundy-primary);
+    padding-bottom: 5px;
+    display: inline-block;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.insignias-grid-container {
+    display: flex;
+    flex-direction: column; 
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.insignia-card {
+    border: 1px solid #e0e0e0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    width: 100%;
+    max-width: 280px; 
+    cursor: grab;
+    transition: all 0.2s ease;
+}
+
+.insignia-card:active {
+    cursor: grabbing;
+    opacity: 0.6;
+}
+
+.insignia-card:hover {
+    background-color: #fff4f6;
+    border-color: var(--burgundy-primary);
+    transform: translateX(5px);
+}
+
+.insignia-card-title {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.lista-seleccionadas-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+}
+
+.empty-dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    color: #888;
+    font-style: italic;
+}
+
+.seleccionada-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border: 1px solid var(--burgundy-primary);
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.seleccionada-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.prioridad-badge {
+    background-color: var(--burgundy-primary);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    min-width: 32px;
+    text-align: center;
+}
+
+.seleccionada-nombre {
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 15px;
+}
+
+.seleccionada-acciones {
+    display: flex;
+    gap: 6px;
+}
+
+.seleccionada-acciones button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.seleccionada-acciones button:hover:not(:disabled) {
+    background-color: #f0f0f0;
+}
+
+.seleccionada-acciones button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.seleccionada-acciones .btn-quitar:hover {
+    color: #d32f2f;
+    background-color: #ffebee;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 1100px) {
+    .dashboard-layout-wrapper {
+        flex-direction: column; 
+        align-items: center;
+    }
+    .solicitud-insignia-container, 
+    .resumen-solicitud-container {
+        width: 90%; 
+        min-height: auto;
+    }
+}
