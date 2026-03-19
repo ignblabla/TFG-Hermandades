@@ -6,10 +6,10 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from api.servicios.solicitud_insignia_service import SolicitudInsigniaService
 from api.servicios.solicitud_cirio_tradicional import SolicitudCirioTradicionalService
+from api.serializadores.acto.solicitud_insignia_acto_serializer import SolicitudInsigniaSerializer
 
 from ..servicios.papeleta_sitio_service import PapeletaSitioService
 from ..serializers import (
-    SolicitudInsigniaSerializer, 
     SolicitudCirioSerializer, 
     SolicitudUnificadaSerializer,
 )

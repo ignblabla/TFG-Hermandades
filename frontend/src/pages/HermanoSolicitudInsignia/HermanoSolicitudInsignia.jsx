@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowUp, ArrowDown, X, Send } from "lucide-react";
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
     
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false); // Estado para el botón de enviar
     const [error, setError] = useState("");
+    const [successMsg, setSuccessMsg] = useState(""); // Estado para el mensaje de éxito
     
     const [currentUser, setCurrentUser] = useState(null);
     const [actoActivo, setActoActivo] = useState(null);
@@ -104,6 +106,60 @@ function HermanoSolicitudInsignia() {
 
     const quitarInsignia = (id) => {
         setInsigniasSeleccionadas(insigniasSeleccionadas.filter(i => i.id !== id));
+    };
+
+    // --- NUEVA LÓGICA DE ENVÍO AL BACKEND ---
+    const enviarSolicitud = async () => {
+        if (insigniasSeleccionadas.length === 0) {
+            setError("Debe seleccionar al menos una insignia para enviar la solicitud.");
+            return;
+        }
+
+        setSaving(true);
+        setError("");
+        setSuccessMsg("");
+
+        // Formateamos los datos exactamente como los espera el SolicitudInsigniaSerializer
+        const payload = {
+            acto_id: actoActivo.id,
+            preferencias: insigniasSeleccionadas.map((insignia, index) => ({
+                puesto_solicitado: insignia.id,
+                orden_prioridad: index + 1
+            }))
+        };
+
+        try {
+            await api.post("api/papeletas/solicitar-insignia/", payload);
+            setSuccessMsg("¡Solicitud enviada correctamente!");
+            
+            // Redirigimos al usuario a la home tras un breve lapso de tiempo
+            setTimeout(() => {
+                navigate("/home");
+            }, 2500);
+
+        } catch (err) {
+            console.error("Error al enviar solicitud:", err);
+            
+            // Manejo de errores basado en las validaciones de tu SolicitudInsigniaService
+            if (err.response && err.response.data) {
+                const errorData = err.response.data;
+                // Si el error viene formateado en 'detail' (generado por tus except)
+                if (errorData.detail) {
+                    setError(errorData.detail);
+                } 
+                // Si el error viene de las validaciones del serializer
+                else if (typeof errorData === 'object') {
+                    const mensajesLimpios = Object.values(errorData).flat().join(" | ");
+                    setError(mensajesLimpios || "Error al procesar la solicitud.");
+                } else {
+                    setError("Error interno del servidor. Por favor, inténtelo de nuevo más tarde.");
+                }
+            } else {
+                setError("Error de conexión. Verifique su internet.");
+            }
+        } finally {
+            setSaving(false);
+        }
     };
 
     const insigniasDisponibles = actoActivo?.puestos_disponibles?.filter(
@@ -234,7 +290,17 @@ function HermanoSolicitudInsignia() {
                         : 'Plazo de solicitud de insignias'
                     }
                 </div>
+                
                 <div style={{ padding: '0 20px 40px 20px' }}>
+                    
+                    {error && (
+                        <div className="solicitud-insignia-error-alert" style={{marginBottom: '15px'}}>{error}</div>
+                    )}
+                    
+                    {successMsg && (
+                        <div className="solicitud-insignia-success-alert" style={{marginBottom: '15px', color: 'green', fontWeight: 'bold'}}>{successMsg}</div>
+                    )}
+
                     <div className="dashboard-layout-wrapper">
                         {actoActivo ? (
                             <div className="solicitud-insignia-container">
@@ -321,12 +387,37 @@ function HermanoSolicitudInsignia() {
                                         ))
                                     )}
                                 </div>
+                                
+                                {/* BOTÓN DE ENVIAR */}
+                                <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+                                    <button 
+                                        className="btn-enviar-solicitud"
+                                        onClick={enviarSolicitud}
+                                        disabled={saving || insigniasSeleccionadas.length === 0}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            backgroundColor: (saving || insigniasSeleccionadas.length === 0) ? '#ccc' : 'var(--burgundy-primary)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontWeight: 'bold',
+                                            cursor: (saving || insigniasSeleccionadas.length === 0) ? 'not-allowed' : 'pointer',
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            gap: '10px',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                    >
+                                        <Send size={20} />
+                                        {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}
+                                    </button>
+                                </div>
+
                             </div>
                         )}
 
-                        {error && (
-                            <div className="solicitud-insignia-error-alert">{error}</div>
-                        )}
                     </div>
                 </div>
             </section>
