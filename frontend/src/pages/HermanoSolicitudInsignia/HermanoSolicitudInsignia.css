@@ -1,4 +1,3 @@
-/* --- VARIABLES --- */
 :root {
     --burgundy-primary: #800020;
     --white: #ffffff;
@@ -6,7 +5,66 @@
     --text-muted: #9ca3af;
 }
 
-/* --- LAYOUT DEL CONTENEDOR PRINCIPAL --- */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.solicitud-insignia-instrucciones {
+    padding: 0 20px;
+    color: #666;
+    font-size: 15px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.solicitud-insignia-main-container {
+    padding: 0 20px 40px 20px;
+}
+
+.solicitud-insignia-success-alert {
+    margin-bottom: 15px;
+    color: green;
+    font-weight: bold;
+    padding: 10px;
+    background-color: #e6ffed;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+}
+
+.btn-enviar-wrapper {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.btn-enviar-solicitud-final {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-enviar-solicitud-final:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-enviar-solicitud-final:hover:not(:disabled) {
+    background-color: #5c0017;
+}
+
 .dashboard-layout-wrapper {
     display: flex;
     flex-direction: row; 
@@ -54,8 +112,6 @@
     line-height: 1.6;
 }
 
-/* --- NUEVOS ESTILOS PARA COLAPSABLES DE CORTEJO --- */
-
 .cortejo-subtitle-wrapper {
     display: flex;
     align-items: center;
@@ -74,11 +130,10 @@
 
 .cortejo-subtitle {
     color: #333;
-    margin: 0; /* Quitamos márgenes porque los hereda el wrapper */
+    margin: 0; 
     font-size: 15px;
 }
 
-/* --- GRID DE INSIGNIAS DISPONIBLES (Izquierda) --- */
 .insignias-grid-container {
     display: flex;
     flex-direction: column; 
@@ -115,7 +170,6 @@
     font-size: 14px;
 }
 
-/* --- LISTA DE INSIGNIAS SELECCIONADAS (Derecha) --- */
 .lista-seleccionadas-container {
     margin-top: 20px;
     display: flex;
@@ -199,6 +253,96 @@
 .seleccionada-acciones .btn-quitar:hover {
     color: #d32f2f;
     background-color: #ffebee;
+}
+
+.modal-overlay-bloqueo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    animation: fadeInOverlay 0.8s ease-out forwards;
+}
+
+.modal-content-bloqueo {
+    background: var(--white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.6s ease-out forwards;
+    border: 2px solid var(--burgundy-primary);
+    text-align: center;
+}
+
+.modal-header-bloqueo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.modal-icon-info {
+    margin-right: 10px;
+}
+
+.modal-header-bloqueo h3 {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.modal-body-bloqueo p {
+    margin: 0 0 20px 0;
+    color: var(--text-main);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.btn-volver-inicio {
+    background-color: var(--burgundy-primary);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-volver-inicio:hover {
+    background-color: #5c0017;
+}
+
+.btn-volver-inicio:active {
+    transform: scale(0.97);
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* --- RESPONSIVE --- */

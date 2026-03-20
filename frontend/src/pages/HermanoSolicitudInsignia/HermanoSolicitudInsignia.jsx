@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowUp, ArrowDown, X, Send, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowUp, ArrowDown, X, Send, ChevronDown, ChevronRight, Info } from "lucide-react";
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
@@ -10,7 +10,6 @@ function HermanoSolicitudInsignia() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false); 
-    const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState(""); 
     
     const [currentUser, setCurrentUser] = useState(null);
@@ -19,9 +18,10 @@ function HermanoSolicitudInsignia() {
     const [insigniasSeleccionadas, setInsigniasSeleccionadas] = useState([]);
     const [isDragOver, setIsDragOver] = useState(false);
 
-    // --- NUEVOS ESTADOS PARA COLAPSAR/EXPANDIR ---
     const [mostrarCristo, setMostrarCristo] = useState(true);
     const [mostrarVirgen, setMostrarVirgen] = useState(true);
+
+    const [modalBloqueo, setModalBloqueo] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -33,7 +33,28 @@ function HermanoSolicitudInsignia() {
 
                 try {
                     const resActo = await api.get("api/actos/activo-insignias/");
-                    if (isMounted) setActoActivo(resActo.data);
+                    if (isMounted) {
+                        setActoActivo(resActo.data);
+
+                        try {
+                            const resPapeletas = await api.get("api/papeletas/mis-papeletas/");
+                            const misPapeletas = resPapeletas.data.results || resPapeletas.data;
+                            
+                            const yaSolicitado = misPapeletas.some(p => {
+                                const coincideActo = Number(p.acto) === Number(resActo.data.id);
+                                const estado = String(p.estado_papeleta || '').toUpperCase();
+                                const estaActiva = estado !== 'ANULADA' && estado !== 'NO_ASIGNADA';
+
+                                return coincideActo && estaActiva;
+                            });
+
+                            if (yaSolicitado) {
+                                setModalBloqueo(true);
+                            }
+                        } catch (errPapeletas) {
+                            console.error("Error verificando papeletas previas:", errPapeletas);
+                        }
+                    }
                 } catch (errActo) {
                     if (errActo.response && errActo.response.status === 404) {
                         if (isMounted) setActoActivo(null);
@@ -44,7 +65,6 @@ function HermanoSolicitudInsignia() {
 
             } catch (err) {
                 console.error("Error de autenticación o servidor:", err);
-                if (isMounted) setError("Error al cargar configuración inicial.");
                 if (err.response?.status === 401) {
                     navigate("/login");
                 }
@@ -113,13 +133,7 @@ function HermanoSolicitudInsignia() {
     };
 
     const enviarSolicitud = async () => {
-        if (insigniasSeleccionadas.length === 0) {
-            setError("Debe seleccionar al menos una insignia para enviar la solicitud.");
-            return;
-        }
-
         setSaving(true);
-        setError("");
         setSuccessMsg("");
 
         const payload = {
@@ -140,21 +154,7 @@ function HermanoSolicitudInsignia() {
 
         } catch (err) {
             console.error("Error al enviar solicitud:", err);
-            
-            if (err.response && err.response.data) {
-                const errorData = err.response.data;
-                if (errorData.detail) {
-                    setError(errorData.detail);
-                } 
-                else if (typeof errorData === 'object') {
-                    const mensajesLimpios = Object.values(errorData).flat().join(" | ");
-                    setError(mensajesLimpios || "Error al procesar la solicitud.");
-                } else {
-                    setError("Error interno del servidor. Por favor, inténtelo de nuevo más tarde.");
-                }
-            } else {
-                setError("Error de conexión. Verifique su internet.");
-            }
+            alert("Ocurrió un problema de conexión con el servidor. Por favor, inténtelo de nuevo.");
         } finally {
             setSaving(false);
         }
@@ -196,6 +196,30 @@ function HermanoSolicitudInsignia() {
 
     return (
         <div>
+            {modalBloqueo && (
+                <div className="modal-overlay-bloqueo">
+                    <div className="modal-content-bloqueo">
+                        <div className="modal-header-bloqueo">
+                            <Info className="modal-icon-info" size={28} />
+                            <h3>Solicitud ya realizada</h3>
+                        </div>
+                        <div className="modal-body-bloqueo">
+                            <p>
+                                Ya consta una solicitud activa de papeleta de sitio para el acto <strong>{actoActivo?.nombre}</strong>.
+                                <br/><br/>
+                                Le recordamos que <strong>no es posible realizar múltiples solicitudes de insignias para un mismo acto</strong>. Si desea hacer cambios, por favor contacte con secretaría.
+                            </p>
+                            <button 
+                                className="btn-volver-inicio" 
+                                onClick={() => navigate('/new-home')}
+                            >
+                                Volver al inicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -289,31 +313,26 @@ function HermanoSolicitudInsignia() {
                     }
                 </div>
                 
-                <p style={{ padding: '0 20px', color: '#666', fontSize: '15px', marginTop: '0', marginBottom: '20px' }}>
+                <p className="solicitud-insignia-instrucciones">
                     En esta pantalla podrá gestionar su solicitud de insignias. Arrastre las opciones de la columna izquierda hacia el recuadro de la derecha y ordénelas verticalmente en función de su prioridad.
                 </p>
 
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    
-                    {error && (
-                        <div className="solicitud-insignia-error-alert" style={{marginBottom: '15px'}}>{error}</div>
-                    )}
+                <div className="solicitud-insignia-main-container">
                     
                     {successMsg && (
-                        <div className="solicitud-insignia-success-alert" style={{marginBottom: '15px', color: 'green', fontWeight: 'bold'}}>{successMsg}</div>
+                        <div className="solicitud-insignia-success-alert">{successMsg}</div>
                     )}
 
                     <div className="dashboard-layout-wrapper">
                         {actoActivo ? (
                             <div className="solicitud-insignia-container">
                                 <h3 className="solicitud-insignia-title">Acto: {actoActivo.nombre}</h3>
-                                <p className="solicitud-insignia-description" style={{ marginBottom: '10px' }}>
+                                <p className="solicitud-insignia-description mb-10">
                                     Arrastre las insignias que desea solicitar hacia el panel de la derecha.
                                 </p>
 
                                 {insigniasDisponibles.length > 0 ? (
                                     <>
-                                        {/* WRAPPER COLAPSABLE CRISTO */}
                                         <div 
                                             className="cortejo-subtitle-wrapper" 
                                             onClick={() => setMostrarCristo(!mostrarCristo)}
@@ -323,12 +342,9 @@ function HermanoSolicitudInsignia() {
                                             </h4>
                                             {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
                                         </div>
-                                        
-                                        {/* RENDER CONDICIONAL CRISTO */}
+
                                         {mostrarCristo && renderInsignias(insigniasCristo)}
 
-
-                                        {/* WRAPPER COLAPSABLE VIRGEN */}
                                         <div 
                                             className="cortejo-subtitle-wrapper" 
                                             onClick={() => setMostrarVirgen(!mostrarVirgen)}
@@ -338,8 +354,7 @@ function HermanoSolicitudInsignia() {
                                             </h4>
                                             {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
                                         </div>
-                                        
-                                        {/* RENDER CONDICIONAL VIRGEN */}
+
                                         {mostrarVirgen && renderInsignias(insigniasVirgen)}
                                     </>
                                 ) : (
@@ -408,28 +423,12 @@ function HermanoSolicitudInsignia() {
                                         ))
                                     )}
                                 </div>
-                                
-                                {/* BOTÓN DE ENVIAR */}
-                                <div style={{ marginTop: 'auto', paddingTop: '20px' }}>
+
+                                <div className="btn-enviar-wrapper">
                                     <button 
-                                        className="btn-enviar-solicitud"
+                                        className="btn-enviar-solicitud-final"
                                         onClick={enviarSolicitud}
                                         disabled={saving || insigniasSeleccionadas.length === 0}
-                                        style={{
-                                            width: '100%',
-                                            padding: '12px',
-                                            backgroundColor: (saving || insigniasSeleccionadas.length === 0) ? '#ccc' : 'var(--burgundy-primary)',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            fontWeight: 'bold',
-                                            cursor: (saving || insigniasSeleccionadas.length === 0) ? 'not-allowed' : 'pointer',
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                            transition: 'background-color 0.2s'
-                                        }}
                                     >
                                         <Send size={20} />
                                         {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}

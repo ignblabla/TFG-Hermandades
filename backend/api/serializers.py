@@ -613,7 +613,8 @@ class HistorialPapeletaSerializer(serializers.ModelSerializer):
     class Meta:
         model = PapeletaSitio
         fields = [
-            'id', 
+            'id',
+            'acto',
             'estado_papeleta', 
             'fecha_solicitud', 
             'fecha_emision', 
