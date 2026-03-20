@@ -10,11 +10,9 @@ import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import GestionReparto from "./pages/GestionReparto"
-import HermanoCrearSolicitudInsignia from "./pages/HermanoCrearSolicitudInsignia"
 import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
-// import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
@@ -38,6 +36,7 @@ import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
+import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -110,14 +109,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route
-          path="/crear-acto"
-          element={
-            <ProtectedRoute>
-              <CrearActo />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/noticias-hermano"
           element={
@@ -143,14 +134,6 @@ function App() {
           }
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
-        {/* <Route
-          path="/mis-papeletas"
-          element={
-            <ProtectedRoute>
-              <MisPapeletas />
-            </ProtectedRoute>
-          }
-        /> */}
         <Route
           path="/gestionar-reparto/:id"
           element={
@@ -234,6 +217,15 @@ function App() {
         />
 
         <Route
+          path="/solicitud-insignias"
+          element={
+            <ProtectedRoute>
+              <HermanoSolicitudInsignia />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/admin/comunicados"
           element={
             <ProtectedRoute>
@@ -254,14 +246,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudUnificada />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/solicitar-insignia"
-          element={
-            <ProtectedRoute>
-              <HermanoCrearSolicitudInsignia />
             </ProtectedRoute>
           }
         />

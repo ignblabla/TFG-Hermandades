@@ -10,7 +10,7 @@ import ProfileCard from '../components/ProfileCard';
 import ContadorCard from '../components/ContadorCard';
 import NewsCard from '../components/NewsCard';
 import ChatBot from '../components/chatbot/chatbot';
-import { User, Medal, CreditCard, Church, Bookmark, ListOrdered } from "lucide-react";
+import { Medal, CreditCard, Bookmark, ListOrdered, ScrollText, Ticket, Map } from "lucide-react";
 
 function HermanoNewHome() {
     const navigate = useNavigate();
@@ -317,6 +317,62 @@ function HermanoNewHome() {
                                     No hay comunicados recientes para mostrar.
                                 </p>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="new-home-dashboard-extra-column">
+                        <h2 className="cultos-section-title">Papeleta de sitio</h2>
+                        <div className="extra-rectangles-wrapper">
+
+                            <div 
+                                className="independent-rectangle" 
+                                onClick={() => navigate('/solicitud-insignias')}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className="independent-rectangle-content-wrapper">
+                                    <Ticket size={90} color="#800020" className="independent-rectangle-icon rotate-icon-vertical" />
+                                    
+                                    <div className="independent-rectangle-text-content">
+                                        <h3 className="independent-rectangle-title">
+                                            SOLICITUD DE PAPELETA <br /> DE SITIO
+                                        </h3>
+                                        <p className="independent-rectangle-description">
+                                            Formulario para solicitar su lugar de la cofradía en la Estación de Penitencia.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="independent-rectangle">
+                                <div className="independent-rectangle-content-wrapper">
+                                    <ScrollText size={90} color="#800020" className="independent-rectangle-icon" />
+                                    
+                                    <div className="independent-rectangle-text-content">
+                                        <h3 className="independent-rectangle-title">
+                                            REGLAS DE LA ESTACIÓN <br /> DE PENITENCIA
+                                        </h3>
+                                        <p className="independent-rectangle-description">
+                                            Normas y directrices para la correcta participación en la Estación de penitencia.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="independent-rectangle">
+                                <div className="independent-rectangle-content-wrapper">
+                                    <Map size={90} color="#800020" className="independent-rectangle-icon" />
+                                    
+                                    <div className="independent-rectangle-text-content">
+                                        <h3 className="independent-rectangle-title">
+                                            HORARIO E ITINERARIO DE LA <br /> ESTACIÓN DE PENITENCIA
+                                        </h3>
+                                        <p className="independent-rectangle-description">
+                                            Información detallada sobre el recorrido, calles y horarios de la Estación de Penitencia.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
