@@ -1,0 +1,171 @@
+.actos-section-dashboard {
+    padding: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.actos-section-title {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: var(--text-main);
+    font-weight: 700;
+    font-family: var(--font-family);
+}
+
+.actos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+}
+
+.acto-card {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    background-color: var(--white);
+    border-radius: 12px;
+    padding: 12px; 
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-family);
+}
+
+.acto-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--burgundy-primary);
+}
+
+.acto-date-box {
+    align-self: center;
+    background-color: #800020;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 85px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
+}
+
+.acto-month {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.acto-day {
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.acto-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.acto-title {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.acto-time-location {
+    margin: 0;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.acto-description {
+    margin: 4px 0 0 0;
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.acto-fechas-container {
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color, #cbd5e1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Nueva clase para alinear en la misma línea */
+.acto-fechas-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap; /* Permite que salten de línea si la pantalla es muy pequeña */
+    gap: 16px; /* Separación horizontal entre ambas fechas */
+    align-items: center;
+}
+
+.acto-fecha-item {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.acto-fecha-item strong {
+    color: #475569;
+    font-weight: 600;
+}
+
+@media (max-width: 800px) {
+    .actos-list {
+        width: 100%;
+    }
+
+    .acto-card {
+        padding: 12px;
+        gap: 16px;
+        flex-direction: column;
+    }
+
+    .acto-date-box {
+        align-self: stretch;
+        flex-direction: row;
+        width: 100%;
+        justify-content: flex-start;
+        align-items: baseline;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .acto-month {
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+
+    .acto-day {
+        font-size: 1.6rem;
+    }
+
+    .acto-title {
+        font-size: 1.05rem;
+    }
+    
+    /* Reducimos un poco el gap en móvil para la fila de fechas si es necesario */
+    .acto-fechas-row {
+        gap: 8px;
+    }
+}

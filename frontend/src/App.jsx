@@ -37,6 +37,7 @@ import HermanoNewHome from "./pages/NewHome"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
+import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -288,6 +289,15 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminCenso />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/listado-actos"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoActos />
             </ProtectedRoute>
           }
         />

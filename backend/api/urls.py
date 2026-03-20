@@ -8,7 +8,7 @@ from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAcce
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
 from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
 from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
-from api.vistas.acto.acto_general_view import ActoCreateView
+from api.vistas.acto.acto_general_view import ActoCreateView, ActoListAPIView
 from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
@@ -71,4 +71,5 @@ urlpatterns = [
 
     #Actos
     path('actos/activo-insignias/', ActoActivoInsigniasView.as_view(), name='acto-activo-insignias'),
+    path('actos/', ActoListAPIView.as_view(), name='acto-list'),
 ]
