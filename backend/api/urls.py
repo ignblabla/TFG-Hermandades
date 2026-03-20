@@ -5,7 +5,7 @@ from api.view.reparto_insignia_view import EjecutarRepartoView
 from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
 # from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
-from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView, SolicitarInsigniaView
+from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
 from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
 from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from api.vistas.acto.acto_general_view import ActoCreateView
@@ -13,7 +13,7 @@ from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
-from api.vistas.acto.acto_con_solicitud_insignias_abierta import ActoActivoInsigniasView
+from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, SolicitarInsigniaView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView

@@ -10,11 +10,9 @@ import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import GestionReparto from "./pages/GestionReparto"
-import HermanoCrearSolicitudInsignia from "./pages/HermanoCrearSolicitudInsignia"
 import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
-// import MisPapeletas from "./pages/MisPapeletas"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
@@ -248,14 +246,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudUnificada />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/solicitar-insignia"
-          element={
-            <ProtectedRoute>
-              <HermanoCrearSolicitudInsignia />
             </ProtectedRoute>
           }
         />

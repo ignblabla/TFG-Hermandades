@@ -2,22 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowUp, ArrowDown, X, Send } from "lucide-react";
+import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowUp, ArrowDown, X, Send, ChevronDown, ChevronRight } from "lucide-react";
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
     
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false); // Estado para el botón de enviar
+    const [saving, setSaving] = useState(false); 
     const [error, setError] = useState("");
-    const [successMsg, setSuccessMsg] = useState(""); // Estado para el mensaje de éxito
+    const [successMsg, setSuccessMsg] = useState(""); 
     
     const [currentUser, setCurrentUser] = useState(null);
     const [actoActivo, setActoActivo] = useState(null);
 
     const [insigniasSeleccionadas, setInsigniasSeleccionadas] = useState([]);
     const [isDragOver, setIsDragOver] = useState(false);
+
+    // --- NUEVOS ESTADOS PARA COLAPSAR/EXPANDIR ---
+    const [mostrarCristo, setMostrarCristo] = useState(true);
+    const [mostrarVirgen, setMostrarVirgen] = useState(true);
 
     useEffect(() => {
         let isMounted = true;
@@ -108,7 +112,6 @@ function HermanoSolicitudInsignia() {
         setInsigniasSeleccionadas(insigniasSeleccionadas.filter(i => i.id !== id));
     };
 
-    // --- NUEVA LÓGICA DE ENVÍO AL BACKEND ---
     const enviarSolicitud = async () => {
         if (insigniasSeleccionadas.length === 0) {
             setError("Debe seleccionar al menos una insignia para enviar la solicitud.");
@@ -119,7 +122,6 @@ function HermanoSolicitudInsignia() {
         setError("");
         setSuccessMsg("");
 
-        // Formateamos los datos exactamente como los espera el SolicitudInsigniaSerializer
         const payload = {
             acto_id: actoActivo.id,
             preferencias: insigniasSeleccionadas.map((insignia, index) => ({
@@ -132,7 +134,6 @@ function HermanoSolicitudInsignia() {
             await api.post("api/papeletas/solicitar-insignia/", payload);
             setSuccessMsg("¡Solicitud enviada correctamente!");
             
-            // Redirigimos al usuario a la home tras un breve lapso de tiempo
             setTimeout(() => {
                 navigate("/home");
             }, 2500);
@@ -140,14 +141,11 @@ function HermanoSolicitudInsignia() {
         } catch (err) {
             console.error("Error al enviar solicitud:", err);
             
-            // Manejo de errores basado en las validaciones de tu SolicitudInsigniaService
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
-                // Si el error viene formateado en 'detail' (generado por tus except)
                 if (errorData.detail) {
                     setError(errorData.detail);
                 } 
-                // Si el error viene de las validaciones del serializer
                 else if (typeof errorData === 'object') {
                     const mensajesLimpios = Object.values(errorData).flat().join(" | ");
                     setError(mensajesLimpios || "Error al procesar la solicitud.");
@@ -291,6 +289,10 @@ function HermanoSolicitudInsignia() {
                     }
                 </div>
                 
+                <p style={{ padding: '0 20px', color: '#666', fontSize: '15px', marginTop: '0', marginBottom: '20px' }}>
+                    En esta pantalla podrá gestionar su solicitud de insignias. Arrastre las opciones de la columna izquierda hacia el recuadro de la derecha y ordénelas verticalmente en función de su prioridad.
+                </p>
+
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     
                     {error && (
@@ -305,21 +307,40 @@ function HermanoSolicitudInsignia() {
                         {actoActivo ? (
                             <div className="solicitud-insignia-container">
                                 <h3 className="solicitud-insignia-title">Acto: {actoActivo.nombre}</h3>
-                                <p className="solicitud-insignia-description" style={{ marginBottom: '20px' }}>
+                                <p className="solicitud-insignia-description" style={{ marginBottom: '10px' }}>
                                     Arrastre las insignias que desea solicitar hacia el panel de la derecha.
                                 </p>
 
                                 {insigniasDisponibles.length > 0 ? (
                                     <>
-                                        <h4 className="cortejo-subtitle">
-                                            Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
-                                        </h4>
-                                        {renderInsignias(insigniasCristo)}
+                                        {/* WRAPPER COLAPSABLE CRISTO */}
+                                        <div 
+                                            className="cortejo-subtitle-wrapper" 
+                                            onClick={() => setMostrarCristo(!mostrarCristo)}
+                                        >
+                                            <h4 className="cortejo-subtitle">
+                                                Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
+                                            </h4>
+                                            {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                        </div>
+                                        
+                                        {/* RENDER CONDICIONAL CRISTO */}
+                                        {mostrarCristo && renderInsignias(insigniasCristo)}
 
-                                        <h4 className="cortejo-subtitle">
-                                            Cortejo de Nuestra Señora de la Salud
-                                        </h4>
-                                        {renderInsignias(insigniasVirgen)}
+
+                                        {/* WRAPPER COLAPSABLE VIRGEN */}
+                                        <div 
+                                            className="cortejo-subtitle-wrapper" 
+                                            onClick={() => setMostrarVirgen(!mostrarVirgen)}
+                                        >
+                                            <h4 className="cortejo-subtitle">
+                                                Cortejo de Nuestra Señora de la Salud
+                                            </h4>
+                                            {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                        </div>
+                                        
+                                        {/* RENDER CONDICIONAL VIRGEN */}
+                                        {mostrarVirgen && renderInsignias(insigniasVirgen)}
                                     </>
                                 ) : (
                                     <p className="solicitud-insignia-empty-msg">

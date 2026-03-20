@@ -1,3 +1,4 @@
+/* --- VARIABLES --- */
 :root {
     --burgundy-primary: #800020;
     --white: #ffffff;
@@ -5,6 +6,7 @@
     --text-muted: #9ca3af;
 }
 
+/* --- LAYOUT DEL CONTENEDOR PRINCIPAL --- */
 .dashboard-layout-wrapper {
     display: flex;
     flex-direction: row; 
@@ -52,21 +54,36 @@
     line-height: 1.6;
 }
 
-.cortejo-subtitle {
-    color: #333;
+/* --- NUEVOS ESTILOS PARA COLAPSABLES DE CORTEJO --- */
+
+.cortejo-subtitle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
     border-bottom: 2px solid var(--burgundy-primary);
-    padding-bottom: 5px;
-    display: inline-block;
     margin-top: 20px;
     margin-bottom: 15px;
+    padding-bottom: 5px;
+    transition: opacity 0.2s ease;
+}
+
+.cortejo-subtitle-wrapper:hover {
+    opacity: 0.7;
+}
+
+.cortejo-subtitle {
+    color: #333;
+    margin: 0; /* Quitamos márgenes porque los hereda el wrapper */
     font-size: 15px;
 }
 
+/* --- GRID DE INSIGNIAS DISPONIBLES (Izquierda) --- */
 .insignias-grid-container {
     display: flex;
     flex-direction: column; 
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
 .insignia-card {
@@ -75,7 +92,7 @@
     border-radius: 6px;
     background-color: #f9f9f9;
     width: 100%;
-    max-width: 280px; 
+    max-width: 100%; 
     cursor: grab;
     transition: all 0.2s ease;
 }
@@ -98,12 +115,13 @@
     font-size: 14px;
 }
 
+/* --- LISTA DE INSIGNIAS SELECCIONADAS (Derecha) --- */
 .lista-seleccionadas-container {
     margin-top: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    flex-grow: 1;
+    flex-grow: 1; 
 }
 
 .empty-dropzone {
