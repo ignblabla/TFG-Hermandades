@@ -347,6 +347,8 @@ class Acto(models.Model):
 
     fecha_ejecucion_reparto = models.DateTimeField(null=True, blank=True, verbose_name="Fecha ejecución reparto", help_text="Si tiene valor, indica que el reparto automático ya se ha ejecutado.")
 
+    imagen_portada = models.ImageField(upload_to='actos/portadas/', null=True, blank=True, verbose_name="Imagen de Portada", help_text="Imagen principal del acto")
+
     def clean(self):
         super().clean()
         errors = {}

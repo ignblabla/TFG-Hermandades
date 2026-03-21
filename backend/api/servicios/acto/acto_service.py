@@ -137,6 +137,7 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
         "tipo_acto", "tipo_acto_id",
         "inicio_solicitud", "fin_solicitud",
         "inicio_solicitud_cirios", "fin_solicitud_cirios",
+        "imagen_portada"
     }
 
     data_dict = _normalizar_payload_acto(data_validada)
@@ -198,6 +199,7 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
         "tipo_acto", "lugar",
         "inicio_solicitud", "fin_solicitud",
         "inicio_solicitud_cirios", "fin_solicitud_cirios",
+        "imagen_portada"
     }
 
     for campo in campos_update:

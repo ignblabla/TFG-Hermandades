@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/ResumenActoCard.css';
-import { Calendar, MapPin, CalendarDays } from "lucide-react";
+import { MapPin, CalendarDays } from "lucide-react";
 
 const ResumenActoCard = ({ formData }) => {
 
@@ -16,11 +16,32 @@ const ResumenActoCard = ({ formData }) => {
         });
     };
 
+    const getMesDia = (fechaStr) => {
+        if (!fechaStr) return { mes: '---', dia: '--' };
+        const date = new Date(fechaStr);
+        if (isNaN(date.getTime())) return { mes: '---', dia: '--' };
+
+        const mes = date.toLocaleString('es-ES', { month: 'short' }).toUpperCase().replace('.', '');
+        const dia = date.toLocaleString('es-ES', { day: '2-digit' });
+        
+        return { mes, dia };
+    };
+
+    const imagenMostrar = formData?.previewUrl || formData?.imagen_portada || '/portada-comunicado.png';
+    const { mes, dia } = getMesDia(formData?.fecha);
+
     return (
         <div className="card-container-resumen-acto">
             <div className="card-header-resumen-acto">
+                <img 
+                    src={imagenMostrar} 
+                    alt="Portada del acto" 
+                    className="header-image-resumen-acto"
+                />
+
                 <div className="icon-badge-resumen-acto">
-                    <Calendar size={32} className="main-icon-resumen-acto" />
+                    <span className="badge-month-resumen-acto">{mes}</span>
+                    <span className="badge-day-resumen-acto">{dia}</span>
                 </div>
             </div>
 
@@ -46,7 +67,6 @@ const ResumenActoCard = ({ formData }) => {
                         </div>
                     </div>
 
-                    {/* Fecha */}
                     <div className="info-item-resumen-acto">
                         <div className="item-icon-wrapper-resumen-acto">
                             <CalendarDays size={18} />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionActo/AdminCrearActo.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ArrowLeft } from "lucide-react";
+import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ImageIcon, X } from "lucide-react";
 import ResumenActoCard from '../../components/ResumenActoCard';
 
 function AdminEditarActo() {
@@ -14,7 +14,6 @@ function AdminEditarActo() {
     const maxDate = `${currentYear}-12-31T23:59`;
     
     const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
@@ -24,6 +23,7 @@ function AdminEditarActo() {
     const [requierePapeleta, setRequierePapeleta] = useState(false);
     
     const [isDateLocked, setIsDateLocked] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState(null);
 
     const [formData, setFormData] = useState({
         nombre: '',
@@ -35,7 +35,8 @@ function AdminEditarActo() {
         inicio_solicitud: '',
         fin_solicitud: '',
         inicio_solicitud_cirios: '',
-        fin_solicitud_cirios: ''
+        fin_solicitud_cirios: '',
+        imagen_portada: null
     });
 
     const formatDateForInput = (isoString) => {
@@ -77,8 +78,13 @@ function AdminEditarActo() {
                         inicio_solicitud: formatDateForInput(data.inicio_solicitud),
                         fin_solicitud: formatDateForInput(data.fin_solicitud),
                         inicio_solicitud_cirios: formatDateForInput(data.inicio_solicitud_cirios),
-                        fin_solicitud_cirios: formatDateForInput(data.fin_solicitud_cirios)
+                        fin_solicitud_cirios: formatDateForInput(data.fin_solicitud_cirios),
+                        imagen_portada: data.imagen_portada || null
                     });
+
+                    if (data.imagen_portada) {
+                        setPreviewUrl(data.imagen_portada);
+                    }
 
                     setRequierePapeleta(data.requiere_papeleta);
 
@@ -102,6 +108,14 @@ function AdminEditarActo() {
         fetchData();
         return () => { isMounted = false; };
     }, [id, navigate]);
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl && previewUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
@@ -133,6 +147,37 @@ function AdminEditarActo() {
         setFormData(newData);
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        
+        if (file) {
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.src = objectUrl;
+
+            img.onload = () => {
+                const width = img.naturalWidth;
+                const height = img.naturalHeight;
+                if (width > height) {
+                    setFormData(prev => ({ ...prev, imagen_portada: file }));
+                    setPreviewUrl(objectUrl);
+                    setError("");
+                } else {
+                    setError("La imagen debe ser horizontal (formato paisaje).");
+                    e.target.value = ""; 
+                    URL.revokeObjectURL(objectUrl);
+                }
+            };
+        }
+    };
+
+    const removeImage = () => {
+        setFormData(prev => ({ ...prev, imagen_portada: null }));
+        setPreviewUrl(null);
+        const fileInput = document.getElementById('imagen_portada');
+        if (fileInput) fileInput.value = "";
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -140,25 +185,39 @@ function AdminEditarActo() {
 
         const payload = { ...formData };
 
-        Object.keys(payload).forEach(key => {
-            if (payload[key] === '') payload[key] = null;
-        });
-
         if (!requierePapeleta) {
-            payload.modalidad = null;
-            payload.inicio_solicitud = null;
-            payload.fin_solicitud = null;
-            payload.inicio_solicitud_cirios = null;
-            payload.fin_solicitud_cirios = null;
+            payload.modalidad = '';
+            payload.inicio_solicitud = '';
+            payload.fin_solicitud = '';
+            payload.inicio_solicitud_cirios = '';
+            payload.fin_solicitud_cirios = '';
         } else if (payload.modalidad === 'UNIFICADO') {
-            payload.inicio_solicitud_cirios = null;
-            payload.fin_solicitud_cirios = null;
+            payload.inicio_solicitud_cirios = '';
+            payload.fin_solicitud_cirios = '';
         }
 
         try {
-            await api.put(`api/actos/${id}/editar/`, payload);
+            const dataToSend = new FormData();
+
+            Object.keys(payload).forEach(key => {
+                if (key !== 'imagen_portada') {
+                    dataToSend.append(key, payload[key] || '');
+                }
+            });
+
+            if (payload.imagen_portada instanceof File) {
+                dataToSend.append('imagen_portada', payload.imagen_portada);
+            } else if (payload.imagen_portada === null && !previewUrl) {
+                dataToSend.append('imagen_portada', ''); 
+            }
+
+            await api.put(`api/actos/${id}/editar/`, dataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
             setSuccessMsg("Acto actualizado correctamente.");
             setTimeout(() => navigate("/home"), 1500);
+
         } catch (err) {
             if (err.response?.status === 500) {
                 setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
@@ -184,8 +243,6 @@ function AdminEditarActo() {
         localStorage.clear();
         navigate("/login");
     };
-
-    if (loading) return <div className="loading-screen">Cargando datos del acto...</div>;
 
     return (
         <div>
@@ -390,6 +447,44 @@ function AdminEditarActo() {
                                 />
                             </div>
 
+                            {/* SECCIÓN DE IMAGEN DE PORTADA */}
+                            <div className="form-group-crear-acto" style={{ marginTop: '1rem' }}>
+                                <label>Imagen de Portada (Opcional)</label>
+                                {!previewUrl ? (
+                                    <div 
+                                        className="image-upload-area-crear-acto"
+                                        onClick={() => document.getElementById('imagen_portada').click()}
+                                    >
+                                        <input 
+                                            type="file" 
+                                            id="imagen_portada"
+                                            name="imagen_portada"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                        />
+                                        <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
+                                        <p>Haz clic para subir una imagen de portada</p>
+                                        <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
+                                    </div>
+                                ) : (
+                                    <div className="image-preview-container-crear-acto">
+                                        <img 
+                                            src={previewUrl} 
+                                            alt="Vista previa" 
+                                            className="image-preview-img-crear-acto"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={removeImage}
+                                            className="btn-delete-image-crear-acto"
+                                            title="Eliminar imagen"
+                                        >
+                                            <X size={18} color="#ef4444" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <h3 className="section-title-crear-acto mt-section">
                                 <Settings size={18}/> Configuración de Reparto
                             </h3>
@@ -533,7 +628,7 @@ function AdminEditarActo() {
                         </form>
 
                         <div className="container-cultos-card">
-                            <ResumenActoCard formData={formData} />
+                            <ResumenActoCard formData={{...formData, previewUrl}} />
                         </div>
                     </div>
                 </div>
