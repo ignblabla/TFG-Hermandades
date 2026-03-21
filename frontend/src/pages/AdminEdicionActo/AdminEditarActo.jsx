@@ -16,6 +16,7 @@ function AdminEditarActo() {
     const [isOpen, setIsOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
     
     const [currentUser, setCurrentUser] = useState(null);
@@ -82,8 +83,23 @@ function AdminEditarActo() {
                         imagen_portada: data.imagen_portada || null
                     });
 
+                    // ========================================================
+                    // SOLUCIÓN AL RECORTE/IMAGEN ROTA:
+                    // Construimos la URL absoluta hacia el servidor de Django
+                    // ========================================================
                     if (data.imagen_portada) {
-                        setPreviewUrl(data.imagen_portada);
+                        if (data.imagen_portada.startsWith('http')) {
+                            // Si ya trae el http (por ejemplo, si usas AWS S3 en un futuro), la dejamos tal cual
+                            setPreviewUrl(data.imagen_portada);
+                        } else {
+                            // Sacamos la URL base de tu configuración de Axios. 
+                            // Si no está definida, ponemos por defecto la de Django local (8000).
+                            const backendUrl = api.defaults.baseURL || 'http://localhost:8000';
+                            
+                            // Limpiamos la barra final por si acaso y concatenamos
+                            const cleanBaseUrl = backendUrl.replace(/\/$/, '');
+                            setPreviewUrl(`${cleanBaseUrl}${data.imagen_portada}`);
+                        }
                     }
 
                     setRequierePapeleta(data.requiere_papeleta);

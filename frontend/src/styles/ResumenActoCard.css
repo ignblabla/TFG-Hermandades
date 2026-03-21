@@ -22,6 +22,18 @@
     height: 150px;
     position: relative;
     margin-bottom: 35px;
+    overflow: visible !important; 
+    z-index: 1;
+}
+
+.header-image-resumen-acto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
 .icon-badge-resumen-acto {
@@ -37,7 +49,7 @@
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 16px rgba(128, 0, 32, 0.3);
-    z-index: 2;
+    z-index: 10; 
 }
 
 .badge-month-resumen-acto {
@@ -57,75 +69,53 @@
     line-height: 1;
 }
 
-.main-icon-resumen-acto {
-    color: var(--burgundy);
-}
-
 .card-body-resumen-acto {
     padding: 0 20px 30px 20px;
+    position: relative;
+    z-index: 2;
 }
 
 .card-title-resumen-acto {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-dark);
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0; /* Reducido a 8px para agruparlo con la descripción */
 }
 
+/* Estilos para la descripción con truncado CSS */
 .card-description-resumen-acto {
-    font-size: 14px;
+    font-size: 0.9rem;
     line-height: 1.5;
     color: var(--text-muted);
-    margin-bottom: 24px;
+    margin: 0 0 20px 0;
+    
+    /* Magia para cortar el texto a las 3 líneas */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .info-list-resumen-acto {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
 }
 
 .info-item-resumen-acto {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
-.item-icon-wrapper-resumen-acto {
-    background-color: var(--bg-gray);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
+.info-icon-resumen-acto {
+    color: var(--burgundy);
+    flex-shrink: 0;
 }
 
-.item-content-resumen-acto {
-    display: flex;
-    flex-direction: column;
-}
-
-.item-label-resumen-acto {
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-}
-
-.item-value-resumen-acto {
-    font-size: 14px; 
+.info-text-resumen-acto {
+    font-size: 0.95rem;
     font-weight: 500;
-    color: var(--text-dark);
-}
-
-.header-image-resumen-acto {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
+    color: #475569;
 }

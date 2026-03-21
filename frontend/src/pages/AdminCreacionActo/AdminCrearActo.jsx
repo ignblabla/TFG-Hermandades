@@ -15,6 +15,7 @@ function AdminCrearActo() {
     const [isOpen, setIsOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
     
     const [currentUser, setCurrentUser] = useState(null);
