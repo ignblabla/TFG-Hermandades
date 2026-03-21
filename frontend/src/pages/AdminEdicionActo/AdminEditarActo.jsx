@@ -644,7 +644,7 @@ function AdminEditarActo() {
                         </form>
 
                         <div className="container-cultos-card">
-                            <ResumenActoCard formData={{...formData, previewUrl}} />
+                            <ResumenActoCard formData={{...formData, previewUrl, requiere_papeleta: requierePapeleta}} />
                         </div>
                     </div>
                 </div>

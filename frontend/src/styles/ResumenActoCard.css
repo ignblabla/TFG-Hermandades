@@ -79,17 +79,14 @@
     font-size: 18px;
     font-weight: 700;
     color: var(--text-dark);
-    margin: 0 0 8px 0; /* Reducido a 8px para agruparlo con la descripción */
+    margin: 0 0 8px 0;
 }
 
-/* Estilos para la descripción con truncado CSS */
 .card-description-resumen-acto {
     font-size: 0.9rem;
     line-height: 1.5;
     color: var(--text-muted);
     margin: 0 0 20px 0;
-    
-    /* Magia para cortar el texto a las 3 líneas */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -118,4 +115,12 @@
     font-size: 0.95rem;
     font-weight: 500;
     color: #475569;
+}
+
+.papeleta-icon-vertical {
+    transform: rotate(90deg);
+}
+
+.info-item-resumen-acto .papeleta-icon-vertical {
+    margin-right: 2px; 
 }

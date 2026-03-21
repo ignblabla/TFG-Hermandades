@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/ResumenActoCard.css';
-import { MapPin, Clock } from "lucide-react";
+import { MapPin, Clock, Ticket } from "lucide-react";
 
 const ResumenActoCard = ({ formData }) => {
 
@@ -47,7 +47,6 @@ const ResumenActoCard = ({ formData }) => {
                     {formData?.nombre || "Título del Acto"}
                 </h1>
 
-                {/* Descripción resumida con truncado CSS */}
                 <p className="card-description-resumen-acto">
                     {formData?.descripcion || "Añade una descripción para este acto. Aquí se mostrará un breve resumen del mismo para que los hermanos conozcan los detalles."}
                 </p>
@@ -57,10 +56,21 @@ const ResumenActoCard = ({ formData }) => {
                         <Clock size={18} className="info-icon-resumen-acto" />
                         <span className="info-text-resumen-acto">{hora}</span>
                     </div>
+                    
                     <div className="info-item-resumen-acto">
                         <MapPin size={18} className="info-icon-resumen-acto" />
                         <span className="info-text-resumen-acto">{formData?.lugar || "Lugar por definir"}</span>
                     </div>
+
+                    {formData?.requiere_papeleta && (
+                        <div className="info-item-resumen-acto">
+                            <Ticket 
+                                size={18} 
+                                className="info-icon-resumen-acto papeleta-icon-vertical" 
+                            />
+                            <span className="info-text-resumen-acto">Requiere Papeleta</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
