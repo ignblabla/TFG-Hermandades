@@ -97,6 +97,14 @@ function HermanoListadoActos() {
         return `${day}/${month}/${year}`;
     };
 
+    const getImagenUrl = (url) => {
+        if (!url) return null;
+        if (url.startsWith('http')) return url;
+        const backendUrl = api.defaults.baseURL || 'http://localhost:8000';
+        const cleanBaseUrl = backendUrl.replace(/\/$/, '');
+        return `${cleanBaseUrl}${url}`;
+    };
+
     return (
         <div>
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
@@ -186,7 +194,6 @@ function HermanoListadoActos() {
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Listado de Actos</div>
 
-                {/* CONTENEDOR DE LA LISTA DE ACTOS */}
                 <div className="actos-section-dashboard" style={{ padding: '0 20px' }}>
                     {loading ? (
                         <p>Cargando actos...</p>
@@ -210,6 +217,9 @@ function HermanoListadoActos() {
                                             fechaFinSolicitud={formatDateOnly(acto.fin_solicitud)}
                                             fechaInicioSolicitudCirios={formatDateOnly(acto.inicio_solicitud_cirios)}
                                             fechaFinSolicitudCirios={formatDateOnly(acto.fin_solicitud_cirios)}
+                                            requierePapeleta={acto.requiere_papeleta} 
+                                            imagenPortada={getImagenUrl(acto.imagen_portada)}
+                                            onVerDetalles={() => navigate(`/actos/${acto.id}`)}
                                         />
                                     ))
                                 ) : (
@@ -217,7 +227,6 @@ function HermanoListadoActos() {
                                 )}
                             </div>
 
-                            {/* CONTROLES DE PAGINACIÓN */}
                             {totalPages > 1 && (
                                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '20px 0', gap: '15px' }}>
                                     <button 

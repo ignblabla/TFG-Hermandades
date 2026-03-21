@@ -1,171 +1,155 @@
-.actos-section-dashboard {
-    padding: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+:root {
+    --burgundy: #800020;
+    --burgundy-light: #f4e6e9;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --bg-gray: #f8fafc;
+    --white: #ffffff;
+    --border-color: #cbd5e1;
 }
 
-.actos-section-title {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    color: var(--text-main);
-    font-weight: 700;
-    font-family: var(--font-family);
-}
-
-.actos-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.card-container-acto {
     width: 100%;
-    height: 100%;
-}
-
-.acto-card {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    background-color: var(--white);
-    border-radius: 12px;
-    padding: 12px; 
-    gap: 20px;
+    background: var(--white);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    border: 1px solid #f1f5f9;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-container-acto:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-header-acto {
+    background-color: var(--burgundy);
+    height: 140px; 
+    position: relative;
+    margin-bottom: 35px; 
+    overflow: visible !important; 
+    z-index: 1;
+}
+
+.header-image-acto {
     width: 100%;
-    box-sizing: border-box;
-    font-family: var(--font-family);
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
-.acto-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border-color: var(--burgundy-primary);
-}
-
-.acto-date-box {
-    align-self: center;
-    background-color: #800020;
-    border-radius: 10px;
-    padding: 14px 16px;
+.icon-badge-acto {
+    position: absolute;
+    bottom: -30px; 
+    left: 15px;
+    background: var(--burgundy);
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 85px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(128, 0, 32, 0.3);
+    z-index: 10; 
+    padding: 4px; 
 }
 
-.acto-month {
-    color: #ffffff;
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-}
-
-.acto-day {
-    color: #ffffff;
-    font-size: 2.2rem;
-    font-weight: 900;
+.badge-day-acto {
+    color: var(--white);
+    font-size: 1.3rem;
+    font-weight: 800;
     line-height: 1;
 }
 
-.acto-info {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-}
-
-.acto-title {
-    margin: 0;
-    color: var(--burgundy-primary);
-    font-size: 1.1rem;
+.badge-month-acto {
+    color: var(--white);
+    font-size: 0.55rem;
     font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1;
 }
 
-.acto-time-location {
-    margin: 0;
-    color: #475569;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.acto-description {
-    margin: 4px 0 0 0;
-    color: #334155;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.acto-fechas-container {
-    margin-top: 6px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--border-color, #cbd5e1);
+.card-body-acto {
+    padding: 0 16px 16px 16px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    flex-grow: 1;
 }
 
-/* Nueva clase para alinear en la misma línea */
-.acto-fechas-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap; /* Permite que salten de línea si la pantalla es muy pequeña */
-    gap: 16px; /* Separación horizontal entre ambas fechas */
-    align-items: center;
+.card-title-acto {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--burgundy);
+    margin: 0 0 6px 0;
+    line-height: 1.2;
 }
 
-.acto-fecha-item {
-    margin: 0;
-    color: #64748b;
+.card-description-acto {
     font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    margin: 0 0 15px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.acto-fecha-item strong {
+.info-list-acto {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.info-item-acto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-icon-acto {
+    color: var(--burgundy);
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.info-text-acto {
+    font-size: 0.85rem;
+    font-weight: 500;
     color: #475569;
-    font-weight: 600;
 }
 
-@media (max-width: 800px) {
-    .actos-list {
-        width: 100%;
-    }
+.card-actions-acto {
+    margin-top: auto; 
+}
 
-    .acto-card {
-        padding: 12px;
-        gap: 16px;
-        flex-direction: column;
-    }
+.btn-ver-detalles-acto {
+    width: 100%;
+    background-color: var(--bg-gray);
+    color: var(--burgundy);
+    border: 1px solid var(--border-color);
+    padding: 6px 0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
-    .acto-date-box {
-        align-self: stretch;
-        flex-direction: row;
-        width: 100%;
-        justify-content: flex-start;
-        align-items: baseline;
-        gap: 10px;
-        padding: 12px;
-    }
-    
-    .acto-month {
-        font-size: 1.1rem;
-        margin-bottom: 0;
-    }
-
-    .acto-day {
-        font-size: 1.6rem;
-    }
-
-    .acto-title {
-        font-size: 1.05rem;
-    }
-    
-    /* Reducimos un poco el gap en móvil para la fila de fechas si es necesario */
-    .acto-fechas-row {
-        gap: 8px;
-    }
+.btn-ver-detalles-acto:hover {
+    background-color: var(--burgundy);
+    color: white;
+    border-color: var(--burgundy);
 }

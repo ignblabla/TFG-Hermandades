@@ -117,10 +117,11 @@
     color: #475569;
 }
 
-.papeleta-icon-vertical {
-    transform: rotate(90deg);
+.info-text-resumen-acto strong {
+    font-weight: 700;
+    color: #1e293b;
 }
 
-.info-item-resumen-acto .papeleta-icon-vertical {
-    margin-right: 2px; 
+.papeleta-icon-vertical {
+    transform: rotate(90deg);
 }

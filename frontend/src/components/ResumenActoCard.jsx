@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/ResumenActoCard.css';
-import { MapPin, Clock, Ticket } from "lucide-react";
+import { MapPin, Clock, Ticket, X } from "lucide-react";
 
 const ResumenActoCard = ({ formData }) => {
 
@@ -62,15 +62,19 @@ const ResumenActoCard = ({ formData }) => {
                         <span className="info-text-resumen-acto">{formData?.lugar || "Lugar por definir"}</span>
                     </div>
 
-                    {formData?.requiere_papeleta && (
-                        <div className="info-item-resumen-acto">
-                            <Ticket 
-                                size={18} 
-                                className="info-icon-resumen-acto papeleta-icon-vertical" 
-                            />
-                            <span className="info-text-resumen-acto">Requiere Papeleta</span>
-                        </div>
-                    )}
+                    <div className="info-item-resumen-acto">
+                        {formData?.requiere_papeleta ? (
+                            <>
+                                <Ticket size={18} className="info-icon-resumen-acto papeleta-icon-vertical" />
+                                <span className="info-text-resumen-acto"><strong>Requiere Papeleta</strong></span>
+                            </>
+                        ) : (
+                            <>
+                                <X size={18} className="info-icon-resumen-acto" />
+                                <span className="info-text-resumen-acto">No requiere papeleta</span>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
