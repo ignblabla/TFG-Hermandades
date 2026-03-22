@@ -4,12 +4,22 @@
     padding: 0 20px 40px 20px;
     width: 100%;
     box-sizing: border-box;
-    align-items: flex-start;
+    align-items: stretch; 
 }
 
 .dashboard-main-info {
-    flex: 0 0 60%;
-    max-width: 60%;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-calendar-sidebar {
+    flex: 0 0 calc(40% - 20px);
+    max-width: calc(40% - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .dashboard-calendar-sidebar {
@@ -108,14 +118,94 @@
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     background-color: #ffffff;
+    aspect-ratio: 16 / 10;
+    max-height: 350px; 
 }
 
 .acto-cover-image {
     width: 100%;
-    height: auto;
-    max-height: 400px;
+    height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.info-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 12px;
+}
+
+.info-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.info-item, .info-description {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.info-icon {
+    color: #800020;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.info-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.info-value {
+    font-size: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+.info-value-text {
+    font-size: 14px;
+    color: #4a4a4a;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
+
+.badge-yes {
+    background-color: #800020;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-no {
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 @media (max-width: 992px) {

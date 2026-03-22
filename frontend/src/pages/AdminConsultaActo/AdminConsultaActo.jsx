@@ -17,8 +17,6 @@ function AdminConsultaActo() {
     const [loading, setLoading] = useState(true);
     const [accesoDenegado, setAccesoDenegado] = useState(false);
     const [error, setError] = useState("");
-
-    // Estado para el día seleccionado en el calendario (opcional)
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
 
     const navigate = useNavigate();
@@ -215,10 +213,10 @@ function AdminConsultaActo() {
                                 <AlertCircle size={16} /> {error}
                             </div>
                         )}
+
                         {acto?.imagen_portada && (() => {
                             const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
                             const imagePath = acto.imagen_portada;
-
                             const imgSrc = imagePath.startsWith('http') 
                                 ? imagePath 
                                 : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
@@ -233,9 +231,54 @@ function AdminConsultaActo() {
                                 </div>
                             );
                         })()}
+
                         <div className="info-card">
-                            <p>Detalles del acto aquí...</p>
+                            <h3 className="info-card-title">Detalles del Acto</h3>
+                            
+                            <div className="info-card-grid">
+                                <div className="info-item">
+                                    <MapPin size={22} className="info-icon" />
+                                    <div>
+                                        <span className="info-label">Lugar</span>
+                                        <span className="info-value">{acto?.lugar || "No especificado"}</span>
+                                    </div>
+                                </div>
+
+                                <div className="info-item">
+                                    <Calendar size={22} className="info-icon" />
+                                    <div>
+                                        <span className="info-label">Fecha y Hora</span>
+                                        <span className="info-value">{formatearFechaHora(acto?.fecha)}</span>
+                                    </div>
+                                </div>
+
+                                <div className="info-item">
+                                    <Ticket size={22} className="info-icon" />
+                                    <div>
+                                        <span className="info-label">Papeleta de Sitio</span>
+                                        <span className="info-value">
+                                            {acto?.requiere_papeleta ? (
+                                                <span className="badge-yes">Obligatoria</span>
+                                            ) : (
+                                                <span className="badge-no">No requerida</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {acto?.descripcion && (
+                                <div className="info-description">
+                                    <Info size={22} className="info-icon" />
+                                    <div>
+                                        <span className="info-label">Descripción</span>
+                                        <p className="info-value-text">{acto.descripcion}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
+
+
                     </div>
 
                     <div className="dashboard-calendar-sidebar">
