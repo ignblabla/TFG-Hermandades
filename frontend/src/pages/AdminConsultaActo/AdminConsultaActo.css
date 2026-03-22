@@ -1,0 +1,133 @@
+.dashboard-content-layout {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px 40px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.dashboard-main-info {
+    flex: 0 0 60%;
+    max-width: 60%;
+}
+
+.dashboard-calendar-sidebar {
+    flex: 0 0 calc(40% - 20px);
+    max-width: calc(40% - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.calendar-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.custom-calendar {
+    width: 100% !important;
+    border: none !important;
+    font-family: inherit;
+}
+
+.dia-acto-burdeos {
+    background-color: #800020 !important;
+    color: white !important;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+.dia-acto-burdeos:hover,
+.dia-acto-burdeos:focus {
+    background-color: #5c0017 !important;
+}
+
+.action-card {
+    width: 100%;
+    background-color: #ffffff;
+    border: 2px solid #800020;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 16px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(128, 0, 32, 0.15);
+}
+
+.action-card-content-wrapper {
+    display: flex;
+    align-items: center; 
+    gap: 15px; 
+}
+
+.action-card-icon {
+    flex-shrink: 0;
+}
+
+.action-card-text-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.action-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+
+.action-card-description {
+    color: #4a4a4a;
+    margin: 4px 0 0 0; 
+    font-size: 13px; 
+    line-height: 1.2;
+    font-weight: 500;
+    text-align: left;
+}
+
+.acto-cover-image-container {
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff;
+}
+
+.acto-cover-image {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    display: block;
+}
+
+@media (max-width: 992px) {
+    .dashboard-content-layout {
+        flex-direction: column;
+    }
+    .dashboard-main-info,
+    .dashboard-calendar-sidebar {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .dashboard-calendar-sidebar {
+        margin-top: 20px;
+    }
+}

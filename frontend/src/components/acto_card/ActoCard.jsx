@@ -2,20 +2,8 @@ import React from 'react';
 import '../acto_card/ActoCard.css';
 import { MapPin, Clock, Ticket, X } from "lucide-react";
 
-const ActoCard = ({ 
-    mes, 
-    dia, 
-    titulo, 
-    hora, 
-    lugar, 
-    descripcion, 
-    requierePapeleta, 
-    imagenPortada, 
-    onVerDetalles 
-}) => {
-
+const ActoCard = ({ mes, dia, titulo, hora, lugar, descripcion, requierePapeleta, imagenPortada, onVerDetalles }) => {
     const imagenMostrar = imagenPortada || '/portada-comunicado.png';
-
     return (
         <div className="card-container-acto">
 

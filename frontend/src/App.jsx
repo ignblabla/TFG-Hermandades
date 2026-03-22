@@ -41,6 +41,7 @@ import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
+import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
 
 
 function Logout() {
@@ -298,6 +299,15 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoListadoActos />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actos/:id"
+          element={
+            <ProtectedRoute>
+              <AdminConsultaActo />
             </ProtectedRoute>
           }
         />

@@ -22,6 +22,8 @@ function HermanoSolicitudInsignia() {
     const [mostrarVirgen, setMostrarVirgen] = useState(true);
 
     const [modalBloqueo, setModalBloqueo] = useState(false);
+    // Nuevo estado para cuando no hay acto activo
+    const [modalNoActivo, setModalNoActivo] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -57,7 +59,10 @@ function HermanoSolicitudInsignia() {
                     }
                 } catch (errActo) {
                     if (errActo.response && errActo.response.status === 404) {
-                        if (isMounted) setActoActivo(null);
+                        if (isMounted) {
+                            setActoActivo(null);
+                            setModalNoActivo(true); // Mostramos la ventana flotante
+                        }
                     } else {
                         console.error("Error obteniendo el acto activo:", errActo);
                     }
@@ -208,6 +213,28 @@ function HermanoSolicitudInsignia() {
                                 Ya consta una solicitud activa de papeleta de sitio para el acto <strong>{actoActivo?.nombre}</strong>.
                                 <br/><br/>
                                 Le recordamos que <strong>no es posible realizar múltiples solicitudes de insignias para un mismo acto</strong>. Si desea hacer cambios, por favor contacte con secretaría.
+                            </p>
+                            <button 
+                                className="btn-volver-inicio" 
+                                onClick={() => navigate('/new-home')}
+                            >
+                                Volver al inicio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modalNoActivo && (
+                <div className="modal-overlay-bloqueo">
+                    <div className="modal-content-bloqueo">
+                        <div className="modal-header-bloqueo">
+                            <Info className="modal-icon-info" size={28} />
+                            <h3>Plazo cerrado</h3>
+                        </div>
+                        <div className="modal-body-bloqueo">
+                            <p>
+                                Actualmente no hay ningún plazo abierto para solicitar insignias. Por favor, manténgase atento a los comunicados oficiales de la Hermandad.
                             </p>
                             <button 
                                 className="btn-volver-inicio" 

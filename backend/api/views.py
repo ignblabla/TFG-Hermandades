@@ -96,7 +96,7 @@ class ActoDetalleView(APIView):
         Recuperar un acto específico por su ID.
         """
         acto = get_object_or_404(Acto, pk=pk)
-        serializer = ActoSerializer(acto)
+        serializer = ActoSerializer(acto, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
