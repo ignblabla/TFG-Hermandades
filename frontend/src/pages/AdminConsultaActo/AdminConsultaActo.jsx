@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminConsultaActo/AdminConsultaActo.css';
-import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered } from "lucide-react";
+import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock } from "lucide-react";
 
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-
 
 function AdminConsultaActo() {
     const { id } = useParams();
@@ -234,7 +233,22 @@ function AdminConsultaActo() {
 
                         <div className="info-card">
                             <h3 className="info-card-title">Detalles del Acto</h3>
-                            
+
+                            {acto?.descripcion && (
+                                <div className="info-description">
+                                    <Info size={22} className="info-icon" />
+                                    <div style={{ width: '100%' }}>
+                                        <span className="info-label">Descripción</span>
+                                        <p 
+                                            className="info-value-text" 
+                                            style={{ whiteSpace: 'pre-wrap' }}
+                                        >
+                                            {acto.descripcion}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="info-card-grid">
                                 <div className="info-item">
                                     <MapPin size={22} className="info-icon" />
@@ -267,17 +281,42 @@ function AdminConsultaActo() {
                                 </div>
                             </div>
 
-                            {acto?.descripcion && (
-                                <div className="info-description">
-                                    <Info size={22} className="info-icon" />
-                                    <div>
-                                        <span className="info-label">Descripción</span>
-                                        <p className="info-value-text">{acto.descripcion}</p>
+                            {acto?.requiere_papeleta && (
+                                <div className="info-item">
+                                    <Clock size={22} className="info-icon" />
+                                    <div style={{ width: '100%' }}>
+                                        <span className="info-label">
+                                            {acto.modalidad === 'TRADICIONAL' ? 'Plazo Insignias' : 'Plazo Solicitudes'}
+                                        </span>
+                                        <div className="plazos-fechas-wrapper">
+                                            <span className="info-value plazo-fecha">
+                                                <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud)}
+                                            </span>
+                                            <span className="info-value plazo-fecha">
+                                                <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {acto?.requiere_papeleta && acto.modalidad === 'TRADICIONAL' && (
+                                <div className="info-item">
+                                    <Clock size={22} className="info-icon" />
+                                    <div style={{ width: '100%' }}>
+                                        <span className="info-label">Plazo Cirios</span>
+                                        <div className="plazos-fechas-wrapper">
+                                            <span className="info-value plazo-fecha">
+                                                <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud_cirios)}
+                                            </span>
+                                            <span className="info-value plazo-fecha">
+                                                <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud_cirios)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
-
 
                     </div>
 
