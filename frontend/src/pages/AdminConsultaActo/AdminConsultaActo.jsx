@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminConsultaActo/AdminConsultaActo.css';
@@ -17,6 +17,9 @@ function AdminConsultaActo() {
     const [accesoDenegado, setAccesoDenegado] = useState(false);
     const [error, setError] = useState("");
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
+
+    const calendarRef = useRef(null);
+    const [calendarHeight, setCalendarHeight] = useState('auto');
 
     const navigate = useNavigate();
 
@@ -76,6 +79,17 @@ function AdminConsultaActo() {
             isMounted = false;
         };
     }, [id, navigate, currentUser]);
+
+    useEffect(() => {
+        if (!calendarRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                setCalendarHeight(entry.target.offsetHeight);
+            }
+        });
+        observer.observe(calendarRef.current);
+        return () => observer.disconnect();
+    }, [acto]); 
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -213,15 +227,22 @@ function AdminConsultaActo() {
                             </div>
                         )}
 
-                        {acto?.imagen_portada && (() => {
-                            const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-                            const imagePath = acto.imagen_portada;
-                            const imgSrc = imagePath.startsWith('http') 
-                                ? imagePath 
-                                : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+                        {/* --- MODIFICADO: Imagen por defecto si no hay imagen_portada --- */}
+                        {acto && (() => {
+                            // Asignamos la imagen por defecto de la carpeta public
+                            let imgSrc = '/portada-comunicado.png';
+                            
+                            // Si existe la portada, configuramos la URL del backend
+                            if (acto.imagen_portada) {
+                                const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+                                const imagePath = acto.imagen_portada;
+                                imgSrc = imagePath.startsWith('http') 
+                                    ? imagePath 
+                                    : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+                            }
 
                             return (
-                                <div className="acto-cover-image-container">
+                                <div className="acto-cover-image-container" style={{ height: calendarHeight }}>
                                     <img 
                                         src={imgSrc} 
                                         alt={`Portada de ${acto.nombre}`} 
@@ -248,7 +269,7 @@ function AdminConsultaActo() {
                                     </div>
                                 </div>
                             )}
-
+                            
                             <div className="info-card-grid">
                                 <div className="info-item">
                                     <MapPin size={22} className="info-icon" />
@@ -321,7 +342,8 @@ function AdminConsultaActo() {
                     </div>
 
                     <div className="dashboard-calendar-sidebar">
-                        <div className="calendar-container">
+                        
+                        <div className="calendar-container" ref={calendarRef}>
                             <ReactCalendar 
                                 onChange={setFechaSeleccionada} 
                                 value={fechaSeleccionada}
@@ -330,65 +352,77 @@ function AdminConsultaActo() {
                             />
                         </div>
 
-                        <div className="action-card">
-                            <div className="action-card-content-wrapper">
-                                <ClipboardList size={45} color="#800020" className="action-card-icon" />
-                                
-                                <div className="action-card-text-content">
-                                    <h3 className="action-card-title">
-                                        SOLICITUDES DE INSIGNIAS
-                                    </h3>
-                                    <p className="action-card-description">
-                                        Consulta el total de solicitudes de insignias.
-                                    </p>
+                        {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
+                            <>
+                                <div className="action-card">
+                                    <div className="action-card-content-wrapper">
+                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">SOLICITUDES DE INSIGNIAS</h3>
+                                            <p className="action-card-description">Consulta el total de solicitudes de insignias.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="action-card">
-                            <div className="action-card-content-wrapper">
-                                <Award size={45} color="#800020" className="action-card-icon" />
-                                
-                                <div className="action-card-text-content">
-                                    <h3 className="action-card-title">
-                                        GESTIÓN DE INSIGNIAS
-                                    </h3>
-                                    <p className="action-card-description">
-                                        Asigna y organiza los puestos e insignias del cortejo.
-                                    </p>
+                                <div 
+                                    className="action-card" 
+                                    onClick={() => navigate(`/gestionar-reparto/${id}`)}
+                                >
+                                    <div className="action-card-content-wrapper">
+                                        <Award size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">GESTIÓN DE INSIGNIAS</h3>
+                                            <p className="action-card-description">Asigna y organiza los puestos e insignias del cortejo.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="action-card">
-                            <div className="action-card-content-wrapper">
-                                <Flame size={45} color="#800020" className="action-card-icon" />
-                                
-                                <div className="action-card-text-content">
-                                    <h3 className="action-card-title">
-                                        SOLICITUDES DE CIRIOS
-                                    </h3>
-                                    <p className="action-card-description">
-                                        Consulta el total de solicitudes de cirios.
-                                    </p>
+                                <div className="action-card">
+                                    <div className="action-card-content-wrapper">
+                                        <Flame size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">SOLICITUDES DE CIRIOS</h3>
+                                            <p className="action-card-description">Consulta el total de solicitudes de cirios.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div className="action-card">
-                            <div className="action-card-content-wrapper">
-                                <ListOrdered size={45} color="#800020" className="action-card-icon" />
-                                
-                                <div className="action-card-text-content">
-                                    <h3 className="action-card-title">
-                                        ASIGNACIÓN DE CIRIOS
-                                    </h3>
-                                    <p className="action-card-description">
-                                        Asigna y organiza a los hermanos con cirio en el cortejo.
-                                    </p>
+                                <div className="action-card">
+                                    <div className="action-card-content-wrapper">
+                                        <ListOrdered size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">ASIGNACIÓN DE CIRIOS</h3>
+                                            <p className="action-card-description">Asigna y organiza a los hermanos con cirio en el cortejo.</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </>
+                        )}
+
+                        {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
+                            <>
+                                <div className="action-card">
+                                    <div className="action-card-content-wrapper">
+                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">SOLICITUDES DE PUESTOS</h3>
+                                            <p className="action-card-description">Consulta el total de solicitudes de puestos.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="action-card">
+                                    <div className="action-card-content-wrapper">
+                                        <Award size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">GESTIÓN DE PUESTOS</h3>
+                                            <p className="action-card-description">Asigna y organiza los puestos del cortejo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
                     </div>
                 </div>
             </section>
