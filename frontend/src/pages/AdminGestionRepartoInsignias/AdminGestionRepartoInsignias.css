@@ -113,6 +113,12 @@
     box-shadow: 0 4px 12px rgba(128, 0, 32, 0.15);
 }
 
+.consulta-acto-actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .consulta-acto-action-card-content-wrapper {
     display: flex;
     align-items: center; 

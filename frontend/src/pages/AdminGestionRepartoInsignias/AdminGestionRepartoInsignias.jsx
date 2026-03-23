@@ -4,7 +4,6 @@ import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
 import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock } from "lucide-react";
 
-import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
 function GestionRepartoInsignias() {
@@ -16,6 +15,9 @@ function GestionRepartoInsignias() {
     const [loading, setLoading] = useState(true);
     const [accesoDenegado, setAccesoDenegado] = useState(false);
     const [error, setError] = useState("");
+
+    const [processing, setProcessing] = useState(false); 
+    const [successData, setSuccessData] = useState(null); 
 
     const navigate = useNavigate();
 
@@ -76,6 +78,37 @@ function GestionRepartoInsignias() {
         };
     }, [id, navigate, currentUser]);
 
+    const verificarDisponibilidad = () => {
+        if (!acto || !acto.fin_solicitud) return false;
+        const ahora = new Date();
+        const finSolicitud = new Date(acto.fin_solicitud);
+        return ahora > finSolicitud;
+    };
+
+    const handleReparto = async () => {
+        if (!window.confirm(`¿Estás seguro de generar el reparto para "${acto.nombre}"?\n\nEsta acción asignará los puestos disponibles a los hermanos según su antigüedad.`)) {
+            return;
+        }
+
+        setProcessing(true);
+        setError("");
+        setSuccessData(null);
+
+        try {
+            const response = await api.post(`/api/actos/${id}/reparto-automatico/`);
+            setSuccessData(response.data); 
+        } catch (err) {
+            if (err.response && err.response.data) {
+                const data = err.response.data;
+                setError(data.error || data.detail || "Error al procesar el reparto.");
+            } else {
+                setError("Error de red al intentar conectar con el servidor.");
+            }
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleLogout = () => {
@@ -98,6 +131,8 @@ function GestionRepartoInsignias() {
             </div>
         );
     }
+
+    const fechaValida = verificarDisponibilidad();
 
     return (
         <div>
@@ -191,9 +226,25 @@ function GestionRepartoInsignias() {
                 <div className="consulta-acto-content-layout">
 
                     <div className="consulta-acto-main-info">
+                        
+                        {/* ALERTAS DE ERROR O ÉXITO */}
                         {error && (
-                            <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
-                                <AlertCircle size={16} /> {error}
+                            <div style={{padding: '15px', backgroundColor: '#fee2e2', color: '#b91c1c', marginBottom: '15px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                <AlertCircle size={20}/> 
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        {successData && (
+                            <div style={{padding: '15px', backgroundColor: '#dcfce7', color: '#15803d', marginBottom: '15px', borderRadius: '6px', border: '1px solid #86efac'}}>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', marginBottom: '10px'}}>
+                                    <CheckCircle size={20}/> 
+                                    <span>{successData.mensaje}</span>
+                                </div>
+                                <ul style={{marginLeft: '30px', listStyleType: 'disc', fontSize: '14px', lineHeight: '1.5'}}>
+                                    <li>Puestos asignados correctamente: <strong>{successData.asignaciones}</strong></li>
+                                    <li>Hermanos en lista de espera (sin cupo): <strong>{successData.sin_asignar_count}</strong></li>
+                                </ul>
                             </div>
                         )}
 
@@ -294,18 +345,35 @@ function GestionRepartoInsignias() {
 
                     <div className="consulta-acto-calendar-sidebar">
                         <div className="consulta-acto-algorithm-card">
-                            <Award size={115} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
+                            <Award size={110} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
                             <h2 className="consulta-acto-algorithm-title">GESTIÓN DE INSIGNIAS</h2>
                             <p className="consulta-acto-algorithm-description">
                                 Asigna y organiza los puestos e<br />insignias del cortejo.
                             </p>
-                            <button className="consulta-acto-algorithm-button">
-                                Ejecutar Algoritmo de Asignación
+                            
+                            {/* BOTÓN ACTUALIZADO CON LÓGICA */}
+                            <button 
+                                className="consulta-acto-algorithm-button"
+                                onClick={handleReparto}
+                                disabled={!fechaValida || processing}
+                                style={{
+                                    backgroundColor: (!fechaValida || processing) ? '#94a3b8' : '#ffffff',
+                                    cursor: (!fechaValida || processing) ? 'not-allowed' : 'pointer',
+                                    color: (!fechaValida || processing) ? '#ffffff' : '#800020'
+                                }}
+                            >
+                                {processing ? "Procesando algoritmos..." : "Ejecutar Algoritmo de Asignación"}
                             </button>
+                            
+                            {!fechaValida && (
+                                <span style={{fontSize: '12px', color: '#e2e8f0', marginTop: '10px'}}>
+                                    (Disponible al finalizar el plazo)
+                                </span>
+                            )}
                         </div>
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
-                            <>
+                            <div className="consulta-acto-actions-wrapper">
                                 <div className="consulta-acto-action-card">
                                     <div className="consulta-acto-action-card-content-wrapper">
                                         <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
@@ -335,11 +403,11 @@ function GestionRepartoInsignias() {
                                         </div>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         )}
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
-                            <>
+                            <div className="consulta-acto-actions-wrapper">
                                 <div className="consulta-acto-action-card">
                                     <div className="consulta-acto-action-card-content-wrapper">
                                         <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
@@ -359,7 +427,7 @@ function GestionRepartoInsignias() {
                                         </div>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         )}
 
                     </div>
