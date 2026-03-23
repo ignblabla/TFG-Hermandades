@@ -38,7 +38,7 @@ import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
 import GestionRepartoInsignias from "./pages/AdminGestionRepartoInsignias/AdminGestionRepartoInsignias"
-import AdminListadoSolicitudesInsigniasActoConcreto from "./pages/AdminListadoSolicitudesInsigniasActoConcreto/AdminListadoSolicitudesInsigniasActoConreto"
+import AdminListadoSolicitudesInsigniasActoConcreto from "./pages/AdminListadoSolicitudesInsigniasActoConcreto/AdminListadoSolicitudesInsigniasActoConcreto"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"

@@ -373,7 +373,10 @@ function GestionRepartoInsignias() {
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
                             <div className="consulta-acto-actions-wrapper">
-                                <div className="consulta-acto-action-card">
+                                <div 
+                                    className="consulta-acto-action-card"
+                                    onClick={() => navigate(`/admin/listado-solicitudes-insignias/${id}`)}
+                                >
                                     <div className="consulta-acto-action-card-content-wrapper">
                                         <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
                                         <div className="consulta-acto-action-card-text-content">

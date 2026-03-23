@@ -351,7 +351,10 @@ function AdminConsultaActo() {
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
                             <>
-                                <div className="action-card">
+                                <div 
+                                    className="action-card" 
+                                    onClick={() => navigate(`/admin/listado-solicitudes-insignias/${id}`)}
+                                >
                                     <div className="action-card-content-wrapper">
                                         <ClipboardList size={45} color="#800020" className="action-card-icon" />
                                         <div className="action-card-text-content">
