@@ -38,6 +38,7 @@ import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
 import GestionRepartoInsignias from "./pages/AdminGestionRepartoInsignias/AdminGestionRepartoInsignias"
+import AdminListadoSolicitudesInsigniasActoConcreto from "./pages/AdminListadoSolicitudesInsigniasActoConcreto/AdminListadoSolicitudesInsigniasActoConreto"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -309,6 +310,15 @@ function App() {
           element={
             <ProtectedRoute>
               <GestionRepartoInsignias />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/listado-solicitudes-insignias/:id"
+          element={
+            <ProtectedRoute>
+              <AdminListadoSolicitudesInsigniasActoConcreto />
             </ProtectedRoute>
           }
         />

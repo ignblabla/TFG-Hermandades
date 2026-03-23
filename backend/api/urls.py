@@ -14,6 +14,7 @@ from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionados
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, SolicitarInsigniaView
+from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -72,4 +73,17 @@ urlpatterns = [
     #Actos
     path('actos/activo-insignias/', ActoActivoInsigniasView.as_view(), name='acto-activo-insignias'),
     path('actos/', ActoListAPIView.as_view(), name='acto-list'),
+
+
+
+
+
+
+
+
+
+
+
+    #Papeletas de sitio
+    path('actos/<int:acto_id>/solicitudes-insignias/', TablaInsigniasActoView.as_view(), name='acto-solicitudes-insignias'),
 ]

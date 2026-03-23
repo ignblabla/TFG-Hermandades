@@ -1,0 +1,83 @@
+.insignias-table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 0px;
+    padding: 2px; 
+}
+
+.insignias-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+    background-color: var(--white, #ffffff);
+    border: 1px solid var(--burgundy-primary, #800020); 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.insignias-table thead tr:last-child {
+    background-color: var(--burgundy-primary, #800020);
+    color: var(--white, #ffffff);
+}
+
+.insignias-table th {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--burgundy-dark, #4d0013);
+}
+
+.insignias-table th,
+.insignias-table td {
+    padding: 8px 16px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.insignias-table tbody tr {
+    color: var(--text-main, #1a1a1a);
+    transition: background-color 0.2s ease;
+}
+
+.insignias-table tbody tr td {
+    border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.insignias-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.insignias-table tbody tr:nth-of-type(even) {
+    background-color: var(--burgundy-light, #f8eaff);
+}
+
+.insignias-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.badge-estado-insignia {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-estado-insignia.solicitada {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-estado-insignia.emitida,
+.badge-estado-insignia.recogida,
+.badge-estado-insignia.leída {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-estado-insignia.no-asignada,
+.badge-estado-insignia.anulada {
+    background-color: #fee2e2;
+    color: #991b1b;
+}

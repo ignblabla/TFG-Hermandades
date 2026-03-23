@@ -4,19 +4,20 @@
     padding: 0 20px 40px 20px;
     width: 100%;
     box-sizing: border-box;
-    align-items: flex-start; 
+    align-items: flex-start;
+    flex-wrap: wrap; 
 }
 
 .consulta-acto-main-info {
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 calc(70% - 10px);
+    min-width: 300px;
     display: flex;
     flex-direction: column;
 }
 
 .consulta-acto-calendar-sidebar {
-    flex: 0 0 calc(40% - 20px);
-    max-width: calc(40% - 20px);
+    flex: 1 1 calc(30% - 10px); 
+    min-width: 280px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -44,7 +45,7 @@
 .consulta-acto-algorithm-title {
     color: #ffffff;
     margin: 0 0 5px 0;
-    font-size: 26px;
+    font-size: 25px;
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: 0.5px;

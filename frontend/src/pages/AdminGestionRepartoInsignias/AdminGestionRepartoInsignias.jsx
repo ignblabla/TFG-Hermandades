@@ -221,7 +221,7 @@ function GestionRepartoInsignias() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">Detalles del acto</div>
+                <div className="text-dashboard">Asignación de insignias</div>
 
                 <div className="consulta-acto-content-layout">
 
