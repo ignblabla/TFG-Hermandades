@@ -52,13 +52,13 @@
 }
 
 .consulta-acto-algorithm-icon {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .consulta-acto-algorithm-title {
     color: #ffffff;
     margin: 0 0 10px 0;
-    font-size: 24px;
+    font-size: 30px;
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: 0.5px;
@@ -68,7 +68,7 @@
 .consulta-acto-algorithm-description {
     color: #f0f0f0;
     margin: 0 0 25px 0;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.4;
     font-weight: 500;
 }
@@ -84,7 +84,8 @@
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     width: 95%;
-    max-width: 320px;
+    max-width: 420px;
+    margin-top: 10px;
 }
 
 .consulta-acto-algorithm-button:hover {

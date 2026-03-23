@@ -294,7 +294,7 @@ function GestionRepartoInsignias() {
 
                     <div className="consulta-acto-calendar-sidebar">
                         <div className="consulta-acto-algorithm-card">
-                            <Award size={110} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
+                            <Award size={115} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
                             <h2 className="consulta-acto-algorithm-title">GESTIÓN DE INSIGNIAS</h2>
                             <p className="consulta-acto-algorithm-description">
                                 Asigna y organiza los puestos e<br />insignias del cortejo.
