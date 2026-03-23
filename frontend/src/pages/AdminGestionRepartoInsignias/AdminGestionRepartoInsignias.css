@@ -1,0 +1,270 @@
+.consulta-acto-content-layout {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px 40px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: flex-start; 
+}
+
+.consulta-acto-main-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.consulta-acto-empty-box {
+    width: 100%;
+    height: 400px; 
+    border-radius: 12px;
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.consulta-acto-calendar-sidebar {
+    flex: 0 0 calc(40% - 20px);
+    max-width: calc(40% - 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.consulta-acto-algorithm-card {
+    width: 100%;
+    height: 400px; 
+    background-color: #800020;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    text-align: center;
+    margin-bottom: 10px; 
+}
+
+.consulta-acto-algorithm-icon {
+    margin-bottom: 15px;
+}
+
+.consulta-acto-algorithm-title {
+    color: #ffffff;
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.consulta-acto-algorithm-description {
+    color: #f0f0f0;
+    margin: 0 0 25px 0;
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.consulta-acto-algorithm-button {
+    background-color: #ffffff;
+    color: #800020;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    width: 95%;
+    max-width: 320px;
+}
+
+.consulta-acto-algorithm-button:hover {
+    background-color: #e6e6e6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.consulta-acto-action-card {
+    width: 100%;
+    background-color: #ffffff;
+    border: 2px solid #800020;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px 16px;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.consulta-acto-action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(128, 0, 32, 0.15);
+}
+
+.consulta-acto-action-card-content-wrapper {
+    display: flex;
+    align-items: center; 
+    gap: 15px; 
+}
+
+.consulta-acto-action-card-icon {
+    flex-shrink: 0;
+}
+
+.consulta-acto-action-card-text-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.consulta-acto-action-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    text-align: left;
+}
+
+.consulta-acto-action-card-description {
+    color: #4a4a4a;
+    margin: 4px 0 0 0; 
+    font-size: 13px; 
+    line-height: 1.2;
+    font-weight: 500;
+    text-align: left;
+}
+
+.consulta-acto-info-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 2px solid #800020;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.consulta-acto-info-title {
+    color: #800020;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 12px;
+}
+
+.consulta-acto-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.consulta-acto-info-item, .consulta-acto-info-description {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.consulta-acto-info-icon {
+    color: #800020;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.consulta-acto-info-label {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.consulta-acto-info-value {
+    font-size: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+.consulta-acto-info-value-text {
+    font-size: 14px;
+    color: #4a4a4a;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+    text-align: justify;
+}
+
+.consulta-acto-badge-yes {
+    background-color: #800020;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.consulta-acto-badge-no {
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.consulta-acto-plazos-fechas-wrapper {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.consulta-acto-plazo-fecha {
+    font-size: 15px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.consulta-acto-plazo-fecha strong {
+    color: #666;
+    font-weight: 700;
+}
+
+@media (max-width: 992px) {
+    .consulta-acto-content-layout {
+        flex-direction: column;
+    }
+    .consulta-acto-main-info,
+    .consulta-acto-calendar-sidebar {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .consulta-acto-calendar-sidebar {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .consulta-acto-plazos-fechas-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+}

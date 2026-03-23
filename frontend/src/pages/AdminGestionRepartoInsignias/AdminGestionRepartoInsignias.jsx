@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
-import '../AdminConsultaActo/AdminConsultaActo.css';
+import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
 import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock } from "lucide-react";
 
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 
-function AdminConsultaActo() {
+function GestionRepartoInsignias() {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
     
@@ -16,10 +16,6 @@ function AdminConsultaActo() {
     const [loading, setLoading] = useState(true);
     const [accesoDenegado, setAccesoDenegado] = useState(false);
     const [error, setError] = useState("");
-    const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
-
-    const calendarRef = useRef(null);
-    const [calendarHeight, setCalendarHeight] = useState('auto');
 
     const navigate = useNavigate();
 
@@ -80,17 +76,6 @@ function AdminConsultaActo() {
         };
     }, [id, navigate, currentUser]);
 
-    useEffect(() => {
-        if (!calendarRef.current) return;
-        const observer = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                setCalendarHeight(entry.target.offsetHeight);
-            }
-        });
-        observer.observe(calendarRef.current);
-        return () => observer.disconnect();
-    }, [acto]); 
-
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleLogout = () => {
@@ -98,21 +83,6 @@ function AdminConsultaActo() {
         localStorage.removeItem("access");
         setCurrentUser(null);
         navigate("/login");
-    };
-
-    const tileClassName = ({ date, view }) => {
-        if (view === 'month' && acto && acto.fecha) {
-            const fechaActo = new Date(acto.fecha);
-
-            if (
-                date.getDate() === fechaActo.getDate() &&
-                date.getMonth() === fechaActo.getMonth() &&
-                date.getFullYear() === fechaActo.getFullYear()
-            ) {
-                return 'dia-acto-burdeos';
-            }
-        }
-        return null;
     };
 
     if (loading) {
@@ -218,47 +188,31 @@ function AdminConsultaActo() {
             <section className="home-section-dashboard">
                 <div className="text-dashboard">{acto?.nombre}</div>
 
-                <div className="dashboard-content-layout">
+                <div className="consulta-acto-content-layout">
 
-                    <div className="dashboard-main-info">
+                    <div className="consulta-acto-main-info">
                         {error && (
                             <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
                                 <AlertCircle size={16} /> {error}
                             </div>
                         )}
 
-                        {acto && (() => {
-                            let imgSrc = '/portada-comunicado.png';
+                        <div 
+                            className={`consulta-acto-empty-box ${acto?.imagen_portada ? 'con-portada' : ''}`}
+                            style={acto?.imagen_portada ? { backgroundImage: `url(${acto.imagen_portada})` } : {}}
+                        >
+                        </div>
 
-                            if (acto.imagen_portada) {
-                                const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-                                const imagePath = acto.imagen_portada;
-                                imgSrc = imagePath.startsWith('http') 
-                                    ? imagePath 
-                                    : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
-                            }
-
-                            return (
-                                <div className="acto-cover-image-container" style={{ height: calendarHeight }}>
-                                    <img 
-                                        src={imgSrc} 
-                                        alt={`Portada de ${acto.nombre}`} 
-                                        className="acto-cover-image"
-                                    />
-                                </div>
-                            );
-                        })()}
-
-                        <div className="info-card">
-                            <h3 className="info-card-title">Detalles del Acto</h3>
+                        <div className="consulta-acto-info-card">
+                            <h3 className="consulta-acto-info-title">Detalles del Acto</h3>
 
                             {acto?.descripcion && (
-                                <div className="info-description">
-                                    <Info size={22} className="info-icon" />
+                                <div className="consulta-acto-info-description">
+                                    <Info size={22} className="consulta-acto-info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="info-label">Descripción</span>
+                                        <span className="consulta-acto-info-label">Descripción</span>
                                         <p 
-                                            className="info-value-text" 
+                                            className="consulta-acto-info-value-text" 
                                             style={{ whiteSpace: 'pre-wrap' }}
                                         >
                                             {acto.descripcion}
@@ -267,32 +221,32 @@ function AdminConsultaActo() {
                                 </div>
                             )}
                             
-                            <div className="info-card-grid">
-                                <div className="info-item">
-                                    <MapPin size={22} className="info-icon" />
+                            <div className="consulta-acto-info-grid">
+                                <div className="consulta-acto-info-item">
+                                    <MapPin size={22} className="consulta-acto-info-icon" />
                                     <div>
-                                        <span className="info-label">Lugar</span>
-                                        <span className="info-value">{acto?.lugar || "No especificado"}</span>
+                                        <span className="consulta-acto-info-label">Lugar</span>
+                                        <span className="consulta-acto-info-value">{acto?.lugar || "No especificado"}</span>
                                     </div>
                                 </div>
 
-                                <div className="info-item">
-                                    <Calendar size={22} className="info-icon" />
+                                <div className="consulta-acto-info-item">
+                                    <Calendar size={22} className="consulta-acto-info-icon" />
                                     <div>
-                                        <span className="info-label">Fecha y Hora</span>
-                                        <span className="info-value">{formatearFechaHora(acto?.fecha)}</span>
+                                        <span className="consulta-acto-info-label">Fecha y Hora</span>
+                                        <span className="consulta-acto-info-value">{formatearFechaHora(acto?.fecha)}</span>
                                     </div>
                                 </div>
 
-                                <div className="info-item">
-                                    <Ticket size={22} className="info-icon" />
+                                <div className="consulta-acto-info-item">
+                                    <Ticket size={22} className="consulta-acto-info-icon" />
                                     <div>
-                                        <span className="info-label">Papeleta de Sitio</span>
-                                        <span className="info-value">
+                                        <span className="consulta-acto-info-label">Papeleta de Sitio</span>
+                                        <span className="consulta-acto-info-value">
                                             {acto?.requiere_papeleta ? (
-                                                <span className="badge-yes">Obligatoria</span>
+                                                <span className="consulta-acto-badge-yes">Obligatoria</span>
                                             ) : (
-                                                <span className="badge-no">No requerida</span>
+                                                <span className="consulta-acto-badge-no">No requerida</span>
                                             )}
                                         </span>
                                     </div>
@@ -300,17 +254,17 @@ function AdminConsultaActo() {
                             </div>
 
                             {acto?.requiere_papeleta && (
-                                <div className="info-item">
-                                    <Clock size={22} className="info-icon" />
+                                <div className="consulta-acto-info-item">
+                                    <Clock size={22} className="consulta-acto-info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="info-label">
+                                        <span className="consulta-acto-info-label">
                                             {acto.modalidad === 'TRADICIONAL' ? 'Plazo Insignias' : 'Plazo Solicitudes'}
                                         </span>
-                                        <div className="plazos-fechas-wrapper">
-                                            <span className="info-value plazo-fecha">
+                                        <div className="consulta-acto-plazos-fechas-wrapper">
+                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
                                                 <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud)}
                                             </span>
-                                            <span className="info-value plazo-fecha">
+                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
                                                 <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud)}
                                             </span>
                                         </div>
@@ -319,15 +273,15 @@ function AdminConsultaActo() {
                             )}
 
                             {acto?.requiere_papeleta && acto.modalidad === 'TRADICIONAL' && (
-                                <div className="info-item">
-                                    <Clock size={22} className="info-icon" />
+                                <div className="consulta-acto-info-item">
+                                    <Clock size={22} className="consulta-acto-info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="info-label">Plazo Cirios</span>
-                                        <div className="plazos-fechas-wrapper">
-                                            <span className="info-value plazo-fecha">
+                                        <span className="consulta-acto-info-label">Plazo Cirios</span>
+                                        <div className="consulta-acto-plazos-fechas-wrapper">
+                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
                                                 <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud_cirios)}
                                             </span>
-                                            <span className="info-value plazo-fecha">
+                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
                                                 <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud_cirios)}
                                             </span>
                                         </div>
@@ -338,58 +292,46 @@ function AdminConsultaActo() {
 
                     </div>
 
-                    <div className="dashboard-calendar-sidebar">
-                        
-                        <div className="calendar-container" ref={calendarRef}>
-                            <ReactCalendar 
-                                onChange={setFechaSeleccionada} 
-                                value={fechaSeleccionada}
-                                className="custom-calendar"
-                                tileClassName={tileClassName}
-                            />
+                    <div className="consulta-acto-calendar-sidebar">
+                        <div className="consulta-acto-algorithm-card">
+                            <Award size={110} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
+                            <h2 className="consulta-acto-algorithm-title">GESTIÓN DE INSIGNIAS</h2>
+                            <p className="consulta-acto-algorithm-description">
+                                Asigna y organiza los puestos e<br />insignias del cortejo.
+                            </p>
+                            <button className="consulta-acto-algorithm-button">
+                                Ejecutar Algoritmo de Asignación
+                            </button>
                         </div>
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
                             <>
-                                <div className="action-card">
-                                    <div className="action-card-content-wrapper">
-                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITUDES DE INSIGNIAS</h3>
-                                            <p className="action-card-description">Consulta el total de solicitudes de insignias.</p>
+                                <div className="consulta-acto-action-card">
+                                    <div className="consulta-acto-action-card-content-wrapper">
+                                        <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
+                                        <div className="consulta-acto-action-card-text-content">
+                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE INSIGNIAS</h3>
+                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de insignias.</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div 
-                                    className="action-card" 
-                                    onClick={() => navigate(`/admin/gestion-reparto-insignias/${id}`)}
-                                >
-                                    <div className="action-card-content-wrapper">
-                                        <Award size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">GESTIÓN DE INSIGNIAS</h3>
-                                            <p className="action-card-description">Asigna y organiza los puestos e insignias del cortejo.</p>
+                                <div className="consulta-acto-action-card">
+                                    <div className="consulta-acto-action-card-content-wrapper">
+                                        <Flame size={45} color="#800020" className="consulta-acto-action-card-icon" />
+                                        <div className="consulta-acto-action-card-text-content">
+                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE CIRIOS</h3>
+                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de cirios.</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="action-card">
-                                    <div className="action-card-content-wrapper">
-                                        <Flame size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITUDES DE CIRIOS</h3>
-                                            <p className="action-card-description">Consulta el total de solicitudes de cirios.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="action-card">
-                                    <div className="action-card-content-wrapper">
-                                        <ListOrdered size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">ASIGNACIÓN DE CIRIOS</h3>
-                                            <p className="action-card-description">Asigna y organiza a los hermanos con cirio en el cortejo.</p>
+                                <div className="consulta-acto-action-card">
+                                    <div className="consulta-acto-action-card-content-wrapper">
+                                        <ListOrdered size={45} color="#800020" className="consulta-acto-action-card-icon" />
+                                        <div className="consulta-acto-action-card-text-content">
+                                            <h3 className="consulta-acto-action-card-title">ASIGNACIÓN DE CIRIOS</h3>
+                                            <p className="consulta-acto-action-card-description">Asigna y organiza a los hermanos con cirio en el cortejo.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -398,22 +340,22 @@ function AdminConsultaActo() {
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
                             <>
-                                <div className="action-card">
-                                    <div className="action-card-content-wrapper">
-                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITUDES DE PUESTOS</h3>
-                                            <p className="action-card-description">Consulta el total de solicitudes de puestos.</p>
+                                <div className="consulta-acto-action-card">
+                                    <div className="consulta-acto-action-card-content-wrapper">
+                                        <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
+                                        <div className="consulta-acto-action-card-text-content">
+                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE PUESTOS</h3>
+                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de puestos.</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="action-card">
-                                    <div className="action-card-content-wrapper">
-                                        <Award size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">GESTIÓN DE PUESTOS</h3>
-                                            <p className="action-card-description">Asigna y organiza los puestos del cortejo.</p>
+                                <div className="consulta-acto-action-card">
+                                    <div className="consulta-acto-action-card-content-wrapper">
+                                        <Award size={45} color="#800020" className="consulta-acto-action-card-icon" />
+                                        <div className="consulta-acto-action-card-text-content">
+                                            <h3 className="consulta-acto-action-card-title">GESTIÓN DE PUESTOS</h3>
+                                            <p className="consulta-acto-action-card-description">Asigna y organiza los puestos del cortejo.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -427,4 +369,4 @@ function AdminConsultaActo() {
     );
 }
 
-export default AdminConsultaActo;
+export default GestionRepartoInsignias;

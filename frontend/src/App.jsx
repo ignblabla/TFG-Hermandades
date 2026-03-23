@@ -9,7 +9,6 @@ import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
-import GestionReparto from "./pages/GestionReparto"
 import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
@@ -38,6 +37,7 @@ import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
+import GestionRepartoInsignias from "./pages/AdminGestionRepartoInsignias/AdminGestionRepartoInsignias"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -136,14 +136,6 @@ function App() {
           }
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
-        <Route
-          path="/gestionar-reparto/:id"
-          element={
-            <ProtectedRoute>
-              <GestionReparto />
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="/gestionar-reparto-cirios/:id"
           element={
@@ -304,13 +296,23 @@ function App() {
         />
 
         <Route
-          path="/actos/:id"
+          path="/admin/acto/:id"
           element={
             <ProtectedRoute>
               <AdminConsultaActo />
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin/gestion-reparto-insignias/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoInsignias />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
