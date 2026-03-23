@@ -52,6 +52,8 @@ class ActoInsigniaResumenSerializer(serializers.ModelSerializer):
         fields = [
             'id', 
             'nombre',
+            'fecha',
+            'descripcion',
             'tipo_acto',
             'modalidad',
             'requiere_papeleta',

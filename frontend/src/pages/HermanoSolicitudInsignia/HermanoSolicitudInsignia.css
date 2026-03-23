@@ -68,15 +68,15 @@
 .dashboard-layout-wrapper {
     display: flex;
     flex-direction: row; 
-    justify-content: space-between; 
+    justify-content: flex-start;
     align-items: flex-start;
     width: 100%;
-    gap: 20px; 
+    gap: 15px;
 }
 
 .solicitud-insignia-container, 
 .resumen-solicitud-container {
-    width: 50%;
+    width: 40%;
     min-height: 60vh;
     background-color: var(--white);
     border: 2px solid var(--burgundy-primary);
@@ -86,6 +86,12 @@
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.acto-card-lateral-wrapper {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
 }
 
 .solicitud-insignia-container:hover,
@@ -345,14 +351,15 @@
     to { opacity: 1; }
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 1100px) {
     .dashboard-layout-wrapper {
         flex-direction: column; 
         align-items: center;
     }
+
     .solicitud-insignia-container, 
-    .resumen-solicitud-container {
+    .resumen-solicitud-container,
+    .acto-card-lateral-wrapper { 
         width: 90%; 
         min-height: auto;
     }

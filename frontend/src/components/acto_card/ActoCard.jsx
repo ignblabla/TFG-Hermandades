@@ -6,7 +6,6 @@ const ActoCard = ({ mes, dia, titulo, hora, lugar, descripcion, requierePapeleta
     const imagenMostrar = imagenPortada || '/portada-comunicado.png';
     return (
         <div className="card-container-acto">
-
             <div className="card-header-acto">
                 <img 
                     src={imagenMostrar} 

@@ -9,8 +9,9 @@
     --border-color: #cbd5e1;
 }
 
-.card-container-acto {
+.solicitar-card-container-acto {
     width: 100%;
+    height: 60vh;
     background: var(--white);
     border-radius: 10px;
     overflow: hidden;
@@ -20,24 +21,24 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
-    height: 100%;
 }
 
-.card-container-acto:hover {
+.solicitar-card-container-acto:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
-.card-header-acto {
+.solicitar-card-header-acto {
     background-color: var(--burgundy);
-    height: 140px; 
+    flex-grow: 1;
+    min-height: 140px;
     position: relative;
     margin-bottom: 35px; 
     overflow: visible !important; 
     z-index: 1;
 }
 
-.header-image-acto {
+.solicitar-header-image-acto {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -47,7 +48,7 @@
     z-index: 1;
 }
 
-.icon-badge-acto {
+.solicitar-icon-badge-acto {
     position: absolute;
     bottom: -30px; 
     left: 15px;
@@ -64,14 +65,14 @@
     padding: 4px; 
 }
 
-.badge-day-acto {
+.solicitar-badge-day-acto {
     color: var(--white);
     font-size: 1.3rem;
     font-weight: 800;
     line-height: 1;
 }
 
-.badge-month-acto {
+.solicitar-badge-month-acto {
     color: var(--white);
     font-size: 0.55rem;
     font-weight: 700;
@@ -79,14 +80,13 @@
     line-height: 1;
 }
 
-.card-body-acto {
+.solicitar-card-body-acto {
     padding: 0 16px 16px 16px;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
 }
 
-.card-title-acto {
+.solicitar-card-title-acto {
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--burgundy);
@@ -94,7 +94,7 @@
     line-height: 1.2;
 }
 
-.card-description-acto {
+.solicitar-card-description-acto {
     font-size: 0.85rem;
     line-height: 1.4;
     color: var(--text-muted);
@@ -106,51 +106,28 @@
     text-overflow: ellipsis;
 }
 
-.info-list-acto {
+.solicitar-info-list-acto {
     display: flex;
     flex-direction: column;
     gap: 6px;
     margin-bottom: 20px;
 }
 
-.info-item-acto {
+.solicitar-info-item-acto {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.info-icon-acto {
+.solicitar-info-icon-acto {
     color: var(--burgundy);
     flex-shrink: 0;
     width: 16px;
     height: 16px;
 }
 
-.info-text-acto {
+.solicitar-info-text-acto {
     font-size: 0.85rem;
     font-weight: 500;
     color: #475569;
-}
-
-.card-actions-acto {
-    margin-top: auto; 
-}
-
-.btn-ver-detalles-acto {
-    width: 100%;
-    background-color: var(--burgundy);
-    color: var(--white);
-    border: 1px solid var(--burgundy);
-    padding: 6px 0;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-ver-detalles-acto:hover {
-    background-color: var(--burgundy-dark);
-    color: var(--white);
-    border-color: var(--burgundy-dark);
 }
