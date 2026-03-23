@@ -221,13 +221,11 @@ function GestionRepartoInsignias() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">{acto?.nombre}</div>
+                <div className="text-dashboard">Detalles del acto</div>
 
                 <div className="consulta-acto-content-layout">
 
                     <div className="consulta-acto-main-info">
-                        
-                        {/* ALERTAS DE ERROR O ÉXITO */}
                         {error && (
                             <div style={{padding: '15px', backgroundColor: '#fee2e2', color: '#b91c1c', marginBottom: '15px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px'}}>
                                 <AlertCircle size={20}/> 
@@ -248,14 +246,16 @@ function GestionRepartoInsignias() {
                             </div>
                         )}
 
-                        <div 
-                            className={`consulta-acto-empty-box ${acto?.imagen_portada ? 'con-portada' : ''}`}
-                            style={acto?.imagen_portada ? { backgroundImage: `url(${acto.imagen_portada})` } : {}}
-                        >
-                        </div>
-
                         <div className="consulta-acto-info-card">
-                            <h3 className="consulta-acto-info-title">Detalles del Acto</h3>
+                            <h3 className="consulta-acto-info-title">{acto?.nombre}</h3>
+
+                            {acto?.imagen_portada && (
+                                <img 
+                                    src={acto.imagen_portada} 
+                                    alt={`Portada de ${acto.nombre}`} 
+                                    className="consulta-acto-card-cover-image"
+                                />
+                            )}
 
                             {acto?.descripcion && (
                                 <div className="consulta-acto-info-description">
@@ -350,8 +350,7 @@ function GestionRepartoInsignias() {
                             <p className="consulta-acto-algorithm-description">
                                 Asigna y organiza los puestos e<br />insignias del cortejo.
                             </p>
-                            
-                            {/* BOTÓN ACTUALIZADO CON LÓGICA */}
+
                             <button 
                                 className="consulta-acto-algorithm-button"
                                 onClick={handleReparto}
