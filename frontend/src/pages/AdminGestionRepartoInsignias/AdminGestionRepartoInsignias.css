@@ -1,23 +1,24 @@
 .consulta-acto-content-layout {
     display: flex;
+    flex-direction: row;
     gap: 20px;
     padding: 0 20px 40px 20px;
     width: 100%;
     box-sizing: border-box;
     align-items: flex-start;
-    flex-wrap: wrap; 
+    flex-wrap: nowrap;
 }
 
 .consulta-acto-main-info {
-    flex: 1 1 calc(70% - 10px);
-    min-width: 300px;
+    flex: 1 1 70%;
+    max-width: 70%;
     display: flex;
     flex-direction: column;
 }
 
 .consulta-acto-calendar-sidebar {
-    flex: 1 1 calc(30% - 10px); 
-    min-width: 280px;
+    flex: 1 1 calc(30% - 10px);
+    max-width: calc(30% - 10px);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -35,7 +36,7 @@
     justify-content: center;
     padding: 30px 20px;
     text-align: center;
-    margin-bottom: 10px; 
+    margin-bottom: 0px; 
 }
 
 .consulta-acto-algorithm-icon {
@@ -267,5 +268,18 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .consulta-acto-content-layout {
+        flex-direction: column;
+    }
+    
+    .consulta-acto-main-info,
+    .consulta-acto-calendar-sidebar {
+        flex: 1 1 100%;
+        max-width: 100%;
+        width: 100%;
     }
 }

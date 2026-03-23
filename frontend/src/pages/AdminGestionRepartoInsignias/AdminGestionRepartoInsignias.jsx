@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock } from "lucide-react";
+import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, CheckCircle  } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -246,24 +246,38 @@ function GestionRepartoInsignias() {
                             </div>
                         )}
 
-                        <div className="consulta-acto-info-card">
-                            <h3 className="consulta-acto-info-title">{acto?.nombre}</h3>
+                        <div className="info-card">
+                            <h3 className="info-card-title">{acto.nombre}</h3>
 
-                            {acto?.imagen_portada && (
-                                <img 
-                                    src={acto.imagen_portada} 
-                                    alt={`Portada de ${acto.nombre}`} 
-                                    className="consulta-acto-card-cover-image"
-                                />
-                            )}
+                            {acto && (() => {
+                                let imgSrc = '/portada-comunicado.png';
+
+                                if (acto.imagen_portada) {
+                                    const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+                                    const imagePath = acto.imagen_portada;
+                                    imgSrc = imagePath.startsWith('http') 
+                                        ? imagePath 
+                                        : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+                                }
+
+                                return (
+                                    <div className="acto-cover-image-container">
+                                        <img 
+                                            src={imgSrc} 
+                                            alt={`Portada de ${acto.nombre}`} 
+                                            className="acto-cover-image"
+                                        />
+                                    </div>
+                                );
+                            })()}
 
                             {acto?.descripcion && (
-                                <div className="consulta-acto-info-description">
-                                    <Info size={22} className="consulta-acto-info-icon" />
+                                <div className="info-description">
+                                    <Info size={22} className="info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="consulta-acto-info-label">Descripción</span>
+                                        <span className="info-label">Descripción</span>
                                         <p 
-                                            className="consulta-acto-info-value-text" 
+                                            className="info-value-text" 
                                             style={{ whiteSpace: 'pre-wrap' }}
                                         >
                                             {acto.descripcion}
@@ -272,32 +286,32 @@ function GestionRepartoInsignias() {
                                 </div>
                             )}
                             
-                            <div className="consulta-acto-info-grid">
-                                <div className="consulta-acto-info-item">
-                                    <MapPin size={22} className="consulta-acto-info-icon" />
+                            <div className="info-card-grid">
+                                <div className="info-item">
+                                    <MapPin size={22} className="info-icon" />
                                     <div>
-                                        <span className="consulta-acto-info-label">Lugar</span>
-                                        <span className="consulta-acto-info-value">{acto?.lugar || "No especificado"}</span>
+                                        <span className="info-label">Lugar</span>
+                                        <span className="info-value">{acto?.lugar || "No especificado"}</span>
                                     </div>
                                 </div>
 
-                                <div className="consulta-acto-info-item">
-                                    <Calendar size={22} className="consulta-acto-info-icon" />
+                                <div className="info-item">
+                                    <Calendar size={22} className="info-icon" />
                                     <div>
-                                        <span className="consulta-acto-info-label">Fecha y Hora</span>
-                                        <span className="consulta-acto-info-value">{formatearFechaHora(acto?.fecha)}</span>
+                                        <span className="info-label">Fecha y Hora</span>
+                                        <span className="info-value">{formatearFechaHora(acto?.fecha)}</span>
                                     </div>
                                 </div>
 
-                                <div className="consulta-acto-info-item">
-                                    <Ticket size={22} className="consulta-acto-info-icon" />
+                                <div className="info-item">
+                                    <Ticket size={22} className="info-icon" />
                                     <div>
-                                        <span className="consulta-acto-info-label">Papeleta de Sitio</span>
-                                        <span className="consulta-acto-info-value">
+                                        <span className="info-label">Papeleta de Sitio</span>
+                                        <span className="info-value">
                                             {acto?.requiere_papeleta ? (
-                                                <span className="consulta-acto-badge-yes">Obligatoria</span>
+                                                <span className="badge-yes">Obligatoria</span>
                                             ) : (
-                                                <span className="consulta-acto-badge-no">No requerida</span>
+                                                <span className="badge-no">No requerida</span>
                                             )}
                                         </span>
                                     </div>
@@ -305,17 +319,17 @@ function GestionRepartoInsignias() {
                             </div>
 
                             {acto?.requiere_papeleta && (
-                                <div className="consulta-acto-info-item">
-                                    <Clock size={22} className="consulta-acto-info-icon" />
+                                <div className="info-item">
+                                    <Clock size={22} className="info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="consulta-acto-info-label">
+                                        <span className="info-label">
                                             {acto.modalidad === 'TRADICIONAL' ? 'Plazo Insignias' : 'Plazo Solicitudes'}
                                         </span>
-                                        <div className="consulta-acto-plazos-fechas-wrapper">
-                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
+                                        <div className="plazos-fechas-wrapper">
+                                            <span className="info-value plazo-fecha">
                                                 <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud)}
                                             </span>
-                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
+                                            <span className="info-value plazo-fecha">
                                                 <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud)}
                                             </span>
                                         </div>
@@ -324,15 +338,15 @@ function GestionRepartoInsignias() {
                             )}
 
                             {acto?.requiere_papeleta && acto.modalidad === 'TRADICIONAL' && (
-                                <div className="consulta-acto-info-item">
-                                    <Clock size={22} className="consulta-acto-info-icon" />
+                                <div className="info-item">
+                                    <Clock size={22} className="info-icon" />
                                     <div style={{ width: '100%' }}>
-                                        <span className="consulta-acto-info-label">Plazo Cirios</span>
-                                        <div className="consulta-acto-plazos-fechas-wrapper">
-                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
+                                        <span className="info-label">Plazo Cirios</span>
+                                        <div className="plazos-fechas-wrapper">
+                                            <span className="info-value plazo-fecha">
                                                 <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud_cirios)}
                                             </span>
-                                            <span className="consulta-acto-info-value consulta-acto-plazo-fecha">
+                                            <span className="info-value plazo-fecha">
                                                 <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud_cirios)}
                                             </span>
                                         </div>
@@ -340,7 +354,6 @@ function GestionRepartoInsignias() {
                                 </div>
                             )}
                         </div>
-
                     </div>
 
                     <div className="consulta-acto-calendar-sidebar">

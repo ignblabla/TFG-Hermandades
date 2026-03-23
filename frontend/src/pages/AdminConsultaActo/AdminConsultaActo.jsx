@@ -216,7 +216,7 @@ function AdminConsultaActo() {
             </div>
 
             <section className="home-section-dashboard">
-                <div className="text-dashboard">{acto?.nombre}</div>
+                <div className="text-dashboard">Detalles del acto</div>
 
                 <div className="dashboard-content-layout">
 
@@ -227,30 +227,30 @@ function AdminConsultaActo() {
                             </div>
                         )}
 
-                        {acto && (() => {
-                            let imgSrc = '/portada-comunicado.png';
-
-                            if (acto.imagen_portada) {
-                                const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-                                const imagePath = acto.imagen_portada;
-                                imgSrc = imagePath.startsWith('http') 
-                                    ? imagePath 
-                                    : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
-                            }
-
-                            return (
-                                <div className="acto-cover-image-container" style={{ height: calendarHeight }}>
-                                    <img 
-                                        src={imgSrc} 
-                                        alt={`Portada de ${acto.nombre}`} 
-                                        className="acto-cover-image"
-                                    />
-                                </div>
-                            );
-                        })()}
-
                         <div className="info-card">
-                            <h3 className="info-card-title">Detalles del Acto</h3>
+                            <h3 className="info-card-title">{acto.nombre}</h3>
+
+                            {acto && (() => {
+                                let imgSrc = '/portada-comunicado.png';
+
+                                if (acto.imagen_portada) {
+                                    const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+                                    const imagePath = acto.imagen_portada;
+                                    imgSrc = imagePath.startsWith('http') 
+                                        ? imagePath 
+                                        : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
+                                }
+
+                                return (
+                                    <div className="acto-cover-image-container">
+                                        <img 
+                                            src={imgSrc} 
+                                            alt={`Portada de ${acto.nombre}`} 
+                                            className="acto-cover-image"
+                                        />
+                                    </div>
+                                );
+                            })()}
 
                             {acto?.descripcion && (
                                 <div className="info-description">
@@ -401,7 +401,10 @@ function AdminConsultaActo() {
 
                         {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
                             <>
-                                <div className="action-card">
+                                <div 
+                                    className="action-card"
+                                    onClick={() => navigate(`/admin/listado-solicitudes-insignias/${id}`)}
+                                >
                                     <div className="action-card-content-wrapper">
                                         <ClipboardList size={45} color="#800020" className="action-card-icon" />
                                         <div className="action-card-text-content">
