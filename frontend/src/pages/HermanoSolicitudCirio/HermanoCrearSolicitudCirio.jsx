@@ -1,0 +1,228 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../../api";
+import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
+
+function HermanoCrearSolicitudCirio() {
+
+    const { id } = useParams();
+
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const [actoInfo, setActoInfo] = useState(null); 
+    const [puestosCirio, setPuestosCirio] = useState([]);
+    
+    const [selectedPuestoId, setSelectedPuestoId] = useState("");
+    const [numeroVinculado, setNumeroVinculado] = useState(""); 
+
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false);
+    const [successData, setSuccessData] = useState(null);
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const resUser = await api.get("api/me/");
+                setUser(resUser.data);
+
+                const resActo = await api.get(`api/actos/${id}/`);
+                const actoData = resActo.data;
+
+                const now = new Date();
+
+                if (!actoData.requiere_papeleta || actoData.modalidad !== 'TRADICIONAL' || !actoData.inicio_solicitud_cirios || !actoData.fin_solicitud_cirios) {
+                    setError("Este acto no está configurado para la solicitud de cirios.");
+                    setLoading(false);
+                    return;
+                }
+
+                const inicio = new Date(actoData.inicio_solicitud_cirios);
+                const fin = new Date(actoData.fin_solicitud_cirios);
+                
+                if (now < inicio || now > fin) {
+                    setError("El plazo para solicitar sitio en este acto está cerrado.");
+                    setLoading(false);
+                    return;
+                }
+
+                setActoInfo(actoData);
+
+                const ciriosDisponibles = actoData.puestos_disponibles.filter(p => {
+                    return p.disponible === true && p.es_insignia === false;
+                });
+
+                if (ciriosDisponibles.length === 0) {
+                    setError("No hay cupo de cirios disponible para este acto.");
+                }
+
+                setPuestosCirio(ciriosDisponibles);
+
+            } catch (err) {
+                console.error(err);
+                if (err.response?.status === 401) navigate("/login");
+                else if (err.response?.status === 404) setError("El acto indicado no existe.");
+                else setError("Error cargando los datos del servidor.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchData();
+        }
+    }, [id, navigate]);
+
+    const toggleSidebar = () => setIsOpen(!isOpen);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!id || !selectedPuestoId) {
+            setError("Faltan datos para realizar la solicitud.");
+            return;
+        }
+
+        setSubmitting(true);
+        setError("");
+        setSuccess(false);
+
+        const payload = {
+            acto: parseInt(id),
+            puesto: selectedPuestoId,
+            numero_registro_vinculado: numeroVinculado ? parseInt(numeroVinculado) : null
+        };
+
+        try {
+            const res = await api.post("api/papeletas/solicitar-cirio/", payload);
+            
+            setSuccess(true);
+            setSuccessData(res.data); 
+            
+            setSelectedPuestoId("");
+            setNumeroVinculado("");
+            
+            setTimeout(() => navigate("/mis-papeletas"), 4000); 
+
+        } catch (err) {
+            if (err.response?.data) {
+                const data = err.response.data;
+                if (data.detail) setError(data.detail);
+                else if (data.non_field_errors) setError(data.non_field_errors[0]);
+                else if (data.numero_registro_vinculado) setError(`Error vinculación: ${data.numero_registro_vinculado[0]}`);
+                else if (data.puesto) setError(`Error en puesto: ${data.puesto[0]}`);
+                else setError("No se pudo procesar la solicitud. Revise los datos.");
+            } else {
+                setError("Error de conexión con el servidor.");
+            }
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("access");
+        window.location.href = "/";
+    };
+
+    return (
+        <div>
+            <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
+                <div className="logo_details-dashboard">
+                    <i className="bx bxl-audible icon-dashboard"></i>
+                    <div className="logo_name-dashboard">San Gonzalo</div>
+                    <i 
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
+                        id="btn" 
+                        onClick={toggleSidebar}
+                    ></i>
+                </div>
+                <ul className="nav-list-dashboard">
+                    <li>
+                        <i className="bx bx-search" onClick={toggleSidebar}></i>
+                        <input type="text" placeholder="Search..." />
+                        <span className="tooltip-dashboard">Search</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-grid-alt"></i>
+                            <span className="link_name-dashboard">Dashboard</span>
+                        </a>
+                        <span className="tooltip-dashboard">Dashboard</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-user"></i>
+                            <span className="link_name-dashboard">User</span>
+                        </a>
+                        <span className="tooltip-dashboard">User</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-chat"></i>
+                            <span className="link_name-dashboard">Message</span>
+                        </a>
+                        <span className="tooltip-dashboard">Message</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-pie-chart-alt-2"></i>
+                            <span className="link_name-dashboard">Analytics</span>
+                        </a>
+                        <span className="tooltip-dashboard">Analytics</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-folder"></i>
+                            <span className="link_name-dashboard">File Manager</span>
+                        </a>
+                        <span className="tooltip-dashboard">File Manager</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cart-alt"></i>
+                            <span className="link_name-dashboard">Order</span>
+                        </a>
+                        <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i className="bx bx-cog"></i>
+                            <span className="link_name-dashboard">Settings</span>
+                        </a>
+                        <span className="tooltip-dashboard">Settings</span>
+                    </li>
+                    
+                    <li className="profile-dashboard">
+                        <div className="profile_details-dashboard">
+                            <img src="profile.jpeg" alt="profile image" />
+                            <div className="profile_content-dashboard">
+                                <div className="name-dashboard">{user ? `${user.nombre} ${user.primer_apellido}` : "Usuario"}</div>
+                                <div className="designation-dashboard">Administrador</div>
+                            </div>
+                        </div>
+                        <i 
+                            className="bx bx-log-out" 
+                            id="log_out" 
+                            onClick={handleLogout}
+                            style={{cursor: 'pointer'}} 
+                        ></i>
+                    </li>
+                </ul>
+            </div>
+
+            <section className="home-section-dashboard">
+                <div className="text-dashboard">
+                    {"Solicitud de cirios"}
+                </div>
+            </section>
+        </div>
+    );
+}
+
+export default HermanoCrearSolicitudCirio;

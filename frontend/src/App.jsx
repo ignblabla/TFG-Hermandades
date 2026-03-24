@@ -9,7 +9,7 @@ import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
-import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
+import HermanoCrearSolicitudCirio from "./pages/HermanoSolicitudCirio/HermanoCrearSolicitudCirio"
 import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 import ValidarAcceso from "./pages/ValidarAcceso";
@@ -245,8 +245,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/solicitar-cirio" 
+          path="/hermano/solicitar-cirios/:id"
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudCirio />

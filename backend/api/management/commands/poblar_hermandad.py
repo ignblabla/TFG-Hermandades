@@ -643,7 +643,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2026 con ID 1.'))
 
 
-    # =========================================================================
+        # =========================================================================
         # POBLADO DE PUESTOS DEL ACTO 1
         # =========================================================================
         self.stdout.write("Iniciando el poblado de Puestos para el Acto 1...")
@@ -701,3 +701,77 @@ class Command(BaseCommand):
         Puesto.objects.bulk_create(puestos_a_crear)
 
         self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear)} puestos para el Acto 1 en total.'))
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: VIA CRUCIS (ID=2)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Viacrucis...")
+
+        fecha_acto_vc = now + timedelta(days=60)
+        
+        inicio_solicitud_vc = now - timedelta(days=10)
+        fin_solicitud_vc = now - timedelta(days=2)
+        inicio_solicitud_cirios_vc = now - timedelta(days=1)
+        fin_solicitud_cirios_vc = now + timedelta(days=10)
+
+        descripcion_viacrucis = (
+            "El solemne Viacrucis en honor a Nuestro Padre Jesús en Su Soberano Poder ante Caifás constituye "
+            "uno de los momentos de mayor recogimiento, devoción y espiritualidad en el calendario de nuestra "
+            "Hermandad de San Gonzalo. Este piadoso acto nos invita a acompañar a nuestra Venerada Imagen titular "
+            "por las calles de nuestro querido barrio de Triana, meditando sobre los misterios de la Pasión, "
+            "Muerte y Resurrección de Cristo a través de las catorce estaciones. A diferencia de la Estación "
+            "de Penitencia, el Viacrucis se distingue por su carácter íntimo y austero, donde el rezo pausado "
+            "y el silencio de los hermanos marcan el discurrir del Señor, acercándolo a los enfermos y a los "
+            "hogares de nuestros feligreses. La junta de gobierno ruega a todos los hermanos que deseen participar "
+            "portando cirio que lo hagan con el máximo respeto y compostura, vistiendo traje oscuro y portando "
+            "la medalla de la corporación. Que este ejercicio de piedad sirva para preparar nuestros corazones "
+            "de cara a los días santos, reforzando nuestro compromiso cristiano, la fraternidad entre todos los "
+            "miembros de la cofradía y nuestra incondicional fe en el Soberano Poder de Dios."
+        )
+
+        Acto.objects.filter(id=2).delete()
+
+        acto_viacrucis = Acto(
+            id=2,
+            nombre="Viacrucis en honor a Nuestro Padre Jesús en Su Soberano Poder ante Caifás",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_viacrucis,
+            fecha=fecha_acto_vc,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=4,
+            inicio_solicitud=inicio_solicitud_vc,
+            fin_solicitud=fin_solicitud_vc,
+            inicio_solicitud_cirios=inicio_solicitud_cirios_vc,
+            fin_solicitud_cirios=fin_solicitud_cirios_vc,
+            fecha_ejecucion_reparto=None,
+            imagen_portada=None
+        )
+        
+        acto_viacrucis.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Viacrucis con ID 2.'))
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 2 (VIACRUCIS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 2 (Viacrucis)...")
+
+        puestos_viacrucis_data = [
+            {"id": 42, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 43, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 44, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 45, "nombre": "Varas Senatus (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 46, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 47, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 48, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 49, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 50, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 51, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 52, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_viacrucis_a_crear = [Puesto(**data) for data in puestos_viacrucis_data]
+        Puesto.objects.bulk_create(puestos_viacrucis_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_viacrucis_a_crear)} puestos para el Acto 2.'))

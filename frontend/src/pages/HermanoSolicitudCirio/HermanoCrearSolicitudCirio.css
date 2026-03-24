@@ -1,0 +1,148 @@
+/* Layout adaptado con prefijos solicitud-cirio- */
+
+.solicitud-cirio-content-layout {
+    display: flex;
+    gap: 20px;
+    padding: 0 20px 40px 20px;
+    width: 100%;
+    box-sizing: border-box;
+    align-items: flex-start;
+}
+
+.solicitud-cirio-main-info {
+    flex: 1 1 70%;
+    max-width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.solicitud-cirio-sidebar {
+    flex: 1 1 calc(30% - 10px);
+    max-width: calc(30% - 10px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.solicitud-cirio-info-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 2px solid #800020; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.solicitud-cirio-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.solicitud-cirio-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.solicitud-cirio-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.solicitud-cirio-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.solicitud-cirio-control {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.solicitud-cirio-control:focus {
+    border-color: #800020;
+}
+
+.solicitud-cirio-btn-submit {
+    background-color: #800020;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.solicitud-cirio-btn-submit:hover {
+    background-color: #5c0017;
+}
+
+.solicitud-cirio-btn-submit:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.solicitud-cirio-error-message {
+    background-color: #fff1f0;
+    border: 1px solid #ffa39e;
+    color: #cf1322;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.solicitud-cirio-success-message {
+    background-color: #f6ffed;
+    border: 1px solid #b7eb8f;
+    color: #389e0d;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.solicitud-cirio-help-text {
+    font-size: 12px;
+    color: #888;
+}
+
+.solicitud-cirio-value-text {
+    font-size: 14px;
+    color: #4a4a4a;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
+
+@media (max-width: 992px) {
+    .solicitud-cirio-content-layout {
+        flex-direction: column;
+    }
+    .solicitud-cirio-main-info,
+    .solicitud-cirio-sidebar {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

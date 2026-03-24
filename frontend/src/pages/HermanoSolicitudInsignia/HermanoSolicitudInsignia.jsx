@@ -25,24 +25,6 @@ function HermanoSolicitudInsignia() {
     const [modalBloqueo, setModalBloqueo] = useState(false);
     const [modalNoActivo, setModalNoActivo] = useState(false);
 
-    const obtenerMes = (fechaString) => {
-        if (!fechaString) return "MES";
-        const date = new Date(fechaString);
-        return date.toLocaleString('es-ES', { month: 'short' }).toUpperCase();
-    };
-
-    const obtenerDia = (fechaString) => {
-        if (!fechaString) return "00";
-        const date = new Date(fechaString);
-        return date.getDate().toString().padStart(2, '0');
-    };
-    
-    const obtenerHora = (fechaString) => {
-        if (!fechaString) return "Por definir";
-        const date = new Date(fechaString);
-        return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) + " h";
-    };
-
     useEffect(() => {
         let isMounted = true;
         
