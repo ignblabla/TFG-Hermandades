@@ -39,6 +39,7 @@ import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSo
 import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
 import GestionRepartoInsignias from "./pages/AdminGestionRepartoInsignias/AdminGestionRepartoInsignias"
 import AdminListadoSolicitudesInsigniasActoConcreto from "./pages/AdminListadoSolicitudesInsigniasActoConcreto/AdminListadoSolicitudesInsigniasActoConcreto"
+import HermanoConsultaActo from "./pages/HermanoConsultaActo/HermanoConsultaActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
@@ -212,7 +213,7 @@ function App() {
         />
 
         <Route
-          path="/solicitud-insignias"
+          path="/hermano/solicitar-insignias/:id"
           element={
             <ProtectedRoute>
               <HermanoSolicitudInsignia />
@@ -301,6 +302,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminConsultaActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/acto/:id"
+          element={
+            <ProtectedRoute>
+              <HermanoConsultaActo />
             </ProtectedRoute>
           }
         />

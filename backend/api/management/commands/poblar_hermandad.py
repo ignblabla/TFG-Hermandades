@@ -1,30 +1,136 @@
-from ...models import Comunicado, Cuota, DatosBancarios, Hermano
+from ...models import Acto, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, Hermano, AreaInteres, Puesto, TipoActo, TipoPuesto
 from datetime import date
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
+from django.utils import timezone
+from datetime import timedelta
 
 class Command(BaseCommand):
-    help = 'Puebla la base de datos con hermanos de prueba'
+    help = 'Puebla la base de datos con hermanos de prueba y áreas de interés'
 
     def handle(self, *args, **kwargs):
         self.stdout.write("Iniciando el poblado de datos...")
 
         with transaction.atomic():
 
+            # =========================================================================
+            # LIMPIEZA PREVIA DE TABLAS
+            # =========================================================================
+            Acto.objects.all().delete()
+            TipoActo.objects.all().delete()
+            TipoPuesto.objects.all().delete()
+            AreaInteres.objects.all().delete()
+            CuerpoPertenencia.objects.all().delete()
             Comunicado.objects.all().delete()
             Cuota.objects.all().delete()
-
             Hermano.objects.all().delete()
+
+            # =========================================================================
+            # POBLADO DE TIPOS DE PUESTO
+            # =========================================================================
+            self.stdout.write("Iniciando el poblado de Tipos de Puesto...")
+            
+            tipos_puesto_data = [
+                {"id": 1, "nombre_tipo": "CIRIO_APAGADO", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 2, "nombre_tipo": "MANIGUETA", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 3, "nombre_tipo": "VARA_ANTEPRESIDENCIA", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 4, "nombre_tipo": "VARA_PRESIDENCIA", "solo_junta_gobierno": True, "es_insignia": True},
+                {"id": 5, "nombre_tipo": "CIRIO", "solo_junta_gobierno": False, "es_insignia": False},
+                {"id": 6, "nombre_tipo": "VARA_TRAMO", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 7, "nombre_tipo": "INSIGNIA", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 8, "nombre_tipo": "BOCINA", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 9, "nombre_tipo": "FAROL", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 10, "nombre_tipo": "PENITENTE", "solo_junta_gobierno": False, "es_insignia": False},
+                {"id": 11, "nombre_tipo": "DIPUTADO_BANDA", "solo_junta_gobierno": False, "es_insignia": True},
+                {"id": 12, "nombre_tipo": "CRUZ_GUIA", "solo_junta_gobierno": False, "es_insignia": True},
+            ]
+
+            tipos_puesto_a_crear = [TipoPuesto(**data) for data in tipos_puesto_data]
+            TipoPuesto.objects.bulk_create(tipos_puesto_a_crear)
+            
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tipos_puesto_a_crear)} tipos de puesto.'))
+
+            # =========================================================================
+            # POBLADO DE TIPOS DE ACTO
+            # =========================================================================
+            self.stdout.write("Iniciando el poblado de Tipos de Acto...")
+            
+            tipos_acto_data = [
+                {"id": 1, "tipo": "ESTACION_PENITENCIA", "requiere_papeleta": True},
+                {"id": 2, "tipo": "CABILDO_GENERAL", "requiere_papeleta": False},
+                {"id": 3, "tipo": "CABILDO_EXTRAORDINARIO", "requiere_papeleta": False},
+                {"id": 4, "tipo": "VIA_CRUCIS", "requiere_papeleta": True},
+                {"id": 5, "tipo": "QUINARIO", "requiere_papeleta": False},
+                {"id": 6, "tipo": "TRIDUO", "requiere_papeleta": False},
+                {"id": 7, "tipo": "ROSARIO_AURORA", "requiere_papeleta": True},
+                {"id": 8, "tipo": "CONVIVENCIA", "requiere_papeleta": False},
+                {"id": 9, "tipo": "PROCESION_EUCARISTICA", "requiere_papeleta": False},
+                {"id": 10, "tipo": "PROCESION_EXTRAORDINARIA", "requiere_papeleta": True},
+            ]
+
+            tipos_acto_a_crear = [TipoActo(**data) for data in tipos_acto_data]
+            TipoActo.objects.bulk_create(tipos_acto_a_crear)
+            
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tipos_acto_a_crear)} tipos de acto.'))
+
+            # =========================================================================
+            # POBLADO DE ÁREAS DE INTERÉS
+            # =========================================================================
+            self.stdout.write("Iniciando el poblado de Áreas de Interés...")
+            
+            areas_data = [
+                {"nombre_area": "CARIDAD", "telegram_channel_id": "-1003771492735", "telegram_invite_link": "https://t.me/+6COuAR98wTg4ZTg0"},
+                {"nombre_area": "CULTOS_FORMACION", "telegram_channel_id": "-1003810636379", "telegram_invite_link": "https://t.me/+y6RU6E-56GlwZjk0"},
+                {"nombre_area": "JUVENTUD", "telegram_channel_id": "-1003712795257", "telegram_invite_link": "https://t.me/+YLUtzvpqJ0UwNzdk"},
+                {"nombre_area": "PATRIMONIO", "telegram_channel_id": "-1003845246574", "telegram_invite_link": "https://t.me/+0pt8qkh_swYwZjY0"},
+                {"nombre_area": "PRIOSTIA", "telegram_channel_id": "-1003827691615", "telegram_invite_link": "https://t.me/+kBu6wbNcxyU4MTFk"},
+                {"nombre_area": "DIPUTACION_MAYOR_GOBIERNO", "telegram_channel_id": "-1003752302067", "telegram_invite_link": "https://t.me/+RSbb2civhvsyYjk8"},
+                {"nombre_area": "COSTALEROS", "telegram_channel_id": "-1003754745133", "telegram_invite_link": "https://t.me/+W-HAa5nMjLNINTc0"},
+                {"nombre_area": "ACOLITOS", "telegram_channel_id": "-1003681055153", "telegram_invite_link": "https://t.me/+sVPhJF3zi3wyNjI0"},
+                {"nombre_area": "TODOS_HERMANOS", "telegram_channel_id": "-1003835565597", "telegram_invite_link": "https://t.me/+gs2wua73Y003N2M0"},
+            ]
+
+            areas_a_crear = [AreaInteres(**data) for data in areas_data]
+            AreaInteres.objects.bulk_create(areas_a_crear)
+            
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(areas_a_crear)} áreas de interés.'))
+
+            # =========================================================================
+            # POBLADO DE CUERPOS DE PERTENENCIA
+            # =========================================================================
+            self.stdout.write("Iniciando el poblado de Cuerpos de Pertenencia...")
+            
+            cuerpos_data = [
+                {"id": 1, "nombre_cuerpo": "COSTALEROS"},
+                {"id": 2, "nombre_cuerpo": "NAZARENOS"},
+                {"id": 3, "nombre_cuerpo": "DIPUTADOS"},
+                {"id": 4, "nombre_cuerpo": "BRAZALETES"},
+                {"id": 5, "nombre_cuerpo": "ACOLITOS"},
+                {"id": 6, "nombre_cuerpo": "CAPATACES"},
+                {"id": 7, "nombre_cuerpo": "SANITARIOS"},
+                {"id": 8, "nombre_cuerpo": "PRIOSTIA"},
+                {"id": 9, "nombre_cuerpo": "CARIDAD_ACCION_SOCIAL"},
+                {"id": 10, "nombre_cuerpo": "JUVENTUD"},
+                {"id": 11, "nombre_cuerpo": "JUNTA_GOBIERNO"},
+            ]
+
+            cuerpos_a_crear = [CuerpoPertenencia(**data) for data in cuerpos_data]
+            CuerpoPertenencia.objects.bulk_create(cuerpos_a_crear)
+            
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(cuerpos_a_crear)} cuerpos de pertenencia.'))
+
+            # =========================================================================
+            # POBLADO DE HERMANOS
+            # =========================================================================
+            self.stdout.write("Iniciando el poblado de Hermanos...")
 
             if not Hermano.objects.filter(dni="11111111A").exists():
                 Hermano.objects.create_user(id=1, nombre="Rafael", primer_apellido="Blanquero", segundo_apellido="Bravo",
                     dni="11111111A", username="11111111A", password="1234", is_superuser=False, is_staff=True, is_active=True,
                     esAdmin=False, email="rblanquero@us.es", telefono="646172201", estado_civil="CASADO",
                     fecha_nacimiento="1966-01-06",genero="MASCULINO",
-
                     direccion="Calle Pensamiento, 50", localidad="Mairena del Aljarafe", codigo_postal = "41927",
                     provincia="Sevilla",comunidad_autonoma="Andalucía",
-
                     fecha_bautismo="1966-01-30", lugar_bautismo="Sevilla", parroquia_bautismo="Parroquia de San Gonzalo",
                     estado_hermano = "ALTA", numero_registro="1", fecha_ingreso_corporacion="1973-03-01")
                 
@@ -36,10 +142,8 @@ class Command(BaseCommand):
                     dni="11111111B", username="11111111B", password="1234", is_superuser=False, is_staff=True, is_active=True,
                     esAdmin=False, email="pacobarrio@gmail.com", telefono="649146786", estado_civil="CASADO",
                     fecha_nacimiento="1968-05-07",genero="MASCULINO",
-
                     direccion="Calle Cristo del SOberano Poder, 16", localidad="Sevilla", codigo_postal = "41010",
                     provincia="Sevilla",comunidad_autonoma="Andalucía",
-
                     fecha_bautismo="1968-10-25", lugar_bautismo="Sevilla", parroquia_bautismo="Parroquia de San Gonzalo",
                     estado_hermano = "ALTA", numero_registro="2", fecha_ingreso_corporacion="1973-03-02")
                 
@@ -446,8 +550,7 @@ class Command(BaseCommand):
 
                 self.stdout.write(self.style.SUCCESS('Hermano número 33 creado'))
 
-        self.stdout.write(self.style.SUCCESS('¡Proceso finalizado con éxito!'))
-
+        self.stdout.write(self.style.SUCCESS('¡Proceso de Áreas y Hermanos finalizado con éxito!'))
 
 
         # =========================================================================
@@ -458,7 +561,11 @@ class Command(BaseCommand):
         Cuota.objects.all().delete()
 
         with connection.cursor() as cursor:
-            cursor.execute(f"ALTER TABLE {Cuota._meta.db_table} AUTO_INCREMENT = 1;")
+            # En bases de datos que no lo soporten (como sqlite por defecto) puedes añadir un try/except aquí si da fallo.
+            try:
+                cursor.execute(f"ALTER TABLE {Cuota._meta.db_table} AUTO_INCREMENT = 1;")
+            except Exception:
+                pass
 
         hermanos_a_poblar = Hermano.objects.all()
 
@@ -486,3 +593,111 @@ class Command(BaseCommand):
         Cuota.objects.bulk_create(cuotas_a_crear)
         
         self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han generado {len(cuotas_a_crear)} cuotas anuales masivamente.'))
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2026 (ID=1)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2026...")
+
+        now = timezone.now()
+
+        Acto.objects.filter(id=1).delete()
+
+        descripcion_acto = (
+            "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+            "de la vida de nuestra Hermandad de San Gonzalo. En este año 2026, nos preparamos para vivir "
+            "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+            "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+            "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+            "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+            "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+            "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+            "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+            "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+            "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+            "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+            "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+            "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+            "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+        )
+
+        acto_ep = Acto(
+            id=1,
+            nombre="Estación de Penitencia 2026",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto,
+            fecha=now + timedelta(days=30),
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=now + timedelta(days=7),
+            fin_solicitud=now + timedelta(days=12),
+            inicio_solicitud_cirios=now + timedelta(days=13),
+            fin_solicitud_cirios=now + timedelta(days=24),
+            fecha_ejecucion_reparto=None,
+            imagen_portada=None
+        )
+        
+        acto_ep.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2026 con ID 1.'))
+
+
+    # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 1
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 1...")
+
+        puestos_data = [
+            {"id": 1, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 2, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 3, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 4, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 5, "nombre": "Varas Senatus (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 6, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 7, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 8, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 9, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 10, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 11, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 12, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 13, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 14, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 15, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 16, "nombre": "Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 17, "nombre": "Varas Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 18, "nombre": "Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 19, "nombre": "Varas Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 20, "nombre": "Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 21, "nombre": "Varas Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 22, "nombre": "Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 23, "nombre": "Varas Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data = [
+            {"id": 24, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 25, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 26, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 27, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 28, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 29, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 30, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 31, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 32, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 33, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 34, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 35, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 36, "nombre": "Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 37, "nombre": "Varas Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 38, "nombre": "Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 39, "nombre": "Varas Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 40, "nombre": "Estandarte (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 41, "nombre": "Varas Estandarte (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 1, "tipo_puesto_id": 6, "cortejo_cristo": False},
+        ]
+
+        puestos_data.extend(puestos_virgen_data)
+
+        puestos_a_crear = [Puesto(**data) for data in puestos_data]
+        Puesto.objects.bulk_create(puestos_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear)} puestos para el Acto 1 en total.'))

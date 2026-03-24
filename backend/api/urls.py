@@ -23,10 +23,9 @@ urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
     path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),
     path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
-    # path("actos/", ActoCreateView.as_view(), name="crear-acto"),
 
     path("actos/proximos/", ProximosActosView.as_view(), name="proximos-actos"),
-    path("actos/proxima-estacion/", ProximaEstacionPenitenciaView.as_view(), name="proxima-estacion"), # NUEVA RUTA
+    path("actos/proxima-estacion/", ProximaEstacionPenitenciaView.as_view(), name="proxima-estacion"),
 
     path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),

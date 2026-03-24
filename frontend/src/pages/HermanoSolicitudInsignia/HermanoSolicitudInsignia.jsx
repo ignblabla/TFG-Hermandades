@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
 import { ArrowUp, ArrowDown, X, Send, ChevronDown, ChevronRight, Info } from "lucide-react";
-import ActoCardSolicitud from '../../components/acto_card_solicitud/ActoCardSolicitud';
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
+    const { id } = useParams();
     
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -52,7 +52,7 @@ function HermanoSolicitudInsignia() {
                 if (isMounted) setCurrentUser(resUser.data);
 
                 try {
-                    const resActo = await api.get("api/actos/activo-insignias/");
+                    const resActo = await api.get(`api/actos/${id}/`); 
                     if (isMounted) {
                         setActoActivo(resActo.data);
 
@@ -61,7 +61,7 @@ function HermanoSolicitudInsignia() {
                             const misPapeletas = resPapeletas.data.results || resPapeletas.data;
                             
                             const yaSolicitado = misPapeletas.some(p => {
-                                const coincideActo = Number(p.acto) === Number(resActo.data.id);
+                                const coincideActo = Number(p.acto) === Number(id); 
                                 const estado = String(p.estado_papeleta || '').toUpperCase();
                                 const estaActiva = estado !== 'ANULADA' && estado !== 'NO_ASIGNADA';
 
@@ -98,7 +98,7 @@ function HermanoSolicitudInsignia() {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [navigate]);
+    }, [id, navigate]);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -151,8 +151,8 @@ function HermanoSolicitudInsignia() {
         setInsigniasSeleccionadas(nuevas);
     };
 
-    const quitarInsignia = (id) => {
-        setInsigniasSeleccionadas(insigniasSeleccionadas.filter(i => i.id !== id));
+    const quitarInsignia = (idSeleccionada) => {
+        setInsigniasSeleccionadas(insigniasSeleccionadas.filter(i => i.id !== idSeleccionada));
     };
 
     const enviarSolicitud = async () => {
@@ -160,7 +160,7 @@ function HermanoSolicitudInsignia() {
         setSuccessMsg("");
 
         const payload = {
-            acto_id: actoActivo.id,
+            acto_id: Number(id),
             preferencias: insigniasSeleccionadas.map((insignia, index) => ({
                 puesto_solicitado: insignia.id,
                 orden_prioridad: index + 1
@@ -357,10 +357,6 @@ function HermanoSolicitudInsignia() {
                         : 'Plazo de solicitud de insignias'
                     }
                 </div>
-                
-                <p className="solicitud-insignia-instrucciones">
-                    En esta pantalla podrá gestionar su solicitud de insignias. Arrastre las opciones de la columna izquierda hacia el recuadro de la derecha y ordénelas verticalmente en función de su prioridad.
-                </p>
 
                 <div className="solicitud-insignia-main-container">
                     
@@ -472,20 +468,6 @@ function HermanoSolicitudInsignia() {
                                             {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}
                                         </button>
                                     </div>
-                                </div>
-
-                                <div className="acto-card-lateral-wrapper">
-                                    <ActoCardSolicitud
-                                        mes={obtenerMes(actoActivo.fecha)}
-                                        dia={obtenerDia(actoActivo.fecha)}
-                                        titulo={actoActivo.nombre}
-                                        hora={obtenerHora(actoActivo.fecha)}
-                                        lugar={actoActivo.lugar || "Parroquia de San Gonzalo"}
-                                        descripcion={actoActivo.descripcion || "Solicitud de insignias para el cortejo."}
-                                        requierePapeleta={true} 
-                                        imagenPortada={actoActivo.imagen || null}
-                                        onVerDetalles={() => alert("Mostrando detalles del acto...")}
-                                    />
                                 </div>
                             </>
                         ) : (
