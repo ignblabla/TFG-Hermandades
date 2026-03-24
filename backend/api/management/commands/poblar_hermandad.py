@@ -5,6 +5,9 @@ from django.db import connection, transaction
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.timezone import make_aware
+import os
+from django.conf import settings
+from django.core.files import File
 
 class Command(BaseCommand):
     help = 'Puebla la base de datos con hermanos de prueba y áreas de interés'
@@ -747,8 +750,15 @@ class Command(BaseCommand):
             inicio_solicitud_cirios=inicio_solicitud_cirios_vc,
             fin_solicitud_cirios=fin_solicitud_cirios_vc,
             fecha_ejecucion_reparto=None,
-            imagen_portada=None
         )
+
+        ruta_imagen = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'ViaCrucis2025.jpg')
+        if os.path.exists(ruta_imagen):
+            with open(ruta_imagen, 'rb') as f:
+                acto_viacrucis.imagen_portada.save('ViaCrucis.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 2.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen}'))
         
         acto_viacrucis.save()
         

@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
 import HomeCard from "../../components/HomeCard";
-import { Medal, CreditCard, Bookmark, ListOrdered, History } from "lucide-react";
+// Importamos los nuevos iconos necesarios
+import { Medal, CreditCard, Bookmark, ListOrdered, History, FileText, AlertCircle, CheckCircle, Save } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -290,11 +291,122 @@ function HermanoCrearSolicitudCirio() {
                         value={ultimoAnioParticipacion} 
                     />
                 </div>
+                    
+                    <div className="solicitud-cirio-boxes-wrapper">
+                        <div 
+                            className="solicitud-cirio-half-box image-bg-box"
+                            style={{
+                                backgroundImage: actoInfo?.imagen_portada 
+                                    ? `url(${actoInfo.imagen_portada})` 
+                                    : 'none',
+                                backgroundColor: actoInfo?.imagen_portada 
+                                    ? 'transparent' 
+                                    : '#800020'
+                            }}
+                        >
+                            <div className="title-blur-wrapper">
+                                <h3 className="section-title-solicitud-cirio white-text">
+                                    {actoInfo ? actoInfo.nombre : "Información Adicional"}
+                                </h3>
+                            </div>
+                        </div>
 
-                <div className="solicitud-cirio-half-box">
-                    <h3 className="solicitud-cirio-card-title">Título de tu nuevo cuadro</h3>
-                    <p>Aquí puedes incluir la información o el formulario que necesites...</p>
-                </div>
+                        <div className="solicitud-cirio-half-box">
+                            <form onSubmit={handleSubmit}>
+                                
+                                <h3 className="section-title-solicitud-cirio">
+                                    <FileText size={18} /> Datos de Solicitud
+                                </h3>
+                                
+                                {error && (
+                                    <div style={{ 
+                                        backgroundColor: '#fee2e2', 
+                                        color: '#dc2626', 
+                                        padding: '15px', 
+                                        borderRadius: '8px', 
+                                        marginBottom: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px'
+                                    }}>
+                                        <AlertCircle size={20} />
+                                        <div>{error}</div>
+                                    </div>
+                                )}
+
+                                {success && (
+                                    <div style={{ 
+                                        backgroundColor: '#dcfce3', 
+                                        color: '#16a34a', 
+                                        padding: '15px', 
+                                        borderRadius: '8px', 
+                                        marginBottom: '20px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px'
+                                    }}>
+                                        <CheckCircle size={20} />
+                                        <div>Solicitud completada con éxito. Redirigiendo a mis papeletas...</div>
+                                    </div>
+                                )}
+
+                                <div className="form-group-solicitud-cirio">
+                                    <label htmlFor="puesto">Puesto a solicitar</label>
+                                    <select 
+                                        id="puesto"
+                                        className="form-input-solicitud-cirio"
+                                        value={selectedPuestoId}
+                                        onChange={(e) => setSelectedPuestoId(e.target.value)}
+                                        required
+                                        disabled={submitting || success || puestosCirio.length === 0}
+                                    >
+                                        <option value="" disabled>-- Seleccione un puesto --</option>
+                                        {puestosCirio.map((puesto) => (
+                                            <option key={puesto.id} value={puesto.id}>
+                                                {puesto.nombre}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group-solicitud-cirio">
+                                    <label htmlFor="numeroVinculado">Vincular con Hermano (Nº Registro)</label>
+                                    <input 
+                                        type="number" 
+                                        id="numeroVinculado"
+                                        className="form-input-solicitud-cirio"
+                                        value={numeroVinculado}
+                                        onChange={(e) => setNumeroVinculado(e.target.value)}
+                                        placeholder="Ej: 1234"
+                                        disabled={submitting || success}
+                                    />
+                                    <small className="form-help-text-solicitud-cirio">
+                                        Opcional. Introduzca el número de registro del hermano con el que desea procesionar. Tenga en cuenta que se adoptará la antigüedad del hermano más reciente.
+                                    </small>
+                                </div>
+
+                                <div className="form-actions-solicitud-cirio">
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancel-solicitud-cirio" 
+                                        onClick={() => navigate("/mis-papeletas")}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        className="btn-save-solicitud-cirio" 
+                                        disabled={submitting || !selectedPuestoId || success}
+                                    >
+                                        <Save size={18} />
+                                        {submitting ? "Procesando..." : "Solicitar Papeleta"}
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
             </section>
         </div>
     );
