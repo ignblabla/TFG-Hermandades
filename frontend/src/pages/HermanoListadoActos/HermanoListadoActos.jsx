@@ -219,7 +219,7 @@ function HermanoListadoActos() {
                                             fechaFinSolicitudCirios={formatDateOnly(acto.fin_solicitud_cirios)}
                                             requierePapeleta={acto.requiere_papeleta} 
                                             imagenPortada={getImagenUrl(acto.imagen_portada)}
-                                            onVerDetalles={() => navigate(`/actos/${acto.id}`)}
+                                            onVerDetalles={() => navigate(`/acto/${acto.id}`)}
                                         />
                                     ))
                                 ) : (

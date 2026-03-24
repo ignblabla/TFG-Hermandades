@@ -605,6 +605,7 @@ class HistorialPapeletaSerializer(serializers.ModelSerializer):
     numero_tramo = serializers.IntegerField(source='tramo.numero_orden', read_only=True, allow_null=True)
 
     es_insignia = serializers.BooleanField(source='puesto.tipo_puesto.es_insignia', read_only=True, default=False)
+    tipo_acto = serializers.CharField(source='acto.tipo_acto.tipo', read_only=True)
 
     lugar_citacion = serializers.CharField(source='puesto.lugar_citacion', read_only=True, allow_null=True)
     hora_citacion = serializers.TimeField(source='puesto.hora_citacion', read_only=True, allow_null=True)
@@ -620,6 +621,7 @@ class HistorialPapeletaSerializer(serializers.ModelSerializer):
             'fecha_solicitud', 
             'fecha_emision', 
             'anio',
+            'tipo_acto',
             'nombre_acto',
             'fecha_acto',
             'nombre_puesto',

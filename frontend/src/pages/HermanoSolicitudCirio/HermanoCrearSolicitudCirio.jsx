@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
+import HomeCard from "../../components/HomeCard";
+import { Medal, CreditCard, Bookmark, ListOrdered, History } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -18,12 +20,29 @@ function HermanoCrearSolicitudCirio() {
     const [selectedPuestoId, setSelectedPuestoId] = useState("");
     const [numeroVinculado, setNumeroVinculado] = useState(""); 
 
+    const [ultimoAnioParticipacion, setUltimoAnioParticipacion] = useState("-");
+
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [successData, setSuccessData] = useState(null);
 
     const navigate = useNavigate();
+
+    const getHistoryTitle = (tipoActo) => {
+        switch (tipoActo) {
+            case 'ESTACION_PENITENCIA':
+                return 'Última estación de penitencia';
+            case 'VIA_CRUCIS':
+                return 'Último Vía Crucis';
+            case 'ROSARIO_AURORA':
+                return 'Último Rosario Aurora';
+            case 'PROCESION_EXTRAORDINARIA':
+                return 'Última procesión extraordinaria';
+            default:
+                return 'Estación';
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,6 +52,8 @@ function HermanoCrearSolicitudCirio() {
 
                 const resActo = await api.get(`api/actos/${id}/`);
                 const actoData = resActo.data;
+
+                setActoInfo(actoData);
 
                 const now = new Date();
 
@@ -51,8 +72,6 @@ function HermanoCrearSolicitudCirio() {
                     return;
                 }
 
-                setActoInfo(actoData);
-
                 const ciriosDisponibles = actoData.puestos_disponibles.filter(p => {
                     return p.disponible === true && p.es_insignia === false;
                 });
@@ -62,6 +81,25 @@ function HermanoCrearSolicitudCirio() {
                 }
 
                 setPuestosCirio(ciriosDisponibles);
+
+                try {
+                    const resPapeletas = await api.get("api/papeletas/mis-papeletas/"); 
+
+                    const papeletas = resPapeletas.data.results || resPapeletas.data;
+
+                    const ultimaPapeleta = papeletas.find(
+                        (p) => p.tipo_acto === actoData.tipo_acto && p.estado_papeleta !== 'ANULADA' && p.estado_papeleta !== 'NO_ASIGNADA'
+                    );
+
+                    if (ultimaPapeleta) {
+                        setUltimoAnioParticipacion(ultimaPapeleta.anio);
+                    } else {
+                        setUltimoAnioParticipacion("-");
+                    }
+                } catch (historialErr) {
+                    console.error("Error al obtener el historial de papeletas:", historialErr);
+                    setUltimoAnioParticipacion("-");
+                }
 
             } catch (err) {
                 console.error(err);
@@ -219,6 +257,43 @@ function HermanoCrearSolicitudCirio() {
             <section className="home-section-dashboard">
                 <div className="text-dashboard">
                     {"Solicitud de cirios"}
+                </div>
+
+                <div className="home-cards-container">
+                    <HomeCard 
+                        icon={ListOrdered}
+                        title="Número de registro" 
+                        value={user?.numero_registro || "-"}
+                    />
+
+                    <HomeCard
+                        icon={Medal}
+                        title="Años de antigüedad" 
+                        value={user?.antiguedad_anios ?? "-"} 
+                    />
+                    
+                    <HomeCard
+                        icon={CreditCard}
+                        title="Cuotas Pendientes" 
+                        value={
+                            user?.historial_cuotas
+                                ? user.historial_cuotas.filter(
+                                    (cuota) => cuota.estado === 'PENDIENTE' || cuota.estado === 'DEVUELTA'
+                                ).length
+                                : 0
+                        } 
+                    />
+
+                    <HomeCard
+                        icon={History} 
+                        title={getHistoryTitle(actoInfo?.tipo_acto)} 
+                        value={ultimoAnioParticipacion} 
+                    />
+                </div>
+
+                <div className="solicitud-cirio-half-box">
+                    <h3 className="solicitud-cirio-card-title">Título de tu nuevo cuadro</h3>
+                    <p>Aquí puedes incluir la información o el formulario que necesites...</p>
                 </div>
             </section>
         </div>
