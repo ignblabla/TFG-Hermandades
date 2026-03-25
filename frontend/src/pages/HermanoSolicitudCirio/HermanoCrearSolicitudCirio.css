@@ -46,20 +46,24 @@
 .banner-solicitud-container {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     width: 100%;
     gap: 40px;
     margin-bottom: 30px; 
+    background-color: #800020;
+    border-radius: 12px;
+    box-sizing: border-box;
 }
 
 .banner-solicitud-text {
-    flex: 0 0 calc(50% - 20px);
+    flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: center;
+    padding: 40px;
 }
 
 .banner-solicitud-title {
@@ -71,7 +75,7 @@
     width: 100%;
     font-size: 3.1rem; 
     font-weight: 600;
-    color: #800020;
+    color: #FFFFFF;
     line-height: 1.1; 
     margin: 0;
     text-align: center;
@@ -79,25 +83,23 @@
 
 .banner-solicitud-description {
     font-size: 2.7rem;
-    color: #c5c202;
+    color: #D4AF37;
     line-height: 1.6;
     margin: 10px 0 0 0;
     text-align: center;
 }
 
 .banner-solicitud-image-wrapper {
-    flex: 0 0 calc(50% - 20px);
+    flex: 0 0 50%;
     display: flex;
-    justify-content: flex-end;
 }
 
 .banner-solicitud-image {
     width: 100%;
     max-width: none;
     min-width: 0;
-    height: auto;
+    height: 100%;
     object-fit: cover;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     display: block;
     border-radius: 8px;
 }
