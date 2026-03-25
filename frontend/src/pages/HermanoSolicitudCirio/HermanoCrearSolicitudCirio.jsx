@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
-import { Medal, CreditCard, Bookmark, ListOrdered, History, FileText, AlertCircle, CheckCircle, Save, CalendarX, Bot } from "lucide-react";
+import { Medal, CreditCard, Bookmark, ListOrdered, History, FileText, AlertCircle, CheckCircle, Save, CalendarX, Bot, User } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -297,7 +297,7 @@ function HermanoCrearSolicitudCirio() {
                                     SOLICITUD DE CIRIOS
                                 </h1>
                                 <p className="banner-solicitud-description">
-                                    Viacrucis 2026
+                                    {getNombreTipoActo(actoInfo?.tipo_acto)} {actoInfo?.fecha ? new Date(actoInfo.fecha).getFullYear() : ""}
                                 </p>
                             </div>
                             <div className="banner-solicitud-image-wrapper">
@@ -444,7 +444,30 @@ function HermanoCrearSolicitudCirio() {
                     </div>
 
                     <div className="dashboard-panel-sidebar-solicitud">
-                        <h2>Barra Lateral</h2>
+                        <div className="estado-hermano-card">
+                            <div className="estado-hermano-icon">
+                                <User size={44} strokeWidth={2.5} />
+                            </div>
+                            
+                            <h2 className="estado-hermano-title">ESTADO DEL HERMANO</h2>
+                            
+                            <div className="estado-hermano-cuota">
+                                <p>
+                                    <span className="estado-ok">Al corriente de pago</span>
+                                </p>
+                            </div>
+
+                            <hr className="estado-hermano-divider" />
+
+                            <div className="estado-hermano-datos">
+                                <p>
+                                    Nº de registro: <span className="estado-bold">{user?.numero_registro || "-"}</span>
+                                </p>
+                                <p>
+                                    Antigüedad: <span className="estado-bold">{user?.antiguedad_anios !== undefined ? user.antiguedad_anios : "-"} años</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
