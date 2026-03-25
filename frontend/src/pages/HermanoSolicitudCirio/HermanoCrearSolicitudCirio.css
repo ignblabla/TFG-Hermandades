@@ -38,6 +38,9 @@
     padding: 0;
     background-color: transparent;
     box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .banner-solicitud-container {
@@ -361,7 +364,7 @@ select.form-control {
 
 .estado-hermano-title {
     color: #800020;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 800;
     margin: 0 0 8px 0;
     letter-spacing: 0.5px;
@@ -398,7 +401,7 @@ select.form-control {
 }
 
 .estado-hermano-datos {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     color: #222222;
     display: flex;
     flex-direction: column;
@@ -409,10 +412,52 @@ select.form-control {
 .estado-hermano-datos p {
     margin: 0;
 }
+
 .estado-bold {
     color: #800020;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 1.4rem;
+}
+
+.criterios-card {
+    background-color: #FFFFFF;
+    border: 4px solid #800020;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: max-content;
+    box-sizing: border-box;
+}
+
+.criterios-icon {
+    color: #800020;
+    margin-bottom: 12px;
+}
+
+.criterios-title {
+    color: #800020;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.criterios-intro {
+    font-size: 1.05rem;
+    color: #222222;
+    line-height: 1.5;
+    margin: 0 0 0px 0;
+    text-align: center;
+}
+
+.criterios-bold {
+    color: #800020;
+    font-weight: 700;
 }
 
 @media (max-width: 1024px) {

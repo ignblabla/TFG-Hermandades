@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
-import { Medal, CreditCard, Bookmark, ListOrdered, History, FileText, AlertCircle, CheckCircle, Save, CalendarX, Bot, User } from "lucide-react";
+import { AlertCircle, CheckCircle, Save, CalendarX, User, ScrollText } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -467,6 +467,18 @@ function HermanoCrearSolicitudCirio() {
                                     Antigüedad: <span className="estado-bold">{user?.antiguedad_anios !== undefined ? user.antiguedad_anios : "-"} años</span>
                                 </p>
                             </div>
+                        </div>
+
+                        <div className="criterios-card">
+                            <div className="criterios-icon">
+                                <ScrollText size={40} strokeWidth={2} />
+                            </div>
+                            
+                            <h2 className="criterios-title">CRITERIOS DE ASIGNACIÓN</h2>
+                            
+                            <p className="criterios-intro">
+                                Conforme a la Regla 42ª, los puestos se asignan estrictamente por <span className="criterios-bold">orden de antigüedad</span> en la nómina <span className="criterios-bold">de hermanos</span>, salvo los cargos de confianza designados por la Junta de Gobierno.
+                            </p>
                         </div>
                     </div>
                 </div>
