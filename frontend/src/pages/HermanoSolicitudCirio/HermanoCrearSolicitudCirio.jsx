@@ -293,10 +293,12 @@ function HermanoCrearSolicitudCirio() {
                     <div className="dashboard-panel-main-solicitud">
                         <div className="banner-solicitud-container">
                             <div className="banner-solicitud-text">
-                                {/* <h1 className="banner-solicitud-title">
-                                    <span>SOLICITUD DE CIRIOS</span>
-                                    <span>{actoInfo ? getNombreTipoActo(actoInfo.tipo_acto) : 'de Sitio'} {actoInfo ? new Date(actoInfo.fecha).getFullYear() : '2024'}</span>
-                                </h1> */}
+                                <h1 className="banner-solicitud-title">
+                                    SOLICITUD DE CIRIOS
+                                </h1>
+                                <p className="banner-solicitud-description">
+                                    Viacrucis 2026
+                                </p>
                             </div>
                             <div className="banner-solicitud-image-wrapper">
                                 <img 
@@ -364,6 +366,80 @@ function HermanoCrearSolicitudCirio() {
                             <div className="plazos-line"></div>
                                 <span className="plazos-text">FORMULARIO DE SOLICITUD DE CIRIO</span>
                             <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="solicitud-form-container">
+                            {error && (
+                                <div className="form-alert form-alert-error">
+                                    <AlertCircle size={20} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+                            
+                            {success && (
+                                <div className="form-alert form-alert-success">
+                                    <CheckCircle size={20} />
+                                    <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit} className="solicitud-form">
+                                <div className="form-group">
+                                    <label htmlFor="puesto-select" className="form-label">
+                                        Puesto Solicitado <span className="required">*</span>
+                                    </label>
+                                    <div className="input-wrapper">
+                                        <select
+                                            id="puesto-select"
+                                            className="form-control no-icon"
+                                            value={selectedPuestoId}
+                                            onChange={(e) => setSelectedPuestoId(e.target.value)}
+                                            required
+                                            disabled={submitting || success || loading}
+                                        >
+                                            <option value="">-- Seleccione un puesto --</option>
+                                            {puestosCirio.map(puesto => (
+                                                <option key={puesto.id} value={puesto.id}>
+                                                    {puesto.nombre}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="vinculo-input" className="form-label">
+                                        Vincular con Hermano (Nº Registro)
+                                    </label>
+                                    <p className="form-help-text">
+                                        Opcional. Si desea ir junto a otro hermano, indique su número de registro.
+                                    </p>
+                                    <div className="input-wrapper">
+                                        <input
+                                            type="number"
+                                            id="vinculo-input"
+                                            className="form-control no-icon"
+                                            placeholder="Ej: 1234"
+                                            value={numeroVinculado}
+                                            onChange={(e) => setNumeroVinculado(e.target.value)}
+                                            disabled={submitting || success || loading}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    className="submit-btn"
+                                    disabled={submitting || success || loading}
+                                >
+                                    {submitting ? 'Procesando...' : (
+                                        <>
+                                            <Save size={20} />
+                                            Confirmar Solicitud
+                                        </>
+                                    )}
+                                </button>
+                            </form>
                         </div>
                     </div>
 
