@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
-import { AlertCircle, CheckCircle, Save, CalendarX, User, ScrollText } from "lucide-react";
+import { AlertCircle, CheckCircle, Save, CalendarX, ScrollText, Shirt, X, Info } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -17,7 +17,9 @@ function HermanoCrearSolicitudCirio() {
     const [puestosCirio, setPuestosCirio] = useState([]);
     
     const [selectedPuestoId, setSelectedPuestoId] = useState("");
-    const [numeroVinculado, setNumeroVinculado] = useState(""); 
+    const [numeroVinculado, setNumeroVinculado] = useState("");
+
+    const [modalPlazo, setModalPlazo] = useState({ isOpen: false, titulo: '', mensaje: '' });
 
     const [ultimoAnioParticipacion, setUltimoAnioParticipacion] = useState("-");
 
@@ -65,8 +67,22 @@ function HermanoCrearSolicitudCirio() {
                 const inicio = new Date(actoData.inicio_solicitud_cirios);
                 const fin = new Date(actoData.fin_solicitud_cirios);
                 
-                if (now < inicio || now > fin) {
-                    setError("El plazo para solicitar sitio en este acto está cerrado.");
+                if (now < inicio) {
+                    setModalPlazo({
+                        isOpen: true,
+                        titulo: 'Plazo no iniciado',
+                        mensaje: `El plazo para solicitar el cirio para el acto "${actoData.nombre}" no ha comenzado todavía.\n\nAbrirá el ${formatearFechaHora(actoData.inicio_solicitud_cirios)}.`
+                    });
+                    setError("El plazo para solicitar sitio en este acto no ha comenzado todavía.");
+                    setLoading(false);
+                    return;
+                } else if (now > fin) {
+                    setModalPlazo({
+                        isOpen: true,
+                        titulo: 'Plazo finalizado',
+                        mensaje: `El plazo para solicitar el cirio para el acto "${actoData.nombre}" finalizó el ${formatearFechaHora(actoData.fin_solicitud_cirios)}.`
+                    });
+                    setError("El plazo para solicitar sitio en este acto ha finalizado.");
                     setLoading(false);
                     return;
                 }
@@ -427,10 +443,16 @@ function HermanoCrearSolicitudCirio() {
                                     </div>
                                 </div>
 
+                                {user && !user.esta_al_corriente && (
+                                    <div className="form-help-text" style={{ color: '#D32F2F', fontWeight: '600', marginBottom: '0px' }}>
+                                        * No puedes realizar la solicitud porque tienes cuotas pendientes.
+                                    </div>
+                                )}
+
                                 <button 
                                     type="submit" 
                                     className="submit-btn"
-                                    disabled={submitting || success || loading}
+                                    disabled={submitting || success || loading || (user && !user.esta_al_corriente)}
                                 >
                                     {submitting ? 'Procesando...' : (
                                         <>
@@ -444,31 +466,6 @@ function HermanoCrearSolicitudCirio() {
                     </div>
 
                     <div className="dashboard-panel-sidebar-solicitud">
-                        <div className="estado-hermano-card">
-                            <div className="estado-hermano-icon">
-                                <User size={44} strokeWidth={2.5} />
-                            </div>
-                            
-                            <h2 className="estado-hermano-title">ESTADO DEL HERMANO</h2>
-                            
-                            <div className="estado-hermano-cuota">
-                                <p>
-                                    <span className="estado-ok">Al corriente de pago</span>
-                                </p>
-                            </div>
-
-                            <hr className="estado-hermano-divider" />
-
-                            <div className="estado-hermano-datos">
-                                <p>
-                                    Nº de registro: <span className="estado-bold">{user?.numero_registro || "-"}</span>
-                                </p>
-                                <p>
-                                    Antigüedad: <span className="estado-bold">{user?.antiguedad_anios !== undefined ? user.antiguedad_anios : "-"} años</span>
-                                </p>
-                            </div>
-                        </div>
-
                         <div className="criterios-card">
                             <div className="criterios-icon">
                                 <ScrollText size={40} strokeWidth={2} />
@@ -480,9 +477,59 @@ function HermanoCrearSolicitudCirio() {
                                 Conforme a la Regla 42ª, los puestos se asignan estrictamente por <span className="criterios-bold">orden de antigüedad</span> en la nómina <span className="criterios-bold">de hermanos</span>, salvo los cargos de confianza designados por la Junta de Gobierno.
                             </p>
                         </div>
+
+                        <div className="criterios-card">
+                            <div className="criterios-icon">
+                                <Shirt size={40} strokeWidth={2} />
+                            </div>
+                            
+                            <h2 className="criterios-title">PROTOCOLO DE VESTIMENTA</h2>
+                            
+                            <p className="criterios-intro">
+                                {actoInfo?.tipo_acto === 'ESTACION_PENITENCIA' ? (
+                                    <>
+                                        Se recuerda la obligatoriedad de vestir el hábito de la Hermandad:{" "}
+                                        <span className="criterios-bold">
+                                            túnica blanca de cola, cinturón de esparto, medalla de la Hermandad y sandalias de cuero
+                                        </span>.
+                                    </>
+                                ) : (
+                                    <>
+                                        Se recuerda la obligatoriedad de mantener la estética tradicional:{" "}
+                                        <span className="criterios-bold">traje de chaqueta oscuro</span> para los hombres y{" "}
+                                        <span className="criterios-bold">vestido negro</span> para las mujeres, acorde a la solemnidad del acto.
+                                        <br />
+                                        <span className="criterios-bold">Imprescindible portar la medalla de la Hermandad.</span>
+                                    </>
+                                )}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </section>
+
+            {modalPlazo.isOpen && (
+                <div className="modal-overlay-bloqueo">
+                    <div className="modal-content-bloqueo" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header-bloqueo">
+                            <Info className="modal-icon-info" size={28} color="#800020" />
+                            <h3>{modalPlazo.titulo}</h3>
+                        </div>
+                        <div className="modal-body-bloqueo">
+                            <p style={{ whiteSpace: 'pre-wrap', marginBottom: '25px' }}>
+                                {modalPlazo.mensaje}
+                            </p>
+                            <button 
+                                className="btn-volver-inicio" 
+                                style={{ width: '100%' }}
+                                onClick={() => navigate(`/acto/${id}`)}
+                            >
+                                Volver a la página del acto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
