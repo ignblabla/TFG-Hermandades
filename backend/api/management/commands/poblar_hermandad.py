@@ -797,6 +797,87 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_viacrucis_a_crear)} puestos para el Acto 2.'))
 
 
+
+        # =========================================================================
+        # POBLADO DE ACTO: ROSARIO DE LA AURORA (ID=3)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Rosario de la Aurora...")
+
+        fecha_acto_ra = (now + timedelta(days=90)).replace(hour=9, minute=0, second=0, microsecond=0)
+        
+        inicio_solicitud_ra = now - timedelta(days=10)
+        fin_solicitud_ra = now - timedelta(seconds=3)
+        inicio_solicitud_cirios_ra = now + timedelta(days=1)
+        fin_solicitud_cirios_ra = now + timedelta(days=5)
+
+        descripcion_rosario = (
+            "El solemne Rosario de la Aurora en honor a Nuestra Señora de la Salud es un acto de "
+            "profunda piedad mariana que marca el despertar de la fe en nuestro barrio de Triana. "
+            "En el silencio del alba, acompañamos a nuestra Bendita Madre en un recorrido de oración "
+            "y recogimiento, elevando nuestras plegarias a través de los misterios del Santo Rosario. "
+            "Este acto simboliza la luz de María guiando a sus hijos hacia la salud del alma y del cuerpo. "
+            "Se invita a todos los hermanos y devotos a participar con devoción, portando la medalla "
+            "de la Hermandad y manteniendo el clima de oración necesario para este encuentro íntimo "
+            "con la Santísima Virgen."
+        )
+
+        Acto.objects.filter(id=3).delete()
+
+        acto_rosario = Acto(
+            id=3,
+            nombre="Rosario de la Aurora de Nuestra Señora de la Salud",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_rosario,
+            fecha=fecha_acto_ra,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=7,
+            inicio_solicitud=inicio_solicitud_ra,
+            fin_solicitud=fin_solicitud_ra,
+            inicio_solicitud_cirios=inicio_solicitud_cirios_ra,
+            fin_solicitud_cirios=fin_solicitud_cirios_ra,
+            fecha_ejecucion_reparto=None,
+        )
+
+        ruta_imagen_ra = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'RosarioAurora2025.jpg')
+        
+        if os.path.exists(ruta_imagen_ra):
+            with open(ruta_imagen_ra, 'rb') as f:
+                acto_rosario.imagen_portada.save('RosarioAurora.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 3.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_ra}'))
+        
+        acto_rosario.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Rosario de la Aurora con ID 3.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 3 (ROSARIO)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 3 (Rosario)...")
+
+        puestos_rosario_data = [
+            {"id": 53, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 12, "cortejo_cristo": False},
+            {"id": 54, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 55, "nombre": "Bandera Blanca y Celeste (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 56, "nombre": "Varas Bandera Blanca y Celeste (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 57, "nombre": "Bandera Asuncionista (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 58, "nombre": "Varas Bandera Asuncionista (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 59, "nombre": "Guión de la Coronación (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 60, "nombre": "Varas Guión de la Coronación (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 61, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 62, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 63, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "08:00", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_rosario_a_crear = [Puesto(**data) for data in puestos_rosario_data]
+        Puesto.objects.bulk_create(puestos_rosario_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_rosario_data)} puestos para el Acto 3.'))
+
+
         # =========================================================================
         # POBLADO DE ACTOS: MISAS DE HERMANDAD (RECURRENTE)
         # =========================================================================
@@ -804,7 +885,7 @@ class Command(BaseCommand):
 
         fecha_primera_misa = make_aware(datetime(2026, 4, 12, 12, 30))
 
-        id_inicial_misa = 3
+        id_inicial_misa = 4
 
         for i in range(10):
             fecha_misa = fecha_primera_misa + timedelta(weeks=i)
