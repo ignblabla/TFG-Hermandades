@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
-import { Info, CalendarX, ScrollText, Shirt, ChevronDown, Send, ChevronRight, ArrowUp, ArrowDown, X } from "lucide-react";
+import { Info, CalendarX, ScrollText, Shirt, ChevronDown, Send, ChevronRight, ArrowUp, ArrowDown, X, AlertCircle, CheckCircle } from "lucide-react";
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
@@ -15,6 +15,9 @@ function HermanoSolicitudInsignia() {
     
     const [currentUser, setCurrentUser] = useState(null);
     const [actoActivo, setActoActivo] = useState(null);
+
+    const [success, setSuccess] = useState(false); 
+    const [error, setError] = useState("");
 
     const [insigniasSeleccionadas, setInsigniasSeleccionadas] = useState([]);
     const [isDragOver, setIsDragOver] = useState(false);
@@ -139,7 +142,8 @@ function HermanoSolicitudInsignia() {
 
     const enviarSolicitud = async () => {
         setSaving(true);
-        setSuccessMsg("");
+        setError(""); 
+        setSuccess(false);
 
         const payload = {
             acto_id: Number(id),
@@ -151,7 +155,7 @@ function HermanoSolicitudInsignia() {
 
         try {
             await api.post("api/papeletas/solicitar-insignia/", payload);
-            setSuccessMsg("¡Solicitud enviada correctamente!");
+            setSuccess(true); 
             
             setTimeout(() => {
                 navigate("/home");
@@ -159,7 +163,7 @@ function HermanoSolicitudInsignia() {
 
         } catch (err) {
             console.error("Error al enviar solicitud:", err);
-            alert("Ocurrió un problema de conexión con el servidor. Por favor, inténtelo de nuevo.");
+            setError("Ocurrió un problema de conexión con el servidor. Por favor, inténtelo de nuevo.");
         } finally {
             setSaving(false);
         }
@@ -445,6 +449,20 @@ function HermanoSolicitudInsignia() {
                                 <span className="plazos-text">FORMULARIO DE SOLICITUD DE CIRIO</span>
                             <div className="plazos-line"></div>
                         </div>
+
+                        {error && (
+                                <div className="form-alert form-alert-error" style={{ marginBottom: '20px' }}>
+                                    <AlertCircle size={20} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+                            
+                            {success && (
+                                <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
+                                    <CheckCircle size={20} />
+                                    <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
+                                </div>
+                            )}
 
                         <div className="dashboard-layout-wrapper">
                             {actoActivo ? (
