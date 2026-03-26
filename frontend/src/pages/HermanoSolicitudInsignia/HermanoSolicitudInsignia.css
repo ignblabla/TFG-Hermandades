@@ -5,26 +5,8 @@
     --text-muted: #9ca3af;
 }
 
-.cursor-pointer {
-    cursor: pointer;
-}
-
 .mb-10 {
     margin-bottom: 10px;
-}
-
-.solicitud-insignia-main-container {
-    padding: 0 20px 40px 20px;
-}
-
-.solicitud-insignia-success-alert {
-    margin-bottom: 15px;
-    color: green;
-    font-weight: bold;
-    padding: 10px;
-    background-color: #e6ffed;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
 }
 
 .btn-enviar-wrapper {
@@ -68,7 +50,7 @@
 
 .solicitud-insignia-container, 
 .resumen-solicitud-container {
-    width: 40%;
+    width: 45%;
     height: 80vh;
     background-color: var(--white);
     border: 2px solid var(--burgundy-primary);
@@ -96,7 +78,8 @@
     font-size: 20px;
     font-weight: 700;
     margin-top: 0;
-    margin-bottom: 2px; 
+    margin-bottom: 2px;
+    color: #800020
 }
 
 .solicitud-insignia-description {
@@ -111,7 +94,7 @@
     justify-content: space-between;
     cursor: pointer;
     border-bottom: 2px solid var(--burgundy-primary);
-    margin-top: 20px;
+    margin-top: 10px;
     margin-bottom: 15px;
     padding-bottom: 5px;
     transition: opacity 0.2s ease;
@@ -122,7 +105,7 @@
 }
 
 .cortejo-subtitle {
-    color: #333;
+    color: #800020;
     margin: 0; 
     font-size: 15px;
 }
@@ -171,9 +154,6 @@
     flex-grow: 1;
     overflow-y: auto;
     padding-right: 5px;
-}
-
-.solicitud-insignia-container > *:nth-child(n+3) {
 }
 
 .solicitud-insignia-container {

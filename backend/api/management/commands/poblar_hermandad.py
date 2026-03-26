@@ -640,9 +640,17 @@ class Command(BaseCommand):
             inicio_solicitud_cirios=now + timedelta(days=16),
             fin_solicitud_cirios=now + timedelta(days=24),
             fecha_ejecucion_reparto=None,
-            imagen_portada=None
         )
+
+        ruta_imagen = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2025.jpg')
         
+        if os.path.exists(ruta_imagen):
+            with open(ruta_imagen, 'rb') as f:
+                acto_ep.imagen_portada.save('EstacionPenitencia2025.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 1.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen}'))
+
         acto_ep.save()
         
         self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2026 con ID 1.'))
