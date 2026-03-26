@@ -50,7 +50,7 @@
 
 .solicitud-insignia-container, 
 .resumen-solicitud-container {
-    width: 45%;
+    width: 49%;
     height: 80vh;
     background-color: var(--white);
     border: 2px solid var(--burgundy-primary);
@@ -74,12 +74,11 @@
 }
 
 .solicitud-insignia-title {
-    color: var(--text-main);
+    color: #800020;
     font-size: 20px;
     font-weight: 700;
     margin-top: 0;
     margin-bottom: 2px;
-    color: #800020
 }
 
 .solicitud-insignia-description {
@@ -146,32 +145,32 @@
     font-size: 14px;
 }
 
+.lista-disponibles-container,
 .lista-seleccionadas-container {
-    margin-top: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     flex-grow: 1;
     overflow-y: auto;
     padding-right: 5px;
 }
 
-.solicitud-insignia-container {
-    overflow-y: auto;
+.lista-seleccionadas-container {
+    margin-top: 20px;
+    gap: 10px;
 }
 
-.solicitud-insignia-container::-webkit-scrollbar,
+.lista-disponibles-container::-webkit-scrollbar,
 .lista-seleccionadas-container::-webkit-scrollbar {
     width: 6px;
 }
 
-.solicitud-insignia-container::-webkit-scrollbar-thumb,
+.lista-disponibles-container::-webkit-scrollbar-thumb,
 .lista-seleccionadas-container::-webkit-scrollbar-thumb {
     background-color: var(--burgundy-primary);
     border-radius: 10px;
 }
 
-.solicitud-insignia-container::-webkit-scrollbar-track,
+.lista-disponibles-container::-webkit-scrollbar-track,
 .lista-seleccionadas-container::-webkit-scrollbar-track {
     background-color: #f1f1f1;
     border-radius: 10px;

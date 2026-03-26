@@ -366,7 +366,6 @@ function HermanoSolicitudInsignia() {
                 </ul>
             </div>
 
-            {/* --- CONTENIDO PRINCIPAL --- */}
             <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-main-solicitud">
@@ -456,37 +455,39 @@ function HermanoSolicitudInsignia() {
                                             Arrastre las insignias que desea solicitar hacia el panel de la derecha.
                                         </p>
 
-                                        {insigniasDisponibles.length > 0 ? (
-                                            <>
-                                                <div 
-                                                    className="cortejo-subtitle-wrapper" 
-                                                    onClick={() => setMostrarCristo(!mostrarCristo)}
-                                                >
-                                                    <h4 className="cortejo-subtitle">
-                                                        Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
-                                                    </h4>
-                                                    {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
-                                                </div>
+                                        <div className="lista-disponibles-container">
+                                            {insigniasDisponibles.length > 0 ? (
+                                                <>
+                                                    <div 
+                                                        className="cortejo-subtitle-wrapper" 
+                                                        onClick={() => setMostrarCristo(!mostrarCristo)}
+                                                    >
+                                                        <h4 className="cortejo-subtitle">
+                                                            Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
+                                                        </h4>
+                                                        {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                                    </div>
 
-                                                {mostrarCristo && renderInsignias(insigniasCristo)}
+                                                    {mostrarCristo && renderInsignias(insigniasCristo)}
 
-                                                <div 
-                                                    className="cortejo-subtitle-wrapper" 
-                                                    onClick={() => setMostrarVirgen(!mostrarVirgen)}
-                                                >
-                                                    <h4 className="cortejo-subtitle">
-                                                        Cortejo de Nuestra Señora de la Salud
-                                                    </h4>
-                                                    {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
-                                                </div>
+                                                    <div 
+                                                        className="cortejo-subtitle-wrapper" 
+                                                        onClick={() => setMostrarVirgen(!mostrarVirgen)}
+                                                    >
+                                                        <h4 className="cortejo-subtitle">
+                                                            Cortejo de Nuestra Señora de la Salud
+                                                        </h4>
+                                                        {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                                    </div>
 
-                                                {mostrarVirgen && renderInsignias(insigniasVirgen)}
-                                            </>
-                                        ) : (
-                                            <p className="solicitud-insignia-empty-msg">
-                                                Has seleccionado todas las insignias disponibles.
-                                            </p>
-                                        )}
+                                                    {mostrarVirgen && renderInsignias(insigniasVirgen)}
+                                                </>
+                                            ) : (
+                                                <p className="solicitud-insignia-empty-msg">
+                                                    Has seleccionado todas las insignias disponibles.
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div 
@@ -604,139 +605,7 @@ function HermanoSolicitudInsignia() {
                         </div>
                     </div>
                 </div>
-
-                
             </section>
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">
-                    {actoActivo 
-                        ? `Solicitud de insignias - ${actoActivo.nombre}` 
-                        : 'Plazo de solicitud de insignias'
-                    }
-                </div>
-
-                <div className="solicitud-insignia-main-container">
-                    
-                    {successMsg && (
-                        <div className="solicitud-insignia-success-alert">{successMsg}</div>
-                    )}
-
-                    <div className="dashboard-layout-wrapper">
-                        {actoActivo ? (
-                            <>
-                                <div className="solicitud-insignia-container">
-                                    <h3 className="solicitud-insignia-title">Acto: {actoActivo.nombre}</h3>
-                                    <p className="solicitud-insignia-description mb-10">
-                                        Arrastre las insignias que desea solicitar hacia el panel de la derecha.
-                                    </p>
-
-                                    {insigniasDisponibles.length > 0 ? (
-                                        <>
-                                            <div 
-                                                className="cortejo-subtitle-wrapper" 
-                                                onClick={() => setMostrarCristo(!mostrarCristo)}
-                                            >
-                                                <h4 className="cortejo-subtitle">
-                                                    Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
-                                                </h4>
-                                                {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
-                                            </div>
-
-                                            {mostrarCristo && renderInsignias(insigniasCristo)}
-
-                                            <div 
-                                                className="cortejo-subtitle-wrapper" 
-                                                onClick={() => setMostrarVirgen(!mostrarVirgen)}
-                                            >
-                                                <h4 className="cortejo-subtitle">
-                                                    Cortejo de Nuestra Señora de la Salud
-                                                </h4>
-                                                {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
-                                            </div>
-
-                                            {mostrarVirgen && renderInsignias(insigniasVirgen)}
-                                        </>
-                                    ) : (
-                                        <p className="solicitud-insignia-empty-msg">
-                                            Has seleccionado todas las insignias disponibles.
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div 
-                                    className={`resumen-solicitud-container ${isDragOver ? 'drag-over-active' : ''}`}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                >
-                                    <h3 className="solicitud-insignia-title">Insignias seleccionadas</h3>
-                                    <p className="solicitud-insignia-description">
-                                        Suéltelas aquí. Ordénelas de arriba a abajo en función de su prioridad.
-                                    </p>
-
-                                    <div className="lista-seleccionadas-container">
-                                        {insigniasSeleccionadas.length === 0 ? (
-                                            <div className="empty-dropzone">
-                                                Arrastre aquí una insignia
-                                            </div>
-                                        ) : (
-                                            insigniasSeleccionadas.map((insignia, index) => (
-                                                <div key={insignia.id} className="seleccionada-card">
-                                                    <div className="seleccionada-info">
-                                                        <span className="prioridad-badge">{index + 1}º</span>
-                                                        <span className="seleccionada-nombre">{insignia.nombre}</span>
-                                                    </div>
-                                                    
-                                                    <div className="seleccionada-acciones">
-                                                        <button 
-                                                            onClick={() => moverArriba(index)} 
-                                                            disabled={index === 0}
-                                                            title="Subir prioridad"
-                                                        >
-                                                            <ArrowUp size={18} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => moverAbajo(index)} 
-                                                            disabled={index === insigniasSeleccionadas.length - 1}
-                                                            title="Bajar prioridad"
-                                                        >
-                                                            <ArrowDown size={18} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => quitarInsignia(insignia.id)} 
-                                                            className="btn-quitar"
-                                                            title="Quitar de la lista"
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-
-                                    <div className="btn-enviar-wrapper">
-                                        <button 
-                                            className="btn-enviar-solicitud-final"
-                                            onClick={enviarSolicitud}
-                                            disabled={saving || insigniasSeleccionadas.length === 0}
-                                        >
-                                            <Send size={20} />
-                                            {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="solicitud-insignia-container" style={{width: '100%'}}>
-                                <p className="solicitud-insignia-error-msg">
-                                    Actualmente no hay ningún plazo abierto para solicitar insignias.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section> */}
         </div>
     );
 }
