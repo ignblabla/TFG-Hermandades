@@ -244,23 +244,14 @@ function GestionRepartoInsignias() {
             <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-main-solicitud">
-                        <div 
-                            className="banner-solicitud-container"
-                            style={{ 
-                                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${acto?.imagen_portada ? acto.imagen_portada : "../../assets/ViaCrucis2025.jpg"})` 
-                            }}
-                        >
-                            <div className="banner-solicitud-text">
-                                <h1 className="banner-solicitud-title">
-                                    ASIGNACIÓN DE INSIGNIAS
-                                </h1>
-                                <p className="banner-solicitud-description">
-                                    {getNombreTipoActo(acto?.tipo_acto)} {acto?.fecha ? new Date(acto.fecha).getFullYear() : ""}
-                                </p>
-                            </div>
+                        <div className="historical-header-container">
+                            <h1 className="historical-header-title">ASIGNACIÓN DE INSIGNIAS</h1>
+                            <p className="historical-header-subtitle">
+                                {getNombreTipoActo(acto?.tipo_acto)} {acto?.fecha ? new Date(acto.fecha).getFullYear() : ""}
+                            </p>
                         </div>
 
-                        <div className="plazos-separator">
+                        <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
                                 <span className="plazos-text">DATOS GENERALES DE SOLICITUD</span>
                             <div className="plazos-line"></div>

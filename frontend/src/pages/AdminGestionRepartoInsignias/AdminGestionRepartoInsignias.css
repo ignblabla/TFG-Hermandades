@@ -1,0 +1,40 @@
+.historical-header-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #FFFDD0;
+    background-image: linear-gradient(rgba(255, 253, 208, 0.85), rgba(255, 253, 208, 0.85)), url('../../assets/ImagenFondo.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+}
+
+.historical-header-title {
+    font-size: 3.5rem;
+    color: #800020; 
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.historical-header-subtitle {
+    font-size: 1.8rem;
+    color: #1A1A1A; 
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.plazos-separator-asignacion {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    gap: 24px;
+}
