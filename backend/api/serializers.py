@@ -3,12 +3,14 @@ import os
 from PIL import Image
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
 from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
 from django.core.signing import Signer
 import base64
+from django.db.models import Count
 
 User = get_user_model()
 
@@ -336,9 +338,12 @@ class ActoSerializer(serializers.ModelSerializer):
 
     reparto_ejecutado = serializers.SerializerMethodField()
 
+    total_solicitantes_insignia = serializers.SerializerMethodField()
+    total_solicitudes_insignias = serializers.SerializerMethodField()
+
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada']
+        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias']
 
     read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
@@ -356,6 +361,26 @@ class ActoSerializer(serializers.ModelSerializer):
     
     def get_reparto_ejecutado(self, obj):
         return obj.fecha_ejecucion_reparto is not None
+    
+    def get_total_solicitantes_insignia(self, obj):
+        estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
+
+        return obj.papeletas.filter(
+            es_solicitud_insignia=True
+        ).exclude(
+            estado_papeleta__in=estados_inactivos
+        ).count()
+    
+    def get_total_solicitudes_insignias(self, obj):
+        estados_validos = ['SOLICITADA', 'EMITIDA', 'RECOGIDA', 'LEIDA']
+
+        total = PreferenciaSolicitud.objects.filter(
+            papeleta__acto_id=obj.id,
+            papeleta__estado_papeleta__in=estados_validos,
+            papeleta__es_solicitud_insignia=True
+        ).count()
+
+        return total
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, CheckCircle  } from "lucide-react";
+import { CalendarX, User, Users } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -132,6 +132,27 @@ function GestionRepartoInsignias() {
         );
     }
 
+    const getNombreTipoActo = (tipo) => {
+        if (!tipo) return "de Sitio";
+
+        const tipoStr = typeof tipo === 'object' ? tipo.tipo : tipo;
+        
+        const diccionarioTipos = {
+            'ESTACION_PENITENCIA': 'Estación de Penitencia',
+            'CABILDO_GENERAL': 'Cabildo General',
+            'CABILDO_EXTRAORDINARIO': 'Cabildo Extraordinario',
+            'VIA_CRUCIS': 'Vía Crucis',
+            'QUINARIO': 'Quinario',
+            'TRIDUO': 'Triduo',
+            'ROSARIO_AURORA': 'Rosario de la Aurora',
+            'CONVIVENCIA': 'Convivencia',
+            'PROCESION_EUCARISTICA': 'Procesión Eucarística',
+            'PROCESION_EXTRAORDINARIA': 'Procesión Extraordinaria'
+        };
+
+        return diccionarioTipos[tipoStr] || "de Sitio";
+    };
+
     const fechaValida = verificarDisponibilidad();
 
     return (
@@ -220,7 +241,90 @@ function GestionRepartoInsignias() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-main-solicitud">
+                        <div 
+                            className="banner-solicitud-container"
+                            style={{ 
+                                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${acto?.imagen_portada ? acto.imagen_portada : "../../assets/ViaCrucis2025.jpg"})` 
+                            }}
+                        >
+                            <div className="banner-solicitud-text">
+                                <h1 className="banner-solicitud-title">
+                                    ASIGNACIÓN DE INSIGNIAS
+                                </h1>
+                                <p className="banner-solicitud-description">
+                                    {getNombreTipoActo(acto?.tipo_acto)} {acto?.fecha ? new Date(acto.fecha).getFullYear() : ""}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="plazos-separator">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">DATOS GENERALES DE SOLICITUD</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="plazos-cards-container">
+                            <div className="plazo-card-wrapper">
+                                <div className="plazo-card-content">
+                                    <div className="plazo-card-icon">
+                                        <CalendarX size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="plazo-card-title">FIN SOLICITUD INSIGNIAS</h3>
+                                    <p className="plazo-card-description">
+                                        Fecha de cierre para la solicitud general de insignias y varas.
+                                    </p>
+                                    <div className="plazo-card-date">
+                                        {formatearFechaHora(acto?.fin_solicitud)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="plazo-card-wrapper">
+                                <div className="plazo-card-content">
+                                    <div className="plazo-card-icon">
+                                        <User size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="plazo-card-title">HERMANOS SOLICITANTES</h3>
+                                    <p className="plazo-card-description">
+                                        Censo total de hermanos con solicitud de insignia.
+                                    </p>
+                                    <div className="plazo-card-date">
+                                        {acto?.total_solicitantes_insignia ?? 0}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="plazo-card-wrapper">
+                                <div className="plazo-card-content">
+                                    <div className="plazo-card-icon">
+                                        <Users size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="plazo-card-title">SOLICITUDES DE INSIGNIAS</h3>
+                                    <p className="plazo-card-description">
+                                        Número total de solicitudes de insignia registradas.
+                                    </p>
+                                    <div className="plazo-card-date">
+                                        {acto?.total_solicitudes_insignias ?? 0}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="plazos-separator">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">ALGORITMO AUTOMÁTICO DE ASIGNACIÓN DE INSIGNIAS</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+
+            {/* <section className="home-section-dashboard">
                 <div className="text-dashboard">Asignación de insignias</div>
 
                 <div className="consulta-acto-content-layout">
@@ -447,7 +551,7 @@ function GestionRepartoInsignias() {
 
                     </div>
                 </div>
-            </section>
+            </section> */}
         </div>
     );
 }
