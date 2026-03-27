@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { CalendarX, User, Users } from "lucide-react";
+import { CalendarX, User, Users, Award, AlertCircle, CheckCircle  } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -15,6 +15,7 @@ function GestionRepartoInsignias() {
     const [loading, setLoading] = useState(true);
     const [accesoDenegado, setAccesoDenegado] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState(false);
 
     const [processing, setProcessing] = useState(false); 
     const [successData, setSuccessData] = useState(null); 
@@ -310,239 +311,50 @@ function GestionRepartoInsignias() {
                             <div className="plazos-line"></div>
                         </div>
 
-
-                    </div>
-                </div>
-            </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Asignación de insignias</div>
-
-                <div className="consulta-acto-content-layout">
-
-                    <div className="consulta-acto-main-info">
                         {error && (
-                            <div style={{padding: '15px', backgroundColor: '#fee2e2', color: '#b91c1c', marginBottom: '15px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px'}}>
-                                <AlertCircle size={20}/> 
+                            <div className="form-alert form-alert-error" style={{ marginBottom: '20px' }}>
+                                <AlertCircle size={20} />
                                 <span>{error}</span>
                             </div>
                         )}
-
-                        {successData && (
-                            <div style={{padding: '15px', backgroundColor: '#dcfce7', color: '#15803d', marginBottom: '15px', borderRadius: '6px', border: '1px solid #86efac'}}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', marginBottom: '10px'}}>
-                                    <CheckCircle size={20}/> 
-                                    <span>{successData.mensaje}</span>
-                                </div>
-                                <ul style={{marginLeft: '30px', listStyleType: 'disc', fontSize: '14px', lineHeight: '1.5'}}>
-                                    <li>Puestos asignados correctamente: <strong>{successData.asignaciones}</strong></li>
-                                    <li>Hermanos en lista de espera (sin cupo): <strong>{successData.sin_asignar_count}</strong></li>
-                                </ul>
+                        
+                        {success && (
+                            <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
+                                <CheckCircle size={20} />
+                                <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
                             </div>
                         )}
 
-                        <div className="info-card">
-                            <h3 className="info-card-title">{acto.nombre}</h3>
-
-                            {acto && (() => {
-                                let imgSrc = '/portada-comunicado.png';
-
-                                if (acto.imagen_portada) {
-                                    const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-                                    const imagePath = acto.imagen_portada;
-                                    imgSrc = imagePath.startsWith('http') 
-                                        ? imagePath 
-                                        : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
-                                }
-
-                                return (
-                                    <div className="acto-cover-image-container">
-                                        <img 
-                                            src={imgSrc} 
-                                            alt={`Portada de ${acto.nombre}`} 
-                                            className="acto-cover-image"
-                                        />
-                                    </div>
-                                );
-                            })()}
-
-                            {acto?.descripcion && (
-                                <div className="info-description">
-                                    <Info size={22} className="info-icon" />
-                                    <div style={{ width: '100%' }}>
-                                        <span className="info-label">Descripción</span>
-                                        <p 
-                                            className="info-value-text" 
-                                            style={{ whiteSpace: 'pre-wrap' }}
+                        <div className="algorithm-execution-container">
+                            <div className="algorithm-card">
+                                <div className="algorithm-icon-wrapper">
+                                    <Award size={160} strokeWidth={1.5} className="algorithm-icon" />
+                                </div>
+                                <div className="algorithm-content">
+                                    <h2 className="algorithm-title">GESTIÓN Y REPARTO DE INSIGNIAS</h2>
+                                    <p className="algorithm-description">
+                                        El algoritmo evalúa las solicitudes registradas y asigna automáticamente los puestos e insignias del cortejo basándose en las reglas de antigüedad y disponibilidad establecidas por la hermandad.
+                                    </p>
+                                    <div className="algorithm-action">
+                                        <button 
+                                            className="algorithm-button"
+                                            onClick={handleReparto}
+                                            disabled={!fechaValida || processing}
                                         >
-                                            {acto.descripcion}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-                            
-                            <div className="info-card-grid">
-                                <div className="info-item">
-                                    <MapPin size={22} className="info-icon" />
-                                    <div>
-                                        <span className="info-label">Lugar</span>
-                                        <span className="info-value">{acto?.lugar || "No especificado"}</span>
-                                    </div>
-                                </div>
-
-                                <div className="info-item">
-                                    <Calendar size={22} className="info-icon" />
-                                    <div>
-                                        <span className="info-label">Fecha y Hora</span>
-                                        <span className="info-value">{formatearFechaHora(acto?.fecha)}</span>
-                                    </div>
-                                </div>
-
-                                <div className="info-item">
-                                    <Ticket size={22} className="info-icon" />
-                                    <div>
-                                        <span className="info-label">Papeleta de Sitio</span>
-                                        <span className="info-value">
-                                            {acto?.requiere_papeleta ? (
-                                                <span className="badge-yes">Obligatoria</span>
-                                            ) : (
-                                                <span className="badge-no">No requerida</span>
-                                            )}
-                                        </span>
+                                            {processing ? "Procesando algoritmo..." : "Ejecutar Algoritmo de Asignación"}
+                                        </button>
+                                        {!fechaValida && (
+                                            <span className="algorithm-warning">
+                                                (Esta acción estará disponible al finalizar el plazo de solicitud)
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-
-                            {acto?.requiere_papeleta && (
-                                <div className="info-item">
-                                    <Clock size={22} className="info-icon" />
-                                    <div style={{ width: '100%' }}>
-                                        <span className="info-label">
-                                            {acto.modalidad === 'TRADICIONAL' ? 'Plazo Insignias' : 'Plazo Solicitudes'}
-                                        </span>
-                                        <div className="plazos-fechas-wrapper">
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud)}
-                                            </span>
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {acto?.requiere_papeleta && acto.modalidad === 'TRADICIONAL' && (
-                                <div className="info-item">
-                                    <Clock size={22} className="info-icon" />
-                                    <div style={{ width: '100%' }}>
-                                        <span className="info-label">Plazo Cirios</span>
-                                        <div className="plazos-fechas-wrapper">
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud_cirios)}
-                                            </span>
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud_cirios)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
-                    </div>
-
-                    <div className="consulta-acto-calendar-sidebar">
-                        <div className="consulta-acto-algorithm-card">
-                            <Award size={110} color="#ffffff" strokeWidth={1.5} className="consulta-acto-algorithm-icon" />
-                            <h2 className="consulta-acto-algorithm-title">GESTIÓN DE INSIGNIAS</h2>
-                            <p className="consulta-acto-algorithm-description">
-                                Asigna y organiza los puestos e<br />insignias del cortejo.
-                            </p>
-
-                            <button 
-                                className="consulta-acto-algorithm-button"
-                                onClick={handleReparto}
-                                disabled={!fechaValida || processing}
-                                style={{
-                                    backgroundColor: (!fechaValida || processing) ? '#94a3b8' : '#ffffff',
-                                    cursor: (!fechaValida || processing) ? 'not-allowed' : 'pointer',
-                                    color: (!fechaValida || processing) ? '#ffffff' : '#800020'
-                                }}
-                            >
-                                {processing ? "Procesando algoritmos..." : "Ejecutar Algoritmo de Asignación"}
-                            </button>
-                            
-                            {!fechaValida && (
-                                <span style={{fontSize: '12px', color: '#e2e8f0', marginTop: '10px'}}>
-                                    (Disponible al finalizar el plazo)
-                                </span>
-                            )}
-                        </div>
-
-                        {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
-                            <div className="consulta-acto-actions-wrapper">
-                                <div 
-                                    className="consulta-acto-action-card"
-                                    onClick={() => navigate(`/admin/listado-solicitudes-insignias/${id}`)}
-                                >
-                                    <div className="consulta-acto-action-card-content-wrapper">
-                                        <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
-                                        <div className="consulta-acto-action-card-text-content">
-                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE INSIGNIAS</h3>
-                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de insignias.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="consulta-acto-action-card">
-                                    <div className="consulta-acto-action-card-content-wrapper">
-                                        <Flame size={45} color="#800020" className="consulta-acto-action-card-icon" />
-                                        <div className="consulta-acto-action-card-text-content">
-                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE CIRIOS</h3>
-                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de cirios.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="consulta-acto-action-card">
-                                    <div className="consulta-acto-action-card-content-wrapper">
-                                        <ListOrdered size={45} color="#800020" className="consulta-acto-action-card-icon" />
-                                        <div className="consulta-acto-action-card-text-content">
-                                            <h3 className="consulta-acto-action-card-title">ASIGNACIÓN DE CIRIOS</h3>
-                                            <p className="consulta-acto-action-card-description">Asigna y organiza a los hermanos con cirio en el cortejo.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
-                            <div className="consulta-acto-actions-wrapper">
-                                <div className="consulta-acto-action-card">
-                                    <div className="consulta-acto-action-card-content-wrapper">
-                                        <ClipboardList size={45} color="#800020" className="consulta-acto-action-card-icon" />
-                                        <div className="consulta-acto-action-card-text-content">
-                                            <h3 className="consulta-acto-action-card-title">SOLICITUDES DE PUESTOS</h3>
-                                            <p className="consulta-acto-action-card-description">Consulta el total de solicitudes de puestos.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="consulta-acto-action-card">
-                                    <div className="consulta-acto-action-card-content-wrapper">
-                                        <Award size={45} color="#800020" className="consulta-acto-action-card-icon" />
-                                        <div className="consulta-acto-action-card-text-content">
-                                            <h3 className="consulta-acto-action-card-title">GESTIÓN DE PUESTOS</h3>
-                                            <p className="consulta-acto-action-card-description">Asigna y organiza los puestos del cortejo.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                     </div>
                 </div>
-            </section> */}
+            </section>
         </div>
     );
 }
