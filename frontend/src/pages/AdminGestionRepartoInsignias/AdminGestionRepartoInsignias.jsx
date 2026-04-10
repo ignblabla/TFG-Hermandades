@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { CalendarX, User, Users, Award, AlertCircle, CheckCircle  } from "lucide-react";
+import { CalendarX, User, Users, AlertCircle, CheckCircle, Settings  } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -327,9 +327,6 @@ function GestionRepartoInsignias() {
 
                         <div className="algorithm-execution-container">
                             <div className="algorithm-card">
-                                <div className="algorithm-icon-wrapper">
-                                    <Award size={160} strokeWidth={1.5} className="algorithm-icon" />
-                                </div>
                                 <div className="algorithm-content">
                                     <h2 className="algorithm-title">GESTIÓN Y REPARTO DE INSIGNIAS</h2>
                                     <p className="algorithm-description">

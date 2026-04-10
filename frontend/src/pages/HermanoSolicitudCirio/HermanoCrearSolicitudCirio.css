@@ -23,7 +23,7 @@
 
 .dashboard-panel-main-solicitud {
     width: 75%;
-    min-height: 1100px;
+    height: auto;
     background-color: #ffffff;
     border: 3px solid #800020;
     border-radius: 12px;

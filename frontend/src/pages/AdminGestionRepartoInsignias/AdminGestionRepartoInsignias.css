@@ -54,29 +54,19 @@
     border-radius: 8px;
     padding: 32px;
     display: flex;
-    align-items: flex-start;
-    gap: 24px;
+    align-items: center; 
+    gap: 32px;
     width: 100%;
     box-sizing: border-box;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-}
-
-.algorithm-icon-wrapper {
-    padding: 0 10px 0 0; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.algorithm-icon {
-    color: #800020;
+    box-shadow: 0 8px 16px rgba(211, 59, 59, 0.3);
 }
 
 .algorithm-content {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    text-align: center;
     gap: 12px;
     flex-grow: 1;
 }
@@ -101,7 +91,7 @@
 .algorithm-action {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
     margin-top: 8px;
 }
@@ -142,9 +132,10 @@
 @media (max-width: 768px) {
     .algorithm-card {
         flex-direction: column;
-        align-items: center;
+        align-items: center; 
         text-align: center;
         padding: 24px;
+        gap: 20px;
     }
     
     .algorithm-action {
@@ -154,5 +145,9 @@
     
     .algorithm-button {
         width: 100%;
+    }
+
+    .algorithm-icon-wrapper {
+        padding: 0;
     }
 }
