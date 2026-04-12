@@ -12,7 +12,7 @@ from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
-from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, EjecutarRepartoView, SolicitarInsigniaView
+from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView
 from . import views
 
@@ -84,4 +84,8 @@ urlpatterns = [
 
     #Papeletas de sitio
     path('actos/<int:acto_id>/solicitudes-insignias/', TablaInsigniasActoView.as_view(), name='acto-solicitudes-insignias'),
+
+    #Asignación de insignias
+    path('actos/<int:pk>/descargar-listado-insignias/', DescargarListadoInsigniasView.as_view(), name='descargar-listado-insignias'),
+    path('actos/<int:pk>/descargar-listado-vacantes/', DescargarListadoVacantesView.as_view(), name='descargar-listado-vacantes'),
 ]

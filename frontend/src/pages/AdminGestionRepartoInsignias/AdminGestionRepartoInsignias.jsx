@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { CalendarX, User, Users, AlertCircle, CheckCircle } from "lucide-react";
+import { CalendarX, User, Users, AlertCircle, CheckCircle, Download, Settings } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -18,7 +18,10 @@ function GestionRepartoInsignias() {
     const [success, setSuccess] = useState(false);
 
     const [processing, setProcessing] = useState(false); 
-    const [successData, setSuccessData] = useState(null); 
+    const [successData, setSuccessData] = useState(null);
+
+    const [downloading, setDownloading] = useState(false);
+    const [downloadingVacantes, setDownloadingVacantes] = useState(false);
 
     const navigate = useNavigate();
 
@@ -155,6 +158,58 @@ function GestionRepartoInsignias() {
             }
         } finally {
             setProcessing(false);
+        }
+    };
+
+    const handleDescargarListado = async () => {
+        setDownloading(true);
+        setError("");
+
+        try {
+            const response = await api.get(`/api/actos/${id}/descargar-listado-insignias/`, {
+                responseType: 'blob' 
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `asignacion_insignias_${id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error al descargar:", err);
+            setError("Error al descargar el listado de insignias.");
+        } finally {
+            setDownloading(false);
+        }
+    };
+
+    const handleDescargarVacantes = async () => {
+        setDownloadingVacantes(true);
+        setError("");
+
+        try {
+            const response = await api.get(`/api/actos/${id}/descargar-listado-vacantes/`, {
+                responseType: 'blob' 
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `insignias_vacantes_${id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error al descargar vacantes:", err);
+            setError("Error al descargar el listado de insignias vacantes.");
+        } finally {
+            setDownloadingVacantes(false);
         }
     };
 
@@ -386,7 +441,8 @@ function GestionRepartoInsignias() {
                                             onClick={handleReparto}
                                             disabled={!fechaValida || processing}
                                         >
-                                            {processing ? "Procesando algoritmo..." : "Ejecutar Algoritmo de Asignación"}
+                                            <Settings size={20} />
+                                            {processing ? "Procesando algoritmo..." : "Ejecutar algoritmo de asignación"}
                                         </button>
                                         {!fechaValida && (
                                             <span className="algorithm-warning">
@@ -422,35 +478,56 @@ function GestionRepartoInsignias() {
 
                             <div className="plazo-card-wrapper">
                                 <div className="plazo-card-content">
-                                    <div className="plazo-card-icon" style={{ color: '#4caf50' }}>
+                                    <div className="plazo-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
                                     <h3 className="plazo-card-title">INSIGNIAS ASIGNADAS</h3>
                                     <p className="plazo-card-description">
-                                        Total de puestos e insignias cubiertas en el reparto.
+                                        Total de puestos e insignias cubiertas tras el proceso de asignación.
                                     </p>
-                                    <div className="plazo-card-date" style={{ color: '#4caf50' }}>
-                                        {successData ? successData.total_asignados : "-"}
+                                    <div className="plazo-card-date">
+                                        {successData?.total_asignados ?? acto?.total_asignados ?? "-"}
                                     </div>
                                 </div>
                             </div>
 
                             <div className="plazo-card-wrapper">
                                 <div className="plazo-card-content">
-                                    <div className="plazo-card-icon" style={{ color: '#f44336' }}>
+                                    <div className="plazo-card-icon">
                                         <AlertCircle size={32} strokeWidth={2.5} />
                                     </div>
                                     <h3 className="plazo-card-title">INSIGNIAS VACANTES</h3>
                                     <p className="plazo-card-description">
-                                        Puestos que no han sido asignados (falta de solicitudes, etc).
+                                        Listado de vacantes desiertas por falta de solicitudes o incumplimiento de requisitos.
                                     </p>
-                                    <div className="plazo-card-date" style={{ color: '#f44336' }}>
-                                        {successData ? successData.total_no_asignados : "-"}
+                                    <div className="plazo-card-date">
+                                        {successData?.total_no_asignados ?? acto?.total_no_asignados ?? "-"}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        {(successData || acto?.fecha_ejecucion_reparto) && (
+                            <div className="download-buttons-container">
+                                <button 
+                                    className="algorithm-button"
+                                    onClick={handleDescargarListado}
+                                    disabled={downloading || downloadingVacantes}
+                                >
+                                    <Download size={20} />
+                                    {downloading ? "Generando..." : "Descargar insignias asignadas (PDF)"}
+                                </button>
+
+                                <button 
+                                    className="algorithm-button"
+                                    onClick={handleDescargarVacantes}
+                                    disabled={downloading || downloadingVacantes}
+                                >
+                                    <Download size={20} />
+                                    {downloadingVacantes ? "Generando..." : "Descargar insignias vacantes (PDF)"}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>

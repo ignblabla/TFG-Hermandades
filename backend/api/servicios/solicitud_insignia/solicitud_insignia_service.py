@@ -414,3 +414,47 @@ class SolicitudInsigniaService:
         doc.build(elementos)
         buffer.seek(0)
         return buffer
+
+
+
+    @staticmethod
+    def generar_pdf_vacantes(acto: Acto) -> BytesIO:
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+        elementos = []
+        styles = getSampleStyleSheet()
+
+        titulo = Paragraph(f"Insignias Vacantes - {acto.nombre}", styles['Title'])
+        elementos.append(titulo)
+        elementos.append(Spacer(1, 20))
+
+        puestos = Puesto.objects.filter(
+            acto=acto, 
+            tipo_puesto__es_insignia=True
+        )
+
+        data = [["Puesto / Insignia", "Plazas Vacantes"]]
+
+        for puesto in puestos:
+            if puesto.plazas_disponibles > 0:
+                data.append([puesto.nombre, str(puesto.plazas_disponibles)])
+
+        if len(data) == 1:
+            elementos.append(Paragraph("Todas las insignias han sido asignadas. No hay vacantes.", styles['Normal']))
+        else:
+            table = Table(data, colWidths=[350, 150])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#800020")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elementos.append(table)
+
+        doc.build(elementos)
+        buffer.seek(0)
+        return buffer
