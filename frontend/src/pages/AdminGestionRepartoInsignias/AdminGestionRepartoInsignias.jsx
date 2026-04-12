@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { CalendarX, User, Users, AlertCircle, CheckCircle, Settings  } from "lucide-react";
+import { CalendarX, User, Users, AlertCircle, CheckCircle } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
@@ -30,6 +30,26 @@ function GestionRepartoInsignias() {
             hour: '2-digit', minute: '2-digit'
         });
     };
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError("");
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                setSuccess(false);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
 
     useEffect(() => {
         let isMounted = true; 
@@ -87,21 +107,45 @@ function GestionRepartoInsignias() {
     };
 
     const handleReparto = async () => {
-        if (!window.confirm(`¿Estás seguro de generar el reparto para "${acto.nombre}"?\n\nEsta acción asignará los puestos disponibles a los hermanos según su antigüedad.`)) {
+        if (!window.confirm(`¿Estás seguro de generar el reparto para "${acto.nombre}"?\n\nEsta acción asignará los puestos disponibles a los hermanos según su antigüedad y descargará el listado resultante.`)) {
             return;
         }
 
         setProcessing(true);
         setError("");
         setSuccessData(null);
+        setSuccess(false);
 
         try {
             const response = await api.post(`/api/actos/${id}/reparto-automatico/`);
-            setSuccessData(response.data); 
+            
+            const { pdf_base64, filename } = response.data;
+
+            if (pdf_base64) {
+                const dataUrl = `data:application/pdf;base64,${pdf_base64}`;
+
+                const fetchResponse = await fetch(dataUrl);
+                const blob = await fetchResponse.blob();
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename || `asignacion_insignias_${id}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            } else {
+                setError("El servidor respondió con éxito, pero no incluyó el documento PDF.");
+            }
+
+            setSuccess(true);
         } catch (err) {
+            console.error("Error capturado:", err);
+            
             if (err.response && err.response.data) {
-                const data = err.response.data;
-                setError(data.error || data.detail || "Error al procesar el reparto.");
+                setError(err.response.data.error || err.response.data.detail || "Error al procesar el reparto.");
             } else {
                 setError("Error de red al intentar conectar con el servidor.");
             }
@@ -244,7 +288,7 @@ function GestionRepartoInsignias() {
 
             <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="dashboard-split-layout-solicitud">
-                    <div className="dashboard-panel-main-solicitud">
+                    <div className="dashboard-panel-gestion-solicitud">
                         <div className="historical-header-container">
                             <h1 className="historical-header-title">ASIGNACIÓN DE INSIGNIAS</h1>
                             <p className="historical-header-subtitle">
@@ -266,7 +310,7 @@ function GestionRepartoInsignias() {
                                     </div>
                                     <h3 className="plazo-card-title">FIN SOLICITUD INSIGNIAS</h3>
                                     <p className="plazo-card-description">
-                                        Fecha de cierre para la solicitud general de insignias y varas.
+                                        Fecha de cierre para la solicitud general de insignias, varas y maniguetas.
                                     </p>
                                     <div className="plazo-card-date">
                                         {formatearFechaHora(acto?.fin_solicitud)}
@@ -281,7 +325,7 @@ function GestionRepartoInsignias() {
                                     </div>
                                     <h3 className="plazo-card-title">HERMANOS SOLICITANTES</h3>
                                     <p className="plazo-card-description">
-                                        Censo total de hermanos con solicitud de insignia.
+                                        Censo total de hermanos con solicitud de insignia debidamente registrada y tramitada.
                                     </p>
                                     <div className="plazo-card-date">
                                         {acto?.total_solicitantes_insignia ?? 0}
@@ -305,7 +349,7 @@ function GestionRepartoInsignias() {
                             </div>
                         </div>
 
-                        <div className="plazos-separator">
+                        <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
                                 <span className="plazos-text">ALGORITMO AUTOMÁTICO DE ASIGNACIÓN DE INSIGNIAS</span>
                             <div className="plazos-line"></div>
@@ -321,7 +365,7 @@ function GestionRepartoInsignias() {
                         {success && (
                             <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
                                 <CheckCircle size={20} />
-                                <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
+                                <span>Asignación de insignias realizada correctamente. Descargando PDF...</span>
                             </div>
                         )}
 
@@ -349,6 +393,14 @@ function GestionRepartoInsignias() {
                                 </div>
                             </div>
                         </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">RESUMEN DETALLADO DE LA ASIGNACIÓN DE INSIGNIAS</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+
                     </div>
                 </div>
             </section>

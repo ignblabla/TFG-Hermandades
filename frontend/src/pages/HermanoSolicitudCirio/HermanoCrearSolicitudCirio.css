@@ -17,7 +17,7 @@
     display: flex;
     align-items: flex-start;
     width: 100%;
-    min-height: 1100px;
+    height: auto;
     gap: 24px;
 }
 

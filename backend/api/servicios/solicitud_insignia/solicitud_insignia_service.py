@@ -6,6 +6,12 @@ from django.utils import timezone
 from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from django.db.models import F
 
 class ActoService:
     @staticmethod
@@ -360,3 +366,51 @@ class SolicitudInsigniaService:
             )
             for item in preferencias_data
         ])
+
+
+
+    @staticmethod
+    def generar_pdf_asignados(acto: Acto) -> BytesIO:
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+        elementos = []
+        styles = getSampleStyleSheet()
+
+        titulo = Paragraph(f"Asignación de Insignias - {acto.nombre}", styles['Title'])
+        elementos.append(titulo)
+        elementos.append(Spacer(1, 20))
+
+        asignaciones = PapeletaSitio.objects.filter(
+            acto=acto,
+            es_solicitud_insignia=True,
+            puesto__isnull=False
+        ).select_related('hermano', 'puesto').order_by(
+            F('hermano__numero_registro').asc(nulls_last=True)
+        )
+
+        data = [["Nº Registro", "Insignia Asignada"]]
+        
+        for asignacion in asignaciones:
+            num_registro = str(asignacion.hermano.numero_registro) if asignacion.hermano.numero_registro else "Sin N.R."
+            nombre_puesto = asignacion.puesto.nombre
+            data.append([num_registro, nombre_puesto])
+
+        if len(data) == 1:
+            elementos.append(Paragraph("No se han asignado insignias en este reparto.", styles['Normal']))
+        else:
+            table = Table(data, colWidths=[150, 350])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#800020")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elementos.append(table)
+
+        doc.build(elementos)
+        buffer.seek(0)
+        return buffer

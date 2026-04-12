@@ -1,3 +1,14 @@
+.dashboard-panel-gestion-solicitud {
+    width: 100%;
+    height: auto;
+    background-color: #ffffff;
+    border: 3px solid #800020;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px 24px 40px 24px;
+    box-sizing: border-box;
+}
+
 .historical-header-container {
     display: flex;
     flex-direction: column;
@@ -43,7 +54,7 @@
 
 .algorithm-execution-container {
     width: 100%;
-    margin-bottom: 40px;
+    margin-bottom: 0;
     display: flex;
     justify-content: center;
 }
