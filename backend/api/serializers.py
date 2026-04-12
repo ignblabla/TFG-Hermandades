@@ -323,6 +323,8 @@ class TramoSerializer(serializers.ModelSerializer):
 
 
 class ActoSerializer(serializers.ModelSerializer):
+    total_insignias = serializers.SerializerMethodField()
+
     tipo_acto = serializers.SlugRelatedField(
         slug_field='tipo',
         queryset=TipoActo.objects.all()
@@ -343,7 +345,7 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias']
+        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias']
 
     read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
@@ -381,6 +383,11 @@ class ActoSerializer(serializers.ModelSerializer):
         ).count()
 
         return total
+
+    def get_total_insignias(self, obj):
+        """Calcula el cupo máximo de insignias para este acto"""
+        puestos = obj.puestos_disponibles.filter(tipo_puesto__es_insignia=True)
+        return sum(p.numero_maximo_asignaciones for p in puestos)
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO
