@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 
 from api.serializadores.solicitud_insignia.solicitud_insignia_serializer import ActoInsigniaResumenSerializer, SolicitudInsigniaSerializer
 from api.servicios.solicitud_insignia.solicitud_insignia_service import ActoService, SolicitudInsigniaService
-from api.models import Acto
+from api.models import Acto, PapeletaSitio, Puesto
 from api.service.reparto_service import RepartoService
 
 
@@ -77,6 +77,28 @@ class EjecutarRepartoView(APIView):
         
         try:
             resultado_algoritmo = RepartoService.ejecutar_asignacion_automatica(acto_id=pk)
+
+            puestos_insignia = Puesto.objects.filter(acto_id=pk, tipo_puesto__es_insignia=True)
+            total_cupo_insignias = sum(p.numero_maximo_asignaciones for p in puestos_insignia)
+
+            insignias_asignadas = PapeletaSitio.objects.filter(
+                acto_id=pk,
+                es_solicitud_insignia=True,
+                puesto__isnull=False
+            ).count()
+
+            insignias_no_asignadas = total_cupo_insignias - insignias_asignadas
+
+            stats = {
+                "total_asignados": insignias_asignadas,
+                "total_no_asignados": max(0, insignias_no_asignadas),
+                "total_insignias": total_cupo_insignias
+            }
+
+            if isinstance(resultado_algoritmo, dict):
+                resultado_algoritmo.update(stats)
+            else:
+                resultado_algoritmo = stats
 
             pdf_buffer = SolicitudInsigniaService.generar_pdf_asignados(acto)
             pdf_bytes = pdf_buffer.getvalue()

@@ -119,7 +119,11 @@ function GestionRepartoInsignias() {
         try {
             const response = await api.post(`/api/actos/${id}/reparto-automatico/`);
             
-            const { pdf_base64, filename } = response.data;
+            const { pdf_base64, filename, detalle_algoritmo } = response.data;
+
+            if (detalle_algoritmo) {
+                setSuccessData(detalle_algoritmo);
+            }
 
             if (pdf_base64) {
                 const dataUrl = `data:application/pdf;base64,${pdf_base64}`;
@@ -400,6 +404,60 @@ function GestionRepartoInsignias() {
                             <div className="plazos-line"></div>
                         </div>
 
+                        {successData ? (
+                            <div className="plazos-cards-container" style={{ marginTop: '20px' }}>
+                                <div className="plazo-card-wrapper">
+                                    <div className="plazo-card-content">
+                                        <div className="plazo-card-icon">
+                                            <Users size={32} strokeWidth={2.5} />
+                                        </div>
+                                        <h3 className="plazo-card-title">TOTAL INSIGNIAS</h3>
+                                        <p className="plazo-card-description">
+                                            Cupo máximo de insignias y puestos disponibles en el acto.
+                                        </p>
+                                        <div className="plazo-card-date">
+                                            {successData.total_insignias ?? 0}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CAJA 2: ASIGNADAS */}
+                                <div className="plazo-card-wrapper">
+                                    <div className="plazo-card-content">
+                                        <div className="plazo-card-icon" style={{ color: '#4caf50' }}>
+                                            <CheckCircle size={32} strokeWidth={2.5} />
+                                        </div>
+                                        <h3 className="plazo-card-title">INSIGNIAS ASIGNADAS</h3>
+                                        <p className="plazo-card-description">
+                                            Total de puestos e insignias cubiertas en el reparto.
+                                        </p>
+                                        <div className="plazo-card-date" style={{ color: '#4caf50' }}>
+                                            {successData.total_asignados ?? 0}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CAJA 3: VACANTES */}
+                                <div className="plazo-card-wrapper">
+                                    <div className="plazo-card-content">
+                                        <div className="plazo-card-icon" style={{ color: '#f44336' }}>
+                                            <AlertCircle size={32} strokeWidth={2.5} />
+                                        </div>
+                                        <h3 className="plazo-card-title">INSIGNIAS VACANTES</h3>
+                                        <p className="plazo-card-description">
+                                            Puestos que no han sido asignados (falta de solicitudes, etc).
+                                        </p>
+                                        <div className="plazo-card-date" style={{ color: '#f44336' }}>
+                                            {successData.total_no_asignados ?? 0}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div style={{ textAlign: "center", color: "#666", padding: "30px 0" }}>
+                                {!processing && "Ejecute el algoritmo para ver el resumen de la asignación."}
+                            </div>
+                        )}
 
                     </div>
                 </div>
