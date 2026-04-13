@@ -3,19 +3,14 @@ import math
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import F, Max 
+from django.db.models import F, Max, Q
 
 from ..models import Acto, PapeletaSitio, Tramo, Puesto
 
 def ejecutar_asignacion_automatica_cirios(acto_id: int):
     """
     Algoritmo de reparto de cirios con INTEGRIDAD DE GRUPOS.
-    
-    MEJORA CRÍTICA:
-    - Se respeta la integridad de los grupos vinculados.
-    - Algoritmo de 'Llenado por Bloques': Los grupos se tratan como unidades atómicas.
-    - Se recalcula el cupo ideal dinámicamente para mantener el equilibrio entre tramos
-        aunque algunos grupos obliguen a superar ligeramente la media.
+    Retorna el número de papeletas que han sido asignadas con éxito.
     """
     with transaction.atomic():
         try:
@@ -23,8 +18,11 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
         except Acto.DoesNotExist:
             raise ValidationError("El acto especificado no existe.")
         
-        if acto.fecha_ejecucion_reparto is not None:
-            raise ValidationError(f"El reparto ya se ejecutó el {acto.fecha_ejecucion_reparto}.")
+        if acto.fecha_ejecucion_cirios is not None:
+            raise ValidationError(f"El reparto de cirios ya se ejecutó el {acto.fecha_ejecucion_cirios.strftime('%d/%m/%Y %H:%M')}.")
+            
+        if acto.modalidad == Acto.ModalidadReparto.TRADICIONAL and acto.fecha_ejecucion_reparto is None:
+            raise ValidationError("No se puede ejecutar el reparto de cirios sin haber ejecutado previamente el de insignias.")
         
         if not acto.inicio_solicitud_cirios:
             raise ValidationError("El acto no tiene configuradas las fechas de solicitud de cirios.")
@@ -32,9 +30,10 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
         ahora = timezone.now()
         fecha_hoy = ahora.date()
 
+        # 1. Resetear el estado de las papeletas de cirio previas
         PapeletaSitio.objects.filter(
-            acto=acto,
-            es_solicitud_insignia=False
+            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
+            acto=acto
         ).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).update(
             tramo=None,
             numero_papeleta=None,
@@ -51,6 +50,7 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
 
         contador_global_papeleta = 1 if max_papeleta_existente is None else max_papeleta_existente + 1
         papeletas_para_actualizar = []
+        candidatos_totales = 0
 
         flujos = [
             {'nombre': 'CRISTO', 'cortejo_bool': True, 'paso_enum': Tramo.PasoCortejo.CRISTO},
@@ -59,13 +59,15 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
 
         for flujo in flujos:
             qs_candidatos = PapeletaSitio.objects.filter(
+                Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
                 acto=acto,
-                es_solicitud_insignia=False,
                 puesto__cortejo_cristo=flujo['cortejo_bool'],
                 estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
             ).select_related('hermano')
 
             raw_candidatos = list(qs_candidatos)
+            candidatos_totales += len(raw_candidatos)
+            
             mapa_hermanos_papeletas = {p.hermano.id: p for p in raw_candidatos}
             
             mapa_solicitudes_inversas = {}
@@ -116,9 +118,6 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
 
             grupos_procesados.sort(key=lambda x: (x['fecha_sort'], x['registro_sort']))
 
-            # ---------------------------------------------------------
-            # B. ASIGNACIÓN POR BLOQUES A TRAMOS
-            # ---------------------------------------------------------
             qs_tramos = Tramo.objects.filter(
                 acto=acto,
                 paso=flujo['paso_enum']
@@ -130,7 +129,7 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
             total_tramos = len(lista_tramos)
             
             if total_tramos == 0 and total_grupos > 0:
-                raise ValidationError(f"Hay hermanos solicitando sitio en {flujo['nombre']} pero no existen tramos configurados.")
+                raise ValidationError(f"Hay hermanos solicitando sitio en {flujo['nombre']} pero no existen tramos configurados para ese paso.")
             
             index_grupo_actual = 0
 
@@ -192,6 +191,20 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
                     f"por falta de espacio físico en los tramos. Por favor, aumente el aforo máximo de los tramos o cree nuevos."
                 )
 
+        # NUEVA DEFENSA: Explicación exacta de por qué falla si hay 0 procesados
+        if candidatos_totales == 0:
+            sin_puesto = PapeletaSitio.objects.filter(acto=acto, puesto__isnull=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
+            es_insignia = PapeletaSitio.objects.filter(acto=acto, es_solicitud_insignia=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
+            total_activas = PapeletaSitio.objects.filter(acto=acto).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
+            
+            raise ValidationError(
+                f"No se ha encontrado ninguna papeleta válida para asignar a tramos. "
+                f"Detalle del Acto (Total activas: {total_activas}) -> "
+                f"Ignoradas por ser Insignias: {es_insignia} | "
+                f"Ignoradas por NO tener Puesto asignado: {sin_puesto}. "
+                f"Para que el algoritmo funcione, las papeletas de cirio DEBEN tener un Puesto asociado para saber si van en Cristo o Virgen."
+            )
+
         if papeletas_para_actualizar:
             PapeletaSitio.objects.bulk_update(
                 papeletas_para_actualizar, 
@@ -202,8 +215,9 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
                 ],
                 batch_size=1000
             )
-        
-        acto.fecha_ejecucion_reparto = ahora
-        acto.save(update_fields=['fecha_ejecucion_reparto'])
 
-    return True
+        acto.fecha_ejecucion_cirios = ahora
+        acto.save(update_fields=['fecha_ejecucion_cirios'])
+
+    # Retornamos cuántas se actualizaron para que la Vista nos lo diga
+    return len(papeletas_para_actualizar)
