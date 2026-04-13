@@ -367,7 +367,7 @@ class ActoSerializer(serializers.ModelSerializer):
         return obj.fecha_ejecucion_reparto is not None
     
     def get_total_solicitantes_insignia(self, obj):
-        estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
+        estados_inactivos = ['ANULADA']
 
         return obj.papeletas.filter(
             es_solicitud_insignia=True
@@ -376,7 +376,7 @@ class ActoSerializer(serializers.ModelSerializer):
         ).count()
     
     def get_total_solicitudes_insignias(self, obj):
-        estados_validos = ['SOLICITADA', 'EMITIDA', 'RECOGIDA', 'LEIDA']
+        estados_validos = ['SOLICITADA', 'EMITIDA', 'RECOGIDA', 'LEIDA', 'NO_ASIGNADA']
 
         total = PreferenciaSolicitud.objects.filter(
             papeleta__acto_id=obj.id,
