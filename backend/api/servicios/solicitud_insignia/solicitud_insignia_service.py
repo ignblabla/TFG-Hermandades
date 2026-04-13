@@ -5,7 +5,7 @@ import uuid
 from django.utils import timezone
 from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Q, Count
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -428,25 +428,36 @@ class SolicitudInsigniaService:
         elementos.append(titulo)
         elementos.append(Spacer(1, 20))
 
+        estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
+
         puestos = Puesto.objects.filter(
             acto=acto, 
             tipo_puesto__es_insignia=True
-        )
+        ).annotate(
+            ocupacion_real=Count(
+                'papeletas_asignadas',
+                filter=~Q(papeletas_asignadas__estado_papeleta__in=estados_inactivos) & Q(papeletas_asignadas__acto=acto)
+            )
+        ).order_by('-cortejo_cristo', 'nombre')
 
-        data = [["Puesto / Insignia", "Plazas Vacantes"]]
+        data = [["Puesto / Insignia", "Cortejo", "Plazas Vacantes"]]
 
         for puesto in puestos:
-            if puesto.plazas_disponibles > 0:
-                data.append([puesto.nombre, str(puesto.plazas_disponibles)])
+            vacantes = puesto.numero_maximo_asignaciones - puesto.ocupacion_real
+            
+            if vacantes > 0:
+                cortejo = "Paso de Cristo" if puesto.cortejo_cristo else "Paso de Virgen"
+                data.append([puesto.nombre, cortejo, str(vacantes)])
 
         if len(data) == 1:
             elementos.append(Paragraph("Todas las insignias han sido asignadas. No hay vacantes.", styles['Normal']))
         else:
-            table = Table(data, colWidths=[350, 150])
+            table = Table(data, colWidths=[250, 150, 100])
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#800020")),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('FONTSIZE', (0, 0), (-1, 0), 12),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),

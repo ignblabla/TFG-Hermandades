@@ -399,9 +399,13 @@ class ActoSerializer(serializers.ModelSerializer):
         if not obj.fecha_ejecucion_reparto:
             return None
             
+        estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
+        
         return obj.papeletas.filter(
             es_solicitud_insignia=True, 
             puesto__isnull=False
+        ).exclude(
+            estado_papeleta__in=estados_inactivos
         ).count()
 
     def get_total_no_asignados(self, obj):
