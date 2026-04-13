@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
-from api.service.ejecutar_asignacion_automatica_cirios import ejecutar_asignacion_automatica_cirios
+
+from api.servicios.solicitud_cirio.solicitud_cirio_service import ejecutar_asignacion_automatica_cirios
 
 class EjecutarRepartoCiriosView(APIView):
     """
@@ -13,7 +14,6 @@ class EjecutarRepartoCiriosView(APIView):
 
     def post(self, request, acto_id):
         try:
-            # Capturamos el número de papeletas asignadas
             cantidad_asignadas = ejecutar_asignacion_automatica_cirios(acto_id)
             
             return Response({
@@ -23,7 +23,6 @@ class EjecutarRepartoCiriosView(APIView):
             }, status=status.HTTP_200_OK)
 
         except ValidationError as e:
-            # Esto ahora te lanzará el error detallado de la telemetría si las papeletas no tienen puesto
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "Error interno del servidor durante el reparto.", "detalle": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

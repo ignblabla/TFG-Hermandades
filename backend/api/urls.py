@@ -1,7 +1,6 @@
 from django.urls import path
 
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
-from api.view.ejecutar_reparto_cirios_view import EjecutarRepartoCiriosView
 # from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
@@ -14,6 +13,7 @@ from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView
+from api.vistas.solicitud_cirio.solicitud_cirio_view import EjecutarRepartoCiriosView
 from . import views
 
 from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
@@ -33,7 +33,6 @@ urlpatterns = [
     path("tipos-acto/", TipoActoListView.as_view(), name="lista-tipos-acto"),
 
     path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
-    path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
 
     path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
 
@@ -88,4 +87,7 @@ urlpatterns = [
     #Asignación de insignias
     path('actos/<int:pk>/descargar-listado-insignias/', DescargarListadoInsigniasView.as_view(), name='descargar-listado-insignias'),
     path('actos/<int:pk>/descargar-listado-vacantes/', DescargarListadoVacantesView.as_view(), name='descargar-listado-vacantes'),
+
+    #Asignación de cirios
+    path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
 ]

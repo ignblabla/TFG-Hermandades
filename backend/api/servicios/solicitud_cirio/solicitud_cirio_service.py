@@ -5,7 +5,8 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import F, Max, Q
 
-from ..models import Acto, PapeletaSitio, Tramo, Puesto
+from api.models import Acto, PapeletaSitio, Tramo, Puesto
+
 
 def ejecutar_asignacion_automatica_cirios(acto_id: int):
     """
@@ -30,7 +31,6 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
         ahora = timezone.now()
         fecha_hoy = ahora.date()
 
-        # 1. Resetear el estado de las papeletas de cirio previas
         PapeletaSitio.objects.filter(
             Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
             acto=acto
@@ -191,7 +191,6 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
                     f"por falta de espacio físico en los tramos. Por favor, aumente el aforo máximo de los tramos o cree nuevos."
                 )
 
-        # NUEVA DEFENSA: Explicación exacta de por qué falla si hay 0 procesados
         if candidatos_totales == 0:
             sin_puesto = PapeletaSitio.objects.filter(acto=acto, puesto__isnull=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
             es_insignia = PapeletaSitio.objects.filter(acto=acto, es_solicitud_insignia=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
@@ -219,5 +218,4 @@ def ejecutar_asignacion_automatica_cirios(acto_id: int):
         acto.fecha_ejecucion_cirios = ahora
         acto.save(update_fields=['fecha_ejecucion_cirios'])
 
-    # Retornamos cuántas se actualizaron para que la Vista nos lo diga
     return len(papeletas_para_actualizar)
