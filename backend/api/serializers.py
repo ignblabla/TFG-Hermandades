@@ -10,7 +10,7 @@ from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBan
 from django.db import transaction
 from django.core.signing import Signer
 import base64
-from django.db.models import Count
+from django.db.models import Q, Count
 
 User = get_user_model()
 
@@ -327,6 +327,10 @@ class ActoSerializer(serializers.ModelSerializer):
     total_asignados = serializers.SerializerMethodField()
     total_no_asignados = serializers.SerializerMethodField()
 
+    total_solicitantes_cirio = serializers.SerializerMethodField()
+    total_cirios_cristo = serializers.SerializerMethodField()
+    total_cirios_virgen = serializers.SerializerMethodField()
+
     tipo_acto = serializers.SlugRelatedField(
         slug_field='tipo',
         queryset=TipoActo.objects.all()
@@ -347,7 +351,7 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias', 'total_asignados', 'total_no_asignados', 'fecha_ejecucion_cirios']
+        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias', 'total_asignados', 'total_no_asignados', 'fecha_ejecucion_cirios', 'total_solicitantes_cirio', 'total_cirios_cristo', 'total_cirios_virgen']
 
     read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
@@ -407,6 +411,36 @@ class ActoSerializer(serializers.ModelSerializer):
         total = self.get_total_insignias(obj)
         asignados = self.get_total_asignados(obj)
         return max(0, total - asignados)
+    
+    def get_total_solicitantes_cirio(self, obj):
+        estados_inactivos = ['ANULADA']
+        return obj.papeletas.filter(
+            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True)
+        ).exclude(
+            estado_papeleta__in=estados_inactivos
+        ).count()
+
+    def get_total_cirios_cristo(self, obj):
+        estados_inactivos = ['ANULADA']
+        return obj.papeletas.filter(
+            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
+            puesto__isnull=False,
+            puesto__cortejo_cristo=True,
+            puesto__tipo_puesto__es_insignia=False
+        ).exclude(
+            estado_papeleta__in=estados_inactivos
+        ).count()
+
+    def get_total_cirios_virgen(self, obj):
+        estados_inactivos = ['ANULADA']
+        return obj.papeletas.filter(
+            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
+            puesto__isnull=False,
+            puesto__cortejo_cristo=False,
+            puesto__tipo_puesto__es_insignia=False
+        ).exclude(
+            estado_papeleta__in=estados_inactivos
+        ).count()
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO

@@ -44,6 +44,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
 import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
+import GestionRepartoCirio from "./pages/AdminGestionRepartoCirios/AdminGestionRepartoCirios"
 
 
 function Logout() {
@@ -143,6 +144,14 @@ function App() {
           element={
             <ProtectedRoute>
               <GestionRepartoCirios />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestionar-reparto-cirio/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoCirio />
             </ProtectedRoute>
           }
         />
