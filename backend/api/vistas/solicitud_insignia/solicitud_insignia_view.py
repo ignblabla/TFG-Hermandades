@@ -9,9 +9,8 @@ from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from api.serializadores.solicitud_insignia.solicitud_insignia_serializer import ActoInsigniaResumenSerializer, SolicitudInsigniaSerializer
-from api.servicios.solicitud_insignia.solicitud_insignia_service import ActoService, SolicitudInsigniaService
+from api.servicios.solicitud_insignia.solicitud_insignia_service import ActoService, RepartoService, SolicitudInsigniaService
 from api.models import Acto, PapeletaSitio, Puesto
-from api.service.reparto_service import RepartoService
 
 
 class ActoActivoInsigniasView(APIView):

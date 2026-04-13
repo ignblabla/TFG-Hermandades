@@ -10,7 +10,6 @@ import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import HermanoCrearSolicitudCirio from "./pages/HermanoSolicitudCirio/HermanoCrearSolicitudCirio"
-import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
 import AdminDashboard from "./pages/Admin/Dashboard"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
@@ -140,15 +139,7 @@ function App() {
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
         <Route
-          path="/gestionar-reparto-cirios/:id"
-          element={
-            <ProtectedRoute>
-              <GestionRepartoCirios />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/gestionar-reparto-cirio/:id"
+          path="admin/gestion-reparto-cirios/:id"
           element={
             <ProtectedRoute>
               <GestionRepartoCirio />
