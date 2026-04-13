@@ -19,84 +19,109 @@
 
 .card-header-resumen-acto {
     background-color: var(--burgundy);
-    height: 120px;
+    height: 150px;
     position: relative;
     margin-bottom: 35px;
+    overflow: visible !important; 
+    z-index: 1;
+}
+
+.header-image-resumen-acto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
 .icon-badge-resumen-acto {
     position: absolute;
     bottom: -30px;
     left: 20px;
-    background: var(--white);
+    background: var(--burgundy);
     width: 60px;
     height: 60px;
     border-radius: 18px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 16px rgba(128, 0, 32, 0.3);
+    z-index: 10; 
 }
 
-.main-icon-resumen-acto {
-    color: var(--burgundy);
+.badge-month-resumen-acto {
+    color: var(--white);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.badge-day-resumen-acto {
+    color: var(--white);
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .card-body-resumen-acto {
     padding: 0 20px 30px 20px;
+    position: relative;
+    z-index: 2;
 }
 
 .card-title-resumen-acto {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--text-dark);
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
 }
 
 .card-description-resumen-acto {
-    font-size: 14px;
+    font-size: 0.9rem;
     line-height: 1.5;
     color: var(--text-muted);
-    margin-bottom: 24px;
+    margin: 0 0 20px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .info-list-resumen-acto {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
 }
 
 .info-item-resumen-acto {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
-.item-icon-wrapper-resumen-acto {
-    background-color: var(--bg-gray);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
+.info-icon-resumen-acto {
+    color: var(--burgundy);
+    flex-shrink: 0;
 }
 
-.item-content-resumen-acto {
-    display: flex;
-    flex-direction: column;
-}
-
-.item-label-resumen-acto {
-    font-size: 11px;
-    font-weight: 700;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
-}
-
-.item-value-resumen-acto {
-    font-size: 14px; 
+.info-text-resumen-acto {
+    font-size: 0.95rem;
     font-weight: 500;
-    color: var(--text-dark);
+    color: #475569;
+}
+
+.info-text-resumen-acto strong {
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.papeleta-icon-vertical {
+    transform: rotate(90deg);
 }

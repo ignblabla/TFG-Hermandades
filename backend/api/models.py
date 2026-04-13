@@ -347,6 +347,10 @@ class Acto(models.Model):
 
     fecha_ejecucion_reparto = models.DateTimeField(null=True, blank=True, verbose_name="Fecha ejecución reparto", help_text="Si tiene valor, indica que el reparto automático ya se ha ejecutado.")
 
+    fecha_ejecucion_cirios = models.DateTimeField(null=True, blank=True, verbose_name="Fecha ejecución cirios/general", help_text="Indica cuándo se ejecutó el reparto de cirios.")
+
+    imagen_portada = models.ImageField(upload_to='actos/portadas/', null=True, blank=True, verbose_name="Imagen de Portada", help_text="Imagen principal del acto")
+
     def clean(self):
         super().clean()
         errors = {}
@@ -424,6 +428,10 @@ class Acto(models.Model):
             elif self.modalidad == self.ModalidadReparto.UNIFICADO:
                 if self.inicio_solicitud_cirios is not None or self.fin_solicitud_cirios is not None:
                     errors["modalidad"] = "En modalidad UNIFICADO no se deben definir fechas de cirios."
+
+        if self.modalidad == self.ModalidadReparto.TRADICIONAL:
+            if self.fecha_ejecucion_cirios and not self.fecha_ejecucion_reparto:
+                errors["fecha_ejecucion_cirios"] = "No se puede ejecutar el reparto de cirios sin haber ejecutado previamente el de insignias."
 
         if errors:
             raise ValidationError(errors)

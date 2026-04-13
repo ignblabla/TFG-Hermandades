@@ -258,12 +258,11 @@ function HermanoNewHome() {
                     <HomeCard
                         icon={Bookmark}
                         title="Áreas de interés" 
-                        value={currentUser?.areas_interes?.length ?? 0} 
+                        value={currentUser?.areas_interes?.length || 1} 
                     />
                 </div>
 
                 <div className="new-home-dashboard-bottom-section">
-                    {/* 1. COLUMNA IZQUIERDA: SÓLO EVENTOS */}
                     <div className="new-home-dashboard-cultos-column">
                         <h2 className="cultos-section-title">Próximos eventos</h2>
                         <div className="cultos-section-dashboard">

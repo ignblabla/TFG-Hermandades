@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionActo/AdminCrearActo.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock } from "lucide-react";
+import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ImageIcon, X } from "lucide-react";
 import ResumenActoCard from '../../components/ResumenActoCard';
 
 function AdminCrearActo() {
@@ -13,16 +13,17 @@ function AdminCrearActo() {
     const maxDate = `${currentYear}-12-31T23:59`;
     
     const [isOpen, setIsOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
     
     const [currentUser, setCurrentUser] = useState(null);
     const [tiposActo, setTiposActo] = useState([]);
     const [requierePapeleta, setRequierePapeleta] = useState(false);
 
-    // 1. Inicializamos modalidad vacía
+    const [previewUrl, setPreviewUrl] = useState(null);
+
     const [formData, setFormData] = useState({
         nombre: '',
         lugar: '',
@@ -33,7 +34,8 @@ function AdminCrearActo() {
         inicio_solicitud: '',
         fin_solicitud: '',
         inicio_solicitud_cirios: '',
-        fin_solicitud_cirios: ''
+        fin_solicitud_cirios: '',
+        imagen_portada: null
     });
 
     useEffect(() => {
@@ -66,7 +68,6 @@ function AdminCrearActo() {
         return () => { isMounted = false; };
     }, [navigate]);
 
-    // --- EFECTO MENSAJES ---
     useEffect(() => {
         if (successMsg) {
             const timer = setTimeout(() => setSuccessMsg(""), 3000);
@@ -74,7 +75,12 @@ function AdminCrearActo() {
         }
     }, [successMsg]);
 
-    // --- HANDLERS ---
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
@@ -107,6 +113,37 @@ function AdminCrearActo() {
         setFormData(newData);
     };
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        
+        if (file) {
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.src = objectUrl;
+
+            img.onload = () => {
+                const width = img.naturalWidth;
+                const height = img.naturalHeight;
+                if (width > height) {
+                    setFormData(prev => ({ ...prev, imagen_portada: file }));
+                    setPreviewUrl(objectUrl);
+                    setError("");
+                } else {
+                    setError("La imagen debe ser horizontal (formato paisaje).");
+                    e.target.value = ""; 
+                    URL.revokeObjectURL(objectUrl);
+                }
+            };
+        }
+    };
+
+    const removeImage = () => {
+        setFormData(prev => ({ ...prev, imagen_portada: null }));
+        setPreviewUrl(null);
+        const fileInput = document.getElementById('imagen_portada');
+        if (fileInput) fileInput.value = "";
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -125,7 +162,24 @@ function AdminCrearActo() {
         }
 
         try {
-            await api.post('api/actos/crear/', payload);
+            const dataToSend = new FormData();
+            
+            // Añadir campos de texto
+            Object.keys(payload).forEach(key => {
+                if (key !== 'imagen_portada' && payload[key] !== null && payload[key] !== '') {
+                    dataToSend.append(key, payload[key]);
+                }
+            });
+
+            // Añadir imagen si existe
+            if (formData.imagen_portada) {
+                dataToSend.append('imagen_portada', formData.imagen_portada);
+            }
+
+            await api.post('api/actos/crear/', dataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
             setSuccessMsg("Acto creado correctamente.");
             
             setTimeout(() => {
@@ -157,8 +211,6 @@ function AdminCrearActo() {
         localStorage.clear();
         navigate("/login");
     };
-
-    if (loading) return <div className="loading-screen">Cargando configuración...</div>;
 
     return (
         <div>
@@ -257,7 +309,6 @@ function AdminCrearActo() {
                                 <FileText size={18} /> Información general
                             </h3>
 
-                            {/* 4. Bloques de Error y Éxito integrados DENTRO del form */}
                             {error && (
                                 <div className="alert-error-crear-acto" style={{ 
                                     backgroundColor: '#fee2e2', 
@@ -367,6 +418,44 @@ function AdminCrearActo() {
                                 />
                             </div>
 
+                            {/* SECCIÓN DE IMAGEN DE PORTADA */}
+                            <div className="form-group-crear-acto" style={{ marginTop: '1rem' }}>
+                                <label>Imagen de Portada (Opcional)</label>
+                                {!previewUrl ? (
+                                    <div 
+                                        className="image-upload-area-crear-acto"
+                                        onClick={() => document.getElementById('imagen_portada').click()}
+                                    >
+                                        <input 
+                                            type="file" 
+                                            id="imagen_portada"
+                                            name="imagen_portada"
+                                            accept="image/*"
+                                            onChange={handleImageChange}
+                                        />
+                                        <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
+                                        <p>Haz clic para subir una imagen de portada</p>
+                                        <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
+                                    </div>
+                                ) : (
+                                    <div className="image-preview-container-crear-acto">
+                                        <img 
+                                            src={previewUrl} 
+                                            alt="Vista previa" 
+                                            className="image-preview-img-crear-acto"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={removeImage}
+                                            className="btn-delete-image-crear-acto"
+                                            title="Eliminar imagen"
+                                        >
+                                            <X size={18} color="#ef4444" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             <h3 className="section-title-crear-acto mt-section">
                                 <Settings size={18}/> Configuración de Reparto
                             </h3>
@@ -380,9 +469,8 @@ function AdminCrearActo() {
                                     onChange={handleChange}
                                     className="form-input-crear-acto"
                                     disabled={!requierePapeleta}
-                                    required={requierePapeleta} // 3. Se hace obligatorio si requiere papeleta
+                                    required={requierePapeleta}
                                 >
-                                    {/* Opción por defecto vacía */}
                                     <option value="" disabled>Seleccione una opción</option>
                                     <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
                                     <option value="UNIFICADO">Unificado / Express (Todo a la vez)</option>
@@ -510,7 +598,7 @@ function AdminCrearActo() {
                         </form>
 
                         <div className="container-cultos-card">
-                            <ResumenActoCard formData={formData} />
+                            <ResumenActoCard formData={{...formData, previewUrl, requiere_papeleta: requierePapeleta}} />
                         </div>
                     </div>
                 </div>

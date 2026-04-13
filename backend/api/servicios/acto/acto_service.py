@@ -123,28 +123,21 @@ def _normalizar_payload_acto(data_validada):
 
 @transaction.atomic
 def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
-    # -------------------------------------------------------------------------
-    # Permisos
-    # -------------------------------------------------------------------------
+
     if not getattr(usuario_solicitante, "esAdmin", False):
         raise PermissionDenied("No tienes permisos para editar actos. Se requiere ser Administrador.")
 
-    # -------------------------------------------------------------------------
-    # Cargar acto
-    # -------------------------------------------------------------------------
     try:
         acto = Acto.objects.select_related("tipo_acto").get(pk=acto_id)
     except Acto.DoesNotExist:
         raise ValidationError({"detail": "El acto solicitado no existe."})
 
-    # -------------------------------------------------------------------------
-    # Lista blanca estricta + prohibir claves desconocidas
-    # -------------------------------------------------------------------------
     campos_permitidos = {
         "nombre", "descripcion", "fecha", "modalidad", "lugar",
         "tipo_acto", "tipo_acto_id",
         "inicio_solicitud", "fin_solicitud",
         "inicio_solicitud_cirios", "fin_solicitud_cirios",
+        "imagen_portada"
     }
 
     data_dict = _normalizar_payload_acto(data_validada)
@@ -157,9 +150,6 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
             ]
         })
 
-    # -------------------------------------------------------------------------
-    # Resolver tipo_acto si viene por ID (y validar existencia)
-    # -------------------------------------------------------------------------
     tipo_acto_obj = data_dict.get("tipo_acto", None)
     tipo_acto_id = data_dict.get("tipo_acto_id", None)
 
@@ -183,9 +173,6 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
         except TipoActo.DoesNotExist:
             raise ValidationError({"tipo_acto": "El tipo de acto indicado no existe."})
 
-    # -------------------------------------------------------------------------
-    # Calcular valores finales (para reglas de negocio)
-    # -------------------------------------------------------------------------
     nuevo_nombre = data_dict.get("nombre", acto.nombre)
     nueva_fecha = data_dict.get("fecha", acto.fecha)
     nuevo_tipo = data_dict.get("tipo_acto", acto.tipo_acto)
@@ -207,14 +194,12 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
 
     _validar_cambio_fecha(acto, nueva_fecha, data_dict=data_dict)
 
-    # -------------------------------------------------------------------------
-    # Aplicar cambios (estricto: solo campos de update real)
-    # -------------------------------------------------------------------------
     campos_update = {
         "nombre", "descripcion", "fecha", "modalidad",
         "tipo_acto", "lugar",
         "inicio_solicitud", "fin_solicitud",
         "inicio_solicitud_cirios", "fin_solicitud_cirios",
+        "imagen_portada"
     }
 
     for campo in campos_update:
@@ -227,3 +212,17 @@ def actualizar_acto_service(usuario_solicitante, acto_id, data_validada):
     acto.save()
 
     return acto
+
+
+
+# -----------------------------------------------------------------------------
+# SERVICES: LISTAR ACTOS
+# -----------------------------------------------------------------------------
+class ActoService:
+    @staticmethod
+    def get_todos_los_actos():
+        """
+        Devuelve el queryset con todos los actos, ordenados por fecha
+        para garantizar una paginación predecible y consistente.
+        """
+        return Acto.objects.all().order_by('-fecha')

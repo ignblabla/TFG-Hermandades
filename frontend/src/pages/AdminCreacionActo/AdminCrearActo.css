@@ -220,6 +220,79 @@ textarea.textarea-crear-acto {
     transform: none;
 }
 
+/* ========================================================= */
+/* ESTILOS PARA LA SUBIDA DE IMAGEN DE PORTADA */
+/* ========================================================= */
+
+.image-upload-area-crear-acto {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f9fafb;
+    transition: all 0.2s ease;
+    color: #6b7280;
+}
+
+.image-upload-area-crear-acto:hover {
+    border-color: var(--burgundy-primary);
+    background-color: #fce9ed;
+    color: var(--burgundy-primary);
+}
+
+.image-upload-area-crear-acto input[type="file"] {
+    display: none;
+}
+
+.image-upload-area-crear-acto p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.image-upload-area-crear-acto small {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin: 5px 0 0;
+    display: block;
+}
+
+.image-preview-container-crear-acto {
+    position: relative;
+    width: fit-content;
+    margin-top: 10px;
+}
+
+.image-preview-img-crear-acto {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    display: block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-delete-image-crear-acto {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+.btn-delete-image-crear-acto:hover {
+    background: #fee2e2;
+    transform: scale(1.05);
+}
+
 @media (max-width: 1024px) {
     .dashboard-layout-wrapper {
         flex-direction: column;

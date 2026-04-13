@@ -9,9 +9,7 @@ import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
-import GestionReparto from "./pages/GestionReparto"
-import HermanoCrearSolicitudCirio from "./pages/HermanoCrearSolicitudCirio"
-import GestionRepartoCirios from "./pages/GestiónRepartoCirios"
+import HermanoCrearSolicitudCirio from "./pages/HermanoSolicitudCirio/HermanoCrearSolicitudCirio"
 import AdminDashboard from "./pages/Admin/Dashboard"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
@@ -37,9 +35,15 @@ import HermanoNewHome from "./pages/NewHome"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
+import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
+import GestionRepartoInsignias from "./pages/AdminGestionRepartoInsignias/AdminGestionRepartoInsignias"
+import AdminListadoSolicitudesInsigniasActoConcreto from "./pages/AdminListadoSolicitudesInsigniasActoConcreto/AdminListadoSolicitudesInsigniasActoConcreto"
+import HermanoConsultaActo from "./pages/HermanoConsultaActo/HermanoConsultaActo"
 import ProtectedRoute from "./components/ProtectedRoute"
 
 import EditMe from "./pages/EditMe"
+import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
+import GestionRepartoCirio from "./pages/AdminGestionRepartoCirios/AdminGestionRepartoCirios"
 
 
 function Logout() {
@@ -135,18 +139,10 @@ function App() {
         />
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
         <Route
-          path="/gestionar-reparto/:id"
+          path="admin/gestion-reparto-cirios/:id"
           element={
             <ProtectedRoute>
-              <GestionReparto />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/gestionar-reparto-cirios/:id"
-          element={
-            <ProtectedRoute>
-              <GestionRepartoCirios />
+              <GestionRepartoCirio />
             </ProtectedRoute>
           }
         />
@@ -217,7 +213,7 @@ function App() {
         />
 
         <Route
-          path="/solicitud-insignias"
+          path="/hermano/solicitar-insignias/:id"
           element={
             <ProtectedRoute>
               <HermanoSolicitudInsignia />
@@ -249,8 +245,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
-          path="/solicitar-cirio" 
+          path="/hermano/solicitar-cirios/:id"
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudCirio />
@@ -291,6 +288,51 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/listado-actos"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoActos />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/acto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminConsultaActo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/acto/:id"
+          element={
+            <ProtectedRoute>
+              <HermanoConsultaActo />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/gestion-reparto-insignias/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoInsignias />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/listado-solicitudes-insignias/:id"
+          element={
+            <ProtectedRoute>
+              <AdminListadoSolicitudesInsigniasActoConcreto />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
