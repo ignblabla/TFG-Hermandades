@@ -22,6 +22,7 @@ function GestionRepartoInsignias() {
 
     const [downloading, setDownloading] = useState(false);
     const [downloadingVacantes, setDownloadingVacantes] = useState(false);
+    const [downloadingTodas, setDownloadingTodas] = useState(false);
 
     const navigate = useNavigate();
 
@@ -210,6 +211,32 @@ function GestionRepartoInsignias() {
             setError("Error al descargar el listado de insignias vacantes.");
         } finally {
             setDownloadingVacantes(false);
+        }
+    };
+
+    const handleDescargarTodas = async () => {
+        setDownloadingTodas(true);
+        setError("");
+
+        try {
+            const response = await api.get(`/api/actos/${id}/descargar-todas-insignias/`, {
+                responseType: 'blob' 
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `catalogo_insignias_${id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Error al descargar catálogo:", err);
+            setError("Error al descargar el catálogo de insignias configuradas.");
+        } finally {
+            setDownloadingTodas(false);
         }
     };
 
@@ -511,20 +538,29 @@ function GestionRepartoInsignias() {
                             <div className="download-buttons-container">
                                 <button 
                                     className="algorithm-button"
-                                    onClick={handleDescargarListado}
-                                    disabled={downloading || downloadingVacantes}
+                                    onClick={handleDescargarTodas}
+                                    disabled={downloading || downloadingVacantes || downloadingTodas}
                                 >
                                     <Download size={20} />
-                                    {downloading ? "Generando..." : "Descargar insignias asignadas (PDF)"}
+                                    {downloading ? "Generando..." : "Descargar listado insignias (PDF)"}
                                 </button>
 
                                 <button 
                                     className="algorithm-button"
-                                    onClick={handleDescargarVacantes}
-                                    disabled={downloading || downloadingVacantes}
+                                    onClick={handleDescargarListado}
+                                    disabled={downloading || downloadingVacantes || downloadingTodas}
                                 >
                                     <Download size={20} />
-                                    {downloadingVacantes ? "Generando..." : "Descargar insignias vacantes (PDF)"}
+                                    {downloadingVacantes ? "Generando..." : "Descargar insignias asignadas (PDF)"}
+                                </button>
+
+                                <button
+                                    className="algorithm-button"
+                                    onClick={handleDescargarVacantes}
+                                    disabled={downloading || downloadingVacantes || downloadingTodas}
+                                >
+                                    <Download size={20} />
+                                    {downloadingTodas ? "Generando..." : "Descargar listado vacantes (PDF)"}
                                 </button>
                             </div>
                         )}

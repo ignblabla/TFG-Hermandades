@@ -458,3 +458,48 @@ class SolicitudInsigniaService:
         doc.build(elementos)
         buffer.seek(0)
         return buffer
+
+
+
+    @staticmethod
+    def generar_pdf_todas_insignias(acto: Acto) -> BytesIO:
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
+        elementos = []
+        styles = getSampleStyleSheet()
+
+        titulo = Paragraph(f"Catálogo de Insignias - {acto.nombre}", styles['Title'])
+        elementos.append(titulo)
+        elementos.append(Spacer(1, 20))
+
+        puestos = Puesto.objects.filter(
+            acto=acto, 
+            tipo_puesto__es_insignia=True
+        ).order_by('-cortejo_cristo', 'nombre')
+
+        data = [["Puesto / Insignia", "Cortejo", "Cupo Total"]]
+
+        for puesto in puestos:
+            cortejo = "Paso de Cristo" if puesto.cortejo_cristo else "Paso de Virgen"
+            data.append([puesto.nombre, cortejo, str(puesto.numero_maximo_asignaciones)])
+
+        if len(data) == 1:
+            elementos.append(Paragraph("No hay insignias configuradas para este acto.", styles['Normal']))
+        else:
+            table = Table(data, colWidths=[250, 150, 100])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#800020")),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            elementos.append(table)
+
+        doc.build(elementos)
+        buffer.seek(0)
+        return buffer

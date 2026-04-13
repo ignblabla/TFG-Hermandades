@@ -116,13 +116,14 @@
     color: #FFFFFF;
     border: none;
     border-radius: 8px;
-    padding: 12px 32px; 
+    padding: 12px 16px;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .algorithm-button:hover:not(:disabled) {
@@ -143,12 +144,12 @@
 }
 
 .download-buttons-container {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    width: 100%;
     margin-top: 30px;
     margin-bottom: 20px;
-    flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
@@ -171,5 +172,11 @@
 
     .algorithm-icon-wrapper {
         padding: 0;
+    }
+}
+
+@media (max-width: 992px) {
+    .download-buttons-container {
+        grid-template-columns: 1fr;
     }
 }

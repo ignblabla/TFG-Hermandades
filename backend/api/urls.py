@@ -11,7 +11,7 @@ from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
-from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
+from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from . import views
@@ -87,6 +87,7 @@ urlpatterns = [
     #Asignación de insignias
     path('actos/<int:pk>/descargar-listado-insignias/', DescargarListadoInsigniasView.as_view(), name='descargar-listado-insignias'),
     path('actos/<int:pk>/descargar-listado-vacantes/', DescargarListadoVacantesView.as_view(), name='descargar-listado-vacantes'),
+    path('actos/<int:pk>/descargar-todas-insignias/', DescargarListadoTodasInsigniasView.as_view(), name='descargar-listado-total-insignias'),
 
     #Asignación de cirios
     path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
