@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
-import { Settings, CheckCircle, Flame, CalendarCheck, CalendarX, CalendarDays, AlertCircle } from "lucide-react";
+import '../AdminGestionRepartoCirios/AdminGestionRepartoCirios.css';
+import { Settings, CheckCircle, Flame, CalendarCheck, CalendarX, CalendarDays, AlertCircle, Download } from "lucide-react";
 
 function GestionRepartoCirio() {
     const { id } = useParams();
@@ -15,6 +16,8 @@ function GestionRepartoCirio() {
 
     const [processing, setProcessing] = useState(false);
     const [successData, setSuccessData] = useState(null);
+
+    const [downloading, setDownloading] = useState(false);
 
     const navigate = useNavigate();
 
@@ -65,6 +68,61 @@ function GestionRepartoCirio() {
             isMounted = false;
         };
     }, [id, navigate, currentUser]);
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError("");
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                setSuccess(false);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
+
+    const handleDescargarListado = async (filtroPaso = null) => {
+        setDownloading(true);
+        setError("");
+
+        try {
+            let url = `/api/actos/${id}/descargar-listado-cirios/`;
+            if (filtroPaso) {
+                url += `?paso=${filtroPaso}`;
+            }
+
+            const response = await api.get(url, {
+                responseType: 'blob' 
+            });
+
+            let nombreArchivo = `asignacion_cirios_${id}.pdf`;
+            if (filtroPaso === 'CRISTO') nombreArchivo = `asignacion_cirios_cristo_${id}.pdf`;
+            if (filtroPaso === 'VIRGEN') nombreArchivo = `asignacion_cirios_virgen_${id}.pdf`;
+
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.setAttribute('download', nombreArchivo);
+            document.body.appendChild(link);
+            link.click();
+
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            console.error("Error al descargar:", err);
+            setError("Error al descargar el listado de cirios.");
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -331,7 +389,7 @@ function GestionRepartoCirio() {
                         {success && (
                             <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
                                 <CheckCircle size={20} />
-                                <span>Asignación de insignias realizada correctamente. Descargando PDF...</span>
+                                <span>Asignación de cirios realizada correctamente. Descargando PDF...</span>
                             </div>
                         )}
 
@@ -413,12 +471,42 @@ function GestionRepartoCirio() {
                                 </div>
                             </div>
                         </div>
+
+                        {(successData || acto?.fecha_ejecucion_cirios) && (
+                            <div className="download-buttons-container-cirios">
+                                <button 
+                                    className="algorithm-button-cirios"
+                                    onClick={() => handleDescargarListado()}
+                                    disabled={downloading}
+                                >
+                                    <Download size={20} />
+                                    {downloading ? "Generando..." : "Descargar Listado Completo"}
+                                </button>
+
+                                <button 
+                                    className="algorithm-button-cirios"
+                                    onClick={() => handleDescargarListado('CRISTO')}
+                                    disabled={downloading}
+                                >
+                                    <Download size={20} />
+                                    {downloading ? "Generando..." : "Descargar cirios Cristo"}
+                                </button>
+
+                                <button 
+                                    className="algorithm-button-cirios"
+                                    onClick={() => handleDescargarListado('VIRGEN')}
+                                    disabled={downloading}
+                                >
+                                    <Download size={20} />
+                                    {downloading ? "Generando..." : "Descargar cirios Virgen"}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </section>
         </div>
     );
-
 }
 
 export default GestionRepartoCirio;

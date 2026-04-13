@@ -229,23 +229,34 @@ class ReportesCiriosService:
 
 
     @staticmethod
-    def generar_pdf_cirios_asignados(acto) -> BytesIO:
+    def generar_pdf_cirios_asignados(acto, filtro_paso=None) -> BytesIO:
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
         elementos = []
         styles = getSampleStyleSheet()
 
-        titulo = Paragraph(f"Asignación de Tramos y Cirios - {acto.nombre}", styles['Title'])
+        titulo_texto = f"Asignación de Tramos y Cirios - {acto.nombre}"
+        if filtro_paso == 'CRISTO':
+            titulo_texto = f"Asignación Cirios (Cristo) - {acto.nombre}"
+        elif filtro_paso == 'VIRGEN':
+            titulo_texto = f"Asignación Cirios (Virgen) - {acto.nombre}"
+
+        titulo = Paragraph(titulo_texto, styles['Title'])
         elementos.append(titulo)
         elementos.append(Spacer(1, 20))
 
-        asignaciones = PapeletaSitio.objects.filter(
+        asignaciones_query = PapeletaSitio.objects.filter(
             acto=acto,
             tramo__isnull=False
         ).filter(
             Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True)
-        ).select_related('hermano', 'puesto', 'tramo').order_by(
-            F('hermano__numero_registro').asc(nulls_last=True) # <- CAMBIO AQUÍ
+        )
+
+        if filtro_paso:
+            asignaciones_query = asignaciones_query.filter(tramo__paso=filtro_paso)
+
+        asignaciones = asignaciones_query.select_related('hermano', 'puesto', 'tramo').order_by(
+            F('hermano__numero_registro').asc(nulls_last=True) 
         )
 
         data = [["Nº Reg.", "Puesto", "Tramo", "Lado", "Orden"]]
@@ -262,7 +273,7 @@ class ReportesCiriosService:
             data.append([num_registro, nombre_puesto, nombre_tramo, lado, orden])
 
         if len(data) == 1:
-            elementos.append(Paragraph("No se han asignado cirios en este reparto.", styles['Normal']))
+            elementos.append(Paragraph("No se han asignado cirios para estos criterios.", styles['Normal']))
         else:
             table = Table(data, colWidths=[60, 140, 190, 80, 60])
             table.setStyle(TableStyle([

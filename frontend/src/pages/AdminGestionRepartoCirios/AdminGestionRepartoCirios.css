@@ -1,0 +1,38 @@
+.download-buttons-container-cirios {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.algorithm-button-cirios {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #800020;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px; 
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    flex: 1;
+    min-width: 250px;
+}
+
+.algorithm-button-cirios:hover:not(:disabled) {
+    background-color: #570015;
+    transform: translateY(-2px);
+}
+
+.algorithm-button-cirios:disabled {
+    background-color: #A98C92;
+    cursor: not-allowed;
+    transform: none;
+}
