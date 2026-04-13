@@ -123,18 +123,42 @@ function GestionRepartoCirio() {
         setProcessing(true);
         setError("");
         setSuccessData(null);
+        setSuccess(false);
 
         try {
             const response = await api.post(`api/actos/${id}/reparto-cirios/`);
+
+            const { pdf_base64, filename, asignadas } = response.data;
             
             setSuccessData(response.data);
-            
-        } catch (err) {
-            console.error(err);
-            if (err.response && err.response.data) {
-                setError(err.response.data.error || "Error al procesar el reparto.");
+
+            if (pdf_base64) {
+                const dataUrl = `data:application/pdf;base64,${pdf_base64}`;
+
+                const fetchResponse = await fetch(dataUrl);
+                const blob = await fetchResponse.blob();
+
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename || `asignacion_cirios_tramos_${id}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
             } else {
-                setError("Error de red. Verifique su conexión.");
+                setError("El servidor respondió con éxito, pero no incluyó el documento PDF.");
+            }
+
+            setSuccess(true);
+
+        } catch (err) {
+            console.error("Error capturado:", err);
+            if (err.response && err.response.data) {
+                setError(err.response.data.error || err.response.data.detail || "Error al procesar el reparto.");
+            } else {
+                setError("Error de red al intentar conectar con el servidor.");
             }
         } finally {
             setProcessing(false);
