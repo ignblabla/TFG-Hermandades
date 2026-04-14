@@ -2,18 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoMisPapeletasDeSitio.css'; 
-import { ChevronLeft, ChevronRight, Scroll, Download } from "lucide-react";
+import { CalendarX, Dock } from "lucide-react";
 
 function MisPapeletas() {
     const [isOpen, setIsOpen] = useState(false); 
-    
-    // Estados de datos
+
     const [user, setUser] = useState(null);
     const [papeletas, setPapeletas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [downloadingId, setDownloadingId] = useState(null);
-    
-    // Estados de paginación
+
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalRegistros, setTotalRegistros] = useState(0);
@@ -22,7 +20,6 @@ function MisPapeletas() {
 
     const navigate = useNavigate();
 
-    // --- FORMATEADORES ---
     const formatearFecha = (fechaString) => {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
@@ -227,7 +224,40 @@ function MisPapeletas() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-papeletas">
+                        <div className="historical-header-container-papeletas">
+                            <h1 className="historical-header-title-papeletas">HISTÓRICO DE PAPELETAS DE SITIO</h1>
+                        </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Resumen de tu historial de papeletas de sitio</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="papeletas-cards-container">
+                            <div className="papeletas-card-wrapper">
+                                <div className="papeletas-card-content">
+                                    <div className="papeletas-card-icon">
+                                        <Dock size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="papeletas-card-title">TOTAL PAPELETAS DE SITIO</h3>
+                                    <p className="papeletas-card-description">
+                                        Recuento histórico de las papeletas de sitio emitidas a tu nombre.
+                                    </p>
+                                    <div className="papeletas-card-date">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* <section className="home-section-dashboard">
                 <div className="text-dashboard">Histórico de papeletas de sitio</div>
                 <div style={{ padding: '0 20px 40px 20px' }}>
                     <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
@@ -328,7 +358,7 @@ function MisPapeletas() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </section> */}
         </div>
     );
 }

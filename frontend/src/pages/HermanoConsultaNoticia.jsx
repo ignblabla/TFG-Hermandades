@@ -32,12 +32,29 @@ function HermanoConsultaNoticia() {
         setIsPlaying(!isPlaying);
     };
 
-    const handleTimeUpdate = () => {
-        setProgress(audioRef.current.currentTime);
-    };
+    const playAnimationRef = useRef(null);
+
+    useEffect(() => {
+        const updateProgress = () => {
+            if (audioRef.current) {
+                setProgress(audioRef.current.currentTime);
+            }
+            playAnimationRef.current = requestAnimationFrame(updateProgress);
+        };
+
+        if (isPlaying) {
+            playAnimationRef.current = requestAnimationFrame(updateProgress);
+        } else {
+            cancelAnimationFrame(playAnimationRef.current);
+        }
+
+        return () => cancelAnimationFrame(playAnimationRef.current);
+    }, [isPlaying]);
 
     const handleLoadedMetadata = () => {
-        setDuration(audioRef.current.duration);
+        if (audioRef.current) {
+            setDuration(audioRef.current.duration);
+        }
     };
 
     const handleSeek = (e) => {
@@ -148,7 +165,6 @@ function HermanoConsultaNoticia() {
 
     return (
         <div>
-            {/* --- SIDEBAR --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -304,7 +320,6 @@ function HermanoConsultaNoticia() {
                                     <audio 
                                         ref={audioRef}
                                         src={noticia.archivo_podcast}
-                                        onTimeUpdate={handleTimeUpdate}
                                         onLoadedMetadata={handleLoadedMetadata}
                                         onEnded={() => setIsPlaying(false)}
                                     />
@@ -322,6 +337,7 @@ function HermanoConsultaNoticia() {
                                             className="podcast-progress-bar" 
                                             min="0" 
                                             max={duration || 0} 
+                                            step="0.01" 
                                             value={progress} 
                                             onChange={handleSeek} 
                                             style={{
