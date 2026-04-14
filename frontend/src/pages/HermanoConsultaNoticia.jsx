@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoConsultaNoticia.css';
@@ -16,7 +16,42 @@ function HermanoConsultaNoticia() {
     const [error, setError] = useState(null);
     const [ultimasNoticias, setUltimasNoticias] = useState([]);
 
+    const audioRef = useRef(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [duration, setDuration] = useState(0);
+
     const navigate = useNavigate();
+
+    const togglePlayPause = () => {
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    const handleTimeUpdate = () => {
+        setProgress(audioRef.current.currentTime);
+    };
+
+    const handleLoadedMetadata = () => {
+        setDuration(audioRef.current.duration);
+    };
+
+    const handleSeek = (e) => {
+        const time = Number(e.target.value);
+        audioRef.current.currentTime = time;
+        setProgress(time);
+    };
+
+    const formatTime = (timeInSeconds) => {
+        if (!timeInSeconds || isNaN(timeInSeconds)) return "00:00";
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = Math.floor(timeInSeconds % 60);
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
 
     const formatearFecha = (fechaInput) => {
         if (!fechaInput) return '';
@@ -265,11 +300,39 @@ function HermanoConsultaNoticia() {
                             </p>
 
                             {noticia.archivo_podcast && (
-                                <div className="podcast-player-lateral">
-                                    <audio controls className="podcast-audio">
-                                        <source src={noticia.archivo_podcast} type="audio/mpeg" />
-                                        Tu navegador no soporta la reproducción de audio.
-                                    </audio>
+                                <div className="custom-podcast-player">
+                                    <audio 
+                                        ref={audioRef}
+                                        src={noticia.archivo_podcast}
+                                        onTimeUpdate={handleTimeUpdate}
+                                        onLoadedMetadata={handleLoadedMetadata}
+                                        onEnded={() => setIsPlaying(false)}
+                                    />
+                                    <div className="podcast-controls-container">
+                                        <button onClick={togglePlayPause} className="podcast-play-btn">
+                                            <i className={`bx ${isPlaying ? 'bx-pause' : 'bx-play'}`}></i>
+                                        </button>
+                                    </div>
+
+
+
+                                    <div className="podcast-progress-container">
+                                        <input 
+                                            type="range" 
+                                            className="podcast-progress-bar" 
+                                            min="0" 
+                                            max={duration || 0} 
+                                            value={progress} 
+                                            onChange={handleSeek} 
+                                            style={{
+                                                background: `linear-gradient(to right, #800020 ${(progress / (duration || 1)) * 100}%, #e0e0e0 ${(progress / (duration || 1)) * 100}%)`
+                                            }}
+                                        />
+                                        <div className="podcast-time-info">
+                                            <span>{formatTime(progress)}</span>
+                                            <span>{formatTime(duration)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

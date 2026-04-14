@@ -86,7 +86,7 @@
 .titulo-lateral-noticia {
     color: #800020;
     font-size: 1.0rem;
-    text-align: left;
+    text-align: center;
     font-weight: 600;
     margin: 8px 24px 4px 24px;
 }
@@ -94,7 +94,7 @@
 .subtitulo-lateral-noticia {
     color: #555555;
     font-size: 0.8rem;
-    text-align: left;
+    text-align: center;
     font-weight: 500;
     margin: 0 24px 24px 24px;
 }
@@ -113,6 +113,95 @@
 .podcast-titulo i {
     font-size: 1.3rem;
     color: #800020;
+}
+
+.custom-podcast-player {
+    margin: auto 24px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.podcast-controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.podcast-play-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #800020;
+    color: white;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    box-shadow: 0 4px 6px rgba(128, 0, 32, 0.3);
+}
+
+.podcast-play-btn:hover {
+    background-color: #5c0017;
+}
+
+.podcast-play-btn:active {
+    transform: scale(0.95);
+}
+
+.podcast-progress-bar {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    height: 6px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.podcast-progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #800020;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.podcast-progress-bar::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #800020;
+    cursor: pointer;
+    border: none;
+}
+
+.podcast-progress-bar::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.podcast-progress-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.podcast-time-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #777777;
+    font-weight: 500;
+    padding: 0 2px;
 }
 
 @media (max-width: 1024px) {
