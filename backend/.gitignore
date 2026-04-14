@@ -28,3 +28,5 @@ htmlcov/
 
 # Archivos estáticos y de sistema
 staticfiles/
+
+google-credentials.json

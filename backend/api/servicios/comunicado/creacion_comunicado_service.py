@@ -5,6 +5,7 @@ from api.models import AreaInteres, Comunicado, CuerpoPertenencia
 from django.conf import settings
 
 from api.servicios.comunicado.gemini_service import generar_y_guardar_embedding_async
+from api.servicios.comunicado.podcast_service import generar_y_guardar_podcast_async
 
 
 class ComunicadoService:
@@ -35,7 +36,13 @@ class ComunicadoService:
             comunicado.areas_interes.set(areas)
 
         self._notificar_telegram(comunicado, areas)
-        generar_y_guardar_embedding_async(comunicado.id)
+        
+        transaction.on_commit(
+            lambda: generar_y_guardar_embedding_async(comunicado.id)
+        )
+        transaction.on_commit(
+            lambda: generar_y_guardar_podcast_async(comunicado.id)
+        )
 
         return comunicado
     
@@ -96,11 +103,8 @@ class ComunicadoService:
 
     @transaction.atomic
     def update_comunicado(self, usuario, comunicado_instance, data_validada):
-        """
-        Actualiza un comunicado existente.
-        """
         self._verificar_permisos(usuario)
-
+        
         if 'areas_interes' in data_validada:
             areas = data_validada.pop('areas_interes')
             comunicado_instance.areas_interes.set(areas)
@@ -116,7 +120,6 @@ class ComunicadoService:
         for attr, value in data_validada.items():
             if not hasattr(comunicado_instance, attr):
                 raise AttributeError(f"El campo '{attr}' no existe en el modelo Comunicado.")
-            
             setattr(comunicado_instance, attr, value)
 
         comunicado_instance.save()
@@ -124,6 +127,9 @@ class ComunicadoService:
         if generar_nuevo_vector:
             transaction.on_commit(
                 lambda: generar_y_guardar_embedding_async(comunicado_instance.id)
+            )
+            transaction.on_commit(
+                lambda: generar_y_guardar_podcast_async(comunicado_instance.id)
             )
             
         return comunicado_instance

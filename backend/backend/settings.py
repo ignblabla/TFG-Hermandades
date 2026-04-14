@@ -187,3 +187,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not GEMINI_API_KEY:
     print("⚠️ ADVERTENCIA: No se ha encontrado GEMINI_API_KEY en las variables de entorno.")
+
+RUTA_CREDENCIALES_GOOGLE = os.path.join(BASE_DIR, 'google-credentials.json')
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = RUTA_CREDENCIALES_GOOGLE

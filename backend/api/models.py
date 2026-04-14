@@ -296,6 +296,14 @@ class Comunicado(models.Model):
 
     embedding = models.JSONField(null=True, blank=True, help_text="Vector semántico generado por Gemini para búsquedas RAG")
 
+    archivo_podcast = models.FileField(
+        upload_to='comunicados/podcasts/', 
+        null=True, 
+        blank=True, 
+        verbose_name="Podcast", 
+        help_text="Audio MP3 generado automáticamente"
+    )
+
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)

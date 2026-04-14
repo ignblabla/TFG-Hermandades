@@ -27,7 +27,7 @@ class ComunicadoListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'titulo', 'contenido', 'fecha_emision', 'imagen_portada',
             'tipo_comunicacion', 'tipo_display', 'autor_nombre', 
-            'areas_interes'
+            'areas_interes', 'archivo_podcast'
         ]
 
 
