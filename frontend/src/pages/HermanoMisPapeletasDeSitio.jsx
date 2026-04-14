@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoMisPapeletasDeSitio.css'; 
-import { CalendarX, Dock } from "lucide-react";
+import { Calendar, CalendarX, Dock, FileCheck } from "lucide-react";
 
 function MisPapeletas() {
     const [isOpen, setIsOpen] = useState(false); 
 
     const [user, setUser] = useState(null);
     const [papeletas, setPapeletas] = useState([]);
+    const [ultimaPapeleta, setUltimaPapeleta] = useState(null);
     const [loading, setLoading] = useState(true);
     const [downloadingId, setDownloadingId] = useState(null);
 
@@ -33,7 +34,6 @@ function MisPapeletas() {
         return horaString.substring(0, 5);
     };
 
-    // --- DESCARGAR PDF ---
     const handleDownloadPDF = async (papeletaId, anio) => {
         setDownloadingId(papeletaId);
         try {
@@ -56,7 +56,6 @@ function MisPapeletas() {
         }
     };
 
-    // --- EFECTO DE CARGA ---
     useEffect(() => {
         let isMounted = true; 
         const fetchData = async () => {
@@ -67,6 +66,15 @@ function MisPapeletas() {
                     const resUser = await api.get("api/me/");
                     userData = resUser.data;
                     if (isMounted) setUser(userData);
+                }
+
+                try {
+                    const resUltima = await api.get("api/papeletas/ultima/");
+                    if (isMounted) setUltimaPapeleta(resUltima.data);
+                } catch (err) {
+                    if (err.response?.status !== 404) {
+                        console.error("Error cargando la última papeleta:", err);
+                    }
                 }
 
                 const resListado = await api.get(`api/papeletas/mis-papeletas/?page=${page}`);
@@ -80,7 +88,7 @@ function MisPapeletas() {
                     setTotalPages(Math.ceil(resListado.data.count / pageSize));
                 }
             } catch (err) {
-                console.error("Error cargando papeletas:", err);
+                console.error("Error cargando datos:", err);
                 if (err.response && err.response.status === 401) {
                     navigate("/login");
                 }
@@ -92,7 +100,6 @@ function MisPapeletas() {
         return () => { isMounted = false; };
     }, [page, navigate]);
 
-    // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
         localStorage.removeItem("user_data");
@@ -103,7 +110,6 @@ function MisPapeletas() {
     const handlePrev = () => { if (prevUrl) setPage(page - 1); };
     const handleNext = () => { if (nextUrl) setPage(page + 1); };
 
-    // --- RENDERIZADO CONDICIONAL DE SITIO ---
     const renderSitio = (papeleta) => {
         if (papeleta.es_insignia) {
             return (
@@ -122,7 +128,6 @@ function MisPapeletas() {
         }
     };
 
-    // --- RENDERIZADO DE ESTADO ---
     const renderEstado = (estado) => {
         const estadoClass = {
             'EMITIDA': 'success',
@@ -256,14 +261,14 @@ function MisPapeletas() {
                             <div className="papeletas-card-wrapper">
                                 <div className="papeletas-card-content">
                                     <div className="papeletas-card-icon">
-                                        <Dock size={32} strokeWidth={2.5} />
+                                        <FileCheck size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="papeletas-card-title">ÚLTIMO PUESTO OCUPADO</h3>
+                                    <h3 className="papeletas-card-title">ESTADO ÚLTIMA PAPELETA</h3>
                                     <p className="papeletas-card-description">
-                                        Referencia del puesto y sección de tu última papeleta de sitio.
+                                        Estado de la última papeleta de sitio que solicitaste.
                                     </p>
                                     <div className="papeletas-card-date">
-                                        {user ? user.total_papeletas_historicas : '0'}
+                                        {ultimaPapeleta ? renderEstado(ultimaPapeleta.estado_papeleta) : <span style={{ fontSize: '1rem', color: '#666' }}>Sin registros</span>}
                                     </div>
                                 </div>
                             </div>
@@ -271,18 +276,98 @@ function MisPapeletas() {
                             <div className="papeletas-card-wrapper">
                                 <div className="papeletas-card-content">
                                     <div className="papeletas-card-icon">
-                                        <Dock size={32} strokeWidth={2.5} />
+                                        <Calendar size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="papeletas-card-title">ÚLTIMA FECHA DE PAPELETA</h3>
+                                    <h3 className="papeletas-card-title">FECHA ÚLTIMA SOLICITUD</h3>
                                     <p className="papeletas-card-description">
-                                        Fecha correspondiente a la última vez que retiraste tu papeleta de sitio
+                                        Fecha correspondiente a la última vez que solicitaste una papeleta de sitio.
                                     </p>
                                     <div className="papeletas-card-date">
-                                        {user ? user.total_papeletas_historicas : '0'}
+                                        {ultimaPapeleta 
+                                            ? (ultimaPapeleta.fecha_solicitud ? formatearFecha(ultimaPapeleta.fecha_solicitud) : ultimaPapeleta.anio) 
+                                            : <span style={{ fontSize: '1rem', color: '#666' }}>Sin registros</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Últimas papeletas de sitio</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <section className="historial-section">
+                                {papeletas.length > 0 ? (
+                                    <div className="table-responsive">
+                                        <table className="papeletas-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Año</th>
+                                                    <th>Acto</th>
+                                                    <th>Fecha del Acto</th>
+                                                    <th>Sitio Asignado</th>
+                                                    <th>Estado</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {papeletas.map((p) => (
+                                                    <tr key={p.id}>
+                                                        <td className="fw-bold">{p.anio}</td>
+                                                        <td>{p.nombre_acto}</td>
+                                                        <td>{formatearFecha(p.fecha_acto)}</td>
+                                                        <td>{renderSitio(p)}</td>
+                                                        <td>{renderEstado(p.estado_papeleta)}</td>
+                                                        <td>
+                                                            {['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(p.estado_papeleta) ? (
+                                                                <button 
+                                                                    className="btn-descargar-pdf" 
+                                                                    onClick={() => handleDownloadPDF(p.id, p.anio)}
+                                                                    title="Descargar PDF"
+                                                                    disabled={downloadingId === p.id}
+                                                                >
+                                                                    <FileCheck size={20} />
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-muted" style={{ fontSize: '0.85rem' }}>No disp.</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="empty-state">
+                                        <CalendarX size={48} className="empty-icon" />
+                                        <p>No tienes histórico de papeletas de sitio.</p>
+                                    </div>
+                                )}
+
+                                {/* Paginación */}
+                                {totalPages > 1 && (
+                                    <div className="pagination-controls">
+                                        <button 
+                                            onClick={handlePrev} 
+                                            disabled={!prevUrl}
+                                            className={!prevUrl ? 'disabled' : ''}
+                                        >
+                                            Anterior
+                                        </button>
+                                        <span>Página {page} de {totalPages}</span>
+                                        <button 
+                                            onClick={handleNext} 
+                                            disabled={!nextUrl}
+                                            className={!nextUrl ? 'disabled' : ''}
+                                        >
+                                            Siguiente
+                                        </button>
+                                    </div>
+                                )}
+                            </section>
+
                     </div>
                 </div>
             </section>

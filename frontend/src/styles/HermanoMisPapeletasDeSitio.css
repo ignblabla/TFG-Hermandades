@@ -107,6 +107,158 @@
     margin-top: auto;
 }
 
+.historial-section {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eaeaea;
+}
+
+.papeletas-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    text-align: left;
+}
+
+.papeletas-table th {
+    background-color: #800020;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 16px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.papeletas-table td {
+    padding: 16px;
+    border-bottom: 1px solid #eaeaea;
+    color: #333;
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+.papeletas-table tbody tr:hover {
+    background-color: #fcf6f6;
+}
+
+.papeletas-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.fw-bold {
+    font-weight: 700;
+    color: #800020;
+}
+
+/* --- BADGES (Estado e Insignia) --- */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-badge.success { background-color: #e6f4ea; color: #1e8e3e; }
+.status-badge.purple { background-color: #f3e8fd; color: #800020; } /* Tono burdeos/morado */
+.status-badge.info { background-color: #e8f0fe; color: #1a73e8; }
+.status-badge.error { background-color: #fce8e6; color: #d93025; }
+.status-badge.warning { background-color: #fef7e0; color: #f29900; }
+.status-badge.neutral { background-color: #f1f3f4; color: #5f6368; }
+
+.badge-insignia {
+    background-color: #fcf6f6;
+    color: #800020;
+    border: 1px solid #800020;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* --- BOTÓN DESCARGA --- */
+.btn-descargar-pdf {
+    background-color: transparent;
+    color: #800020;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-descargar-pdf:hover:not(:disabled) {
+    background-color: #800020;
+    color: #ffffff;
+}
+
+.btn-descargar-pdf:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* --- ESTADO VACÍO --- */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #fdfbfb;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    color: #666;
+}
+
+.empty-icon {
+    color: #ccc;
+    margin-bottom: 12px;
+}
+
+/* --- PAGINACIÓN --- */
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    font-weight: 500;
+    color: #4a4a4a;
+}
+
+.pagination-controls button {
+    background-color: #ffffff;
+    border: 1px solid #800020;
+    color: #800020;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-controls button:hover:not(.disabled) {
+    background-color: #800020;
+    color: #ffffff;
+}
+
+.pagination-controls button.disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+
 /* .papeletas-table th:last-child,
 .papeletas-table td:last-child {
     text-align: center;

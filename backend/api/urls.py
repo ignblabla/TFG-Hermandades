@@ -12,7 +12,7 @@ from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionados
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
-from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView
+from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from . import views
 
@@ -91,5 +91,8 @@ urlpatterns = [
 
     #Asignación de cirios
     path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
-    path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios')
+    path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios'),
+
+    #Papeletas de sitio
+    path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
 ]

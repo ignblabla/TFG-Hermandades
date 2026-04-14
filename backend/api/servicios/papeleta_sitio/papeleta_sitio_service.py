@@ -1,4 +1,6 @@
 from api.models import PapeletaSitio
+from rest_framework.exceptions import PermissionDenied
+
 
 def obtener_datos_tabla_insignias_acto(acto_id: int):
     papeletas = PapeletaSitio.objects.select_related(
@@ -55,3 +57,20 @@ def obtener_datos_tabla_insignias_acto(acto_id: int):
             filas_tabla.append(fila)
 
     return filas_tabla
+
+
+
+def get_ultima_papeleta_hermano_service(usuario):
+    """
+    Recupera únicamente la papeleta más reciente de un hermano.
+    """
+    if not usuario or not usuario.is_authenticated:
+        raise PermissionDenied("Usuario no identificado")
+    
+    ultima_papeleta = PapeletaSitio.objects.filter(
+        hermano=usuario
+    ).select_related(
+        'acto', 'puesto', 'puesto__tipo_puesto', 'tramo'
+    ).order_by('-anio', '-acto__fecha').first()
+
+    return ultima_papeleta
