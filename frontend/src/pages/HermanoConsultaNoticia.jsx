@@ -18,7 +18,6 @@ function HermanoConsultaNoticia() {
 
     const navigate = useNavigate();
 
-    // --- FORMATEADORES ---
     const formatearFecha = (fechaInput) => {
         if (!fechaInput) return '';
         
@@ -40,11 +39,14 @@ function HermanoConsultaNoticia() {
 
         if (isNaN(date.getTime())) return fechaInput;
 
-        return new Intl.DateTimeFormat('es-ES', {
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric'
-        }).format(date);
+        const dia = String(date.getDate()).padStart(2, '0');
+        const mes = String(date.getMonth() + 1).padStart(2, '0');
+        const anio = date.getFullYear();
+
+        const horas = String(date.getHours()).padStart(2, '0');
+        const minutos = String(date.getMinutes()).padStart(2, '0');
+
+        return `${dia}-${mes}-${anio} a las ${horas}:${minutos}`;
     };
 
     const adaptarNoticiaACard = (item) => {
@@ -65,7 +67,6 @@ function HermanoConsultaNoticia() {
         };
     };
 
-    // --- EFECTO DE CARGA ---
     useEffect(() => {
         let isMounted = true; 
         const fetchData = async () => {
@@ -102,7 +103,6 @@ function HermanoConsultaNoticia() {
         return () => { isMounted = false; };
     }, [id, navigate, user]);
 
-    // --- HANDLERS ---
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
         localStorage.removeItem("user_data");
@@ -198,60 +198,68 @@ function HermanoConsultaNoticia() {
                 </ul>
             </div>
 
-            {/* --- SECCIÓN PRINCIPAL --- */}
-            <section className="home-section-dashboard">
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    {error && <p className="error-msg">{error}</p>}
-                    
-                    {noticia && (
-                        <div className="noticia-detalle-container">
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                {noticia && (
+                    <div className="dashboard-split-layout-solicitud">
 
-                            <header className="noticia-detalle-header">
-                                <h1 className="noticia-detalle-titulo">{noticia.titulo}</h1>
-                                <p className="noticia-detalle-fecha">
-                                    {formatearFecha(noticia.fecha_emision)}
-                                </p>
-                            </header>
-                            
-                            <div className="noticia-cuerpo-columnas">
-                                <div className="noticia-detalle-texto-layout">
-                                    <img 
-                                        src={noticia.imagen_portada || "/portada-comunicado.png"} 
-                                        alt={`Portada de ${noticia.titulo}`} 
-                                        className="noticia-detalle-imagen-flotante"
-                                    />
-
-                                    {noticia.contenido.split('\n').map((parrafo, index) => {
-                                        if (parrafo.trim() !== '') {
-                                            return (
-                                                <p key={index} className="noticia-parrafo">
-                                                    {parrafo}
-                                                </p>
-                                            );
-                                        }
-                                        return null;
-                                    })}
-                                </div>
-
-                                <AreasAsociadas areas={noticia?.areas_interes} />
+                        <div className="dashboard-panel-noticias">
+                            <div className="historical-header-container-noticias">
+                                <h1 className="historical-header-title-noticias">{noticia.titulo}</h1>
                             </div>
 
-                            {ultimasNoticias.length > 0 && (
-                                <div className="ultimas-noticias-seccion">
-                                    <h2 className="ultimas-noticias-titulo">Últimas noticias de tu interés</h2>
-                                    <div className="ultimas-noticias-grid">
-                                        {ultimasNoticias.map((item) => (
-                                            <NewsCard 
-                                                key={item.id} 
-                                                item={adaptarNoticiaACard(item)} 
-                                            />
-                                        ))}
-                                    </div>
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Publicada el {formatearFecha(noticia.fecha_emision)}</span>
+                                <div className="plazos-line"></div>
+                            </div>
+
+                            <div className="noticia-cuerpo-contenedor">
+                                <div className="noticia-texto">
+                                    {noticia.contenido ? (
+                                        noticia.contenido.split('\n').map((parrafo, index) => {
+                                            if (parrafo.trim() !== '') {
+                                                return (
+                                                    <p key={index} className="noticia-parrafo">
+                                                        {parrafo}
+                                                    </p>
+                                                );
+                                            }
+                                            return null;
+                                        })
+                                    ) : (
+                                        <p className="noticia-parrafo">No hay contenido disponible para este comunicado.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Últimas noticias de tu interés</span>
+                                <div className="plazos-line"></div>
+                            </div>
+
+                            {ultimasNoticias && ultimasNoticias.length > 0 && (
+                                <div className="ultimas-noticias-grid">
+                                    {ultimasNoticias.slice(0, 3).map((item) => (
+                                        <NewsCard 
+                                            key={item.id} 
+                                            item={adaptarNoticiaACard(item)} 
+                                        />
+                                    ))}
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
+
+                        <div className="dashboard-panel-imagen-lateral">
+                            <img 
+                                src={noticia.imagen_portada || "/portada-comunicado.png"} 
+                                alt={`Portada de ${noticia.titulo}`} 
+                                className="imagen-lateral-noticia"
+                            />
+                        </div>
+
+                    </div>
+                )}
             </section>
         </div>
     );
