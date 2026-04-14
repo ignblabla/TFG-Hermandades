@@ -254,8 +254,24 @@ function HermanoConsultaNoticia() {
                             <img 
                                 src={noticia.imagen_portada || "/portada-comunicado.png"} 
                                 alt={`Portada de ${noticia.titulo}`} 
-                                className="imagen-lateral-noticia"
+                                className="imagen-portada-lateral"
                             />
+                            <h3 className="titulo-lateral-noticia">
+                                {noticia.titulo}
+                            </h3>
+
+                            <p className="subtitulo-lateral-noticia">
+                                HERMANDAD DE SAN GONZALO
+                            </p>
+
+                            {noticia.archivo_podcast && (
+                                <div className="podcast-player-lateral">
+                                    <audio controls className="podcast-audio">
+                                        <source src={noticia.archivo_podcast} type="audio/mpeg" />
+                                        Tu navegador no soporta la reproducción de audio.
+                                    </audio>
+                                </div>
+                            )}
                         </div>
 
                     </div>
