@@ -248,7 +248,37 @@ function MisPapeletas() {
                                         Recuento histórico de las papeletas de sitio emitidas a tu nombre.
                                     </p>
                                     <div className="papeletas-card-date">
+                                        {user ? user.total_papeletas_historicas : '0'}
+                                    </div>
+                                </div>
+                            </div>
 
+                            <div className="papeletas-card-wrapper">
+                                <div className="papeletas-card-content">
+                                    <div className="papeletas-card-icon">
+                                        <Dock size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="papeletas-card-title">ÚLTIMO PUESTO OCUPADO</h3>
+                                    <p className="papeletas-card-description">
+                                        Referencia del puesto y sección de tu última papeleta de sitio.
+                                    </p>
+                                    <div className="papeletas-card-date">
+                                        {user ? user.total_papeletas_historicas : '0'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="papeletas-card-wrapper">
+                                <div className="papeletas-card-content">
+                                    <div className="papeletas-card-icon">
+                                        <Dock size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="papeletas-card-title">ÚLTIMA FECHA DE PAPELETA</h3>
+                                    <p className="papeletas-card-description">
+                                        Fecha correspondiente a la última vez que retiraste tu papeleta de sitio
+                                    </p>
+                                    <div className="papeletas-card-date">
+                                        {user ? user.total_papeletas_historicas : '0'}
                                     </div>
                                 </div>
                             </div>

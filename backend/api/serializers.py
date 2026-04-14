@@ -73,6 +73,8 @@ class UserSerializer(serializers.ModelSerializer):
     antiguedad_anios = serializers.IntegerField(read_only=True)
     esta_al_corriente = serializers.BooleanField(read_only=True)
 
+    total_papeletas_historicas = serializers.IntegerField(read_only=True)
+
     datos_bancarios = DatosBancariosSerializer(required=False)
 
     historial_cuotas = CuotaSerializer(source='cuotas', many=True, read_only=True)
@@ -86,18 +88,17 @@ class UserSerializer(serializers.ModelSerializer):
             "provincia", "comunidad_autonoma", "lugar_bautismo", 
             "fecha_bautismo", "parroquia_bautismo", "areas_interes",
             "email",
-            # Nuevos campos anidados:
             "datos_bancarios", "historial_cuotas", "esta_al_corriente",
-            # Campos de gestión:
             "numero_registro", "estado_hermano", "esAdmin",
             "fecha_ingreso_corporacion", "fecha_baja_corporacion", "antiguedad_anios",
-            "telegram_chat_id", "enlace_vinculacion_telegram"
+            "telegram_chat_id", "enlace_vinculacion_telegram",
+            "total_papeletas_historicas"
         ]
 
         read_only_fields = [
             "estado_hermano", "numero_registro", "esAdmin", 
             "fecha_ingreso_corporacion", "fecha_baja_corporacion", 
-            "antiguedad_anios", "esta_al_corriente", "historial_cuotas"
+            "antiguedad_anios", "esta_al_corriente", "historial_cuotas", "total_papeletas_historicas"
         ]
 
         extra_kwargs = {

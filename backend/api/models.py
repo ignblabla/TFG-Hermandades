@@ -236,6 +236,12 @@ class Hermano(AbstractUser):
         return today.year - self.fecha_ingreso_corporacion.year - (
             (today.month, today.day) < (self.fecha_ingreso_corporacion.month, self.fecha_ingreso_corporacion.day)
         )
+    
+    @property
+    def total_papeletas_historicas(self):
+        """Calcula el número total de papeletas de sitio efectivas a lo largo de los años."""
+        estados_excluidos = ['NO_SOLICITADA', 'ANULADA', 'NO_ASIGNADA']
+        return self.papeletas.exclude(estado_papeleta__in=estados_excluidos).count()
 
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
