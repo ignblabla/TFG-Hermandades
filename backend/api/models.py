@@ -296,13 +296,9 @@ class Comunicado(models.Model):
 
     embedding = models.JSONField(null=True, blank=True, help_text="Vector semántico generado por Gemini para búsquedas RAG")
 
-    archivo_podcast = models.FileField(
-        upload_to='comunicados/podcasts/', 
-        null=True, 
-        blank=True, 
-        verbose_name="Podcast", 
-        help_text="Audio MP3 generado automáticamente"
-    )
+    archivo_podcast = models.FileField(upload_to='comunicados/podcasts/', null=True, blank=True, verbose_name="Podcast", help_text="Audio MP3 generado automáticamente")
+
+    generar_podcast = models.BooleanField(default=False, verbose_name="Generar Podcast", help_text="Marque esta casilla si desea generar automáticamente un podcast a dos voces para este comunicado.")
 
     def save(self, *args, **kwargs):
         self.full_clean()

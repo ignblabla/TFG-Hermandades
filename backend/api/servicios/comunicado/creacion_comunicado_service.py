@@ -25,27 +25,33 @@ class ComunicadoService:
             raise PermissionDenied("No tienes permisos para gestionar comunicados.")
 
 
+
     @transaction.atomic
     def create_comunicado(self, usuario, data_validada):
         self._verificar_permisos(usuario)
-        
+
         areas = data_validada.pop('areas_interes', [])
+
         comunicado = Comunicado.objects.create(autor=usuario, **data_validada)
         
         if areas:
             comunicado.areas_interes.set(areas)
 
         self._notificar_telegram(comunicado, areas)
-        
+
         transaction.on_commit(
             lambda: generar_y_guardar_embedding_async(comunicado.id)
         )
-        transaction.on_commit(
-            lambda: generar_y_guardar_podcast_async(comunicado.id)
-        )
+
+        if comunicado.generar_podcast:
+            transaction.on_commit(
+                lambda: generar_y_guardar_podcast_async(comunicado.id)
+            )
 
         return comunicado
-    
+
+
+
     def _notificar_telegram(self, comunicado, areas_ids):
         """
         Método auxiliar para enviar notificaciones con o sin imagen.
@@ -101,6 +107,7 @@ class ComunicadoService:
                 print(f"Error enviando telegram al canal {channel_id}: {e}")
 
 
+
     @transaction.atomic
     def update_comunicado(self, usuario, comunicado_instance, data_validada):
         self._verificar_permisos(usuario)
@@ -128,11 +135,14 @@ class ComunicadoService:
             transaction.on_commit(
                 lambda: generar_y_guardar_embedding_async(comunicado_instance.id)
             )
-            transaction.on_commit(
-                lambda: generar_y_guardar_podcast_async(comunicado_instance.id)
-            )
+
+            if comunicado_instance.generar_podcast:
+                transaction.on_commit(
+                    lambda: generar_y_guardar_podcast_async(comunicado_instance.id)
+                )
             
         return comunicado_instance
+
 
 
     @transaction.atomic

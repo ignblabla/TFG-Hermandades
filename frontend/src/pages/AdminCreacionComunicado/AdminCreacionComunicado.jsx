@@ -2,21 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
-import { 
-    Save, 
-    FileText, 
-    Users, 
-    AlertCircle, 
-    CheckCircle, 
-    Church,
-    Heart,
-    Sun,
-    Hammer,
-    BookOpen,
-    Crown,
-    Image as ImageIcon,
-    X
-} from "lucide-react";
+import { Save, FileText, Users, AlertCircle, CheckCircle, Church, Heart, Sun, Hammer, BookOpen, Crown, Image as ImageIcon, X, Headphones } from "lucide-react";
 
 function AdminCreacionComunicado() {
     const navigate = useNavigate();
@@ -37,7 +23,8 @@ function AdminCreacionComunicado() {
         contenido: '',
         tipo_comunicacion: 'GENERAL',
         areas_interes: [],
-        imagen_portada: null
+        imagen_portada: null,
+        generar_podcast: false
     });
 
     const tiposComunicacion = [
@@ -118,8 +105,11 @@ function AdminCreacionComunicado() {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ 
+            ...prev, 
+            [name]: type === 'checkbox' ? checked : value 
+        }));
     };
 
     const handleImageChange = (e) => {
@@ -182,6 +172,8 @@ function AdminCreacionComunicado() {
             dataToSend.append('titulo', formData.titulo);
             dataToSend.append('contenido', formData.contenido);
             dataToSend.append('tipo_comunicacion', formData.tipo_comunicacion);
+
+            dataToSend.append('generar_podcast', formData.generar_podcast);
             
             if (formData.imagen_portada) {
                 dataToSend.append('imagen_portada', formData.imagen_portada);
@@ -425,6 +417,37 @@ function AdminCreacionComunicado() {
                                             className="textarea-standard-creacion-comunicado"
                                             required
                                         />
+                                    </div>
+
+                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
+                                        <div style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '10px', 
+                                            padding: '15px', 
+                                            backgroundColor: '#f8f9fa', 
+                                            borderRadius: '8px', 
+                                            border: '1px solid #e5e7eb' 
+                                        }}>
+                                            <input
+                                                type="checkbox"
+                                                id="generar_podcast"
+                                                name="generar_podcast"
+                                                checked={formData.generar_podcast}
+                                                onChange={handleChange}
+                                                style={{ width: '20px', height: '20px', cursor: 'pointer', margin: 0 }}
+                                            />
+                                            <label 
+                                                htmlFor="generar_podcast" 
+                                                style={{ margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}
+                                            >
+                                                <Headphones size={20} color="#4f46e5" />
+                                                Generar podcast a dos voces automáticamente para este comunicado
+                                            </label>
+                                        </div>
+                                        <small style={{ display: 'block', marginTop: '6px', color: '#6b7280', marginLeft: '32px' }}>
+                                            Si se marca, Gemini creará un guion estilo radio y Cloud TTS generará el archivo de audio.
+                                        </small>
                                     </div>
                                 </div>
                             </div>

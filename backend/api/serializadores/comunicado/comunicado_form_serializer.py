@@ -25,20 +25,18 @@ class ComunicadoFormSerializer(serializers.ModelSerializer):
         label="IDs de Áreas de Interés"
     )
 
-
-    # Bypass de seguridad:
-    # evitar que Django Rest Framework (DRF) robe el control de las validaciones antes de que tus propios métodos
-    # (validate_titulo, validate_contenido, etc.) puedan ejecutarse.
     titulo = serializers.CharField(trim_whitespace=False, allow_blank=True)
     contenido = serializers.CharField(trim_whitespace=False, allow_blank=True)
     imagen_portada = serializers.FileField(required=False, allow_null=True)
+
+    generar_podcast = serializers.BooleanField(required=False, default=False, label="Generar Podcast")
 
 
     class Meta:
         model = Comunicado
         fields = [
             'id', 'titulo', 'contenido', 'imagen_portada',
-            'tipo_comunicacion', 'areas_interes'
+            'tipo_comunicacion', 'areas_interes', 'generar_podcast'
         ]
 
         extra_kwargs = {
