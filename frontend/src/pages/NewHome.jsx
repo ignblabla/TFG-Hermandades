@@ -147,6 +147,11 @@ function HermanoNewHome() {
         }
     };
 
+    const handleGoToAreas = (e) => {
+        e.preventDefault();
+        navigate('/areas-de-interes');
+    };
+
     return (
         <div>
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
@@ -201,11 +206,11 @@ function HermanoNewHome() {
                         <span className="tooltip-dashboard">File Manager</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
                     <li>
                         <a 

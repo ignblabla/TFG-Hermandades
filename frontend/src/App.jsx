@@ -106,7 +106,7 @@ function App() {
 
 
         <Route
-          path="/interes-hermanos"
+          path="/areas-de-interes"
           element={
             <ProtectedRoute>
               <HermanoAreaInteres />

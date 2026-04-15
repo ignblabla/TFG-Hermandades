@@ -23,7 +23,7 @@ function LoginForm() {
             const res = await api.post("/api/token/", { dni, password });
             localStorage.setItem(ACCESS_TOKEN, res.data.access);
             localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
-            navigate("/home");
+            navigate("/new-home");
         } catch (error) {
             alert("Error:" + (error.response?.data?.detail || "Error en las credenciales"));
         } finally {

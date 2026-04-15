@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import "../styles/HermanoAreaInteres.css";
 import AreaCard from "../components/AreaCard"
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell, Dock, List } from "lucide-react";
 
 function HermanoAreaInteres() {
 
@@ -104,18 +104,10 @@ function HermanoAreaInteres() {
             const updatedUser = { ...user, ...data };
             setUser(updatedUser);
             localStorage.setItem("user_data", JSON.stringify(updatedUser));
-            alert("Preferencias guardadas correctamente.");
 
         } catch (error) {
             console.error("Error al guardar:", error);
 
-            if (error.response) {
-                alert(`Error al guardar: ${JSON.stringify(error.response.data)}`);
-            } else if (error.request) {
-                alert("Error de conexión con el servidor.");
-            } else {
-                alert("Ocurrió un error inesperado.");
-            }
         } finally {
             setLoading(false);
         }
@@ -213,39 +205,100 @@ function HermanoAreaInteres() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
-                <div className="text-dashboard">Áreas de interés</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <p style={{ marginBottom: '20px', color: 'var(--text-muted)' }}>
-                        Gestiona tus preferencias de comunicación. El canal general de <strong>Todos los Hermanos</strong> es obligatorio para mantenerte informado de la actualidad de la Hermandad.
-                    </p>
-                    <div className="full-grid-layout">
-                        {sortedAreasDB.map(area => {
-                            const visualInfo = areaInfoEstatica[area.nombre_area] || {};
-                            const isMandatory = area.nombre_area === 'TODOS_HERMANOS';
-                            
-                            return (
-                                <AreaCard 
-                                    key={area.id}
-                                    icon={visualInfo.icon}
-                                    title={visualInfo.title || area.nombre_area}
-                                    desc={visualInfo.desc || ''}
-                                    telegramLink={area.telegram_invite_link}
-                                    isFeatured={true}
-                                    isSelected={isMandatory ? true : selectedAreas.includes(area.nombre_area)}
-                                    onClick={() => handleCheckboxChange(area.nombre_area)}
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-areas">
+                        <div className="historical-header-container-areas">
+                            <h1 className="historical-header-title-areas">ÁREAS DE INTERÉS</h1>
+                        </div>
 
-                                    isLocked={isMandatory} 
-                                />
-                            );
-                        })}
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Resumen de tus áreas de interés</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="areas-cards-container">
+                            <div className="areas-card-wrapper">
+                                <div className="areas-card-content">
+                                    <div className="areas-card-icon">
+                                        <List size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="areas-card-title">TOTAL ÁREAS DE INTERÉS</h3>
+                                    <p className="areas-card-description">
+                                        Número total de áreas de interés a las que puedes suscribirte para recibir actualizaciones.
+                                    </p>
+                                    <div className="areas-card-date">
+                                        {areasDB.length}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="areas-card-wrapper">
+                                <div className="areas-card-content">
+                                    <div className="areas-card-icon">
+                                        <Dock size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="areas-card-title">ÁREAS SUSCRITAS</h3>
+                                    <p className="areas-card-description">
+                                        Número total de áreas de interés a las que estás suscrito actualmente.
+                                    </p>
+                                    <div className="areas-card-date">
+                                        {selectedAreas.length}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="areas-card-wrapper">
+                                <div className="areas-card-content">
+                                    <div className="areas-card-icon">
+                                        <Dock size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="areas-card-title">ÁREAS DE INTERÉS OBLIGATORIAS</h3>
+                                    <p className="areas-card-description">
+                                        Número total de áreas de interés a las que estás suscrito de forma obligatoria.
+                                    </p>
+                                    <div className="areas-card-date">
+                                        {selectedAreas.filter(area => area === 'TODOS_HERMANOS').length}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Listado de las áreas de interés</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="full-grid-layout-areas">
+                            {sortedAreasDB.map(area => {
+                                const visualInfo = areaInfoEstatica[area.nombre_area] || {};
+                                const isMandatory = area.nombre_area === 'TODOS_HERMANOS';
+                                
+                                return (
+                                    <AreaCard 
+                                        key={area.id}
+                                        icon={visualInfo.icon}
+                                        title={visualInfo.title || area.nombre_area}
+                                        desc={visualInfo.desc || ''}
+                                        telegramLink={area.telegram_invite_link}
+                                        isFeatured={true}
+                                        isSelected={isMandatory ? true : selectedAreas.includes(area.nombre_area)}
+                                        onClick={() => handleCheckboxChange(area.nombre_area)}
+                                        isLocked={isMandatory} 
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        {/* Pie de página con el botón de guardar */}
+                        <footer className="card-footer-area-interes">
+                            <button className="btn-save-area-interes" onClick={handleSave} disabled={loading}>
+                                <Save size={18} /> {loading ? "Guardando..." : "Guardar Preferencias"}
+                            </button>
+                        </footer>
                     </div>
-
-                    <footer className="card-footer-area-interes">
-                        <button className="btn-save-area-interes" onClick={handleSave} disabled={loading}>
-                            <Save size={18} /> {loading ? "Guardando..." : "Guardar Preferencias"}
-                        </button>
-                    </footer>
                 </div>
             </section>
         </div>
