@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api';
-import '../styles/HermanoListadoCuotas.css'
-import { AlertCircle, CheckCircle, ListTodo, CreditCard, MessageCircle, X } from "lucide-react";
-import HomeCard from '../components/HomeCard';
+import api from '../../api';
+import '../HermanoListadoCuotas/HermanoListadoCuotas.css'
+import { AlertCircle, CheckCircle, ListTodo, CreditCard, MessageCircle, X, Dock } from "lucide-react";
 
 
 function HermanoListadoCuotas() {
@@ -34,6 +33,19 @@ function HermanoListadoCuotas() {
         navigate("/login");
     };
 
+    const renderEstado = (estado) => {
+        const estadoClass = {
+            'PAGADA': 'success',
+            'PENDIENTE': 'warning',
+            'EN_REMESA': 'info',
+            'DEVUELTA': 'error',
+            'EXENTO': 'purple'
+        }[estado] || 'neutral';
+
+        const textoLegible = estado ? estado.replace(/_/g, ' ') : estado;
+        return <span className={`status-badge ${estadoClass}`}>{textoLegible}</span>;
+    };
+
     useEffect(() => {
         let isMounted = true;
         const fetchData = async () => {
@@ -50,7 +62,7 @@ function HermanoListadoCuotas() {
                 
                 if (isMounted) {
                     setCuotas(cuotasRes.data.results);
-                    setTotalPages(Math.ceil(cuotasRes.data.count / 10));
+                    setTotalPages(Math.ceil(cuotasRes.data.count / 5));
 
                     if (cuotasRes.data.resumen) {
                         setResumen(cuotasRes.data.resumen);
@@ -175,7 +187,149 @@ function HermanoListadoCuotas() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-cuotas">
+                        <div className="historical-header-container-cuotas">
+                            <h1 className="historical-header-title-cuotas">HISTORIAL DE CUOTAS</h1>
+                        </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Resumen de tu historial de cuotas</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <div className="cuotas-cards-container">
+                            <div className="cuotas-card-wrapper">
+                                <div className="cuotas-card-content">
+                                    <div className="cuotas-card-icon">
+                                        <CheckCircle size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="cuotas-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <p className="cuotas-card-description">
+                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                    </p>
+                                    <div className="cuotas-card-date">
+                                        {resumen.total_pagadas !== undefined && resumen.total_pagadas !== null ? resumen.total_pagadas : '-'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="cuotas-card-wrapper">
+                                <div className="cuotas-card-content">
+                                    <div className="cuotas-card-icon">
+                                        <AlertCircle size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="cuotas-card-title">TOTAL CUOTAS PENDIENTES</h3>
+                                    <p className="cuotas-card-description">
+                                        Número total de cuotas pendientes de abonar según tu registro histórico.
+                                    </p>
+                                    <div className="cuotas-card-date">
+                                        {resumen.total_pendientes !== undefined && resumen.total_pendientes !== null ? resumen.total_pendientes : '-'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="cuotas-card-wrapper">
+                                <div className="cuotas-card-content">
+                                    <div className="cuotas-card-icon">
+                                        <CreditCard size={32} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="cuotas-card-title">TOTAL DEUDA</h3>
+                                    <p className="cuotas-card-description">
+                                        Importe total acumulado de las cuotas y recibos pendientes de pago.
+                                    </p>
+                                    <div className="cuotas-card-date">
+                                        {resumen.total_pendiente_euros !== undefined && resumen.total_pendiente_euros !== null ? `${Number(resumen.total_pendiente_euros).toFixed(2)} €` : '-'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Historial de cuotas</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
+                        <section className="historial-cuotas-section">
+                            {cuotas.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="cuotas-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Descripción</th>
+                                                <th>Tipo</th>
+                                                <th>Fecha emisión</th>
+                                                <th>Fecha pago</th>
+                                                <th>Importe</th>
+                                                <th>Estado</th>
+                                                <th>Método</th>
+                                                <th>Observaciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {cuotas.map((c) => (
+                                                <tr key={c.id}>
+                                                    <td className="fw-bold">{c.descripcion}</td>
+                                                    <td>{c.tipo_display || c.tipo}</td>
+                                                    <td>{formatDate(c.fecha_emision)}</td>
+                                                    <td>{formatDate(c.fecha_pago)}</td>
+                                                    <td className="fw-bold">{c.importe} €</td>
+                                                    <td>{renderEstado(c.estado)}</td>
+                                                    <td>{c.metodo_pago_display || c.metodo_pago}</td>
+                                                    <td>
+                                                        {c.observaciones ? (
+                                                            <button 
+                                                                className="btn-ver-observacion"
+                                                                onClick={() => setObservacionModal({ isOpen: true, texto: c.observaciones })}
+                                                                title="Ver observaciones"
+                                                            >
+                                                                <MessageCircle size={18} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="empty-state">
+                                    <AlertCircle size={48} className="empty-icon" />
+                                    <p>No se encontraron cuotas en tu historial.</p>
+                                </div>
+                            )}
+
+                            {/* Paginación */}
+                            {totalPages > 1 && (
+                                <div className="pagination-controls-cuotas">
+                                    <button 
+                                        onClick={handlePrevPage} 
+                                        disabled={currentPage === 1}
+                                        className={currentPage === 1 ? 'disabled' : ''}
+                                    >
+                                        Anterior
+                                    </button>
+                                    <span>Página {currentPage} de {totalPages}</span>
+                                    <button 
+                                        onClick={handleNextPage} 
+                                        disabled={currentPage === totalPages}
+                                        className={currentPage === totalPages ? 'disabled' : ''}
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                </div>
+            </section>
+
+            {/* <section className="home-section-dashboard">
                 <div className="text-dashboard">Resumen de cuotas</div>
                 <div className="home-cards-container">
                     <HomeCard 
@@ -263,7 +417,6 @@ function HermanoListadoCuotas() {
                         </table>
                     </div>
 
-                    {/* Controles de Paginación */}
                     {totalPages > 1 && (
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
                             <button 
@@ -284,7 +437,7 @@ function HermanoListadoCuotas() {
                         </div>
                     )}
                 </div>
-            </section>
+            </section> */}
 
             {observacionModal.isOpen && (
                 <div className="modal-overlay-observacion" onClick={() => setObservacionModal({ isOpen: false, texto: '' })}>

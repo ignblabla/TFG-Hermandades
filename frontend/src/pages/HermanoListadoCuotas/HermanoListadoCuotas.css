@@ -1,0 +1,390 @@
+.dashboard-panel-cuotas {
+    width: 100%;
+    height: auto;
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px 24px 40px 24px;
+    box-sizing: border-box;
+}
+
+.historical-header-container-cuotas {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #1a1a1a;
+    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../../assets/ImagenFondo.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+    margin: -24px -24px 0 -24px;
+    border-radius: 9px 9px 0 0;
+}
+
+.historical-header-title-cuotas {
+    font-size: 3.1rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.cuotas-cards-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.cuotas-card-wrapper {
+    position: relative;
+    flex: 0 0 calc(33.333% - 16px);
+    width: calc(33.333% - 16px);
+    max-width: none;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.cuotas-card-content {
+    background-color: #ffffff;
+    border: 2px solid #800020;
+    border-radius: 8px;
+    padding: 24px; 
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    height: 100%;
+    box-shadow: 0 8px 16px rgba(211, 59, 59, 0.3);
+}
+
+.cuotas-card-icon {
+    color: #800020;
+    margin-bottom: 4px;
+}
+
+.cuotas-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    min-height: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cuotas-card-description {
+    color: #4a4a4a;
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.cuotas-card-date {
+    font-size: 28px;
+    font-weight: 600;
+    color: #800020;
+    text-align: center;
+    margin-top: auto;
+}
+
+.historial-cuotas-section {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.cuotas-table {
+    width: 100%;
+    border-collapse: separate;
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.cuotas-table th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.cuotas-table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.cuotas-table th {
+    background-color: #800020;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 16px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+    border: none;
+}
+
+.cuotas-table td {
+    padding: 16px;
+    border-bottom: 1px solid #eaeaea;
+    color: #333;
+    font-size: 0.95rem;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.cuotas-table td > div {
+    align-items: center;
+    justify-content: center;
+}
+
+.cuotas-table tbody tr:hover {
+    background-color: #fcf6f6;
+}
+
+.cuotas-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cuotas-table td div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-controls-cuotas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    font-weight: 500;
+    color: #4a4a4a;
+}
+
+.pagination-controls-cuotas button {
+    background-color: #ffffff;
+    border: 1px solid #800020;
+    color: #800020;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-controls-cuotas button:hover:not(.disabled) {
+    background-color: #800020;
+    color: #ffffff;
+}
+
+.pagination-controls-cuotas button.disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+
+.btn-ver-observacion {
+    background: none;
+    border: none;
+    color: #800020;
+    cursor: pointer;
+    padding: 4px;
+    display: inline-flex;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.btn-ver-observacion:hover {
+    transform: scale(1.2);
+    color: #600018;
+}
+
+.cuotas-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.cuotas-table th:first-child { border-top-left-radius: 12px; }
+.cuotas-table th:last-child { border-top-right-radius: 12px; }
+
+.cuotas-table td, .cuotas-table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* :root {
+    --burgundy-primary: #800020;
+    --burgundy-ultra-light: #c7748b;
+    --burgundy-dark: #4d0013;
+    --burgundy-light: #f8eaff;
+    --bg-light: #f4f7f6;
+    --white: #ffffff;
+    --text-main: #1a1a1a;
+    --text-muted: #9ca3af;
+    --border-color: #e5e7eb;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 0px;
+    padding: 2px; 
+}
+
+.cuotas-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+    background-color: var(--white);
+    border: 1px solid var(--burgundy-primary); 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.cuotas-table thead tr:last-child {
+    background-color: var(--burgundy-primary);
+    color: var(--white);
+}
+
+.cuotas-table th {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--burgundy-dark);
+}
+
+.cuotas-table th,
+.cuotas-table td {
+    padding: 8px 16px;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+.cuotas-table tbody tr {
+    color: var(--text-main);
+    transition: background-color 0.2s ease;
+}
+
+.cuotas-table tbody tr td {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cuotas-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.cuotas-table tbody tr:nth-of-type(even) {
+    background-color: var(--burgundy-light);
+}
+
+.cuotas-table tbody tr:hover {
+    background-color: #f1f5f9;
+}
+.badge-estado {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-estado.pagado {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.badge-estado.pendiente {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.modal-overlay-observacion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content-observacion {
+    background: var(--white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.2s ease-out;
+    border: 1px solid var(--burgundy-primary);
+}
+
+.modal-header-observacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.modal-header-observacion h3 {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-body-observacion p {
+    margin: 0;
+    color: var(--text-main);
+    line-height: 1.6;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.icon-observacion {
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.icon-observacion:hover {
+    transform: scale(1.15);
+    color: var(--burgundy-ultra-light) !important;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+} */

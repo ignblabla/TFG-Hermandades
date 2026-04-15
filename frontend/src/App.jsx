@@ -32,7 +32,6 @@ import AdminCrearPuesto from "./pages/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
-import HermanoListadoCuotas from "./pages/HermanoListadoCuotas"
 import AdminCenso from "./pages/AdminCenso"
 import HermanoSolicitudInsignia from "./pages/HermanoSolicitudInsignia/HermanoSolicitudInsignia"
 import HermanoListadoActos from "./pages/HermanoListadoActos/HermanoListadoActos"
@@ -44,6 +43,7 @@ import ProtectedRoute from "./components/ProtectedRoute"
 import EditMe from "./pages/EditMe"
 import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
 import GestionRepartoCirio from "./pages/AdminGestionRepartoCirios/AdminGestionRepartoCirios"
+import HermanoListadoCuotas from "./pages/HermanoListadoCuotas/HermanoListadoCuotas"
 
 
 function Logout() {
@@ -113,6 +113,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/mis-papeletas-de-sitio"
+          element={
+            <ProtectedRoute>
+              <MisPapeletas />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -129,14 +137,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoConsultaNoticia />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/chat-asistente"
-          element={
-            <ProtectedRoute>
-              <ChatAsistente />
             </ProtectedRoute>
           }
         />
@@ -254,15 +254,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudCirio />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/mis-papeletas-de-sitio"
-          element={
-            <ProtectedRoute>
-              <MisPapeletas />
             </ProtectedRoute>
           }
         />

@@ -199,11 +199,11 @@ function HermanoNewHome() {
                         <span className="tooltip-dashboard">Analytics</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
                         <a href="/areas-de-interes">
