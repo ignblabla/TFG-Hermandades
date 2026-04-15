@@ -243,29 +243,6 @@ class Hermano(AbstractUser):
         estados_excluidos = ['NO_SOLICITADA', 'ANULADA', 'NO_ASIGNADA']
         return self.papeletas.exclude(estado_papeleta__in=estados_excluidos).count()
 
-    # @property
-    # def anio_ultima_papeleta(self):
-    #     """Obtiene el año del acto de la última papeleta de sitio efectiva."""
-    #     estados_validos = ['EMITIDA', 'RECOGIDA', 'LEIDA']
-    #     ultima_papeleta = self.papeletas.filter(
-    #         estado_papeleta__in=estados_validos
-    #     ).order_by('-anio', '-fecha_emision').first()
-        
-    #     if ultima_papeleta:
-    #         return ultima_papeleta.anio
-            
-    #     return None
-
-    # @property
-    # def estado_ultima_papeleta(self):
-    #     """Obtiene el estado de la última papeleta de sitio (el valor interno: EMITIDA, SOLICITADA, etc.)."""
-    #     ultima_papeleta = self.papeletas.order_by('-anio', '-id').first()
-        
-    #     if ultima_papeleta:
-    #         return ultima_papeleta.estado_papeleta
-            
-    #     return None
-
     def __str__(self):
         return f"{self.dni} - {self.nombre} {self.primer_apellido}"
     

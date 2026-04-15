@@ -653,48 +653,49 @@ class Command(BaseCommand):
             {"id": 53, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
             {"id": 54, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
             {"id": 55, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 56, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 57, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 58, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 59, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 60, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 61, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 62, "nombre": "Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 63, "nombre": "Varas Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 64, "nombre": "Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 65, "nombre": "Varas Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 66, "nombre": "Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 67, "nombre": "Varas Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 68, "nombre": "Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
-            {"id": 69, "nombre": "Varas Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
-            {"id": 70, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
-            {"id": 71, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
-            {"id": 72, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 56, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 57, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 58, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 59, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 60, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 61, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 62, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 63, "nombre": "Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 64, "nombre": "Varas Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 65, "nombre": "Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 66, "nombre": "Varas Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 67, "nombre": "Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 68, "nombre": "Varas Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 69, "nombre": "Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 70, "nombre": "Varas Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 71, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 72, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 73, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": True},
         ]
 
 
         puestos_virgen_data_ep27 = [
-            {"id": 73, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 1, "cortejo_cristo": False},
-            {"id": 74, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 8, "cortejo_cristo": False},
-            {"id": 75, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 76, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 9, "cortejo_cristo": False},
-            {"id": 77, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 78, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 79, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 80, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 81, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 82, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 83, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 84, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 85, "nombre": "Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 86, "nombre": "Varas Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 87, "nombre": "Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 88, "nombre": "Varas Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 89, "nombre": "Estandarte (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
-            {"id": 90, "nombre": "Varas Estandarte (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
-            {"id": 91, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
-            {"id": 92, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
-            {"id": 93, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 74, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 75, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 76, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 77, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 78, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 79, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 80, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 81, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 82, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 83, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 84, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 85, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 86, "nombre": "Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 87, "nombre": "Varas Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 88, "nombre": "Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 89, "nombre": "Varas Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 90, "nombre": "Estandarte (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 91, "nombre": "Varas Estandarte (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 92, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 93, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 94, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 2, "tipo_puesto_id": 5, "cortejo_cristo": False},
         ]
 
         puestos_data_ep27.extend(puestos_virgen_data_ep27)
@@ -717,9 +718,9 @@ class Command(BaseCommand):
 
         puestos_objetivo = {
             48: 4, 49: 1, 50: 4, 51: 1, 52: 4, 53: 1, 54: 4, 55: 1, 
-            56: 1, 57: 4, 58:1, 59: 4, 60: 1, 61: 4, 62: 1, 63: 4, 64: 1, 65: 4, 66: 1, 67: 4, 68: 1, 69: 4,
-            73: 4, 74: 4, 75: 1, 76: 4, 77: 1, 78: 4, 79: 1, 80: 4,
-            81: 1, 82: 4, 83: 1, 84: 4, 85: 1, 86: 4, 87: 1, 88: 4, 89: 1, 90: 4
+            56: 4, 57: 1, 58:4, 59: 1, 60: 4, 61: 1, 62: 4, 63: 1, 64: 4, 65: 1, 66: 4, 67: 1, 68: 4, 69: 1, 70: 4,
+            74: 4, 75: 4, 76: 1, 77: 4, 78: 1, 79: 4, 80: 1, 81: 4,
+            82: 1, 83: 4, 84: 1, 85: 4, 86: 1, 87: 4, 88: 1, 89: 4, 90: 1, 91: 4
         }
 
         puestos_disponibles_para_preferencia = list(puestos_objetivo.keys())
@@ -825,7 +826,7 @@ class Command(BaseCommand):
 
         papeletas_cirios_data = []
         
-        puestos_cirios = [70, 71, 72, 91, 92, 93]
+        puestos_cirios = [71, 72, 73, 92, 93, 94]
         cantidad_cirios = 2300
 
         dias_solicitud_min_cirio = 2
@@ -919,6 +920,3708 @@ class Command(BaseCommand):
         Tramo.objects.bulk_create(tramos_a_crear_ep27)
 
         self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep27)} tramos para el Acto 2 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 1996 (ID=3)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 1996...")
+
+        fecha_1996 = datetime(1996, 4, 1, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=3).delete()
+
+        descripcion_acto = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 1996, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep96 = Acto(
+            id=3,
+            nombre="Estación de Penitencia 1996",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto,
+            fecha=fecha_1996,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_1996 - timedelta(days=60),
+            fin_solicitud=fecha_1996 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_1996 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_1996 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_1996 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_1996 - timedelta(days=14),
+        )
+
+        ruta_imagen = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia1996.jpg')
+        
+        if os.path.exists(ruta_imagen):
+            with open(ruta_imagen, 'rb') as f:
+                acto_ep96.imagen_portada.save('EstacionPenitencia1996.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 3.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen}'))
+
+        acto_ep96.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 1996 con ID 3.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 3
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 3...")
+
+        puestos_data_ep96 = [
+            {"id": 95, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 96, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 97, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 98, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 99, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 100, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 101, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep96 = [
+            {"id": 102, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 103, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 104, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 105, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 106, "nombre": "Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 107, "nombre": "Varas Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 108, "nombre": "Estandarte (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 109, "nombre": "Varas Estandarte (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 110, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 111, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 112, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 3, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep96.extend(puestos_virgen_data_ep96)
+
+        puestos_a_crear = [Puesto(**data) for data in puestos_data_ep96]
+        Puesto.objects.bulk_create(puestos_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear)} puestos para el Acto 3 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=3 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 3...")
+
+        fecha_1996 = timezone.make_aware(datetime(1996, 4, 1, 15, 0, 0))
+        inicio_rango_solicitud = fecha_1996 - timedelta(days=59)
+        fin_rango_solicitud = fecha_1996 - timedelta(days=36)
+
+        fecha_emision_insignias = (fecha_1996 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids = [95, 96, 97, 98, 102, 103, 104, 105, 106, 107, 108, 109]
+
+        puestos_insignias = Puesto.objects.filter(id__in=puestos_insignias_ids)
+        huecos_a_cubrir = []
+        for puesto in puestos_insignias:
+            huecos_a_cubrir.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria = len(huecos_a_cubrir)
+
+        hermanos_elegibles = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1996.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles) < cantidad_necesaria:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados = hermanos_elegibles
+            huecos_a_cubrir = huecos_a_cubrir[:len(hermanos_elegibles)]
+        else:
+            hermanos_seleccionados = random.sample(hermanos_elegibles, cantidad_necesaria)
+
+        hermanos_seleccionados.sort()
+
+        papeletas_data_acto3 = []
+        codigos_usados_acto3 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados, huecos_a_cubrir):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto3:
+                    codigos_usados_acto3.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud - inicio_rango_solicitud).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto3.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias,
+                    codigo_verificacion=codigo,
+                    anio=1996,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=3,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto3)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto3 = []
+        
+        for papeleta in papeletas_data_acto3:
+            preferencias_data_acto3.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto3.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto3)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto3)} papeletas de insignias (EMITIDAS) para el Acto 3.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=3 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 3...")
+
+        inicio_rango_solicitud_cirios = fecha_1996 - timedelta(days=32)
+        fin_rango_solicitud_cirios = fecha_1996 - timedelta(days=16)
+
+        fecha_emision_cirios = (fecha_1996 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids = [99, 100, 101, 110, 111, 112]
+
+        hermanos_con_insignia = PapeletaSitio.objects.filter(acto_id=3).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1996.date())
+            .exclude(id__in=hermanos_con_insignia)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar = min(800, len(hermanos_elegibles_cirios))
+        hermanos_seleccionados_cirios = random.sample(hermanos_elegibles_cirios, cantidad_a_asignar)
+
+        hermanos_seleccionados_cirios.sort()
+
+        codigos_usados_acto3 = set(PapeletaSitio.objects.filter(acto_id=3).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto3 = PapeletaSitio.objects.filter(acto_id=3, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto3.numero_papeleta + 1) if ultima_papeleta_acto3 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto3 = []
+        preferencias_data_cirios_acto3 = []
+
+        for hermano_id in hermanos_seleccionados_cirios:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto3:
+                    codigos_usados_acto3.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios - inicio_rango_solicitud_cirios).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids)
+
+            papeletas_data_cirios_acto3.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios,
+                    codigo_verificacion=codigo,
+                    anio=1996,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=3,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto3.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto3)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto3)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto3)} papeletas de cirios (EMITIDAS) para el Acto 3.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 3
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 3...")
+
+        aforo_tramo_ep96 = 200
+
+        tramos_data_ep96 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+            {"nombre": "Libro de Reglas", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+            {"nombre": "Estandarte", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep96, "acto_id": 3},
+        ]
+
+        tramos_a_crear_ep96 = [Tramo(**data) for data in tramos_data_ep96]
+        Tramo.objects.bulk_create(tramos_a_crear_ep96)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep96)} tramos para el Acto 3 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 3)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 3 (Distribución equitativa)...")
+
+        papeletas_cristo = list(PapeletaSitio.objects.filter(
+            acto_id=3, 
+            puesto_id__in=[99, 100, 101],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo = list(Tramo.objects.filter(
+            acto_id=3, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar = []
+        
+        num_papeletas_cristo = len(papeletas_cristo)
+        num_tramos_cristo = len(tramos_cristo)
+
+        if num_tramos_cristo > 0 and num_papeletas_cristo > 0:
+            base_por_tramo = num_papeletas_cristo // num_tramos_cristo
+            resto = num_papeletas_cristo % num_tramos_cristo
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar)} papeletas de cirios de Cristo en {num_tramos_cristo} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 3.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 3)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 3 (Distribución equitativa)...")
+
+        papeletas_virgen = list(PapeletaSitio.objects.filter(
+            acto_id=3, 
+            puesto_id__in=[110, 111, 112],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen = list(Tramo.objects.filter(
+            acto_id=3, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar = []
+        
+        num_papeletas_virgen = len(papeletas_virgen)
+        num_tramos_virgen = len(tramos_virgen)
+
+        if num_tramos_virgen > 0 and num_papeletas_virgen > 0:
+            base_por_tramo_v = num_papeletas_virgen // num_tramos_virgen
+            resto_v = num_papeletas_virgen % num_tramos_virgen
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar)} papeletas de cirios de Virgen en {num_tramos_virgen} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 3.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 1997 (ID=4)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 1997...")
+
+        fecha_1997 = datetime(1997, 3, 24, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=4).delete()
+
+        descripcion_acto_97 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 1997, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep97 = Acto(
+            id=4,
+            nombre="Estación de Penitencia 1997",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_97,
+            fecha=fecha_1997,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_1997 - timedelta(days=60),
+            fin_solicitud=fecha_1997 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_1997 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_1997 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_1997 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_1997 - timedelta(days=14),
+        )
+
+        ruta_imagen_97 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia1997.jpg')
+        
+        if os.path.exists(ruta_imagen_97):
+            with open(ruta_imagen_97, 'rb') as f:
+                acto_ep97.imagen_portada.save('EstacionPenitencia1997.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 4.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_97}'))
+
+        acto_ep97.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 1997 con ID 4.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 4
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 4...")
+
+        puestos_data_ep97 = [
+            {"id": 113, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 114, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 115, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 116, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 117, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 118, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 119, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep97 = [
+            {"id": 120, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 121, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 122, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 123, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 124, "nombre": "Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 125, "nombre": "Varas Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 126, "nombre": "Estandarte (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 127, "nombre": "Varas Estandarte (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 128, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 129, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 130, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 4, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep97.extend(puestos_virgen_data_ep97)
+
+        puestos_a_crear_97 = [Puesto(**data) for data in puestos_data_ep97]
+        Puesto.objects.bulk_create(puestos_a_crear_97)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_97)} puestos para el Acto 4 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=4 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 4...")
+
+        inicio_rango_solicitud_97 = fecha_1997 - timedelta(days=59)
+        fin_rango_solicitud_97 = fecha_1997 - timedelta(days=36)
+
+        fecha_emision_insignias_97 = (fecha_1997 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids_97 = [113, 114, 115, 116, 120, 121, 122, 123, 124, 125, 126, 127]
+
+        puestos_insignias_97 = Puesto.objects.filter(id__in=puestos_insignias_ids_97)
+        huecos_a_cubrir_97 = []
+        for puesto in puestos_insignias_97:
+            huecos_a_cubrir_97.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_97 = len(huecos_a_cubrir_97)
+
+        hermanos_elegibles_97 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1997.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_97) < cantidad_necesaria_97:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_97 = hermanos_elegibles_97
+            huecos_a_cubrir_97 = huecos_a_cubrir_97[:len(hermanos_elegibles_97)]
+        else:
+            hermanos_seleccionados_97 = random.sample(hermanos_elegibles_97, cantidad_necesaria_97)
+
+        hermanos_seleccionados_97.sort()
+
+        papeletas_data_acto4 = []
+        codigos_usados_acto4 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_97, huecos_a_cubrir_97):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto4:
+                    codigos_usados_acto4.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_97 - inicio_rango_solicitud_97).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_97 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto4.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_97,
+                    codigo_verificacion=codigo,
+                    anio=1997,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=4,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto4)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto4 = []
+        
+        for papeleta in papeletas_data_acto4:
+            preferencias_data_acto4.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_97 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto4.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto4)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto4)} papeletas de insignias (EMITIDAS) para el Acto 4.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=4 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 4...")
+
+        inicio_rango_solicitud_cirios_97 = fecha_1997 - timedelta(days=32)
+        fin_rango_solicitud_cirios_97 = fecha_1997 - timedelta(days=16)
+
+        fecha_emision_cirios_97 = (fecha_1997 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_97 = [117, 118, 119, 128, 129, 130]
+
+        hermanos_con_insignia_97 = PapeletaSitio.objects.filter(acto_id=4).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_97 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1997.date())
+            .exclude(id__in=hermanos_con_insignia_97)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_97 = min(800, len(hermanos_elegibles_cirios_97))
+        hermanos_seleccionados_cirios_97 = random.sample(hermanos_elegibles_cirios_97, cantidad_a_asignar_97)
+
+        hermanos_seleccionados_cirios_97.sort()
+
+        codigos_usados_acto4_cirios = set(PapeletaSitio.objects.filter(acto_id=4).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto4 = PapeletaSitio.objects.filter(acto_id=4, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto4.numero_papeleta + 1) if ultima_papeleta_acto4 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto4 = []
+        preferencias_data_cirios_acto4 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_97:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto4_cirios:
+                    codigos_usados_acto4_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_97 - inicio_rango_solicitud_cirios_97).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_97 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_97)
+
+            papeletas_data_cirios_acto4.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_97,
+                    codigo_verificacion=codigo,
+                    anio=1997,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=4,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto4.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto4)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto4)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto4)} papeletas de cirios (EMITIDAS) para el Acto 4.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 4
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 4...")
+
+        aforo_tramo_ep97 = 200
+
+        tramos_data_ep97 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+            {"nombre": "Libro de Reglas", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+            {"nombre": "Estandarte", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep97, "acto_id": 4},
+        ]
+
+        tramos_a_crear_ep97 = [Tramo(**data) for data in tramos_data_ep97]
+        Tramo.objects.bulk_create(tramos_a_crear_ep97)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep97)} tramos para el Acto 4 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 4)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 4 (Distribución equitativa)...")
+
+        papeletas_cristo_97 = list(PapeletaSitio.objects.filter(
+            acto_id=4, 
+            puesto_id__in=[117, 118, 119],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_97 = list(Tramo.objects.filter(
+            acto_id=4, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_97 = []
+        
+        num_papeletas_cristo_97 = len(papeletas_cristo_97)
+        num_tramos_cristo_97 = len(tramos_cristo_97)
+
+        if num_tramos_cristo_97 > 0 and num_papeletas_cristo_97 > 0:
+            base_por_tramo = num_papeletas_cristo_97 // num_tramos_cristo_97
+            resto = num_papeletas_cristo_97 % num_tramos_cristo_97
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_97:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_97[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_97.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_97:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_97, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_97)} papeletas de cirios de Cristo en {num_tramos_cristo_97} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 4.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 4)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 4 (Distribución equitativa)...")
+
+        papeletas_virgen_97 = list(PapeletaSitio.objects.filter(
+            acto_id=4, 
+            puesto_id__in=[128, 129, 130],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_97 = list(Tramo.objects.filter(
+            acto_id=4, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_97 = []
+        
+        num_papeletas_virgen_97 = len(papeletas_virgen_97)
+        num_tramos_virgen_97 = len(tramos_virgen_97)
+
+        if num_tramos_virgen_97 > 0 and num_papeletas_virgen_97 > 0:
+            base_por_tramo_v = num_papeletas_virgen_97 // num_tramos_virgen_97
+            resto_v = num_papeletas_virgen_97 % num_tramos_virgen_97
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_97:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_97[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_97.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_97:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_97, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_97)} papeletas de cirios de Virgen en {num_tramos_virgen_97} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 4.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 1998 (ID=5)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 1998...")
+
+        # Lunes Santo de 1998 fue el 6 de abril
+        fecha_1998 = datetime(1998, 4, 6, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=5).delete()
+
+        descripcion_acto_98 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 1998, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep98 = Acto(
+            id=5,
+            nombre="Estación de Penitencia 1998",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_98,
+            fecha=fecha_1998,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_1998 - timedelta(days=60),
+            fin_solicitud=fecha_1998 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_1998 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_1998 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_1998 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_1998 - timedelta(days=14),
+        )
+
+        ruta_imagen_98 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia1998.jpg')
+        
+        if os.path.exists(ruta_imagen_98):
+            with open(ruta_imagen_98, 'rb') as f:
+                acto_ep98.imagen_portada.save('EstacionPenitencia1998.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 5.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_98}'))
+
+        acto_ep98.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 1998 con ID 5.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 5
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 5...")
+
+        puestos_data_ep98 = [
+            {"id": 131, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 132, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 133, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 134, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 135, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 136, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 137, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep98 = [
+            {"id": 138, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 139, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 140, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 141, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 142, "nombre": "Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 143, "nombre": "Varas Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 144, "nombre": "Estandarte (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 145, "nombre": "Varas Estandarte (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 146, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 147, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 148, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 5, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep98.extend(puestos_virgen_data_ep98)
+
+        puestos_a_crear_98 = [Puesto(**data) for data in puestos_data_ep98]
+        Puesto.objects.bulk_create(puestos_a_crear_98)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_98)} puestos para el Acto 5 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=5 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 5...")
+
+        inicio_rango_solicitud_98 = fecha_1998 - timedelta(days=59)
+        fin_rango_solicitud_98 = fecha_1998 - timedelta(days=36)
+
+        fecha_emision_insignias_98 = (fecha_1998 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids_98 = [131, 132, 133, 134, 138, 139, 140, 141, 142, 143, 144, 145]
+
+        puestos_insignias_98 = Puesto.objects.filter(id__in=puestos_insignias_ids_98)
+        huecos_a_cubrir_98 = []
+        for puesto in puestos_insignias_98:
+            huecos_a_cubrir_98.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_98 = len(huecos_a_cubrir_98)
+
+        hermanos_elegibles_98 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1998.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_98) < cantidad_necesaria_98:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_98 = hermanos_elegibles_98
+            huecos_a_cubrir_98 = huecos_a_cubrir_98[:len(hermanos_elegibles_98)]
+        else:
+            hermanos_seleccionados_98 = random.sample(hermanos_elegibles_98, cantidad_necesaria_98)
+
+        hermanos_seleccionados_98.sort()
+
+        papeletas_data_acto5 = []
+        codigos_usados_acto5 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_98, huecos_a_cubrir_98):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto5:
+                    codigos_usados_acto5.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_98 - inicio_rango_solicitud_98).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_98 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto5.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_98,
+                    codigo_verificacion=codigo,
+                    anio=1998,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=5,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto5)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto5 = []
+        
+        for papeleta in papeletas_data_acto5:
+            preferencias_data_acto5.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_98 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto5.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto5)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto5)} papeletas de insignias (EMITIDAS) para el Acto 5.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=5 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 5...")
+
+        inicio_rango_solicitud_cirios_98 = fecha_1998 - timedelta(days=32)
+        fin_rango_solicitud_cirios_98 = fecha_1998 - timedelta(days=16)
+
+        fecha_emision_cirios_98 = (fecha_1998 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_98 = [135, 136, 137, 146, 147, 148]
+
+        hermanos_con_insignia_98 = PapeletaSitio.objects.filter(acto_id=5).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_98 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1998.date())
+            .exclude(id__in=hermanos_con_insignia_98)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_98 = min(800, len(hermanos_elegibles_cirios_98))
+        hermanos_seleccionados_cirios_98 = random.sample(hermanos_elegibles_cirios_98, cantidad_a_asignar_98)
+
+        hermanos_seleccionados_cirios_98.sort()
+
+        codigos_usados_acto5_cirios = set(PapeletaSitio.objects.filter(acto_id=5).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto5 = PapeletaSitio.objects.filter(acto_id=5, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto5.numero_papeleta + 1) if ultima_papeleta_acto5 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto5 = []
+        preferencias_data_cirios_acto5 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_98:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto5_cirios:
+                    codigos_usados_acto5_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_98 - inicio_rango_solicitud_cirios_98).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_98 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_98)
+
+            papeletas_data_cirios_acto5.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_98,
+                    codigo_verificacion=codigo,
+                    anio=1998,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=5,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto5.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto5)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto5)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto5)} papeletas de cirios (EMITIDAS) para el Acto 5.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 5
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 5...")
+
+        aforo_tramo_ep98 = 200
+
+        tramos_data_ep98 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+            {"nombre": "Libro de Reglas", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+            {"nombre": "Estandarte", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep98, "acto_id": 5},
+        ]
+
+        tramos_a_crear_ep98 = [Tramo(**data) for data in tramos_data_ep98]
+        Tramo.objects.bulk_create(tramos_a_crear_ep98)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep98)} tramos para el Acto 5 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 5)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 5 (Distribución equitativa)...")
+
+        papeletas_cristo_98 = list(PapeletaSitio.objects.filter(
+            acto_id=5, 
+            puesto_id__in=[135, 136, 137],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_98 = list(Tramo.objects.filter(
+            acto_id=5, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_98 = []
+        
+        num_papeletas_cristo_98 = len(papeletas_cristo_98)
+        num_tramos_cristo_98 = len(tramos_cristo_98)
+
+        if num_tramos_cristo_98 > 0 and num_papeletas_cristo_98 > 0:
+            base_por_tramo = num_papeletas_cristo_98 // num_tramos_cristo_98
+            resto = num_papeletas_cristo_98 % num_tramos_cristo_98
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_98:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_98[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_98.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_98:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_98, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_98)} papeletas de cirios de Cristo en {num_tramos_cristo_98} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 5.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 5)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 5 (Distribución equitativa)...")
+
+        papeletas_virgen_98 = list(PapeletaSitio.objects.filter(
+            acto_id=5, 
+            puesto_id__in=[146, 147, 148],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_98 = list(Tramo.objects.filter(
+            acto_id=5, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_98 = []
+        
+        num_papeletas_virgen_98 = len(papeletas_virgen_98)
+        num_tramos_virgen_98 = len(tramos_virgen_98)
+
+        if num_tramos_virgen_98 > 0 and num_papeletas_virgen_98 > 0:
+            base_por_tramo_v = num_papeletas_virgen_98 // num_tramos_virgen_98
+            resto_v = num_papeletas_virgen_98 % num_tramos_virgen_98
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_98:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_98[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_98.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_98:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_98, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_98)} papeletas de cirios de Virgen en {num_tramos_virgen_98} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 5.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 1999 (ID=6)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 1999...")
+
+        # Lunes Santo de 1999 fue el 29 de marzo
+        fecha_1999 = datetime(1999, 3, 29, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=6).delete()
+
+        descripcion_acto_99 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 1999, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep99 = Acto(
+            id=6,
+            nombre="Estación de Penitencia 1999",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_99,
+            fecha=fecha_1999,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_1999 - timedelta(days=60),
+            fin_solicitud=fecha_1999 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_1999 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_1999 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_1999 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_1999 - timedelta(days=14),
+        )
+
+        ruta_imagen_99 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia1999.jpg')
+        
+        if os.path.exists(ruta_imagen_99):
+            with open(ruta_imagen_99, 'rb') as f:
+                acto_ep99.imagen_portada.save('EstacionPenitencia1999.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 6.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_99}'))
+
+        acto_ep99.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 1999 con ID 6.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 6
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 6...")
+
+        puestos_data_ep99 = [
+            {"id": 149, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 150, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 151, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 152, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 153, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 154, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 155, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep99 = [
+            {"id": 156, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 157, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 158, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 159, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 160, "nombre": "Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 161, "nombre": "Varas Libro de Reglas (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 162, "nombre": "Estandarte (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 163, "nombre": "Varas Estandarte (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 164, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 165, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 166, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 6, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep99.extend(puestos_virgen_data_ep99)
+
+        puestos_a_crear_99 = [Puesto(**data) for data in puestos_data_ep99]
+        Puesto.objects.bulk_create(puestos_a_crear_99)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_99)} puestos para el Acto 6 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=6 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 6...")
+
+        inicio_rango_solicitud_99 = fecha_1999 - timedelta(days=59)
+        fin_rango_solicitud_99 = fecha_1999 - timedelta(days=36)
+
+        fecha_emision_insignias_99 = (fecha_1999 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids_99 = [149, 150, 151, 152, 156, 157, 158, 159, 160, 161, 162, 163]
+
+        puestos_insignias_99 = Puesto.objects.filter(id__in=puestos_insignias_ids_99)
+        huecos_a_cubrir_99 = []
+        for puesto in puestos_insignias_99:
+            huecos_a_cubrir_99.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_99 = len(huecos_a_cubrir_99)
+
+        hermanos_elegibles_99 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1999.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_99) < cantidad_necesaria_99:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_99 = hermanos_elegibles_99
+            huecos_a_cubrir_99 = huecos_a_cubrir_99[:len(hermanos_elegibles_99)]
+        else:
+            hermanos_seleccionados_99 = random.sample(hermanos_elegibles_99, cantidad_necesaria_99)
+
+        hermanos_seleccionados_99.sort()
+
+        papeletas_data_acto6 = []
+        codigos_usados_acto6 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_99, huecos_a_cubrir_99):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto6:
+                    codigos_usados_acto6.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_99 - inicio_rango_solicitud_99).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_99 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto6.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_99,
+                    codigo_verificacion=codigo,
+                    anio=1999,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=6,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto6)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto6 = []
+        
+        for papeleta in papeletas_data_acto6:
+            preferencias_data_acto6.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_99 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto6.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto6)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto6)} papeletas de insignias (EMITIDAS) para el Acto 6.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=6 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 6...")
+
+        inicio_rango_solicitud_cirios_99 = fecha_1999 - timedelta(days=32)
+        fin_rango_solicitud_cirios_99 = fecha_1999 - timedelta(days=16)
+
+        fecha_emision_cirios_99 = (fecha_1999 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_99 = [153, 154, 155, 164, 165, 166]
+
+        hermanos_con_insignia_99 = PapeletaSitio.objects.filter(acto_id=6).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_99 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_1999.date())
+            .exclude(id__in=hermanos_con_insignia_99)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_99 = min(800, len(hermanos_elegibles_cirios_99))
+        hermanos_seleccionados_cirios_99 = random.sample(hermanos_elegibles_cirios_99, cantidad_a_asignar_99)
+
+        hermanos_seleccionados_cirios_99.sort()
+
+        codigos_usados_acto6_cirios = set(PapeletaSitio.objects.filter(acto_id=6).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto6 = PapeletaSitio.objects.filter(acto_id=6, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto6.numero_papeleta + 1) if ultima_papeleta_acto6 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto6 = []
+        preferencias_data_cirios_acto6 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_99:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto6_cirios:
+                    codigos_usados_acto6_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_99 - inicio_rango_solicitud_cirios_99).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_99 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_99)
+
+            papeletas_data_cirios_acto6.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_99,
+                    codigo_verificacion=codigo,
+                    anio=1999,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=6,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto6.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto6)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto6)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto6)} papeletas de cirios (EMITIDAS) para el Acto 6.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 6
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 6...")
+
+        aforo_tramo_ep99 = 200
+
+        tramos_data_ep99 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+            {"nombre": "Libro de Reglas", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+            {"nombre": "Estandarte", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep99, "acto_id": 6},
+        ]
+
+        tramos_a_crear_ep99 = [Tramo(**data) for data in tramos_data_ep99]
+        Tramo.objects.bulk_create(tramos_a_crear_ep99)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep99)} tramos para el Acto 6 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 6)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 6 (Distribución equitativa)...")
+
+        papeletas_cristo_99 = list(PapeletaSitio.objects.filter(
+            acto_id=6, 
+            puesto_id__in=[153, 154, 155],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_99 = list(Tramo.objects.filter(
+            acto_id=6, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_99 = []
+        
+        num_papeletas_cristo_99 = len(papeletas_cristo_99)
+        num_tramos_cristo_99 = len(tramos_cristo_99)
+
+        if num_tramos_cristo_99 > 0 and num_papeletas_cristo_99 > 0:
+            base_por_tramo = num_papeletas_cristo_99 // num_tramos_cristo_99
+            resto = num_papeletas_cristo_99 % num_tramos_cristo_99
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_99:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_99[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_99.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_99:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_99, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_99)} papeletas de cirios de Cristo en {num_tramos_cristo_99} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 6.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 6)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 6 (Distribución equitativa)...")
+
+        papeletas_virgen_99 = list(PapeletaSitio.objects.filter(
+            acto_id=6, 
+            puesto_id__in=[164, 165, 166],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_99 = list(Tramo.objects.filter(
+            acto_id=6, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_99 = []
+        
+        num_papeletas_virgen_99 = len(papeletas_virgen_99)
+        num_tramos_virgen_99 = len(tramos_virgen_99)
+
+        if num_tramos_virgen_99 > 0 and num_papeletas_virgen_99 > 0:
+            base_por_tramo_v = num_papeletas_virgen_99 // num_tramos_virgen_99
+            resto_v = num_papeletas_virgen_99 % num_tramos_virgen_99
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_99:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_99[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_99.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_99:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_99, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_99)} papeletas de cirios de Virgen en {num_tramos_virgen_99} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 6.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2000 (ID=7)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2000...")
+
+        # Lunes Santo de 2000 fue el 17 de abril
+        fecha_2000 = datetime(2000, 4, 17, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=7).delete()
+
+        descripcion_acto_00 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 2000, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep00 = Acto(
+            id=7,
+            nombre="Estación de Penitencia 2000",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_00,
+            fecha=fecha_2000,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_2000 - timedelta(days=60),
+            fin_solicitud=fecha_2000 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_2000 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_2000 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_2000 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_2000 - timedelta(days=14),
+        )
+
+        ruta_imagen_00 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2000.jpg')
+        
+        if os.path.exists(ruta_imagen_00):
+            with open(ruta_imagen_00, 'rb') as f:
+                acto_ep00.imagen_portada.save('EstacionPenitencia2000.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 7.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_00}'))
+
+        acto_ep00.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2000 con ID 7.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 7
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 7...")
+
+        puestos_data_ep00 = [
+            {"id": 167, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 168, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 169, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 170, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 171, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 172, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 173, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 174, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            
+            {"id": 175, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 176, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 177, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep00 = [
+            {"id": 178, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 179, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 180, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 181, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 182, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 183, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 184, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 185, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 186, "nombre": "Libro de Reglas (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 187, "nombre": "Varas Libro de Reglas (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 188, "nombre": "Estandarte (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 189, "nombre": "Varas Estandarte (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            
+            {"id": 190, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 191, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 192, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 7, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep00.extend(puestos_virgen_data_ep00)
+
+        puestos_a_crear_00 = [Puesto(**data) for data in puestos_data_ep00]
+        Puesto.objects.bulk_create(puestos_a_crear_00)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_00)} puestos para el Acto 7 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=7 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 7...")
+
+        inicio_rango_solicitud_00 = fecha_2000 - timedelta(days=59)
+        fin_rango_solicitud_00 = fecha_2000 - timedelta(days=36)
+
+        fecha_emision_insignias_00 = (fecha_2000 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids_00 = [167, 168, 169, 170, 171, 172, 173, 174, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189]
+
+        puestos_insignias_00 = Puesto.objects.filter(id__in=puestos_insignias_ids_00)
+        huecos_a_cubrir_00 = []
+        for puesto in puestos_insignias_00:
+            huecos_a_cubrir_00.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_00 = len(huecos_a_cubrir_00)
+
+        hermanos_elegibles_00 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2000.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_00) < cantidad_necesaria_00:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_00 = hermanos_elegibles_00
+            huecos_a_cubrir_00 = huecos_a_cubrir_00[:len(hermanos_elegibles_00)]
+        else:
+            hermanos_seleccionados_00 = random.sample(hermanos_elegibles_00, cantidad_necesaria_00)
+
+        hermanos_seleccionados_00.sort()
+
+        papeletas_data_acto7 = []
+        codigos_usados_acto7 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_00, huecos_a_cubrir_00):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto7:
+                    codigos_usados_acto7.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_00 - inicio_rango_solicitud_00).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_00 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto7.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_00,
+                    codigo_verificacion=codigo,
+                    anio=2000,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=7,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto7)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto7 = []
+        
+        for papeleta in papeletas_data_acto7:
+            preferencias_data_acto7.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_00 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto7.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto7)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto7)} papeletas de insignias (EMITIDAS) para el Acto 7.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=7 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 7...")
+
+        inicio_rango_solicitud_cirios_00 = fecha_2000 - timedelta(days=32)
+        fin_rango_solicitud_cirios_00 = fecha_2000 - timedelta(days=16)
+
+        fecha_emision_cirios_00 = (fecha_2000 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_00 = [175, 176, 177, 190, 191, 192]
+
+        hermanos_con_insignia_00 = PapeletaSitio.objects.filter(acto_id=7).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_00 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2000.date())
+            .exclude(id__in=hermanos_con_insignia_00)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_00 = min(800, len(hermanos_elegibles_cirios_00))
+        hermanos_seleccionados_cirios_00 = random.sample(hermanos_elegibles_cirios_00, cantidad_a_asignar_00)
+
+        hermanos_seleccionados_cirios_00.sort()
+
+        codigos_usados_acto7_cirios = set(PapeletaSitio.objects.filter(acto_id=7).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto7 = PapeletaSitio.objects.filter(acto_id=7, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto7.numero_papeleta + 1) if ultima_papeleta_acto7 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto7 = []
+        preferencias_data_cirios_acto7 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_00:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto7_cirios:
+                    codigos_usados_acto7_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_00 - inicio_rango_solicitud_cirios_00).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_00 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_00)
+
+            papeletas_data_cirios_acto7.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_00,
+                    codigo_verificacion=codigo,
+                    anio=2000,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=7,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto7.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto7)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto7)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto7)} papeletas de cirios (EMITIDAS) para el Acto 7.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 7
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 7...")
+
+        aforo_tramo_ep00 = 200
+
+        tramos_data_ep00 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Bandera Morada", "numero_orden": 3, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Bandera Pontificia", "numero_orden": 4, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Bandera Blanca y Celeste", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Bandera Asuncionista", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Libro de Reglas", "numero_orden": 5, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+            {"nombre": "Estandarte", "numero_orden": 6, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep00, "acto_id": 7},
+        ]
+
+        tramos_a_crear_ep00 = [Tramo(**data) for data in tramos_data_ep00]
+        Tramo.objects.bulk_create(tramos_a_crear_ep00)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep00)} tramos para el Acto 7 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 7)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 7 (Distribución equitativa)...")
+
+        papeletas_cristo_00 = list(PapeletaSitio.objects.filter(
+            acto_id=7, 
+            puesto_id__in=[175, 176, 177],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_00 = list(Tramo.objects.filter(
+            acto_id=7, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_00 = []
+        
+        num_papeletas_cristo_00 = len(papeletas_cristo_00)
+        num_tramos_cristo_00 = len(tramos_cristo_00)
+
+        if num_tramos_cristo_00 > 0 and num_papeletas_cristo_00 > 0:
+            base_por_tramo = num_papeletas_cristo_00 // num_tramos_cristo_00
+            resto = num_papeletas_cristo_00 % num_tramos_cristo_00
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_00:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_00[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_00.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_00:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_00, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_00)} papeletas de cirios de Cristo en {num_tramos_cristo_00} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 7.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 7)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 7 (Distribución equitativa)...")
+
+        papeletas_virgen_00 = list(PapeletaSitio.objects.filter(
+            acto_id=7, 
+            puesto_id__in=[190, 191, 192],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_00 = list(Tramo.objects.filter(
+            acto_id=7, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_00 = []
+        
+        num_papeletas_virgen_00 = len(papeletas_virgen_00)
+        num_tramos_virgen_00 = len(tramos_virgen_00)
+
+        if num_tramos_virgen_00 > 0 and num_papeletas_virgen_00 > 0:
+            base_por_tramo_v = num_papeletas_virgen_00 // num_tramos_virgen_00
+            resto_v = num_papeletas_virgen_00 % num_tramos_virgen_00
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_00:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_00[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_00.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_00:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_00, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_00)} papeletas de cirios de Virgen en {num_tramos_virgen_00} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 7.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2001 (ID=8)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2001...")
+
+        # Lunes Santo de 2001 fue el 9 de abril
+        fecha_2001 = datetime(2001, 4, 9, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=8).delete()
+
+        descripcion_acto_01 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 2001, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep01 = Acto(
+            id=8,
+            nombre="Estación de Penitencia 2001",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_01,
+            fecha=fecha_2001,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_2001 - timedelta(days=60),
+            fin_solicitud=fecha_2001 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_2001 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_2001 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_2001 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_2001 - timedelta(days=14),
+        )
+
+        ruta_imagen_01 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2001.jpg')
+        
+        if os.path.exists(ruta_imagen_01):
+            with open(ruta_imagen_01, 'rb') as f:
+                acto_ep01.imagen_portada.save('EstacionPenitencia2001.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 8.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_01}'))
+
+        acto_ep01.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2001 con ID 8.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 8
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 8...")
+
+        puestos_data_ep01 = [
+            {"id": 193, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 194, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 195, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 196, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 197, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 198, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 199, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 200, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            
+            {"id": 201, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 202, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 203, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep01 = [
+            {"id": 204, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 205, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 206, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 207, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 208, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 209, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 210, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 211, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 212, "nombre": "Libro de Reglas (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 213, "nombre": "Varas Libro de Reglas (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 214, "nombre": "Estandarte (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 215, "nombre": "Varas Estandarte (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            
+            {"id": 216, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 217, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 218, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 8, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep01.extend(puestos_virgen_data_ep01)
+
+        puestos_a_crear_01 = [Puesto(**data) for data in puestos_data_ep01]
+        Puesto.objects.bulk_create(puestos_a_crear_01)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_01)} puestos para el Acto 8 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=8 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 8...")
+
+        inicio_rango_solicitud_01 = fecha_2001 - timedelta(days=59)
+        fin_rango_solicitud_01 = fecha_2001 - timedelta(days=36)
+
+        fecha_emision_insignias_01 = (fecha_2001 - timedelta(days=34)).date() 
+
+        puestos_insignias_ids_01 = [193, 194, 195, 196, 197, 198, 199, 200, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215]
+
+        puestos_insignias_01 = Puesto.objects.filter(id__in=puestos_insignias_ids_01)
+        huecos_a_cubrir_01 = []
+        for puesto in puestos_insignias_01:
+            huecos_a_cubrir_01.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_01 = len(huecos_a_cubrir_01)
+
+        hermanos_elegibles_01 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2001.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_01) < cantidad_necesaria_01:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_01 = hermanos_elegibles_01
+            huecos_a_cubrir_01 = huecos_a_cubrir_01[:len(hermanos_elegibles_01)]
+        else:
+            hermanos_seleccionados_01 = random.sample(hermanos_elegibles_01, cantidad_necesaria_01)
+
+        hermanos_seleccionados_01.sort()
+
+        papeletas_data_acto8 = []
+        codigos_usados_acto8 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_01, huecos_a_cubrir_01):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto8:
+                    codigos_usados_acto8.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_01 - inicio_rango_solicitud_01).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_01 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto8.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_01,
+                    codigo_verificacion=codigo,
+                    anio=2001,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=8,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto8)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto8 = []
+        
+        for papeleta in papeletas_data_acto8:
+            preferencias_data_acto8.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_01 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto8.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto8)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto8)} papeletas de insignias (EMITIDAS) para el Acto 8.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=8 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 8...")
+
+        inicio_rango_solicitud_cirios_01 = fecha_2001 - timedelta(days=32)
+        fin_rango_solicitud_cirios_01 = fecha_2001 - timedelta(days=16)
+
+        fecha_emision_cirios_01 = (fecha_2001 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_01 = [201, 202, 203, 216, 217, 218]
+
+        hermanos_con_insignia_01 = PapeletaSitio.objects.filter(acto_id=8).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_01 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2001.date())
+            .exclude(id__in=hermanos_con_insignia_01)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_01 = min(800, len(hermanos_elegibles_cirios_01))
+        hermanos_seleccionados_cirios_01 = random.sample(hermanos_elegibles_cirios_01, cantidad_a_asignar_01)
+
+        hermanos_seleccionados_cirios_01.sort()
+
+        codigos_usados_acto8_cirios = set(PapeletaSitio.objects.filter(acto_id=8).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto8 = PapeletaSitio.objects.filter(acto_id=8, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto8.numero_papeleta + 1) if ultima_papeleta_acto8 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto8 = []
+        preferencias_data_cirios_acto8 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_01:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto8_cirios:
+                    codigos_usados_acto8_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_01 - inicio_rango_solicitud_cirios_01).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_01 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_01)
+
+            papeletas_data_cirios_acto8.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_01,
+                    codigo_verificacion=codigo,
+                    anio=2001,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=8,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto8.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto8)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto8)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto8)} papeletas de cirios (EMITIDAS) para el Acto 8.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 8
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 8...")
+
+        aforo_tramo_ep01 = 200
+
+        tramos_data_ep01 = [
+            # --- TRAMOS DE CRISTO ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Bandera Morada", "numero_orden": 3, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Bandera Pontificia", "numero_orden": 4, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+
+            # --- TRAMOS DE VIRGEN ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Bandera Blanca y Celeste", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Bandera Asuncionista", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Libro de Reglas", "numero_orden": 5, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+            {"nombre": "Estandarte", "numero_orden": 6, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep01, "acto_id": 8},
+        ]
+
+        tramos_a_crear_ep01 = [Tramo(**data) for data in tramos_data_ep01]
+        Tramo.objects.bulk_create(tramos_a_crear_ep01)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep01)} tramos para el Acto 8 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 8)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 8 (Distribución equitativa)...")
+
+        papeletas_cristo_01 = list(PapeletaSitio.objects.filter(
+            acto_id=8, 
+            puesto_id__in=[201, 202, 203],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_01 = list(Tramo.objects.filter(
+            acto_id=8, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_01 = []
+        
+        num_papeletas_cristo_01 = len(papeletas_cristo_01)
+        num_tramos_cristo_01 = len(tramos_cristo_01)
+
+        if num_tramos_cristo_01 > 0 and num_papeletas_cristo_01 > 0:
+            base_por_tramo = num_papeletas_cristo_01 // num_tramos_cristo_01
+            resto = num_papeletas_cristo_01 % num_tramos_cristo_01
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_01:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_01[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_01.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_01:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_01, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_01)} papeletas de cirios de Cristo en {num_tramos_cristo_01} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 8.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 8)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 8 (Distribución equitativa)...")
+
+        papeletas_virgen_01 = list(PapeletaSitio.objects.filter(
+            acto_id=8, 
+            puesto_id__in=[216, 217, 218],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_01 = list(Tramo.objects.filter(
+            acto_id=8, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_01 = []
+        
+        num_papeletas_virgen_01 = len(papeletas_virgen_01)
+        num_tramos_virgen_01 = len(tramos_virgen_01)
+
+        if num_tramos_virgen_01 > 0 and num_papeletas_virgen_01 > 0:
+            base_por_tramo_v = num_papeletas_virgen_01 // num_tramos_virgen_01
+            resto_v = num_papeletas_virgen_01 % num_tramos_virgen_01
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_01:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_01[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_01.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_01:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_01, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_01)} papeletas de cirios de Virgen en {num_tramos_virgen_01} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 8.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2002 (ID=9)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2002...")
+
+        # Lunes Santo de 2002 fue el 25 de marzo
+        fecha_2002 = datetime(2002, 3, 25, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=9).delete()
+
+        descripcion_acto_02 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 2002, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep02 = Acto(
+            id=9,
+            nombre="Estación de Penitencia 2002",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_02,
+            fecha=fecha_2002,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_2002 - timedelta(days=60),
+            fin_solicitud=fecha_2002 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_2002 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_2002 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_2002 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_2002 - timedelta(days=14),
+        )
+
+        ruta_imagen_02 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2002.jpg')
+        
+        if os.path.exists(ruta_imagen_02):
+            with open(ruta_imagen_02, 'rb') as f:
+                acto_ep02.imagen_portada.save('EstacionPenitencia2002.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 9.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_02}'))
+
+        acto_ep02.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2002 con ID 9.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 9
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 9...")
+
+        puestos_data_ep02 = [
+            {"id": 219, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 220, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 221, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 222, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 223, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 224, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 225, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 226, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 227, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 228, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 229, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 230, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 231, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 232, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            
+            {"id": 233, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 234, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 235, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep02 = [
+            {"id": 236, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 237, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 238, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 239, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 240, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 241, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 242, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 243, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 244, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 245, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 246, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 247, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 248, "nombre": "Libro de Reglas (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 249, "nombre": "Varas Libro de Reglas (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 250, "nombre": "Estandarte (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 251, "nombre": "Varas Estandarte (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            
+            {"id": 252, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 253, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 254, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 9, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep02.extend(puestos_virgen_data_ep02)
+
+        puestos_a_crear_02 = [Puesto(**data) for data in puestos_data_ep02]
+        Puesto.objects.bulk_create(puestos_a_crear_02)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_02)} puestos para el Acto 9 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=9 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 9...")
+
+        inicio_rango_solicitud_02 = fecha_2002 - timedelta(days=59)
+        fin_rango_solicitud_02 = fecha_2002 - timedelta(days=36)
+
+        fecha_emision_insignias_02 = (fecha_2002 - timedelta(days=34)).date() 
+
+        # Incluyendo todos los IDs de insignias (Cristo y Virgen)
+        puestos_insignias_ids_02 = [
+            219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 
+            236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251
+        ]
+
+        puestos_insignias_02 = Puesto.objects.filter(id__in=puestos_insignias_ids_02)
+        huecos_a_cubrir_02 = []
+        for puesto in puestos_insignias_02:
+            huecos_a_cubrir_02.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_02 = len(huecos_a_cubrir_02)
+
+        hermanos_elegibles_02 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2002.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_02) < cantidad_necesaria_02:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_02 = hermanos_elegibles_02
+            huecos_a_cubrir_02 = huecos_a_cubrir_02[:len(hermanos_elegibles_02)]
+        else:
+            hermanos_seleccionados_02 = random.sample(hermanos_elegibles_02, cantidad_necesaria_02)
+
+        hermanos_seleccionados_02.sort()
+
+        papeletas_data_acto9 = []
+        codigos_usados_acto9 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_02, huecos_a_cubrir_02):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto9:
+                    codigos_usados_acto9.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_02 - inicio_rango_solicitud_02).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_02 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto9.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_02,
+                    codigo_verificacion=codigo,
+                    anio=2002,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=9,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto9)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto9 = []
+        
+        for papeleta in papeletas_data_acto9:
+            preferencias_data_acto9.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_02 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto9.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto9)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto9)} papeletas de insignias (EMITIDAS) para el Acto 9.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=9 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 9...")
+
+        inicio_rango_solicitud_cirios_02 = fecha_2002 - timedelta(days=32)
+        fin_rango_solicitud_cirios_02 = fecha_2002 - timedelta(days=16)
+
+        fecha_emision_cirios_02 = (fecha_2002 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_02 = [233, 234, 235, 252, 253, 254]
+
+        hermanos_con_insignia_02 = PapeletaSitio.objects.filter(acto_id=9).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_02 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2002.date())
+            .exclude(id__in=hermanos_con_insignia_02)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_02 = min(800, len(hermanos_elegibles_cirios_02))
+        hermanos_seleccionados_cirios_02 = random.sample(hermanos_elegibles_cirios_02, cantidad_a_asignar_02)
+
+        hermanos_seleccionados_cirios_02.sort()
+
+        codigos_usados_acto9_cirios = set(PapeletaSitio.objects.filter(acto_id=9).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto9 = PapeletaSitio.objects.filter(acto_id=9, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto9.numero_papeleta + 1) if ultima_papeleta_acto9 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto9 = []
+        preferencias_data_cirios_acto9 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_02:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto9_cirios:
+                    codigos_usados_acto9_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_02 - inicio_rango_solicitud_cirios_02).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_02 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_02)
+
+            papeletas_data_cirios_acto9.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_02,
+                    codigo_verificacion=codigo,
+                    anio=2002,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=9,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto9.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto9)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto9)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto9)} papeletas de cirios (EMITIDAS) para el Acto 9.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 9
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 9...")
+
+        aforo_tramo_ep02 = 200
+
+        tramos_data_ep02 = [
+            # --- TRAMOS DE CRISTO (7 Tramos) ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Morada", "numero_orden": 3, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Pontificia", "numero_orden": 4, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Banderín Sacramental", "numero_orden": 5, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Guión del Cincuentenario", "numero_orden": 6, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Banderín de la Juventud", "numero_orden": 7, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+
+            # --- TRAMOS DE VIRGEN (9 Tramos) ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Blanca y Celeste", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Asuncionista", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Concepcionista", "numero_orden": 5, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Bandera Realeza de María", "numero_orden": 6, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Libro de Reglas", "numero_orden": 7, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+            {"nombre": "Estandarte", "numero_orden": 8, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
+        ]
+
+        tramos_a_crear_ep02 = [Tramo(**data) for data in tramos_data_ep02]
+        Tramo.objects.bulk_create(tramos_a_crear_ep02)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep02)} tramos para el Acto 9 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 9)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 9 (Distribución equitativa)...")
+
+        papeletas_cristo_02 = list(PapeletaSitio.objects.filter(
+            acto_id=9, 
+            puesto_id__in=[233, 234, 235],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_02 = list(Tramo.objects.filter(
+            acto_id=9, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_02 = []
+        
+        num_papeletas_cristo_02 = len(papeletas_cristo_02)
+        num_tramos_cristo_02 = len(tramos_cristo_02)
+
+        if num_tramos_cristo_02 > 0 and num_papeletas_cristo_02 > 0:
+            base_por_tramo = num_papeletas_cristo_02 // num_tramos_cristo_02
+            resto = num_papeletas_cristo_02 % num_tramos_cristo_02
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_02:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_02[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_02.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_02:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_02, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_02)} papeletas de cirios de Cristo en {num_tramos_cristo_02} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 9.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 9)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 9 (Distribución equitativa)...")
+
+        papeletas_virgen_02 = list(PapeletaSitio.objects.filter(
+            acto_id=9, 
+            puesto_id__in=[252, 253, 254],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_02 = list(Tramo.objects.filter(
+            acto_id=9, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_02 = []
+        
+        num_papeletas_virgen_02 = len(papeletas_virgen_02)
+        num_tramos_virgen_02 = len(tramos_virgen_02)
+
+        if num_tramos_virgen_02 > 0 and num_papeletas_virgen_02 > 0:
+            base_por_tramo_v = num_papeletas_virgen_02 // num_tramos_virgen_02
+            resto_v = num_papeletas_virgen_02 % num_tramos_virgen_02
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_02:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_02[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_02.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_02:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_02, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_02)} papeletas de cirios de Virgen en {num_tramos_virgen_02} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 9.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2003 (ID=10)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2003...")
+
+        # Lunes Santo de 2003 fue el 14 de abril
+        fecha_2003 = datetime(2003, 4, 14, 15, 0, 0, tzinfo=timezone.get_current_timezone())
+
+        Acto.objects.filter(id=10).delete()
+
+        descripcion_acto_03 = (
+                "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+                "de la vida de nuestra Hermandad de San Gonzalo. En este año 2003, nos preparamos para vivir "
+                "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+                "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+                "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+                "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+                "Durante nuestro caminar, la túnica blanca se transforma en nuestra piel, igualándonos a todos "
+                "bajo la cruz de Cristo. La cofradía no es solo un cortejo estético, es una auténtica comunidad en "
+                "movimiento que reza, que acompaña y que sostiene a los Sagrados Titulares en su discurrir. "
+                "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+                "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza "
+                "para aquellos que más lo necesitan en estos tiempos. Que esta nueva Estación de Penitencia renueve "
+                "nuestra vocación de servicio, fortaleciendo firmemente los lazos de fraternidad que nos unen "
+                "como corporación cristiana y acercándonos aún más a la misericordia infinita de Dios, viviendo la "
+                "caridad, la esperanza y la inquebrantable devoción en cada instante de nuestra procesión."
+            )
+
+        acto_ep03 = Acto(
+            id=10,
+            nombre="Estación de Penitencia 2003",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_03,
+            fecha=fecha_2003,
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=fecha_2003 - timedelta(days=60),
+            fin_solicitud=fecha_2003 - timedelta(days=35),
+            fecha_ejecucion_reparto= fecha_2003 - timedelta(days=34),
+            inicio_solicitud_cirios = fecha_2003 - timedelta(days=33),
+            fin_solicitud_cirios= fecha_2003 - timedelta(days=15),
+            fecha_ejecucion_cirios = fecha_2003 - timedelta(days=14),
+        )
+
+        ruta_imagen_03 = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2003.jpg')
+        
+        if os.path.exists(ruta_imagen_03):
+            with open(ruta_imagen_03, 'rb') as f:
+                acto_ep03.imagen_portada.save('EstacionPenitencia2003.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 10.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen_03}'))
+
+        acto_ep03.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2003 con ID 10.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 10
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 10...")
+
+        puestos_data_ep03 = [
+            {"id": 255, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": 256, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": 257, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": 258, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 259, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 260, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 261, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 262, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 263, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 264, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 265, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 266, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": 267, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": 268, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            
+            {"id": 269, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 270, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": 271, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep03 = [
+            {"id": 272, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": 273, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": 274, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 275, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": 276, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 277, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 278, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 279, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 280, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 281, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 282, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 283, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 284, "nombre": "Libro de Reglas (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 285, "nombre": "Varas Libro de Reglas (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": 286, "nombre": "Estandarte (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": 287, "nombre": "Varas Estandarte (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            
+            {"id": 288, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 289, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": 290, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 200, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 10, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep03.extend(puestos_virgen_data_ep03)
+
+        puestos_a_crear_03 = [Puesto(**data) for data in puestos_data_ep03]
+        Puesto.objects.bulk_create(puestos_a_crear_03)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear_03)} puestos para el Acto 10 en total.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=10 (INSIGNIAS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Insignias) para el Acto 10...")
+
+        inicio_rango_solicitud_03 = fecha_2003 - timedelta(days=59)
+        fin_rango_solicitud_03 = fecha_2003 - timedelta(days=36)
+
+        fecha_emision_insignias_03 = (fecha_2003 - timedelta(days=34)).date() 
+
+        # Incluyendo todos los IDs de insignias (Cristo y Virgen)
+        puestos_insignias_ids_03 = [
+            255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 
+            272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287
+        ]
+
+        puestos_insignias_03 = Puesto.objects.filter(id__in=puestos_insignias_ids_03)
+        huecos_a_cubrir_03 = []
+        for puesto in puestos_insignias_03:
+            huecos_a_cubrir_03.extend([puesto.id] * puesto.numero_maximo_asignaciones)
+
+        cantidad_necesaria_03 = len(huecos_a_cubrir_03)
+
+        hermanos_elegibles_03 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2003.date())
+            .values_list('id', flat=True)
+        )
+        
+        if len(hermanos_elegibles_03) < cantidad_necesaria_03:
+            self.stdout.write(self.style.WARNING("⚠️ No hay suficientes hermanos elegibles para cubrir todas las insignias."))
+            hermanos_seleccionados_03 = hermanos_elegibles_03
+            huecos_a_cubrir_03 = huecos_a_cubrir_03[:len(hermanos_elegibles_03)]
+        else:
+            hermanos_seleccionados_03 = random.sample(hermanos_elegibles_03, cantidad_necesaria_03)
+
+        hermanos_seleccionados_03.sort()
+
+        papeletas_data_acto10 = []
+        codigos_usados_acto10 = set()
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        numero_papeleta_secuencial = 1
+
+        for hermano_id, puesto_id in zip(hermanos_seleccionados_03, huecos_a_cubrir_03):
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto10:
+                    codigos_usados_acto10.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_03 - inicio_rango_solicitud_03).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_03 + timedelta(seconds=segundos_aleatorios)
+
+            papeletas_data_acto10.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_insignias_03,
+                    codigo_verificacion=codigo,
+                    anio=2003,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=True,
+                    acto_id=10,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_id,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+            numero_papeleta_secuencial += 1
+            id_papeleta_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_acto10)
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+        
+        preferencias_data_acto10 = []
+        
+        for papeleta in papeletas_data_acto10:
+            preferencias_data_acto10.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=papeleta.id,
+                    puesto_solicitado_id=papeleta.puesto_id
+                )
+            )
+            id_preferencia_actual += 1
+
+            otros_puestos = [p for p in puestos_insignias_ids_03 if p != papeleta.puesto_id]
+            puestos_extra = random.sample(otros_puestos, 2)
+            
+            for i, puesto_extra in enumerate(puestos_extra, start=2):
+                preferencias_data_acto10.append(
+                    PreferenciaSolicitud(
+                        id=id_preferencia_actual,
+                        orden_prioridad=i,
+                        papeleta_id=papeleta.id,
+                        puesto_solicitado_id=puesto_extra
+                    )
+                )
+                id_preferencia_actual += 1
+
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_acto10)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_acto10)} papeletas de insignias (EMITIDAS) para el Acto 10.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PAPELETAS Y PREFERENCIAS: ACTO ID=10 (CIRIOS - EMITIDAS)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Papeletas de Sitio (Cirios) para el Acto 10...")
+
+        inicio_rango_solicitud_cirios_03 = fecha_2003 - timedelta(days=32)
+        fin_rango_solicitud_cirios_03 = fecha_2003 - timedelta(days=16)
+
+        fecha_emision_cirios_03 = (fecha_2003 - timedelta(days=14)).date() 
+
+        puestos_cirios_ids_03 = [269, 270, 271, 288, 289, 290]
+
+        hermanos_con_insignia_03 = PapeletaSitio.objects.filter(acto_id=10).values_list('hermano_id', flat=True)
+
+        hermanos_elegibles_cirios_03 = list(
+            Hermano.objects.filter(fecha_ingreso_corporacion__lte=fecha_2003.date())
+            .exclude(id__in=hermanos_con_insignia_03)
+            .values_list('id', flat=True)
+        )
+
+        cantidad_a_asignar_03 = min(800, len(hermanos_elegibles_cirios_03))
+        hermanos_seleccionados_cirios_03 = random.sample(hermanos_elegibles_cirios_03, cantidad_a_asignar_03)
+
+        hermanos_seleccionados_cirios_03.sort()
+
+        codigos_usados_acto10_cirios = set(PapeletaSitio.objects.filter(acto_id=10).values_list('codigo_verificacion', flat=True))
+
+        ultimo_id_papeleta = PapeletaSitio.objects.order_by('-id').first()
+        id_papeleta_actual = (ultimo_id_papeleta.id + 1) if ultimo_id_papeleta else 1
+
+        ultima_papeleta_acto10 = PapeletaSitio.objects.filter(acto_id=10, numero_papeleta__isnull=False).order_by('-numero_papeleta').first()
+        numero_papeleta_secuencial = (ultima_papeleta_acto10.numero_papeleta + 1) if ultima_papeleta_acto10 else 1
+
+        ultimo_id_preferencia = PreferenciaSolicitud.objects.order_by('-id').first()
+        id_preferencia_actual = (ultimo_id_preferencia.id + 1) if ultimo_id_preferencia else 1
+
+        papeletas_data_cirios_acto10 = []
+        preferencias_data_cirios_acto10 = []
+
+        for hermano_id in hermanos_seleccionados_cirios_03:
+
+            while True:
+                codigo = f"{random.randint(0, 99999999):08d}"
+                if codigo not in codigos_usados_acto10_cirios:
+                    codigos_usados_acto10_cirios.add(codigo)
+                    break
+
+            segundos_diferencia = int((fin_rango_solicitud_cirios_03 - inicio_rango_solicitud_cirios_03).total_seconds())
+            segundos_aleatorios = random.randint(0, segundos_diferencia)
+            fecha_solicitud = inicio_rango_solicitud_cirios_03 + timedelta(seconds=segundos_aleatorios)
+
+            puesto_asignado = random.choice(puestos_cirios_ids_03)
+
+            papeletas_data_cirios_acto10.append(
+                PapeletaSitio(
+                    id=id_papeleta_actual,
+                    estado_papeleta="EMITIDA",
+                    fecha_solicitud=fecha_solicitud,
+                    fecha_emision=fecha_emision_cirios_03,
+                    codigo_verificacion=codigo,
+                    anio=2003,
+                    numero_papeleta=numero_papeleta_secuencial,
+                    es_solicitud_insignia=False,
+                    acto_id=10,
+                    hermano_id=hermano_id,
+                    puesto_id=puesto_asignado,
+                    tramo_id=None,
+                    vinculado_a_id=None,
+                    lado=None,
+                    orden_en_tramo=None
+                )
+            )
+
+            preferencias_data_cirios_acto10.append(
+                PreferenciaSolicitud(
+                    id=id_preferencia_actual,
+                    orden_prioridad=1,
+                    papeleta_id=id_papeleta_actual,
+                    puesto_solicitado_id=puesto_asignado
+                )
+            )
+
+            id_papeleta_actual += 1
+            numero_papeleta_secuencial += 1
+            id_preferencia_actual += 1
+
+        PapeletaSitio.objects.bulk_create(papeletas_data_cirios_acto10)
+        PreferenciaSolicitud.objects.bulk_create(preferencias_data_cirios_acto10)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_data_cirios_acto10)} papeletas de cirios (EMITIDAS) para el Acto 10.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE TRAMOS DEL ACTO 10
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Tramos para el Acto 10...")
+
+        aforo_tramo_ep03 = 200
+
+        tramos_data_ep03 = [
+            # --- TRAMOS DE CRISTO (7 Tramos) ---
+            {"nombre": "Cruz de Guía", "numero_orden": 1, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Senatus", "numero_orden": 2, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Morada", "numero_orden": 3, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Pontificia", "numero_orden": 4, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Banderín Sacramental", "numero_orden": 5, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Guión del Cincuentenario", "numero_orden": 6, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Banderín de la Juventud", "numero_orden": 7, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+
+            # --- TRAMOS DE VIRGEN (8 Tramos) ---
+            {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Blanca y Celeste", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Asuncionista", "numero_orden": 4, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Concepcionista", "numero_orden": 5, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Bandera Realeza de María", "numero_orden": 6, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Libro de Reglas", "numero_orden": 7, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+            {"nombre": "Estandarte", "numero_orden": 8, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep03, "acto_id": 10},
+        ]
+
+        tramos_a_crear_ep03 = [Tramo(**data) for data in tramos_data_ep03]
+        Tramo.objects.bulk_create(tramos_a_crear_ep03)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(tramos_a_crear_ep03)} tramos para el Acto 10 en total.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE CRISTO (ACTO 10)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Cristo del Acto 10 (Distribución equitativa)...")
+
+        papeletas_cristo_03 = list(PapeletaSitio.objects.filter(
+            acto_id=10, 
+            puesto_id__in=[269, 270, 271],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_cristo_03 = list(Tramo.objects.filter(
+            acto_id=10, 
+            paso='CRISTO'
+        ).order_by('numero_orden'))
+
+        papeletas_a_actualizar_03 = []
+        
+        num_papeletas_cristo_03 = len(papeletas_cristo_03)
+        num_tramos_cristo_03 = len(tramos_cristo_03)
+
+        if num_tramos_cristo_03 > 0 and num_papeletas_cristo_03 > 0:
+            base_por_tramo = num_papeletas_cristo_03 // num_tramos_cristo_03
+            resto = num_papeletas_cristo_03 % num_tramos_cristo_03
+            
+            indice_papeleta = 0
+
+            for tramo in tramos_cristo_03:
+                cantidad_asignar = base_por_tramo + (1 if resto > 0 else 0)
+                if resto > 0:
+                    resto -= 1
+
+                cantidad_asignar = min(cantidad_asignar, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_cristo_03[indice_papeleta : indice_papeleta + cantidad_asignar]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_a_actualizar_03.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta += len(papeletas_tramo)
+
+        if papeletas_a_actualizar_03:
+            PapeletaSitio.objects.bulk_update(papeletas_a_actualizar_03, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_a_actualizar_03)} papeletas de cirios de Cristo en {num_tramos_cristo_03} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Cristo para asignar a los tramos en el Acto 10.'))
+
+
+
+        # =========================================================================
+        # ASIGNACIÓN DE TRAMOS PARA CIRIOS DE VIRGEN (ACTO 10)
+        # =========================================================================
+        self.stdout.write("Asignando tramos, lado y orden a los cirios de Virgen del Acto 10 (Distribución equitativa)...")
+
+        papeletas_virgen_03 = list(PapeletaSitio.objects.filter(
+            acto_id=10, 
+            puesto_id__in=[288, 289, 290],
+            estado_papeleta="EMITIDA"
+        ).select_related('hermano').order_by('-hermano__fecha_ingreso_corporacion'))
+
+        tramos_virgen_03 = list(Tramo.objects.filter(
+            acto_id=10, 
+            paso='VIRGEN'
+        ).order_by('numero_orden'))
+
+        papeletas_virgen_actualizar_03 = []
+        
+        num_papeletas_virgen_03 = len(papeletas_virgen_03)
+        num_tramos_virgen_03 = len(tramos_virgen_03)
+
+        if num_tramos_virgen_03 > 0 and num_papeletas_virgen_03 > 0:
+            base_por_tramo_v = num_papeletas_virgen_03 // num_tramos_virgen_03
+            resto_v = num_papeletas_virgen_03 % num_tramos_virgen_03
+            
+            indice_papeleta_virgen = 0
+
+            for tramo in tramos_virgen_03:
+                cantidad_asignar_v = base_por_tramo_v + (1 if resto_v > 0 else 0)
+                if resto_v > 0:
+                    resto_v -= 1
+                
+                cantidad_asignar_v = min(cantidad_asignar_v, tramo.numero_maximo_cirios)
+
+                papeletas_tramo = papeletas_virgen_03[indice_papeleta_virgen : indice_papeleta_virgen + cantidad_asignar_v]
+
+                if not papeletas_tramo:
+                    break
+
+                papeletas_tramo.sort(key=lambda p: p.hermano.fecha_ingreso_corporacion)
+
+                orden_actual = 1
+                for papeleta in papeletas_tramo:
+                    papeleta.tramo = tramo
+                    papeleta.orden_en_tramo = orden_actual
+
+                    papeleta.lado = "IZQUIERDA" if orden_actual % 2 != 0 else "DERECHA"
+                    
+                    papeletas_virgen_actualizar_03.append(papeleta)
+                    orden_actual += 1
+                    
+                indice_papeleta_virgen += len(papeletas_tramo)
+
+        if papeletas_virgen_actualizar_03:
+            PapeletaSitio.objects.bulk_update(papeletas_virgen_actualizar_03, ['tramo', 'orden_en_tramo', 'lado'])
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_03)} papeletas de cirios de Virgen en {num_tramos_virgen_03} tramos.'))
+        else:
+            self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 10.'))
+
 
 
         # =========================================================================
