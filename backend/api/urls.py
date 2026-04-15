@@ -14,9 +14,10 @@ from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPeni
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
+from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from . import views
 
-from .views import ActoListCreateView, ActoUpdateView, AreaInteresListView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoListCreateView, ActoUpdateView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -56,7 +57,6 @@ urlpatterns = [
     path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
     path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
     path('comunicados/<int:exclude_id>/relacionados/', ComunicadosRelacionadosView.as_view(), name='comunicados-relacionados'),
-    path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
     path('comunicados/ultimos-area-interes/', UltimosComunicadosAreaInteresView.as_view(), name='ultimos-comunicado-areas'),
 
     path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
@@ -95,4 +95,7 @@ urlpatterns = [
 
     #Papeletas de sitio
     path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
+
+    #Áreas de interés
+    path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
 ]

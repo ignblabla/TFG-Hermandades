@@ -12,7 +12,7 @@ from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoF
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
 from api.servicios.acto.acto_service import actualizar_acto_service, crear_acto_service
 
-from .serializers import ActoCreateSerializer, AreaInteresSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
+from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, HistorialPapeletaSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -403,18 +403,6 @@ class MisComunicadosListView(generics.ListAPIView):
         ).distinct().order_by('-fecha_emision')
 
         return queryset
-
-# -----------------------------------------------------------------------------
-# VISTA: LISTA DE ÁREAS DE INTERÉS (Para el Select del Frontend)
-# -----------------------------------------------------------------------------
-class AreaInteresListView(generics.ListAPIView):
-    """
-    Devuelve la lista de áreas disponibles para poblar los selectores en React.
-    """
-    queryset = AreaInteres.objects.all()
-    serializer_class = AreaInteresSerializer
-    permission_classes = [IsAuthenticated]
-
 
 
 # -----------------------------------------------------------------------------
