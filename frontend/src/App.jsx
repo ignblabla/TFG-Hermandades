@@ -20,7 +20,7 @@ import AdminListadoComunicados from "./pages/AdminListadoComunicados"
 import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
-import HermanoAreaInteres from "./pages/HermanoAreasInteres"
+import HermanoAreaInteres from "./pages/HermanoAreasInteres/HermanoAreasInteres"
 
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
 import AdminCreacionComunicado from "./pages/AdminCreacionComunicado/AdminCreacionComunicado"

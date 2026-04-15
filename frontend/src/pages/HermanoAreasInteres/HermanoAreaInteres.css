@@ -17,7 +17,7 @@
     text-align: center;
     padding: 4rem 2rem;
     background-color: #1a1a1a;
-    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../assets/ImagenFondo.png'); 
+    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../../assets/ImagenFondo.png'); 
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;

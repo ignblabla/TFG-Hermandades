@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api";
-import "../styles/HermanoAreaInteres.css";
-import AreaCard from "../components/AreaCard"
+import api from "../../api";
+import "../HermanoAreasInteres/HermanoAreaInteres.css"
+import AreaCard from "../../components/AreaCard"
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell, Dock, List } from "lucide-react";
 
 function HermanoAreaInteres() {
