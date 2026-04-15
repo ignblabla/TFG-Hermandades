@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
 import '../styles/HermanoMisPapeletasDeSitio.css'; 
-import { Calendar, CalendarX, Dock, FileCheck } from "lucide-react";
+import { Calendar, CalendarX, Dock, FileCheck, Download } from "lucide-react";
 
 function MisPapeletas() {
     const [isOpen, setIsOpen] = useState(false); 
@@ -111,6 +111,10 @@ function MisPapeletas() {
     const handleNext = () => { if (nextUrl) setPage(page + 1); };
 
     const renderSitio = (papeleta) => {
+        if (!papeleta.nombre_puesto && !papeleta.nombre_tramo) {
+            return <span className="text-muted">Sin asignar</span>;
+        }
+
         if (papeleta.es_insignia) {
             return (
                 <span className="badge-insignia">
@@ -118,12 +122,16 @@ function MisPapeletas() {
                 </span>
             );
         } else {
-            if (!papeleta.nombre_tramo) return <span className="text-muted">Sin asignar</span>;
             return (
-                <span>
-                    {papeleta.numero_tramo ? <strong>{papeleta.numero_tramo}º </strong> : ''}
-                    {papeleta.nombre_tramo}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <strong>{papeleta.nombre_puesto || "Cirio"}</strong>
+
+                    <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                        {papeleta.numero_tramo ? `${papeleta.numero_tramo}º Tramo - ` : ''}
+                        {papeleta.nombre_tramo || ''}
+                        {papeleta.orden_en_tramo ? ` (Orden: ${papeleta.orden_en_tramo})` : ''}
+                    </span>
+                </div>
             );
         }
     };
@@ -268,7 +276,7 @@ function MisPapeletas() {
                                         Estado de la última papeleta de sitio que solicitaste.
                                     </p>
                                     <div className="papeletas-card-date">
-                                        {ultimaPapeleta ? renderEstado(ultimaPapeleta.estado_papeleta) : <span style={{ fontSize: '1rem', color: '#666' }}>Sin registros</span>}
+                                        {ultimaPapeleta ? ultimaPapeleta.estado_papeleta.replace('_', ' ') : <span style={{ fontSize: '1rem', color: '#666' }}>Sin registros</span>}
                                     </div>
                                 </div>
                             </div>
@@ -328,7 +336,7 @@ function MisPapeletas() {
                                                                     title="Descargar PDF"
                                                                     disabled={downloadingId === p.id}
                                                                 >
-                                                                    <FileCheck size={20} />
+                                                                    <Download size={20} />
                                                                 </button>
                                                             ) : (
                                                                 <span className="text-muted" style={{ fontSize: '0.85rem' }}>No disp.</span>
@@ -371,109 +379,6 @@ function MisPapeletas() {
                     </div>
                 </div>
             </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Histórico de papeletas de sitio</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
-                        <header className="content-header-area">
-                            <div className="title-row-area">
-                                <div style={{display:'flex', alignItems:'center', gap: '10px'}}>
-                                    <Scroll size={28} className="text-purple" />
-                                    <h2>Mis Papeletas de Sitio</h2>
-                                </div>
-                            </div>
-                            <p className="description-area">
-                                Número total de papeletas de sitio encontradas: <strong>{totalRegistros}</strong>
-                            </p>
-                        </header>
-
-                        <div className="table-responsive">
-                            {loading ? (
-                                <div className="loading-state">Cargando censo...</div>
-                            ) : (
-                                <table className="papeletas-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Año</th>
-                                            <th>Acto</th>
-                                            <th>Fecha acto</th>
-                                            <th>Sitio / Puesto</th>
-                                            <th>Lugar</th>
-                                            <th>Hora</th>
-                                            <th>Fecha emisión</th>
-                                            <th>Estado</th>
-                                            <th>Acciones</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        {papeletas.length > 0 ? (
-                                            papeletas.map((papeleta) => {
-                                                const puedeDescargar = ['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(papeleta.estado_papeleta);
-                                                
-                                                return (
-                                                    <tr key={papeleta.id} style={{borderBottom: '1px solid #f1f5f9', cursor: 'pointer'}} className="row-hover">
-                                                        <td>{papeleta.anio}</td>
-                                                        <td className="cell-nombre-acto" title={papeleta.nombre_acto}>
-                                                            {papeleta.nombre_acto || ""}
-                                                        </td>
-                                                        <td><div>{formatearFecha(papeleta.fecha_acto)}</div></td>
-
-                                                        <td className="cell-nombre-acto">{renderSitio(papeleta)}</td>
-
-                                                        <td className="cell-nombre-acto" title={papeleta.lugar_citacion}>
-                                                            {papeleta.lugar_citacion ? (<div>{papeleta.lugar_citacion}</div>) : (<span className="text-muted">-</span>)}
-                                                        </td>
-                                                        <td>{papeleta.hora_citacion ? (<div>{formatearHora(papeleta.hora_citacion)}</div>) : (<span className="text-muted">-</span>)}
-                                                        </td>
-                                                        <td>
-                                                            <div>{papeleta.fecha_emision ? (<>{formatearFecha(papeleta.fecha_emision)}</>) : '-'}</div>
-                                                        </td>
-
-                                                        <td>{renderEstado(papeleta.estado_papeleta)}</td>
-
-                                                        <td>
-                                                            {puedeDescargar ? (
-                                                                <button 
-                                                                    className="btn-download-action"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDownloadPDF(papeleta.id, papeleta.anio);
-                                                                    }}
-                                                                    disabled={downloadingId === papeleta.id}
-                                                                    title="Descargar PDF con código QR"
-                                                                >
-                                                                    {downloadingId === papeleta.id ? (
-                                                                        <span className="loader-dots">...</span>
-                                                                    ) : (
-                                                                        <>
-                                                                            <Download size={16} /> 
-                                                                            <span>PDF</span>
-                                                                        </>
-                                                                    )}
-                                                                </button>
-                                                            ) : (
-                                                                <span className="text-muted text-small" style={{fontSize: '0.8em'}}>No disponible</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="9" className="text-center" style={{padding: '40px'}}>
-                                                    No tienes papeletas de sitio registradas.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </section> */}
         </div>
     );
 }
