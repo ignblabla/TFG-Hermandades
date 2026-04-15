@@ -191,3 +191,10 @@ if not GEMINI_API_KEY:
 RUTA_CREDENCIALES_GOOGLE = os.path.join(BASE_DIR, 'google-credentials.json')
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = RUTA_CREDENCIALES_GOOGLE
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'gemini-pdf-cache',
+    }
+}
