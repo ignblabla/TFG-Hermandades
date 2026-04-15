@@ -13,7 +13,7 @@ import HermanoCrearSolicitudCirio from "./pages/HermanoSolicitudCirio/HermanoCre
 import AdminDashboard from "./pages/Admin/Dashboard"
 import ValidarAcceso from "./pages/ValidarAcceso";
 import AdminEditarHermano from "./pages/AdminEdicionHermano"
-import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio"
+import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio/HermanoMisPapeletasDeSitio"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
@@ -115,7 +115,7 @@ function App() {
         />
 
 
-        
+
         <Route
           path="/noticias-hermano"
           element={

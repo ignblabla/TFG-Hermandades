@@ -1,7 +1,6 @@
 from django.urls import path
 
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
-# from api.view.ConsultaPapeletasView import MisPapeletasListView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
 from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
@@ -12,12 +11,12 @@ from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionados
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
-from api.vistas.papeleta_sitio.papeleta_sitio_view import TablaInsigniasActoView, UltimaPapeletaView
+from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from . import views
 
-from .views import ActoListCreateView, ActoUpdateView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, MisPapeletasListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ActoListCreateView, ActoUpdateView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -42,8 +41,6 @@ urlpatterns = [
     #Urls para el panel de administrador
     path("hermanos/listado/", HermanoListView.as_view(), name="listado-hermanos"),
     path("hermanos/<int:pk>/gestion/", HermanoAdminDetailView.as_view(), name="gestion-hermano-detalle"),
-
-    path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
 
     #UrlS para actos
     path('actos/crear/', ActoCreateView.as_view(), name='crear_acto'),
@@ -94,6 +91,7 @@ urlpatterns = [
     path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios'),
 
     #Papeletas de sitio
+    path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
     path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
 
     #Áreas de interés

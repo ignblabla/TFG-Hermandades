@@ -74,3 +74,21 @@ def get_ultima_papeleta_hermano_service(usuario):
     ).order_by('-anio', '-acto__fecha').first()
 
     return ultima_papeleta
+
+
+
+# -----------------------------------------------------------------------------
+# SERVICES: CONSULTA EL HISTÓRICO DE PAPELETAS DE SITIO (NO ADMIN)
+# -----------------------------------------------------------------------------
+def get_historial_papeletas_hermano_service(usuario):
+    """
+    Recupera el histórico de papeletas de un hermano específico.
+    """
+    if not usuario or not usuario.is_authenticated:
+        raise PermissionDenied("Usuario no identificado")
+    
+    queryset = PapeletaSitio.objects.filter(
+        hermano=usuario
+    ).select_related('acto', 'puesto', 'puesto__tipo_puesto', 'tramo').order_by('-anio', '-acto__fecha')
+
+    return queryset

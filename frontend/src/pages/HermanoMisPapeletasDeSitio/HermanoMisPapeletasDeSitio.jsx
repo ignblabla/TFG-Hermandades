@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; 
-import '../styles/HermanoMisPapeletasDeSitio.css'; 
+import api from '../../api'; 
+import '../HermanoMisPapeletasDeSitio/HermanoMisPapeletasDeSitio.css'; 
 import { Calendar, CalendarX, Dock, FileCheck, Download } from "lucide-react";
 
 function MisPapeletas() {
