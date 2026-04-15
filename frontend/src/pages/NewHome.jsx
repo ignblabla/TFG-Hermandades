@@ -136,6 +136,17 @@ function HermanoNewHome() {
         return new Date(fechaString).toLocaleDateString('es-ES', opciones);
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     return (
         <div>
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
@@ -195,6 +206,24 @@ function HermanoNewHome() {
                             <span className="link_name-dashboard">Order</span>
                         </a>
                         <span className="tooltip-dashboard">Order</span>
+                    </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
                     </li>
                     <li>
                         <a href="#">

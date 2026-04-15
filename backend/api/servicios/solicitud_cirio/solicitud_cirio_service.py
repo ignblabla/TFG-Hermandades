@@ -12,6 +12,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet
 
 from api.models import Acto, PapeletaSitio, Tramo, Puesto
+from api.servicios.papeleta_telegram import TelegramWebhookService
 
 class ReportesCiriosService:
     def ejecutar_asignacion_automatica_cirios(acto_id: int):
@@ -220,6 +221,21 @@ class ReportesCiriosService:
                     ],
                     batch_size=1000
                 )
+
+                for papeleta in papeletas_para_actualizar:
+                    if papeleta.hermano.telegram_chat_id:
+                        nombre_puesto_asignado = papeleta.puesto.nombre if papeleta.puesto else "Cirio / Nazareno base"
+                        
+                        try:
+                            TelegramWebhookService.notificar_papeleta_asignada(
+                                chat_id=papeleta.hermano.telegram_chat_id,
+                                nombre_hermano=papeleta.hermano.nombre,
+                                nombre_acto=acto.nombre,
+                                estado="ASIGNADA",
+                                nombre_puesto=nombre_puesto_asignado
+                            )
+                        except Exception as e:
+                            print(f"Error al enviar Telegram a {papeleta.hermano.nombre}: {e}")
 
             acto.fecha_ejecucion_cirios = ahora
             acto.save(update_fields=['fecha_ejecucion_cirios'])

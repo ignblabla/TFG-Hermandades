@@ -62,7 +62,7 @@ class TelegramWebhookService:
         Envía un mensaje al hermano informándole del resultado del reparto.
         """
         token = getattr(settings, 'TELEGRAM_BOT_TOKEN', None)
-        # Asegúrate de configurar FRONTEND_URL en tu settings.py (o usa la de producción directamente)
+        
         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://mi-web-frontend.onrender.com') 
         
         if not token or not chat_id:
@@ -77,7 +77,8 @@ class TelegramWebhookService:
                 f"El algoritmo de reparto para <b>{nombre_acto}</b> ha finalizado.\n"
                 f"✅ Se le ha asignado el puesto: <b>{nombre_puesto}</b>.\n\n"
                 f"Puede consultar y descargar su papeleta de sitio desde su perfil:\n"
-                f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+                # f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+                f"🔗 <i>Enlace para copiar en pruebas: {url_papeletas}</i>"
             )
         else:
             mensaje = (
@@ -86,7 +87,8 @@ class TelegramWebhookService:
                 f"El algoritmo de reparto para <b>{nombre_acto}</b> ha finalizado.\n"
                 f"❌ Lamentablemente, no ha sido posible asignarle ninguno de los puestos solicitados por criterio de antigüedad o disponibilidad.\n\n"
                 f"Puede consultar el estado de su solicitud desde su perfil:\n"
-                f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+                # f"<a href='{url_papeletas}'>➡️ Ver mis papeletas</a>"
+                f"🔗 <i>Enlace para copiar en pruebas: {url_papeletas}</i>"
             )
             
         url = f"https://api.telegram.org/bot{token}/sendMessage"

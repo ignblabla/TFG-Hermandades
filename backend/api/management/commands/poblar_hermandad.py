@@ -507,10 +507,18 @@ class Command(BaseCommand):
 
         todos_hermanos_ids = list(Hermano.objects.values_list('id', flat=True))
 
-        cantidad_papeletas = min(375, len(todos_hermanos_ids))
-        hermanos_seleccionados = random.sample(todos_hermanos_ids, cantidad_papeletas)
+        hermanos_para_papeleta = []
+        id_objetivo = 1
 
-        for id_papeleta, hermano_id in enumerate(hermanos_seleccionados, start=1):
+        if id_objetivo in todos_hermanos_ids:
+            hermanos_para_papeleta.append(id_objetivo)
+            todos_hermanos_ids.remove(id_objetivo)
+            self.stdout.write(self.style.SUCCESS(f'Forzando solicitud para el Hermano ID {id_objetivo} en el Acto 1.'))
+
+        cantidad_restante = min(375 - len(hermanos_para_papeleta), len(todos_hermanos_ids))
+        hermanos_para_papeleta.extend(random.sample(todos_hermanos_ids, cantidad_restante))
+
+        for id_papeleta, hermano_id in enumerate(hermanos_para_papeleta, start=1):
 
             while True:
                 codigo = f"{random.randint(0, 99999999):08d}"
@@ -544,7 +552,7 @@ class Command(BaseCommand):
         papeletas_a_crear = [PapeletaSitio(**data) for data in papeletas_data]
         PapeletaSitio.objects.bulk_create(papeletas_a_crear)
 
-        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_a_crear)} papeletas de sitio aleatorias para el Acto 1.'))
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(papeletas_a_crear)} papeletas de sitio para el Acto 1.'))
 
 
         # =========================================================================
@@ -825,7 +833,6 @@ class Command(BaseCommand):
         self.stdout.write("Iniciando el poblado de Papeletas de Sitio para Cirios (Acto 2)...")
 
         papeletas_cirios_data = []
-        
         puestos_cirios = [71, 72, 73, 92, 93, 94]
         cantidad_cirios = 2300
 
@@ -837,14 +844,20 @@ class Command(BaseCommand):
             estado_papeleta="EMITIDA"
         ).values_list('hermano_id', flat=True)
 
-        hermanos_disponibles = Hermano.objects.exclude(id__in=hermanos_con_papeleta_emitida).values_list('id', flat=True)
+        hermanos_disponibles = list(Hermano.objects.exclude(id__in=hermanos_con_papeleta_emitida).values_list('id', flat=True))
 
-        hermanos_disponibles = list(hermanos_disponibles)
-        cantidad_a_seleccionar = min(cantidad_cirios, len(hermanos_disponibles))
-        hermanos_seleccionados_cirios = random.sample(hermanos_disponibles, cantidad_a_seleccionar)
+        hermanos_seleccionados_cirios = []
+        id_objetivo = 1
+
+        if id_objetivo in hermanos_disponibles:
+            hermanos_seleccionados_cirios.append(id_objetivo)
+            hermanos_disponibles.remove(id_objetivo)
+            self.stdout.write(self.style.SUCCESS(f'Añadida solicitud de cirio obligatoria para el Hermano ID {id_objetivo}.'))
+
+        cantidad_restante = min(cantidad_cirios - len(hermanos_seleccionados_cirios), len(hermanos_disponibles))
+        hermanos_seleccionados_cirios.extend(random.sample(hermanos_disponibles, cantidad_restante))
 
         for hermano_id in hermanos_seleccionados_cirios:
-
             while True:
                 codigo = f"{random.randint(0, 99999999):08d}"
                 if codigo not in codigos_usados_acto2:
@@ -875,7 +888,6 @@ class Command(BaseCommand):
                     "orden_en_tramo": None,
                 }
             )
-            
             id_papeleta_actual += 1
 
         papeletas_a_crear_cirios = [PapeletaSitio(**data) for data in papeletas_cirios_data]
