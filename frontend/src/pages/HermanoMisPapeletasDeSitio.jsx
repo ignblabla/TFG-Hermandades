@@ -25,8 +25,10 @@ function MisPapeletas() {
         if (!fechaString) return "-";
         const fecha = new Date(fechaString);
         return fecha.toLocaleDateString('es-ES', {
-            day: '2-digit', month: '2-digit', year: 'numeric'
-        });
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric'
+        }).replace(/\//g, '-');
     };
 
     const formatearHora = (horaString) => {
@@ -84,7 +86,7 @@ function MisPapeletas() {
                     setTotalRegistros(resListado.data.count);
                     setNextUrl(resListado.data.next);
                     setPrevUrl(resListado.data.previous);
-                    const pageSize = 20; 
+                    const pageSize = 5; 
                     setTotalPages(Math.ceil(resListado.data.count / pageSize));
                 }
             } catch (err) {
@@ -115,25 +117,20 @@ function MisPapeletas() {
             return <span className="text-muted">Sin asignar</span>;
         }
 
-        if (papeleta.es_insignia) {
-            return (
-                <span className="badge-insignia">
-                    {papeleta.nombre_puesto || "Insignia asignada"}
-                </span>
-            );
-        } else {
-            return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <strong>{papeleta.nombre_puesto || "Cirio"}</strong>
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center' }}>
+                <strong>{papeleta.nombre_puesto || "Cirio"}</strong>
 
+                {(papeleta.nombre_tramo || papeleta.numero_tramo) && (
                     <span style={{ fontSize: '0.85rem', color: '#666' }}>
                         {papeleta.numero_tramo ? `${papeleta.numero_tramo}º Tramo - ` : ''}
                         {papeleta.nombre_tramo || ''}
                         {papeleta.orden_en_tramo ? ` (Orden: ${papeleta.orden_en_tramo})` : ''}
                     </span>
-                </div>
-            );
-        }
+                )}
+
+            </div>
+        );
     };
 
     const renderEstado = (estado) => {
@@ -143,16 +140,17 @@ function MisPapeletas() {
             'LEIDA': 'info',
             'ANULADA': 'error',
             'SOLICITADA': 'warning',
+            'NO_ASIGNADA': 'error',
             'NO_SOLICITADA': 'neutral'
         }[estado] || 'neutral';
-        return <span className={`status-badge ${estadoClass}`}>{estado}</span>;
-    };
 
-    if (loading && !user) return <div className="site-wrapper loading-screen">Cargando histórico...</div>;
+        const textoLegible = estado ? estado.replace(/_/g, ' ') : estado;
+        
+        return <span className={`status-badge ${estadoClass}`}>{textoLegible}</span>;
+    };
 
     return (
         <div>
-            {/* --- SIDEBAR --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -302,80 +300,97 @@ function MisPapeletas() {
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
-                                <span className="plazos-text">Últimas papeletas de sitio</span>
+                                <span className="plazos-text">Historial de papeletas de sitio</span>
                             <div className="plazos-line"></div>
                         </div>
 
                         <section className="historial-section">
-                                {papeletas.length > 0 ? (
-                                    <div className="table-responsive">
-                                        <table className="papeletas-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Año</th>
-                                                    <th>Acto</th>
-                                                    <th>Fecha del Acto</th>
-                                                    <th>Sitio Asignado</th>
-                                                    <th>Estado</th>
-                                                    <th>Acciones</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {papeletas.map((p) => (
-                                                    <tr key={p.id}>
-                                                        <td className="fw-bold">{p.anio}</td>
-                                                        <td>{p.nombre_acto}</td>
-                                                        <td>{formatearFecha(p.fecha_acto)}</td>
-                                                        <td>{renderSitio(p)}</td>
-                                                        <td>{renderEstado(p.estado_papeleta)}</td>
-                                                        <td>
-                                                            {['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(p.estado_papeleta) ? (
-                                                                <button 
-                                                                    className="btn-descargar-pdf" 
-                                                                    onClick={() => handleDownloadPDF(p.id, p.anio)}
-                                                                    title="Descargar PDF"
-                                                                    disabled={downloadingId === p.id}
-                                                                >
-                                                                    <Download size={20} />
-                                                                </button>
+                            {papeletas.length > 0 ? (
+                                <div className="table-responsive">
+                                    <table className="papeletas-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Acto</th>
+                                                <th>Fecha del acto</th>
+                                                <th>Citación</th>
+                                                <th>Sitio</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {papeletas.map((p) => (
+                                                <tr key={p.id}>
+                                                    <td className="fw-bold">{p.nombre_acto}</td>
+                                                    <td>{formatearFecha(p.fecha_acto)}</td>
+                                                    <td>
+                                                        <div className="citacion-container">
+                                                            {p.lugar_citacion ? (
+                                                                <span className="citacion-lugar">
+                                                                    {p.lugar_citacion}
+                                                                </span>
                                                             ) : (
-                                                                <span className="text-muted" style={{ fontSize: '0.85rem' }}>No disp.</span>
+                                                                <span className="text-muted italic small-text">
+                                                                    Lugar no especificado
+                                                                </span>
                                                             )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                ) : (
-                                    <div className="empty-state">
-                                        <CalendarX size={48} className="empty-icon" />
-                                        <p>No tienes histórico de papeletas de sitio.</p>
-                                    </div>
-                                )}
+                                                            
+                                                            {p.hora_citacion && (
+                                                                <span className="citacion-hora">
+                                                                    Hora: {formatearHora(p.hora_citacion)} h.
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td>{renderSitio(p)}</td>
+                                                    <td>{renderEstado(p.estado_papeleta)}</td>
+                                                    <td>
+                                                        {['EMITIDA', 'RECOGIDA', 'LEIDA'].includes(p.estado_papeleta) ? (
+                                                            <button 
+                                                                className="btn-descargar-pdf" 
+                                                                onClick={() => handleDownloadPDF(p.id, p.anio)}
+                                                                title="Descargar PDF"
+                                                                disabled={downloadingId === p.id}
+                                                            >
+                                                                <Download size={20} />
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-muted small-text">No disponible</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="empty-state">
+                                    <CalendarX size={48} className="empty-icon" />
+                                    <p>No tienes histórico de papeletas de sitio.</p>
+                                </div>
+                            )}
 
-                                {/* Paginación */}
-                                {totalPages > 1 && (
-                                    <div className="pagination-controls">
-                                        <button 
-                                            onClick={handlePrev} 
-                                            disabled={!prevUrl}
-                                            className={!prevUrl ? 'disabled' : ''}
-                                        >
-                                            Anterior
-                                        </button>
-                                        <span>Página {page} de {totalPages}</span>
-                                        <button 
-                                            onClick={handleNext} 
-                                            disabled={!nextUrl}
-                                            className={!nextUrl ? 'disabled' : ''}
-                                        >
-                                            Siguiente
-                                        </button>
-                                    </div>
-                                )}
-                            </section>
-
+                            {/* Paginación */}
+                            {totalPages > 1 && (
+                                <div className="pagination-controls">
+                                    <button 
+                                        onClick={handlePrev} 
+                                        disabled={!prevUrl}
+                                        className={!prevUrl ? 'disabled' : ''}
+                                    >
+                                        Anterior
+                                    </button>
+                                    <span>Página {page} de {totalPages}</span>
+                                    <button 
+                                        onClick={handleNext} 
+                                        disabled={!nextUrl}
+                                        className={!nextUrl ? 'disabled' : ''}
+                                    >
+                                        Siguiente
+                                    </button>
+                                </div>
+                            )}
+                        </section>
                     </div>
                 </div>
             </section>
