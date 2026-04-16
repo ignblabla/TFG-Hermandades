@@ -4012,7 +4012,7 @@ class Command(BaseCommand):
             {"nombre": "Guión del Cincuentenario", "numero_orden": 6, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
             {"nombre": "Banderín de la Juventud", "numero_orden": 7, "paso": "CRISTO", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
 
-            # --- TRAMOS DE VIRGEN (9 Tramos) ---
+            # --- TRAMOS DE VIRGEN (8 Tramos) ---
             {"nombre": "Cruces y Bocinas", "numero_orden": 1, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
             {"nombre": "Simpecado", "numero_orden": 2, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
             {"nombre": "Bandera Blanca y Celeste", "numero_orden": 3, "paso": "VIRGEN", "numero_maximo_cirios": aforo_tramo_ep02, "acto_id": 9},
@@ -4633,6 +4633,243 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han asignado equitativamente {len(papeletas_virgen_actualizar_03)} papeletas de cirios de Virgen en {num_tramos_virgen_03} tramos.'))
         else:
             self.stdout.write(self.style.WARNING('No se encontraron papeletas de Virgen para asignar a los tramos en el Acto 10.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2028 (ID=11)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2028...")
+
+        now = timezone.now()
+
+        Acto.objects.filter(id=11).delete()
+
+        descripcion_acto_2028 = (
+            "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+            "de la vida de nuestra Hermandad de San Gonzalo. En este año 2028, nos preparamos para vivir "
+            "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+            "Madre y Señora de la Salud. Este solemne acto público de fe es la manifestación más genuina de nuestro "
+            "compromiso cristiano, donde cada nazareno, costalero, acólito y hermano se convierte en un "
+            "testimonio vivo del Evangelio por las calles de nuestro barrio de Triana y de toda Sevilla. "
+            "Se invita a todos los hermanos a participar con recogimiento, orden y profundo sentido de "
+            "pertenencia, haciendo de cada paso una oración y de cada cirio encendido una luz de esperanza."
+        )
+
+        acto_ep28 = Acto(
+            id=11,
+            nombre="Estación de Penitencia 2028",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_2028,
+            fecha=datetime(2028, 4, 10, 15, 0, 0, tzinfo=timezone.get_current_timezone()),
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=now - timedelta(days=10),
+            fin_solicitud=now + timedelta(days=10),
+            inicio_solicitud_cirios=now + timedelta(days=15),
+            fin_solicitud_cirios=now + timedelta(days=25),
+            fecha_ejecucion_reparto=None,
+            fecha_ejecucion_cirios=None
+        )
+
+        ruta_imagen = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2025.jpg')
+        
+        if os.path.exists(ruta_imagen):
+            with open(ruta_imagen, 'rb') as f:
+                acto_ep28.imagen_portada.save('EstacionPenitencia2028.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 11.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen}'))
+
+        acto_ep28.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2028 con ID 11.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 11 (EP 2028)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 11...")
+
+        start_id = 291
+
+        puestos_data_ep28 = [
+            {"id": start_id + 0, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": start_id + 1, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": start_id + 2, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": start_id + 3, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 4, "nombre": "Varas Senatus (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 5, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 6, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 7, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 8, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 9, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 10, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 11, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 12, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 13, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 14, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 15, "nombre": "Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 16, "nombre": "Varas Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 17, "nombre": "Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 18, "nombre": "Varas Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 19, "nombre": "Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 20, "nombre": "Varas Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 21, "nombre": "Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id + 22, "nombre": "Varas Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id + 23, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": start_id + 24, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": start_id + 25, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep28 = [
+            {"id": start_id + 26, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": start_id + 27, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": start_id + 28, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 29, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": start_id + 30, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 31, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 32, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 33, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 34, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 35, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 36, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 37, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 38, "nombre": "Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 39, "nombre": "Varas Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 40, "nombre": "Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 41, "nombre": "Varas Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 42, "nombre": "Estandarte (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id + 43, "nombre": "Varas Estandarte (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id + 44, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": start_id + 45, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": start_id + 46, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 11, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep28.extend(puestos_virgen_data_ep28)
+
+        puestos_a_crear = [Puesto(**data) for data in puestos_data_ep28]
+        Puesto.objects.bulk_create(puestos_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear)} puestos para el Acto 11 (ID inicial: {start_id}).'))
+
+
+
+        # =========================================================================
+        # POBLADO DE ACTO: ESTACIÓN DE PENITENCIA 2029 (ID=12)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado del Acto: Estación de Penitencia 2029...")
+
+        now = timezone.now()
+
+        Acto.objects.filter(id=12).delete()
+
+        descripcion_acto_2029 = (
+            "La Estación de Penitencia a la Santa Iglesia Catedral es el acto central y culminante "
+            "de la vida de nuestra Hermandad de San Gonzalo. En este año 2029, nos preparamos para vivir "
+            "nuevamente este encuentro íntimo con nuestro Señor en su Soberano Poder ante Caifás y nuestra "
+            "Madre y Señora de la Salud. Un testimonio vivo del Evangelio por las calles de nuestro barrio "
+            "de Triana, renovando nuestra fe y fraternidad en cada paso del camino."
+        )
+
+        acto_ep29 = Acto(
+            id=12,
+            nombre="Estación de Penitencia 2029",
+            lugar="Parroquia de San Gonzalo",
+            descripcion=descripcion_acto_2029,
+            fecha=datetime(2029, 3, 26, 15, 0, 0, tzinfo=timezone.get_current_timezone()),
+            modalidad="TRADICIONAL",
+            tipo_acto_id=1,
+            inicio_solicitud=now - timedelta(days=20),
+            fin_solicitud=now - timedelta(days=10),
+            fecha_ejecucion_reparto=now - timedelta(days=9),
+            inicio_solicitud_cirios=now - timedelta(days=8),
+            fin_solicitud_cirios=now + timedelta(days=10),
+            fecha_ejecucion_cirios=None
+        )
+
+        ruta_imagen = os.path.join(settings.BASE_DIR, '..', 'frontend', 'src', 'assets', 'EstacionPenitencia2025.jpg')
+        
+        if os.path.exists(ruta_imagen):
+            with open(ruta_imagen, 'rb') as f:
+                acto_ep29.imagen_portada.save('EstacionPenitencia2029.jpg', File(f), save=False)
+            self.stdout.write(self.style.SUCCESS('Imagen adjuntada correctamente al Acto 12.'))
+        else:
+            self.stdout.write(self.style.WARNING(f'⚠️ No se encontró la imagen en: {ruta_imagen}'))
+
+        acto_ep29.save()
+        
+        self.stdout.write(self.style.SUCCESS('¡Éxito! Se ha creado el Acto Estación de Penitencia 2029 con ID 12.'))
+
+
+
+        # =========================================================================
+        # POBLADO DE PUESTOS DEL ACTO 12 (EP 2029)
+        # =========================================================================
+        self.stdout.write("Iniciando el poblado de Puestos para el Acto 12...")
+
+        start_id_29 = 338
+
+        puestos_data_ep29 = [
+            {"id": start_id_29 + 0, "nombre": "Bocina Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 8, "cortejo_cristo": True},
+            {"id": start_id_29 + 1, "nombre": "Cruz de Guía", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 12, "cortejo_cristo": True},
+            {"id": start_id_29 + 2, "nombre": "Farol Cruz de Guía", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 9, "cortejo_cristo": True},
+            {"id": start_id_29 + 3, "nombre": "Senatus (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 4, "nombre": "Varas Senatus (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 5, "nombre": "Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 6, "nombre": "Varas Bandera Morada (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 7, "nombre": "Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 8, "nombre": "Varas Bandera Pontificia (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 9, "nombre": "Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 10, "nombre": "Varas Banderín Sacramental (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 11, "nombre": "Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 12, "nombre": "Varas Guión del Cincuentenario (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 13, "nombre": "Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 14, "nombre": "Varas Banderín de la Juventud (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 15, "nombre": "Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 16, "nombre": "Varas Bandera Cruz de Jerusalén (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 17, "nombre": "Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 18, "nombre": "Varas Guión de la Caridad (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 19, "nombre": "Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 20, "nombre": "Varas Guión Sacramental (tramo 10)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 21, "nombre": "Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": True},
+            {"id": start_id_29 + 22, "nombre": "Varas Estandarte Sacramental (tramo 11)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": True},
+            {"id": start_id_29 + 23, "nombre": "Cirio Grande Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": start_id_29 + 24, "nombre": "Cirio Mediano Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": True},
+            {"id": start_id_29 + 25, "nombre": "Cirio Pequeño Cristo", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": True},
+        ]
+
+        puestos_virgen_data_ep29 = [
+            {"id": start_id_29 + 26, "nombre": "Cirios apagados cruces (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 1, "cortejo_cristo": False},
+            {"id": start_id_29 + 27, "nombre": "Bocinas (tramo 1)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 8, "cortejo_cristo": False},
+            {"id": start_id_29 + 28, "nombre": "Simpecado (tramo 2)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 29, "nombre": "Faroles Simpecado (tramo 2)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 9, "cortejo_cristo": False},
+            {"id": start_id_29 + 30, "nombre": "Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 31, "nombre": "Varas Bandera Blanca y Celeste (tramo 3)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 32, "nombre": "Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 33, "nombre": "Varas Bandera Asuncionista (tramo 4)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 34, "nombre": "Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 35, "nombre": "Varas Bandera Concepcionista (tramo 5)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 36, "nombre": "Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 37, "nombre": "Varas Bandera Realeza de María (tramo 6)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 38, "nombre": "Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 39, "nombre": "Varas Guión de la Coronación (tramo 7)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 40, "nombre": "Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 41, "nombre": "Varas Libro de Reglas (tramo 8)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 42, "nombre": "Estandarte (tramo 9)", "numero_maximo_asignaciones": 1, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 7, "cortejo_cristo": False},
+            {"id": start_id_29 + 43, "nombre": "Varas Estandarte (tramo 9)", "numero_maximo_asignaciones": 4, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 6, "cortejo_cristo": False},
+            {"id": start_id_29 + 44, "nombre": "Cirio Grande Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": start_id_29 + 45, "nombre": "Cirio Mediano Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": False},
+            {"id": start_id_29 + 46, "nombre": "Cirio Pequeño Virgen", "numero_maximo_asignaciones": 4000, "disponible": True, "lugar_citacion": "Parroquia de San Gonzalo", "hora_citacion": "13:30", "acto_id": 12, "tipo_puesto_id": 5, "cortejo_cristo": False},
+        ]
+
+        puestos_data_ep29.extend(puestos_virgen_data_ep29)
+
+        puestos_a_crear = [Puesto(**data) for data in puestos_data_ep29]
+        Puesto.objects.bulk_create(puestos_a_crear)
+
+        self.stdout.write(self.style.SUCCESS(f'¡Éxito! Se han creado {len(puestos_a_crear)} puestos para el Acto 12 (ID inicial: {start_id_29}).'))
 
 
 
