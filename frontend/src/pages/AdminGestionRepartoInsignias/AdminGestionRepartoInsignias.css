@@ -2,7 +2,7 @@
     width: 100%;
     height: auto;
     background-color: #ffffff;
-    border: 3px solid #800020;
+    border: 3px solid #ffffff;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     padding: 24px 24px 40px 24px;
@@ -27,7 +27,7 @@
 }
 
 .historical-header-title {
-    font-size: 3.5rem;
+    font-size: 3.1rem;
     color: #ffffff; 
     text-transform: uppercase;
     margin: 0 0 1rem 0;
@@ -159,7 +159,6 @@
     align-items: stretch;
     gap: 24px;
     width: 100%;
-    margin-bottom: 40px;
 }
 
 .reparto-card-wrapper {

@@ -384,7 +384,7 @@ function GestionRepartoInsignias() {
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
-                                <span className="plazos-text">DATOS GENERALES DE SOLICITUD</span>
+                                <span className="plazos-text">Datos generales de solicitud</span>
                             <div className="plazos-line"></div>
                         </div>
 
@@ -437,7 +437,7 @@ function GestionRepartoInsignias() {
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
-                                <span className="plazos-text">ALGORITMO AUTOMÁTICO DE ASIGNACIÓN DE INSIGNIAS</span>
+                                <span className="plazos-text">Algoritmo automático de asignación de insignias</span>
                             <div className="plazos-line"></div>
                         </div>
 
@@ -483,7 +483,7 @@ function GestionRepartoInsignias() {
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
-                                <span className="plazos-text">RESUMEN DETALLADO DE LA ASIGNACIÓN DE INSIGNIAS</span>
+                                <span className="plazos-text">Resumen detallado de la asignación de insignias</span>
                             <div className="plazos-line"></div>
                         </div>
 
