@@ -326,6 +326,8 @@ class ActoSerializer(serializers.ModelSerializer):
     total_cirios_cristo = serializers.SerializerMethodField()
     total_cirios_virgen = serializers.SerializerMethodField()
 
+    total_puestos_cirios = serializers.SerializerMethodField()
+
     tipo_acto = serializers.SlugRelatedField(
         slug_field='tipo',
         queryset=TipoActo.objects.all()
@@ -346,7 +348,7 @@ class ActoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acto
-        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias', 'total_asignados', 'total_no_asignados', 'fecha_ejecucion_cirios', 'total_solicitantes_cirio', 'total_cirios_cristo', 'total_cirios_virgen']
+        fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias', 'total_asignados', 'total_no_asignados', 'fecha_ejecucion_cirios', 'total_solicitantes_cirio', 'total_cirios_cristo', 'total_cirios_virgen', 'total_puestos_cirios']
 
     read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
@@ -440,6 +442,10 @@ class ActoSerializer(serializers.ModelSerializer):
         ).exclude(
             estado_papeleta__in=estados_inactivos
         ).count()
+
+    def get_total_puestos_cirios(self, obj):
+        """Cuenta el número de registros de Puesto que NO son insignias"""
+        return obj.puestos_disponibles.filter(tipo_puesto__es_insignia=False).count()
 
 # -----------------------------------------------------------------------------
 # SERIALIZER TRANSACCIONAL: PAPELETA DE SITIO

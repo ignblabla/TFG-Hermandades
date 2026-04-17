@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
-import { AlertCircle, CheckCircle, Save, CalendarX, ScrollText, Shirt, X, Info, CalendarCheck } from "lucide-react";
+import { AlertCircle, CheckCircle, Save, CalendarX, ScrollText, Shirt, X, Info, CalendarCheck, Flame } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -439,14 +439,14 @@ function HermanoCrearSolicitudCirio() {
                                     <div className="solicitud-card-wrapper">
                                         <div className="solicitud-card-content">
                                             <div className="solicitud-card-icon">
-                                                <CalendarX size={32} strokeWidth={2.5} />
+                                                <Flame size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="solicitud-card-title">FIN SOLICITUD INSIGNIAS</h3>
+                                            <h3 className="solicitud-card-title">TIPOS DE CIRIOS</h3>
                                             <p className="solicitud-card-description">
-                                                Número total de cuotas pagadas que constan actualmente en tu historial.
+                                                Número total de puestos de cirio configurados para este acto.
                                             </p>
                                             <div className="solicitud-card-date">
-                                                {formatearFechaHora(actoInfo?.fin_solicitud)}
+                                                {actoInfo?.total_puestos_cirios ?? 0}
                                             </div>
                                         </div>
                                     </div>
