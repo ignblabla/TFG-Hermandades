@@ -286,7 +286,8 @@ select.form-control {
     color: #FFFFFF;
     border: none;
     border-radius: 8px;
-    padding: 12px 24px;
+    height: 38px;
+    padding: 0 24px;
     font-weight: 700;   
     font-size: 1.05rem; 
     letter-spacing: 0.5px;

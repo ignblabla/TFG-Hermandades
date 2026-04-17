@@ -12,31 +12,40 @@
 .btn-enviar-wrapper {
     margin-top: auto;
     padding-top: 20px;
+    display: flex;
+    justify-content: center;
 }
 
 .btn-enviar-solicitud-final {
-    width: 100%;
-    padding: 12px;
-    background-color: var(--burgundy-primary);
-    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #800020;
+    color: #FFFFFF;
     border: none;
     border-radius: 8px;
-    font-weight: bold;
+    padding: 0 24px;
+    height: 38px;
+    font-weight: 700;   
+    font-size: 1.05rem; 
+    letter-spacing: 0.5px;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    transition: background-color 0.2s;
-}
-
-.btn-enviar-solicitud-final:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: fit-content; 
+    align-self: center;
+    box-sizing: border-box;
 }
 
 .btn-enviar-solicitud-final:hover:not(:disabled) {
-    background-color: #5c0017;
+    background-color: #570015;
+    transform: translateY(-2px);
+}
+
+.btn-enviar-solicitud-final:disabled {
+    background-color: #A98C92;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .dashboard-layout-wrapper {

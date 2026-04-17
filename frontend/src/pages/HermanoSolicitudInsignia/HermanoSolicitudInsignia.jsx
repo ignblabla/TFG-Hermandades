@@ -623,7 +623,7 @@ function HermanoSolicitudInsignia() {
                                                         disabled={saving || insigniasSeleccionadas.length === 0}
                                                     >
                                                         <Send size={20} />
-                                                        {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}
+                                                        {saving ? "Procesando..." : "Enviar solicitud de insignias"}
                                                     </button>
                                                 </div>
                                             </div>
