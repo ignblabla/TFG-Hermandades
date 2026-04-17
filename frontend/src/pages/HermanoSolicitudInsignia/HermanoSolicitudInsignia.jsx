@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoSolicitudInsignia/HermanoSolicitudInsignia.css';
-import { Info, CalendarX, ScrollText, Shirt, ChevronDown, Send, ChevronRight, ArrowUp, ArrowDown, X, AlertCircle, CheckCircle } from "lucide-react";
+import { Info, CalendarX, ScrollText, Shirt, ChevronDown, Send, ChevronRight, ArrowUp, ArrowDown, X, AlertCircle, CheckCircle, Medal, Flame, CalendarCheck } from "lucide-react";
 
 function HermanoSolicitudInsignia() {
     const navigate = useNavigate();
@@ -208,18 +208,14 @@ function HermanoSolicitudInsignia() {
         return diccionarioTipos[tipoStr] || "de Sitio";
     };
 
-    const formatearFechaHora = (fechaString) => {
-        if (!fechaString) return "Fecha por determinar";
-        
-        const date = new Date(fechaString);
-        const dia = date.getDate();
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const mes = meses[date.getMonth()];
+    const formatearFechaHora = (dateString) => {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
 
-        const hora = date.getHours().toString().padStart(2, '0');
-        const minutos = date.getMinutes().toString().padStart(2, '0');
-        
-        return `${dia} de ${mes}, ${hora}:${minutos}`;
+        return date.toLocaleString('es-ES', { 
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        }).replaceAll('/', '-');
     };
 
     const insigniasDisponibles = actoActivo?.puestos_disponibles?.filter(
@@ -443,79 +439,70 @@ function HermanoSolicitudInsignia() {
 
                     <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                         <div className="dashboard-split-layout-solicitud">
-                            <div className="dashboard-panel-main-solicitud">
-                                <div 
-                                    className="banner-solicitud-container"
-                                    style={{ 
-                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${actoActivo?.imagen_portada ? actoActivo.imagen_portada : "../../assets/ViaCrucis2025.jpg"})` 
-                                    }}
-                                >
-                                    <div className="banner-solicitud-text">
-                                        <h1 className="banner-solicitud-title">
-                                            SOLICITUD DE INSIGNIAS
-                                        </h1>
-                                        <p className="banner-solicitud-description">
-                                            {getNombreTipoActo(actoActivo?.tipo_acto)} {actoActivo?.fecha ? new Date(actoActivo.fecha).getFullYear() : ""}
-                                        </p>
-                                    </div>
+                            <div className="dashboard-panel-solicitud">
+                                <div className="historical-header-container-solicitud">
+                                    <h1 className="historical-header-title-solicitud">SOLICITUD DE INSIGNIAS</h1>
+                                    <p className="historical-header-subtitle-solicitud">
+                                        {getNombreTipoActo(actoActivo?.tipo_acto)} {actoActivo?.fecha ? new Date(actoActivo.fecha).getFullYear() : ""}
+                                    </p>
                                 </div>
 
-                                <div className="plazos-separator">
+                                <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">PLAZOS IMPRORROGABLES</span>
+                                        <span className="plazos-text">Datos generales de la solicitud de insignias</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
-                                <div className="plazos-cards-container">
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
-                                                <CalendarX size={32} strokeWidth={2.5} />
+                                <div className="solicitud-cards-container">
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
+                                                <CalendarCheck size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">INICIO SOLICITUD INSIGNIAS</h3>
-                                            <p className="plazo-card-description">
-                                                Fecha de inicio para la solicitud general de insignias y varas.
+                                            <h3 className="solicitud-card-title">INICIO SOLICITUD INSIGNIAS</h3>
+                                            <p className="solicitud-card-description">
+                                                Fecha de inicio para la solicitud general de insignias, cirios apagados, maniguetas y varas.
                                             </p>
-                                            <div className="plazo-card-date">
+                                            <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoActivo?.inicio_solicitud)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
                                                 <CalendarX size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">FIN SOLICITUD INSIGNIAS</h3>
-                                            <p className="plazo-card-description">
-                                                Fecha de cierre para la solicitud general de insignias y varas.
+                                            <h3 className="solicitud-card-title">FIN SOLICITUD INSIGNIAS</h3>
+                                            <p className="solicitud-card-description">
+                                                Fecha de cierre para la solicitud general de insignias, cirios apagados, maniguetas y varas.
                                             </p>
-                                            <div className="plazo-card-date">
+                                            <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoActivo?.fin_solicitud)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
-                                                <CalendarX size={32} strokeWidth={2.5} />
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
+                                                <Medal size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">INICIO SOLICITUD CIRIOS</h3>
-                                            <p className="plazo-card-description">
-                                                Fecha de inicio para la solicitud general de cirios y cruces.
+                                            <h3 className="solicitud-card-title">INSIGNIAS DISPONIBLES</h3>
+                                            <p className="solicitud-card-description">
+                                                Número total de insignias, cirios apagados, maniguetas y varas configuradas para este acto.
                                             </p>
-                                            <div className="plazo-card-date">
-                                                {formatearFechaHora(actoActivo?.inicio_solicitud_cirios)}
+                                            <div className="solicitud-card-date">
+                                                {actoActivo?.total_insignias ?? 0}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="plazos-separator">
+                                <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">FORMULARIO DE SOLICITUD DE CIRIO</span>
+                                        <span className="plazos-text">Formulario de solicitud de insignias</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
@@ -532,6 +519,131 @@ function HermanoSolicitudInsignia() {
                                         <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
                                     </div>
                                 )}
+
+                                <div className="dashboard-layout-wrapper">
+                                    {actoActivo ? (
+                                        <>
+                                            <div className="solicitud-insignia-container">
+                                                <h3 className="solicitud-insignia-title">Insignias disponibles</h3>
+                                                <p className="solicitud-insignia-description mb-10">
+                                                    Arrastre las insignias que desea solicitar hacia el panel de la derecha.
+                                                </p>
+
+                                                <div className="lista-disponibles-container">
+                                                    {insigniasDisponibles.length > 0 ? (
+                                                        <>
+                                                            <div 
+                                                                className="cortejo-subtitle-wrapper" 
+                                                                onClick={() => setMostrarCristo(!mostrarCristo)}
+                                                            >
+                                                                <h4 className="cortejo-subtitle">
+                                                                    Cortejo de Nuestro Padre Jesús en Su Soberano Poder ante Caifás
+                                                                </h4>
+                                                                {mostrarCristo ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                                            </div>
+
+                                                            {mostrarCristo && renderInsignias(insigniasCristo)}
+
+                                                            <div 
+                                                                className="cortejo-subtitle-wrapper" 
+                                                                onClick={() => setMostrarVirgen(!mostrarVirgen)}
+                                                            >
+                                                                <h4 className="cortejo-subtitle">
+                                                                    Cortejo de Nuestra Señora de la Salud
+                                                                </h4>
+                                                                {mostrarVirgen ? <ChevronDown size={20} color="var(--burgundy-primary)" /> : <ChevronRight size={20} color="var(--burgundy-primary)" />}
+                                                            </div>
+
+                                                            {mostrarVirgen && renderInsignias(insigniasVirgen)}
+                                                        </>
+                                                    ) : (
+                                                        <p className="solicitud-insignia-empty-msg">
+                                                            Has seleccionado todas las insignias disponibles.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div 
+                                                className={`resumen-solicitud-container ${isDragOver ? 'drag-over-active' : ''}`}
+                                                onDragOver={handleDragOver}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={handleDrop}
+                                            >
+                                                <h3 className="solicitud-insignia-title">Insignias seleccionadas</h3>
+                                                <p className="solicitud-insignia-description">
+                                                    Suéltelas aquí. Ordénelas de arriba a abajo en función de su prioridad.
+                                                </p>
+
+                                                <div className="lista-seleccionadas-container">
+                                                    {insigniasSeleccionadas.length === 0 ? (
+                                                        <div className="empty-dropzone">
+                                                            Arrastre aquí una insignia
+                                                        </div>
+                                                    ) : (
+                                                        insigniasSeleccionadas.map((insignia, index) => (
+                                                            <div key={insignia.id} className="seleccionada-card">
+                                                                <div className="seleccionada-info">
+                                                                    <span className="prioridad-badge">{index + 1}º</span>
+                                                                    <span className="seleccionada-nombre">{insignia.nombre}</span>
+                                                                </div>
+                                                                
+                                                                <div className="seleccionada-acciones">
+                                                                    <button 
+                                                                        onClick={() => moverArriba(index)} 
+                                                                        disabled={index === 0}
+                                                                        title="Subir prioridad"
+                                                                    >
+                                                                        <ArrowUp size={18} />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => moverAbajo(index)} 
+                                                                        disabled={index === insigniasSeleccionadas.length - 1}
+                                                                        title="Bajar prioridad"
+                                                                    >
+                                                                        <ArrowDown size={18} />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => quitarInsignia(insignia.id)} 
+                                                                        className="btn-quitar"
+                                                                        title="Quitar de la lista"
+                                                                    >
+                                                                        <X size={18} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
+
+                                                <div className="btn-enviar-wrapper">
+                                                    <button 
+                                                        className="btn-enviar-solicitud-final"
+                                                        onClick={enviarSolicitud}
+                                                        disabled={saving || insigniasSeleccionadas.length === 0}
+                                                    >
+                                                        <Send size={20} />
+                                                        {saving ? "Procesando..." : "Enviar Solicitud de Insignias"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="solicitud-insignia-container" style={{width: '100%'}}>
+                                            <p className="solicitud-insignia-error-msg">
+                                                Actualmente no hay ningún plazo abierto para solicitar insignias.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                        <div className="dashboard-split-layout-solicitud">
+                            <div className="dashboard-panel-main-solicitud">
 
                                 <div className="dashboard-layout-wrapper">
                                     {actoActivo ? (
@@ -692,7 +804,7 @@ function HermanoSolicitudInsignia() {
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </section> */}
                 </>
             )}
         </div>

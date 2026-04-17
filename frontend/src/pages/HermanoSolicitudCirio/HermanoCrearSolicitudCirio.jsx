@@ -425,26 +425,11 @@ function HermanoCrearSolicitudCirio() {
 
                                 <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">Plazos improrrogables</span>
+                                        <span className="plazos-text">Datos generales de la solicitud de cirios</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
                                 <div className="solicitud-cards-container">
-                                    <div className="solicitud-card-wrapper">
-                                        <div className="solicitud-card-content">
-                                            <div className="solicitud-card-icon">
-                                                <Flame size={32} strokeWidth={2.5} />
-                                            </div>
-                                            <h3 className="solicitud-card-title">TIPOS DE CIRIOS</h3>
-                                            <p className="solicitud-card-description">
-                                                Número total de puestos de cirio configurados para este acto.
-                                            </p>
-                                            <div className="solicitud-card-date">
-                                                {actoInfo?.total_puestos_cirios ?? 0}
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div className="solicitud-card-wrapper">
                                         <div className="solicitud-card-content">
                                             <div className="solicitud-card-icon">
@@ -471,6 +456,21 @@ function HermanoCrearSolicitudCirio() {
                                             </p>
                                             <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoInfo?.fin_solicitud_cirios)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
+                                                <Flame size={32} strokeWidth={2.5} />
+                                            </div>
+                                            <h3 className="solicitud-card-title">TIPOS DE CIRIOS</h3>
+                                            <p className="solicitud-card-description">
+                                                Número total de puestos de cirio configurados para este acto.
+                                            </p>
+                                            <div className="solicitud-card-date">
+                                                {actoInfo?.total_puestos_cirios ?? 0}
                                             </div>
                                         </div>
                                     </div>
