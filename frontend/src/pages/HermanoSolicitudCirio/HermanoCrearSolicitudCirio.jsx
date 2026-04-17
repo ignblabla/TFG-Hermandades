@@ -583,7 +583,7 @@ function HermanoCrearSolicitudCirio() {
                                 </div>
                             </div>
 
-                            <div className="dashboard-panel-sidebar-solicitud">
+                            {/* <div className="dashboard-panel-sidebar-solicitud">
                                 <div className="criterios-card">
                                     <div className="criterios-icon">
                                         <ScrollText size={40} strokeWidth={2} />
@@ -622,7 +622,7 @@ function HermanoCrearSolicitudCirio() {
                                         )}
                                     </p>
                                 </div>
-                            </div>
+                            </div> */}
                         </div>
                     </section>
                 </>
