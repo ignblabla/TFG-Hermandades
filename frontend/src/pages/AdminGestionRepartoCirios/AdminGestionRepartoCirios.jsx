@@ -326,47 +326,47 @@ function GestionRepartoCirio() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        <div className="plazos-cards-container">
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                        <div className="reparto-cards-container">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <CalendarCheck size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">INICIO SOLICITUD CIRIOS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">INICIO SOLICITUD CIRIOS</h3>
+                                    <p className="reparto-card-description">
                                         Fecha de inicio para la solicitud general de cirios.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {formatearFechaHora(acto?.inicio_solicitud_cirios)}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <CalendarX size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">FIN SOLICITUD CIRIOS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">FIN SOLICITUD CIRIOS</h3>
+                                    <p className="reparto-card-description">
                                         Fecha de cierre para la solicitud general de cirios.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {formatearFechaHora(acto?.fin_solicitud_cirios)}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <CalendarDays size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">FECHA DEL ACTO</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">FECHA DEL ACTO</h3>
+                                    <p className="reparto-card-description">
                                         Fecha en la que se celebrará el acto.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {formatearFechaHora(acto?.fecha)}
                                     </div>
                                 </div>
@@ -425,47 +425,47 @@ function GestionRepartoCirio() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        <div className="plazos-cards-container" style={{ marginTop: '20px' }}>
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                        <div className="reparto-cards-container" style={{ marginTop: '20px' }}>
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <Flame size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">CIRIOS TOTALES</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">CIRIOS TOTALES</h3>
+                                    <p className="reparto-card-description">
                                         Número total de Hermanos que han solicitado portar cirio.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_solicitantes_cirio ?? "-"}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <Flame size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">CIRIOS PASO CRISTO</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">CIRIOS PASO CRISTO</h3>
+                                    <p className="reparto-card-description">
                                         Número total de Hermanos que han solicitado portar cirio en el paso de Cristo.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_cirios_cristo ?? "-"}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <Flame size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">CIRIOS PASO VIRGEN</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">CIRIOS PASO VIRGEN</h3>
+                                    <p className="reparto-card-description">
                                         Número total de Hermanos que han solicitado portar cirio en el paso de Virgen.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_cirios_virgen ?? "-"}
                                     </div>
                                 </div>

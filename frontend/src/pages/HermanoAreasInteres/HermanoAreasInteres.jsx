@@ -254,7 +254,7 @@ function HermanoAreaInteres() {
                                     <div className="areas-card-icon">
                                         <Dock size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="areas-card-title">ÁREAS DE INTERÉS OBLIGATORIAS</h3>
+                                    <h3 className="areas-card-title">ÁREAS OBLIGATORIAS</h3>
                                     <p className="areas-card-description">
                                         Número total de áreas de interés a las que estás suscrito de forma obligatoria.
                                     </p>

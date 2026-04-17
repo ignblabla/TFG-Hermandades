@@ -388,47 +388,47 @@ function GestionRepartoInsignias() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        <div className="plazos-cards-container">
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                        <div className="reparto-cards-container">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <CalendarX size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">FIN SOLICITUD INSIGNIAS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">FIN SOLICITUD INSIGNIAS</h3>
+                                    <p className="reparto-card-description">
                                         Fecha de cierre para la solicitud general de insignias, varas y maniguetas.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {formatearFechaHora(acto?.fin_solicitud)}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <User size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">HERMANOS SOLICITANTES</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">HERMANOS SOLICITANTES</h3>
+                                    <p className="reparto-card-description">
                                         Censo total de hermanos con solicitud de insignia debidamente registrada y tramitada.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_solicitantes_insignia ?? 0}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <Users size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">SOLICITUDES DE INSIGNIAS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">SOLICITUDES DE INSIGNIAS</h3>
+                                    <p className="reparto-card-description">
                                         Número total de solicitudes de insignia registradas.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_solicitudes_insignias ?? 0}
                                     </div>
                                 </div>
@@ -487,47 +487,47 @@ function GestionRepartoInsignias() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        <div className="plazos-cards-container" style={{ marginTop: '20px' }}>
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                        <div className="reparto-cards-container" style={{ marginTop: '20px' }}>
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <Users size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">TOTAL INSIGNIAS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">TOTAL INSIGNIAS</h3>
+                                    <p className="reparto-card-description">
                                         Cupo máximo de insignias y puestos disponibles en el acto.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {acto?.total_insignias ?? "-"}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">INSIGNIAS ASIGNADAS</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">INSIGNIAS ASIGNADAS</h3>
+                                    <p className="reparto-card-description">
                                         Total de puestos e insignias cubiertas tras el proceso de asignación.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {successData?.total_asignados ?? acto?.total_asignados ?? "-"}
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="plazo-card-wrapper">
-                                <div className="plazo-card-content">
-                                    <div className="plazo-card-icon">
+                            <div className="reparto-card-wrapper">
+                                <div className="reparto-card-content">
+                                    <div className="reparto-card-icon">
                                         <AlertCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="plazo-card-title">INSIGNIAS VACANTES</h3>
-                                    <p className="plazo-card-description">
+                                    <h3 className="reparto-card-title">INSIGNIAS VACANTES</h3>
+                                    <p className="reparto-card-description">
                                         Listado de vacantes desiertas por falta de solicitudes o incumplimiento de requisitos.
                                     </p>
-                                    <div className="plazo-card-date">
+                                    <div className="reparto-card-date">
                                         {successData?.total_no_asignados ?? acto?.total_no_asignados ?? "-"}
                                     </div>
                                 </div>
