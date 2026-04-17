@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../HermanoSolicitudCirio/HermanoCrearSolicitudCirio.css'
-import { AlertCircle, CheckCircle, Save, CalendarX, ScrollText, Shirt, X, Info } from "lucide-react";
+import { AlertCircle, CheckCircle, Save, CalendarX, ScrollText, Shirt, X, Info, CalendarCheck } from "lucide-react";
 
 function HermanoCrearSolicitudCirio() {
 
@@ -178,7 +178,7 @@ function HermanoCrearSolicitudCirio() {
             setSelectedPuestoId("");
             setNumeroVinculado("");
             
-            setTimeout(() => navigate("/mis-papeletas"), 4000); 
+            setTimeout(() => navigate("/mis-papeletas-de-sitio"), 4000); 
 
         } catch (err) {
             if (err.response?.data) {
@@ -222,18 +222,13 @@ function HermanoCrearSolicitudCirio() {
         return diccionarioTipos[tipoStr] || "de Sitio";
     };
 
-    const formatearFechaHora = (fechaString) => {
-        if (!fechaString) return "Fecha por determinar";
-        
-        const date = new Date(fechaString);
-        const dia = date.getDate();
-        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const mes = meses[date.getMonth()];
-
-        const hora = date.getHours().toString().padStart(2, '0');
-        const minutos = date.getMinutes().toString().padStart(2, '0');
-        
-        return `${dia} de ${mes}, ${hora}:${minutos}`;
+    const formatearFechaHora = (dateString) => {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return date.toLocaleString('es-ES', { 
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
     };
 
     // PANTALLA DE CARGA CON EFECTO SERPIENTE
@@ -426,79 +421,70 @@ function HermanoCrearSolicitudCirio() {
 
                     <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                         <div className="dashboard-split-layout-solicitud">
-                            <div className="dashboard-panel-main-solicitud">
-                                <div 
-                                    className="banner-solicitud-container"
-                                    style={{ 
-                                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${actoInfo?.imagen_portada ? actoInfo.imagen_portada : "../../assets/ViaCrucis2025.jpg"})` 
-                                    }}
-                                >
-                                    <div className="banner-solicitud-text">
-                                        <h1 className="banner-solicitud-title">
-                                            SOLICITUD DE CIRIOS
-                                        </h1>
-                                        <p className="banner-solicitud-description">
-                                            {getNombreTipoActo(actoInfo?.tipo_acto)} {actoInfo?.fecha ? new Date(actoInfo.fecha).getFullYear() : ""}
-                                        </p>
-                                    </div>
+                            <div className="dashboard-panel-solicitud">
+                                <div className="historical-header-container-solicitud">
+                                    <h1 className="historical-header-title-solicitud">SOLICITUD DE CIRIOS</h1>
+                                    <p className="historical-header-subtitle-solicitud">
+                                        {getNombreTipoActo(actoInfo?.tipo_acto)} {actoInfo?.fecha ? new Date(actoInfo.fecha).getFullYear() : ""}
+                                    </p>
                                 </div>
 
-                                <div className="plazos-separator">
+                                <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">PLAZOS IMPRORROGABLES</span>
+                                        <span className="plazos-text">Plazos improrrogables</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
-                                <div className="plazos-cards-container">
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
+                                <div className="solicitud-cards-container">
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
                                                 <CalendarX size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">FIN SOLICITUD INSIGNIAS</h3>
-                                            <p className="plazo-card-description">
-                                                Fecha de cierre para la solicitud general de insignias y varas.
+                                            <h3 className="solicitud-card-title">FIN SOLICITUD INSIGNIAS</h3>
+                                            <p className="solicitud-card-description">
+                                                Número total de cuotas pagadas que constan actualmente en tu historial.
                                             </p>
-                                            <div className="plazo-card-date">
+                                            <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoInfo?.fin_solicitud)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
-                                                <CalendarX size={32} strokeWidth={2.5} />
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
+                                                <CalendarCheck size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">INICIO SOLICITUD CIRIOS</h3>
-                                            <p className="plazo-card-description">
+                                            <h3 className="solicitud-card-title">INICIO SOLICITUD CIRIOS</h3>
+                                            <p className="solicitud-card-description">
                                                 Fecha de inicio para la solicitud general de cirios y cruces.
                                             </p>
-                                            <div className="plazo-card-date">
+                                            <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoInfo?.inicio_solicitud_cirios)}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="plazo-card-wrapper">
-                                        <div className="plazo-card-content">
-                                            <div className="plazo-card-icon">
-                                                <CalendarX size={32} strokeWidth={2.5} />
+                                    <div className="solicitud-card-wrapper">
+                                        <div className="solicitud-card-content">
+                                            <div className="solicitud-card-icon">
+                                                <CalendarCheck size={32} strokeWidth={2.5} />
                                             </div>
-                                            <h3 className="plazo-card-title">FIN SOLICITUD CIRIOS</h3>
-                                            <p className="plazo-card-description">
+                                            <h3 className="solicitud-card-title">FIN SOLICITUD CIRIOS</h3>
+                                            <p className="solicitud-card-description">
                                                 Fecha de cierre para la solicitud general de cirios y cruces.
                                             </p>
-                                            <div className="plazo-card-date">
+                                            <div className="solicitud-card-date">
                                                 {formatearFechaHora(actoInfo?.fin_solicitud_cirios)}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="plazos-separator">
+                                <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">FORMULARIO DE SOLICITUD DE CIRIO</span>
+                                        <span className="plazos-text">Formulario de solicitud de cirios</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
@@ -582,47 +568,6 @@ function HermanoCrearSolicitudCirio() {
                                     </form>
                                 </div>
                             </div>
-
-                            {/* <div className="dashboard-panel-sidebar-solicitud">
-                                <div className="criterios-card">
-                                    <div className="criterios-icon">
-                                        <ScrollText size={40} strokeWidth={2} />
-                                    </div>
-                                    
-                                    <h2 className="criterios-title">CRITERIOS DE ASIGNACIÓN</h2>
-                                    
-                                    <p className="criterios-intro">
-                                        Conforme a la Regla 42ª, los puestos se asignan estrictamente por <span className="criterios-bold">orden de antigüedad</span> en la nómina <span className="criterios-bold">de hermanos</span>, salvo los cargos de confianza designados por la Junta de Gobierno.
-                                    </p>
-                                </div>
-
-                                <div className="criterios-card">
-                                    <div className="criterios-icon">
-                                        <Shirt size={40} strokeWidth={2} />
-                                    </div>
-                                    
-                                    <h2 className="criterios-title">PROTOCOLO DE VESTIMENTA</h2>
-                                    
-                                    <p className="criterios-intro">
-                                        {actoInfo?.tipo_acto === 'ESTACION_PENITENCIA' ? (
-                                            <>
-                                                Se recuerda la obligatoriedad de vestir el hábito de la Hermandad:{" "}
-                                                <span className="criterios-bold">
-                                                    túnica blanca de cola, cinturón de esparto, medalla de la Hermandad y sandalias de cuero
-                                                </span>.
-                                            </>
-                                        ) : (
-                                            <>
-                                                Se recuerda la obligatoriedad de mantener la estética tradicional:{" "}
-                                                <span className="criterios-bold">traje de chaqueta oscuro</span> para los hombres y{" "}
-                                                <span className="criterios-bold">vestido negro</span> para las mujeres, acorde a la solemnidad del acto.
-                                                <br />
-                                                <span className="criterios-bold">Imprescindible portar la medalla de la Hermandad.</span>
-                                            </>
-                                        )}
-                                    </p>
-                                </div>
-                            </div> */}
                         </div>
                     </section>
                 </>
