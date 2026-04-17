@@ -70,6 +70,7 @@
     flex-direction: column;
     overflow: hidden;
     transition: box-shadow 0.2s, background-color 0.2s;
+    box-shadow: 0 8px 16px rgba(211, 59, 59, 0.3);
 }
 
 .solicitud-insignia-container:hover,

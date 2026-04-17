@@ -168,7 +168,8 @@
     padding: 32px;
     width: 100%;
     box-sizing: border-box;
-    margin-bottom: 40px;
+    margin-bottom: 0;
+    box-shadow: 0 8px 16px rgba(211, 59, 59, 0.3);
 }
 
 .form-alert {

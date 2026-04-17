@@ -554,7 +554,7 @@ function HermanoCrearSolicitudCirio() {
                                             {submitting ? 'Procesando...' : (
                                                 <>
                                                     <Save size={20} />
-                                                    Confirmar la solicitud de cirio
+                                                    Enviar solicitud de cirio
                                                 </>
                                             )}
                                         </button>
