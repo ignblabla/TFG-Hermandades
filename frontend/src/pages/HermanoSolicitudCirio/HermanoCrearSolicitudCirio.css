@@ -281,19 +281,19 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     background-color: #800020;
     color: #FFFFFF;
     border: none;
     border-radius: 8px;
-    padding: 0.5rem 24px; 
-    height: 38px; 
-    font-weight: 600;
-    font-size: 1rem;
+    padding: 12px 24px;
+    font-weight: 700;   
+    font-size: 1.05rem; 
     letter-spacing: 0.5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-top: 10px;
+    width: fit-content; 
+    align-self: center;
     box-sizing: border-box;
 }
 
@@ -306,6 +306,21 @@ select.form-control {
     background-color: #A98C92;
     cursor: not-allowed;
     transform: none;
+}
+
+.form-row-solicitud {
+    display: flex;
+    gap: 24px;
+    width: 100%;
+    align-items: flex-start; 
+}
+
+.form-row-solicitud .form-group-solicitud {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    justify-content: flex-start;
 }
 
 @media (max-width: 1024px) {
@@ -371,6 +386,10 @@ select.form-control {
     .plazo-card-wrapper {
         flex: 0 0 100%;
         width: 100%;
+    }
+    .form-row-solicitud {
+        flex-direction: column;
+        gap: 24px;
     }
 }
 

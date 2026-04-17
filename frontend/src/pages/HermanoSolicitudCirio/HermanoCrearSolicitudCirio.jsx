@@ -83,8 +83,6 @@ function HermanoCrearSolicitudCirio() {
                             const resPapeletas = await api.get("api/papeletas/mis-papeletas/"); 
                             const papeletas = resPapeletas.data.results || resPapeletas.data;
 
-                            // Buscar si ya hay papeleta ACTIVA para este acto
-                            // Nota: NO ASIGNADA y ANULADA no bloquean, permitiendo pedir cirio si se denegó la insignia.
                             const papeletaActiva = papeletas.find(p => {
                                 const coincideActo = Number(p.acto) === Number(id); 
                                 const estado = String(p.estado_papeleta || '').toUpperCase();
@@ -92,7 +90,6 @@ function HermanoCrearSolicitudCirio() {
                                 return coincideActo && estaActiva;
                             });
 
-                            // Buscar histórico
                             const ultimaPapeleta = papeletas.find(
                                 (p) => p.tipo_acto === actoData.tipo_acto && p.estado_papeleta !== 'ANULADA' && p.estado_papeleta !== 'NO_ASIGNADA' && Number(p.acto) !== Number(id)
                             );
@@ -103,7 +100,6 @@ function HermanoCrearSolicitudCirio() {
                                 setUltimoAnioParticipacion("-");
                             }
 
-                            // Comprobación de modales según estado y plazos
                             if (papeletaActiva) {
                                 if (enPlazo) {
                                     setModalBloqueo(true);
@@ -225,13 +221,13 @@ function HermanoCrearSolicitudCirio() {
     const formatearFechaHora = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
+
         return date.toLocaleString('es-ES', { 
             day: '2-digit', month: '2-digit', year: 'numeric',
             hour: '2-digit', minute: '2-digit'
-        });
+        }).replaceAll('/', '-');
     };
 
-    // PANTALLA DE CARGA CON EFECTO SERPIENTE
     if (loading) {
         const loadingText = "Comprobando estado de la solicitud...";
         return (
@@ -249,7 +245,6 @@ function HermanoCrearSolicitudCirio() {
 
     return (
         <div>
-            {/* MODALES DE RESTRICCIÓN DE PLAZOS Y ESTADOS */}
             {modalBloqueo && (
                 <div className="modal-overlay-bloqueo">
                     <div className="modal-content-bloqueo">
@@ -332,7 +327,6 @@ function HermanoCrearSolicitudCirio() {
                 </div>
             )}
 
-            {/* SECCIÓN PRINCIPAL QUE SOLO SE VE SI NO HAY MODALES DE RESTRICCIÓN */}
             {!modalBloqueo && !modalNoActivo && !modalFueraPlazoConSolicitud && (
                 <>
                     <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
@@ -469,7 +463,7 @@ function HermanoCrearSolicitudCirio() {
                                     <div className="solicitud-card-wrapper">
                                         <div className="solicitud-card-content">
                                             <div className="solicitud-card-icon">
-                                                <CalendarCheck size={32} strokeWidth={2.5} />
+                                                <CalendarX size={32} strokeWidth={2.5} />
                                             </div>
                                             <h3 className="solicitud-card-title">FIN SOLICITUD CIRIOS</h3>
                                             <p className="solicitud-card-description">
@@ -504,46 +498,45 @@ function HermanoCrearSolicitudCirio() {
                                     )}
 
                                     <form onSubmit={handleSubmit} className="solicitud-form">
-                                        <div className="form-group">
-                                            <label htmlFor="puesto-select" className="form-label">
-                                                Puesto Solicitado <span className="required">*</span>
-                                            </label>
-                                            <div className="input-wrapper">
-                                                <select
-                                                    id="puesto-select"
-                                                    className="form-control no-icon"
-                                                    value={selectedPuestoId}
-                                                    onChange={(e) => setSelectedPuestoId(e.target.value)}
-                                                    required
-                                                    disabled={submitting || success || loading}
-                                                >
-                                                    <option value="">-- Seleccione un puesto --</option>
-                                                    {puestosCirio.map(puesto => (
-                                                        <option key={puesto.id} value={puesto.id}>
-                                                            {puesto.nombre}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                        <div className="form-row-solicitud">
+                                            <div className="form-group-solicitud">
+                                                <label htmlFor="puesto-select" className="form-label">
+                                                    Puesto Solicitado <span className="required">*</span>
+                                                </label>
+                                                <div className="input-wrapper">
+                                                    <select
+                                                        id="puesto-select"
+                                                        className="form-control no-icon"
+                                                        value={selectedPuestoId}
+                                                        onChange={(e) => setSelectedPuestoId(e.target.value)}
+                                                        required
+                                                        disabled={submitting || success || loading}
+                                                    >
+                                                        <option value="">-- Seleccione un puesto --</option>
+                                                        {puestosCirio.map(puesto => (
+                                                            <option key={puesto.id} value={puesto.id}>
+                                                                {puesto.nombre}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor="vinculo-input" className="form-label">
-                                                Vincular con Hermano (Nº Registro)
-                                            </label>
-                                            <p className="form-help-text">
-                                                Opcional. Si desea ir junto a otro hermano, indique su número de registro.
-                                            </p>
-                                            <div className="input-wrapper">
-                                                <input
-                                                    type="number"
-                                                    id="vinculo-input"
-                                                    className="form-control no-icon"
-                                                    placeholder="Ej: 1234"
-                                                    value={numeroVinculado}
-                                                    onChange={(e) => setNumeroVinculado(e.target.value)}
-                                                    disabled={submitting || success || loading}
-                                                />
+                                            <div className="form-group-solicitud">
+                                                <label htmlFor="vinculo-input" className="form-label">
+                                                    Vincular a otro Hermano (OPCIONAL)
+                                                </label>
+                                                <div className="input-wrapper">
+                                                    <input
+                                                        type="number"
+                                                        id="vinculo-input"
+                                                        className="form-control no-icon"
+                                                        placeholder="Indique el número de registro del otro Hermano. Ej: 1358"
+                                                        value={numeroVinculado}
+                                                        onChange={(e) => setNumeroVinculado(e.target.value)}
+                                                        disabled={submitting || success || loading}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
 
@@ -561,7 +554,7 @@ function HermanoCrearSolicitudCirio() {
                                             {submitting ? 'Procesando...' : (
                                                 <>
                                                     <Save size={20} />
-                                                    Confirmar Solicitud
+                                                    Confirmar la solicitud de cirio
                                                 </>
                                             )}
                                         </button>
