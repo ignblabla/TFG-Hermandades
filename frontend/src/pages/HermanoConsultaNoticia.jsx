@@ -4,7 +4,7 @@ import api from '../api';
 import '../styles/HermanoConsultaNoticia.css';
 import NewsCard from '../components/NewsCard';
 import AreasAsociadas from '../components/areas_asociadas/AreasAsociadas';
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell, Tag, Headphones, Play, Pause } from "lucide-react";
 
 function HermanoConsultaNoticia() {
     const { id } = useParams();
@@ -256,7 +256,9 @@ function HermanoConsultaNoticia() {
                         <div className="dashboard-panel-noticias">
                             <div className="historical-header-container-noticias">
                                 <h1 className="historical-header-title-noticias">{noticia.titulo}</h1>
+                                
                             </div>
+                            
 
                             <div className="plazos-separator-asignacion">
                                 <div className="plazos-line"></div>
@@ -283,6 +285,48 @@ function HermanoConsultaNoticia() {
                                 </div>
                             </div>
 
+                            {noticia.archivo_podcast && (
+                                <div className="podcast-section-wrapper">
+
+                                    <div className="podcast-modern-header">
+                                        <Headphones size={20} />
+                                        <span>Escucha esta noticia en formato podcast</span>
+                                    </div>
+                                    
+                                    <div className="custom-podcast-player">
+                                        <audio 
+                                            ref={audioRef}
+                                            src={noticia.archivo_podcast}
+                                            onLoadedMetadata={handleLoadedMetadata}
+                                            onEnded={() => setIsPlaying(false)}
+                                        />
+
+                                        <button onClick={togglePlayPause} className="podcast-play-btn">
+                                            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                                        </button>
+
+                                        <div className="podcast-progress-container">
+                                            <input 
+                                                type="range" 
+                                                className="podcast-progress-bar" 
+                                                min="0" 
+                                                max={duration || 0} 
+                                                step="0.01" 
+                                                value={progress} 
+                                                onChange={handleSeek} 
+                                                style={{
+                                                    background: `linear-gradient(to right, #800020 ${(progress / (duration || 1)) * 100}%, #e0e0e0 ${(progress / (duration || 1)) * 100}%)`
+                                                }}
+                                            />
+                                            <div className="podcast-time-info">
+                                                <span>{formatTime(progress)}</span>
+                                                <span>{formatTime(duration)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="plazos-separator-asignacion">
                                 <div className="plazos-line"></div>
                                     <span className="plazos-text">Últimas noticias de tu interés</span>
@@ -300,55 +344,6 @@ function HermanoConsultaNoticia() {
                                 </div>
                             )}
                         </div>
-
-                        <div className="dashboard-panel-imagen-lateral">
-                            <img 
-                                src={noticia.imagen_portada || "/portada-comunicado.png"} 
-                                alt={`Portada de ${noticia.titulo}`} 
-                                className="imagen-portada-lateral"
-                            />
-                            <h3 className="titulo-lateral-noticia">
-                                {noticia.titulo}
-                            </h3>
-
-                            {noticia.archivo_podcast && (
-                                <div className="custom-podcast-player">
-                                    <audio 
-                                        ref={audioRef}
-                                        src={noticia.archivo_podcast}
-                                        onLoadedMetadata={handleLoadedMetadata}
-                                        onEnded={() => setIsPlaying(false)}
-                                    />
-                                    <div className="podcast-controls-container">
-                                        <button onClick={togglePlayPause} className="podcast-play-btn">
-                                            <i className={`bx ${isPlaying ? 'bx-pause' : 'bx-play'}`}></i>
-                                        </button>
-                                    </div>
-
-
-
-                                    <div className="podcast-progress-container">
-                                        <input 
-                                            type="range" 
-                                            className="podcast-progress-bar" 
-                                            min="0" 
-                                            max={duration || 0} 
-                                            step="0.01" 
-                                            value={progress} 
-                                            onChange={handleSeek} 
-                                            style={{
-                                                background: `linear-gradient(to right, #800020 ${(progress / (duration || 1)) * 100}%, #e0e0e0 ${(progress / (duration || 1)) * 100}%)`
-                                            }}
-                                        />
-                                        <div className="podcast-time-info">
-                                            <span>{formatTime(progress)}</span>
-                                            <span>{formatTime(duration)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
                     </div>
                 )}
             </section>
