@@ -311,10 +311,6 @@ function HermanoConsultaNoticia() {
                                 {noticia.titulo}
                             </h3>
 
-                            <p className="subtitulo-lateral-noticia">
-                                HERMANDAD DE SAN GONZALO
-                            </p>
-
                             {noticia.archivo_podcast && (
                                 <div className="custom-podcast-player">
                                     <audio 
