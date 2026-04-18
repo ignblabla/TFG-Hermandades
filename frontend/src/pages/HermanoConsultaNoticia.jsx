@@ -256,7 +256,16 @@ function HermanoConsultaNoticia() {
                         <div className="dashboard-panel-noticias">
                             <div className="historical-header-container-noticias">
                                 <h1 className="historical-header-title-noticias">{noticia.titulo}</h1>
-                                
+                                {noticia.areas_interes && noticia.areas_interes.length > 0 && (
+                                    <div className="header-tags-container">
+                                        {noticia.areas_interes.map((area, index) => (
+                                            <div key={index} className="header-tag-pill">
+                                                <Tag size={14} />
+                                                <span>{typeof area === 'string' ? area : area.nombre_area}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             
 
