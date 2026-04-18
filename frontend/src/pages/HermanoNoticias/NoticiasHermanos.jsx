@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../api'; 
-import NewsCard from '../components/NewsCard';
-import MisAreasCard from '../components/mis_areas_card/MisAreasCard';
-import '../styles/ListadoNoticias.css'
-import portadaDefecto from '../assets/portada-comunicado.png';
+import api from '../../api'; 
+import NewsCard from '../../components/NewsCard';
+import MisAreasCard from '../../components/mis_areas_card/MisAreasCard';
+import '../HermanoNoticias/NoticiasHermanos.css'
+import portadaDefecto from '../../assets/portada-comunicado.png';
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 const getTimeAgo = (dateString) => {
@@ -41,6 +41,7 @@ function NoticiasHermano() {
     const [loading, setLoading] = useState(true);
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [hasNext, setHasNext] = useState(false);
     const [hasPrevious, setHasPrevious] = useState(false);
     
@@ -59,7 +60,7 @@ function NoticiasHermano() {
                 }
 
                 const resNoticias = await api.get(`api/comunicados/?page=${currentPage}`);
-                
+
                 if (isMounted) {
                     console.log("Datos recibidos de API:", resNoticias.data);
 
@@ -67,6 +68,10 @@ function NoticiasHermano() {
 
                     setHasNext(resNoticias.data.next !== null);
                     setHasPrevious(resNoticias.data.previous !== null);
+
+                    if (resNoticias.data.count) {
+                        setTotalPages(Math.ceil(resNoticias.data.count / 12)); 
+                    }
 
                     const noticiasFormateadas = dataList.map(item => ({
                         id: item.id,
@@ -221,25 +226,23 @@ function NoticiasHermano() {
                                 </div>
 
                                 {noticias.length > 0 && (
-                                    <div className="paginacion-controles">
+                                    <div className="pagination-controls-noticias">
                                         <button 
-                                            className="btn-paginacion" 
                                             onClick={irPaginaAnterior} 
                                             disabled={!hasPrevious}
+                                            className={!hasPrevious ? 'disabled' : ''}
                                         >
-                                            <i className="bx bx-chevron-left"></i> Anterior
+                                            Anterior
                                         </button>
-                                        
-                                        <span className="paginacion-texto">
-                                            Página {currentPage}
-                                        </span>
+
+                                        <span>Página {currentPage} de {totalPages}</span>
 
                                         <button 
-                                            className="btn-paginacion" 
                                             onClick={irPaginaSiguiente} 
                                             disabled={!hasNext}
+                                            className={!hasNext ? 'disabled' : ''}
                                         >
-                                            Siguiente <i className="bx bx-chevron-right"></i>
+                                            Siguiente
                                         </button>
                                     </div>
                                 )}
@@ -248,30 +251,6 @@ function NoticiasHermano() {
                     </div>
                 </div>
             </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Noticias</div>
-
-                <div style={{ padding: '0 20px 40px 20px', display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-
-                    <div style={{ flex: '1 1 70%', maxWidth: '100%' }}>
-                        {noticias.length === 0 ? (
-                            <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
-                                <p>No hay noticias recientes.</p>
-                            </div>
-                        ) : (
-                            <div className="card-container-listado-noticias">
-                                {noticias.map(item => (
-                                    <NewsCard key={item.id} item={item} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <MisAreasCard userAreas={user?.areas_interes} />
-
-                </div>
-            </section> */}
         </div>
     );
 }

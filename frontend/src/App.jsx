@@ -17,7 +17,6 @@ import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio/HermanoMisPapeletas
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
-import NoticiasHermano from "./pages/NoticiasHermanos"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres/HermanoAreasInteres"
 
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
@@ -43,6 +42,7 @@ import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
 import GestionRepartoCirio from "./pages/AdminGestionRepartoCirios/AdminGestionRepartoCirios"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas/HermanoListadoCuotas"
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia/HermanoConsultaNoticia"
+import NoticiasHermano from "./pages/HermanoNoticias/NoticiasHermanos"
 
 
 function Logout() {
@@ -128,9 +128,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
-
         <Route
           path="/noticias-hermano"
           element={
@@ -139,6 +136,10 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
         <Route
           path="admin/gestion-reparto-cirios/:id"

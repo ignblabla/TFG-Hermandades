@@ -304,7 +304,6 @@ function HermanoListadoCuotas() {
                                 </div>
                             )}
 
-                            {/* Paginación */}
                             {totalPages > 1 && (
                                 <div className="pagination-controls-cuotas">
                                     <button 
@@ -328,116 +327,6 @@ function HermanoListadoCuotas() {
                     </div>
                 </div>
             </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Resumen de cuotas</div>
-                <div className="home-cards-container">
-                    <HomeCard 
-                        title="Total Cuotas" 
-                        value={resumen.total_cuotas} 
-                        icon={ListTodo} 
-                    />
-                    <HomeCard 
-                        title="Cuotas Pagadas" 
-                        value={resumen.total_pagadas} 
-                        icon={CheckCircle} 
-                    />
-                    <HomeCard 
-                        title="Cuotas Pendientes" 
-                        value={resumen.total_pendientes} 
-                        icon={AlertCircle} 
-                    />
-                    <HomeCard 
-                        title="Total Deuda" 
-                        value={`${Number(resumen.total_pendiente_euros).toFixed(2)} €`} 
-                        icon={CreditCard} 
-                    />
-                </div>
-
-                <div className="text-dashboard" style={{ marginTop: '20px', marginBottom: '8px', fontSize: '1.5rem' }}>
-                    Histórico de movimientos
-                </div>
-
-                <div style={{ padding: '10px 20px 12px 20px' }}>
-                    {error && <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}><AlertCircle size={16} /> {error}</div>}
-
-                    <div className="table-responsive">
-                        <table className="cuotas-table">
-                            <thead>
-                                <tr>
-                                    <th>Año</th>
-                                    <th>Tipo</th>
-                                    <th>Descripción</th>
-                                    <th>Fecha de emisión</th>
-                                    <th>Fecha de pago</th>
-                                    <th>Importe</th>
-                                    <th>Estado</th>
-                                    <th>Método de pago</th>
-                                    <th>Observaciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {cuotas.length > 0 ? (
-                                    cuotas.map((cuota) => (
-                                        <tr key={cuota.id}>
-                                            <td>{cuota.anio}</td>
-                                            <td>{cuota.tipo}</td>
-                                            <td>{cuota.descripcion}</td>
-                                            <td>{formatDate(cuota.fechaEmision || cuota.fecha_emision)}</td>
-                                            <td>{formatDate(cuota.fechaPago || cuota.fecha_pago)}</td>
-                                            <td>{cuota.importe}</td>
-                                            <td>
-                                                <span className={`badge-estado ${cuota.estado?.toLowerCase() || 'pendiente'}`}>
-                                                    {cuota.estado || 'Pendiente'}
-                                                </span>
-                                            </td>
-                                            <td>{cuota.metodoPago || cuota.metodo_pago}</td>
-                                            <td style={{ color: !cuota.observaciones?.trim() ? '#9ca3af' : 'inherit', fontStyle: !cuota.observaciones?.trim() ? 'italic' : 'normal', textAlign: 'center' }}>
-                                                {cuota.observaciones?.trim() ? (
-                                                    <MessageCircle 
-                                                        className="icon-observacion"
-                                                        size={22} 
-                                                        onClick={() => setObservacionModal({ isOpen: true, texto: cuota.observaciones })}
-                                                        style={{ cursor: 'pointer', color: 'var(--burgundy-primary)' }}
-                                                    />
-                                                ) : (
-                                                    "Sin observaciones"
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>
-                                            No se encontraron cuotas registradas.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {totalPages > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px', gap: '15px' }}>
-                            <button 
-                                onClick={handlePrevPage} 
-                                disabled={currentPage === 1}
-                                className="btn-cancel-crear-acto"
-                            >
-                                Anterior
-                            </button>
-                            <span>Página {currentPage} de {totalPages}</span>
-                            <button 
-                                onClick={handleNextPage} 
-                                disabled={currentPage === totalPages}
-                                className="btn-save-crear-acto"
-                            >
-                                Siguiente
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </section> */}
 
             {observacionModal.isOpen && (
                 <div className="modal-overlay-observacion" onClick={() => setObservacionModal({ isOpen: false, texto: '' })}>
