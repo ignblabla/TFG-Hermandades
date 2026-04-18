@@ -8,6 +8,7 @@ from api.models import AreaInteres, Comunicado
 from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
 from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
+from api.pagination import PaginacionDoceElementos
 
 
 class ComunicadoListCreateView(APIView):
@@ -51,8 +52,16 @@ class ComunicadoListCreateView(APIView):
                                         .distinct() \
                                         .order_by('-fecha_emision')
 
+        paginator = PaginacionDoceElementos()
+        page = paginator.paginate_queryset(comunicados, request)
+
+        if page is not None:
+            serializer = ComunicadoListSerializer(page, many=True, context={'request': request})
+            return paginator.get_paginated_response(serializer.data)
+
         serializer = ComunicadoListSerializer(comunicados, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
     def post(self, request):

@@ -39,6 +39,10 @@ function NoticiasHermano() {
     const [user, setUser] = useState(null);
     const [noticias, setNoticias] = useState([]); 
     const [loading, setLoading] = useState(true);
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [hasNext, setHasNext] = useState(false);
+    const [hasPrevious, setHasPrevious] = useState(false);
     
     const navigate = useNavigate();
 
@@ -54,12 +58,17 @@ function NoticiasHermano() {
                     if (isMounted) setUser(userData);
                 }
 
-                const resNoticias = await api.get("api/comunicados/");
+                const resNoticias = await api.get(`api/comunicados/?page=${currentPage}`);
                 
                 if (isMounted) {
                     console.log("Datos recibidos de API:", resNoticias.data);
 
-                    const noticiasFormateadas = resNoticias.data.map(item => ({
+                    const dataList = resNoticias.data.results || resNoticias.data;
+
+                    setHasNext(resNoticias.data.next !== null);
+                    setHasPrevious(resNoticias.data.previous !== null);
+
+                    const noticiasFormateadas = dataList.map(item => ({
                         id: item.id,
                         image: item.imagen_portada || portadaDefecto, 
                         time: getTimeAgo(item.fecha_emision),
@@ -83,7 +92,7 @@ function NoticiasHermano() {
         };
         fetchData();
         return () => { isMounted = false; };
-    }, [navigate, user]);
+    }, [navigate, user, currentPage]);
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const handleLogout = () => {
@@ -91,6 +100,14 @@ function NoticiasHermano() {
         localStorage.removeItem("access");
         setUser(null);
         navigate("/login");
+    };
+
+    const irPaginaSiguiente = () => {
+        if (hasNext) setCurrentPage(prev => prev + 1);
+    };
+
+    const irPaginaAnterior = () => {
+        if (hasPrevious) setCurrentPage(prev => prev - 1);
     };
 
     if (loading && !user) return <div className="site-wrapper loading-screen">Cargando histórico...</div>;
@@ -181,7 +198,58 @@ function NoticiasHermano() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-noticias">
+                        <div className="historical-header-container-noticias">
+                            <h1 className="historical-header-title-noticias">NOTICIAS</h1>
+                        </div>
+
+                        {loading && noticias.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#555' }}>
+                                Cargando comunicados...
+                            </div>
+                        ) : (
+                            <>
+                                <div className="noticias-grid-4">
+                                    {noticias.map((item) => (
+                                        <NewsCard 
+                                            key={item.id} 
+                                            item={item} 
+                                        />
+                                    ))}
+                                </div>
+
+                                {noticias.length > 0 && (
+                                    <div className="paginacion-controles">
+                                        <button 
+                                            className="btn-paginacion" 
+                                            onClick={irPaginaAnterior} 
+                                            disabled={!hasPrevious}
+                                        >
+                                            <i className="bx bx-chevron-left"></i> Anterior
+                                        </button>
+                                        
+                                        <span className="paginacion-texto">
+                                            Página {currentPage}
+                                        </span>
+
+                                        <button 
+                                            className="btn-paginacion" 
+                                            onClick={irPaginaSiguiente} 
+                                            disabled={!hasNext}
+                                        >
+                                            Siguiente <i className="bx bx-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            {/* <section className="home-section-dashboard">
                 <div className="text-dashboard">Noticias</div>
 
                 <div style={{ padding: '0 20px 40px 20px', display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -203,7 +271,7 @@ function NoticiasHermano() {
                     <MisAreasCard userAreas={user?.areas_interes} />
 
                 </div>
-            </section>
+            </section> */}
         </div>
     );
 }
