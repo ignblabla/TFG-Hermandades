@@ -11,6 +11,8 @@ class ComunicadoRAGService:
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.ruta_pdf_horarios = os.path.join(settings.BASE_DIR, 'media', 'documentos', 'horarios.pdf')
 
+
+
     def _recuperar_contexto_semantico(self, pregunta: str) -> str:
         try:
             resultado = self.client.models.embed_content(
@@ -40,6 +42,8 @@ class ComunicadoRAGService:
             
         return contexto
 
+
+
     def _calcular_similitud_coseno(self, vec1: list[float], vec2: list[float]) -> float:
         if not vec1 or not vec2: return 0.0
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
@@ -47,6 +51,8 @@ class ComunicadoRAGService:
         magnitude2 = math.sqrt(sum(b * b for b in vec2))
         if not magnitude1 or not magnitude2: return 0.0
         return dot_product / (magnitude1 * magnitude2)
+
+
 
     def _obtener_o_subir_pdf(self):
         """Sube el PDF a Gemini y cachea su referencia durante 24 horas."""
@@ -70,6 +76,8 @@ class ComunicadoRAGService:
         else:
             print(f"Advertencia: No se encontró el PDF en {self.ruta_pdf_horarios}")
             return None
+
+
 
     def preguntar_a_comunicados(self, pregunta_usuario: str) -> str:
         contexto_textual = self._recuperar_contexto_semantico(pregunta_usuario)
