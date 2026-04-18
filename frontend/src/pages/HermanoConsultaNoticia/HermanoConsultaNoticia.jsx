@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import api from '../api'; 
-import '../styles/HermanoConsultaNoticia.css';
-import NewsCard from '../components/NewsCard';
-import AreasAsociadas from '../components/areas_asociadas/AreasAsociadas';
+import api from '../../api'; 
+import '../HermanoConsultaNoticia/HermanoConsultaNoticia.css';
+import NewsCard from '../../components/NewsCard';
+import AreasAsociadas from '../../components/areas_asociadas/AreasAsociadas';
+
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell, Tag, Headphones, Play, Pause } from "lucide-react";
 
 function HermanoConsultaNoticia() {

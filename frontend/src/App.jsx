@@ -17,9 +17,7 @@ import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio/HermanoMisPapeletas
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
 import AdminListadoComunicados from "./pages/AdminListadoComunicados"
-import HermanoMuroNoticias from "./pages/HermanoMuroNoticias";
 import NoticiasHermano from "./pages/NoticiasHermanos"
-import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres/HermanoAreasInteres"
 
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
@@ -44,6 +42,7 @@ import EditMe from "./pages/EditMe"
 import AdminConsultaActo from "./pages/AdminConsultaActo/AdminConsultaActo"
 import GestionRepartoCirio from "./pages/AdminGestionRepartoCirios/AdminGestionRepartoCirios"
 import HermanoListadoCuotas from "./pages/HermanoListadoCuotas/HermanoListadoCuotas"
+import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia/HermanoConsultaNoticia"
 
 
 function Logout() {
@@ -121,6 +120,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/comunicados/:id"
+          element={
+            <ProtectedRoute>
+              <HermanoConsultaNoticia />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -129,14 +136,6 @@ function App() {
           element={
             <ProtectedRoute>
               <NoticiasHermano />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/comunicados/:id"
-          element={
-            <ProtectedRoute>
-              <HermanoConsultaNoticia />
             </ProtectedRoute>
           }
         />
@@ -229,14 +228,6 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminListadoComunicados />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/mis-noticias"
-          element={
-            <ProtectedRoute>
-              <HermanoMuroNoticias />
             </ProtectedRoute>
           }
         />

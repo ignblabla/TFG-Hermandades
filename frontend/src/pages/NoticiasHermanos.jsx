@@ -4,6 +4,7 @@ import api from '../api';
 import NewsCard from '../components/NewsCard';
 import MisAreasCard from '../components/mis_areas_card/MisAreasCard';
 import '../styles/ListadoNoticias.css'
+import portadaDefecto from '../assets/portada-comunicado.png';
 import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
 
 const getTimeAgo = (dateString) => {
@@ -32,8 +33,6 @@ const getReadTime = (content) => {
     return `${time} min lectura`;
 };
 
-// --- FIN FUNCIONES AUXILIARES ---
-
 function NoticiasHermano() {
     const [isOpen, setIsOpen] = useState(false); 
 
@@ -43,7 +42,6 @@ function NoticiasHermano() {
     
     const navigate = useNavigate();
 
-    // --- EFECTO DE CARGA ---
     useEffect(() => {
         let isMounted = true; 
         const fetchData = async () => {
@@ -63,7 +61,7 @@ function NoticiasHermano() {
 
                     const noticiasFormateadas = resNoticias.data.map(item => ({
                         id: item.id,
-                        image: item.imagen_portada || 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?auto=format&fit=crop&q=80&w=500', 
+                        image: item.imagen_portada || portadaDefecto, 
                         time: getTimeAgo(item.fecha_emision),
                         readTime: getReadTime(item.contenido),
                         title: item.titulo,
@@ -99,7 +97,6 @@ function NoticiasHermano() {
 
     return (
         <div>
-            {/* --- SIDEBAR --- */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -186,11 +183,9 @@ function NoticiasHermano() {
 
             <section className="home-section-dashboard">
                 <div className="text-dashboard">Noticias</div>
-                
-                {/* Contenedor Flex para alinear la lista y el aside */}
+
                 <div style={{ padding: '0 20px 40px 20px', display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                    
-                    {/* COLUMNA IZQUIERDA: LISTA DE NOTICIAS (75%) */}
+
                     <div style={{ flex: '1 1 70%', maxWidth: '100%' }}>
                         {noticias.length === 0 ? (
                             <div style={{ textAlign: 'center', color: '#666', marginTop: '20px' }}>
@@ -205,7 +200,6 @@ function NoticiasHermano() {
                         )}
                     </div>
 
-                    {/* COLUMNA DERECHA: ASIDE DE ÁREAS (25%) */}
                     <MisAreasCard userAreas={user?.areas_interes} />
 
                 </div>
