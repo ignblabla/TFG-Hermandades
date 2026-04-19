@@ -3,15 +3,12 @@ from django.urls import path
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
-from api.vistas.acto.acto_general_view import ActoCreateView, ActoListAPIView
-from api.vistas.acto.proximos_actos_view import ProximosActosView
 from api.vistas.cuota.cuota_view import MisCuotasListView
-from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
-from api.vistas.acto.acto_view import ActoDetalleView
+from api.vistas.acto.acto_view import ActoCreateView, ActoDetalleView, ActoListAPIView, ProximaEstacionPenitenciaView, ProximosActosView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
 from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
 from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
