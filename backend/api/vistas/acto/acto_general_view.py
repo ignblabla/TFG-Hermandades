@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from api.servicios.acto.acto_service import ActoService, crear_acto_service
 from api.pagination import PaginacionDiezElementos
-from api.serializadores.acto.acto_serializer import ActoCreateSerializer, ActoSerializer
+from api.serializadores.acto.acto_serializer import ActoCreateSerializer, ActoListSerializer, ActoSerializer
 
 
 class ActoCreateView(APIView):
@@ -38,7 +38,7 @@ class ActoListAPIView(generics.ListAPIView):
     Vista para listar todos los Actos.
     Utiliza PaginacionDiezElementos para devolver 10 resultados por página.
     """
-    serializer_class = ActoSerializer
+    serializer_class = ActoListSerializer
     pagination_class = PaginacionDiezElementos
 
     def get_queryset(self):

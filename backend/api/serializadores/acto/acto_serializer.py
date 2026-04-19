@@ -230,3 +230,22 @@ class ActoCreateSerializer(serializers.ModelSerializer):
             value.seek(0)
 
         return value
+    
+
+
+class ActoListSerializer(serializers.ModelSerializer):
+    requiere_papeleta = serializers.BooleanField(
+        source='tipo_acto.requiere_papeleta', 
+        read_only=True
+    )
+
+    class Meta:
+        model = Acto
+        fields = [
+            'nombre', 
+            'descripcion', 
+            'fecha', 
+            'lugar', 
+            'requiere_papeleta', 
+            'imagen_portada'
+        ]
