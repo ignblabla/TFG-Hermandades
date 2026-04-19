@@ -5,95 +5,15 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from api.serializadores.puesto.puesto_serializer import PuestoSerializer
+
 from .models import (CuerpoPertenencia, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 
 User = get_user_model()
 
 # -----------------------------------------------------------------------------
-# SERIALIZERS DE RELACIONES (HERMANO - CUERPO)
-# -----------------------------------------------------------------------------
-
-class HermanoCuerpoSerializer(serializers.ModelSerializer):
-    """
-    Gestiona la pertenencia de un hermano a un cuerpo (ej. Costaleros, Nazarenos).
-    """
-    nombre_cuerpo = serializers.CharField(source='cuerpo.get_nombre_cuerpo_display', read_only=True)
-    cuerpo_slug = serializers.SlugRelatedField(
-        slug_field='nombre_cuerpo',
-        queryset=CuerpoPertenencia.objects.all(),
-        source='cuerpo',
-        write_only=True
-    )
-
-    class Meta:
-        model = HermanoCuerpo
-        fields = ['id', 'hermano', 'cuerpo_slug', 'nombre_cuerpo', 'anio_ingreso']
-        extra_kwargs = {
-            'hermano': {'read_only': True} 
-        }
-    
-    def validate_anio_ingreso(self, value):
-        from django.utils import timezone
-        anio_actual = timezone.now().year
-        if value > anio_actual:
-            raise serializers.ValidationError("El año de ingreso no puede ser futuro.")
-        if value < 1900:
-            raise serializers.ValidationError("El año de ingreso no es válido.")
-        return value
-    
-# -----------------------------------------------------------------------------
 # SERIALIZERS DE GESTIÓN DE ACTOS Y PUESTOS
 # -----------------------------------------------------------------------------
-
-class TipoPuestoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TipoPuesto
-        fields = ['id', 'nombre_tipo', 'solo_junta_gobierno', 'es_insignia']
-
-class PuestoSerializer(serializers.ModelSerializer):
-    tipo_puesto = serializers.SlugRelatedField(
-        slug_field='nombre_tipo',
-        queryset=TipoPuesto.objects.all()
-    )
-
-    es_insignia = serializers.BooleanField(source='tipo_puesto.es_insignia', read_only=True)
-
-    class Meta:
-        model = Puesto
-        fields = [
-            'id', 'nombre', 'numero_maximo_asignaciones', 
-            'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
-            'tipo_puesto', 'es_insignia', 'cortejo_cristo', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion'
-        ]
-        
-        read_only_fields = ['cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
-
-        extra_kwargs = {
-            'hora_citacion': {
-                'error_messages': {
-                    'invalid': 'El formato de hora es incorrecto. Por favor, use el formato HH:MM (ej. 20:30).'
-                }
-            }
-        }
-
-    def validate_numero_maximo_asignaciones(self, value):
-        """
-        Validación de campo: El número de asignaciones debe ser positivo.
-        """
-        if value < 1:
-            raise serializers.ValidationError("El número máximo de asignaciones debe ser al menos 1.")
-        return value
-    
-
-class PuestoUpdateSerializer(PuestoSerializer):
-    """
-    Serializador específico para actualizaciones.
-    Hereda de PuestoSerializer para no repetir campos, pero
-    marca 'acto' como read_only para asegurar que no se modifica.
-    """
-    class Meta(PuestoSerializer.Meta):
-        read_only_fields = ['acto', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
-
 
 class TramoSerializer(serializers.ModelSerializer):
     """

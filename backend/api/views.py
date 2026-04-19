@@ -14,8 +14,10 @@ from api.servicios.acto.acto_service import actualizar_acto_service, crear_acto_
 from api.serializadores.acto.acto_serializer import ActoSerializer
 from api.serializadores.hermano.hermano_serializer import UserSerializer, UserUpdateSerializer
 from api.serializadores.tipo_acto.tipo_acto_serializer import TipoActoSerializer
+from api.serializadores.tipo_puesto.tipo_puesto_serializer import TipoPuestoSerializer
+from api.serializadores.puesto.puesto_serializer import PuestoSerializer, PuestoUpdateSerializer
 
-from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
+from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, SolicitudUnificadaSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response

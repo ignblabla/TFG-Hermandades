@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from api.models import Acto, PapeletaSitio, Puesto
 from django.utils import timezone
-from api.serializers import PuestoSerializer
 
 
 class PuestoInsigniaResumenSerializer(serializers.ModelSerializer):

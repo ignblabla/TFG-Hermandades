@@ -3,7 +3,8 @@ from django.utils import timezone
 from django.db.models import Q
 
 from api.models import Acto, PreferenciaSolicitud, TipoActo
-from api.serializers import PuestoSerializer, TramoSerializer
+from api.serializers import TramoSerializer
+from api.serializadores.puesto.puesto_serializer import PuestoSerializer
 
 
 class ActoCultoCardSerializer(serializers.ModelSerializer):
