@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, models
 
 from api.models import Acto, CuerpoPertenencia, Cuota, Hermano, HermanoCuerpo, PapeletaSitio, PreferenciaSolicitud, Puesto, TipoActo, TipoPuesto
-from api.servicios.solicitud_insignia_service import SolicitudInsigniaService
-from api.serializers import SolicitudInsigniaSerializer
+from api.servicios.solicitud_insignia.solicitud_insignia_service import SolicitudInsigniaService
+from api.serializadores.solicitud_insignia.solicitud_insignia_serializer import SolicitudInsigniaSerializer
 
 
 class ProcesarSolicitudInsigniaTradicionalServiceTest(TestCase):

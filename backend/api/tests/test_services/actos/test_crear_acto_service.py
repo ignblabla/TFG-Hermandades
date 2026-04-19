@@ -13,7 +13,6 @@ from rest_framework.exceptions import PermissionDenied as DRFPermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
 
-from api.serializers import PapeletaSitioSerializer
 from api.servicios.acto.acto_service import crear_acto_service
 
 from ....models import Acto, CuerpoPertenencia, HermanoCuerpo, PapeletaSitio, TipoActo, Hermano
