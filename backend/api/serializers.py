@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
+
+from api.serializadores.datos_bancarios.datos_bancarios_serializer import DatosBancariosSerializer
 from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
 from django.core.signing import Signer
@@ -17,25 +19,6 @@ User = get_user_model()
 # -----------------------------------------------------------------------------
 # SERIALIZERS FINANCIEROS (NUEVOS)
 # -----------------------------------------------------------------------------
-
-class DatosBancariosSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DatosBancarios
-        fields = ['id', 'iban', 'es_titular', 'titular_cuenta', 'periodicidad']
-        extra_kwargs = {
-            "iban": {"required": True},
-            "periodicidad": {"required": True}
-        }
-
-    def validate_iban(self, value):
-        """
-        Sanitización del IBAN: Eliminar espacios y pasar a mayúsculas
-        antes de validar con el Regex del modelo.
-        """
-        if value:
-            return value.replace(" ", "").upper()
-        return value
-    
 
 class CuotaSerializer(serializers.ModelSerializer):
     """
@@ -196,16 +179,6 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.areas_interes.set(areas_data)
 
         return instance
-
-
-class HermanoManagementSerializer(UserSerializer):
-    """
-    NUEVO: Serializador exclusivo para el rol ADMIN/SECRETARIA.
-    Hereda de UserSerializer pero desbloquea los campos administrativos.
-    Usar este serializador solo en vistas protegidas con IsAdminUser.
-    """
-    class Meta(UserSerializer.Meta):
-        read_only_fields = ["antiguedad_anios"]
 
 class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
     class Meta:
