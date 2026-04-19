@@ -10,7 +10,7 @@ from api.servicios.hermano.edicion_datos_hermano_service import update_mi_perfil
 from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
 from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
-from api.servicios.acto.acto_service import actualizar_acto_service, crear_acto_service
+from api.servicios.acto.acto_service import crear_acto_service, update_acto_service
 from api.serializadores.acto.acto_serializer import ActoCreateSerializer, ActoSerializer
 from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
 from api.serializadores.tipo_acto.tipo_acto_serializer import TipoActoSerializer
@@ -28,7 +28,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError 
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .services import create_acto_service, get_listado_hermanos_service, update_acto_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
+from .services import get_listado_hermanos_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
 
 # Create your views here.
 
@@ -64,77 +64,7 @@ class UsuarioLogueadoView(APIView):
                 return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
-# -----------------------------------------------------------------------------
-# VIEWS: ACTO
-# -----------------------------------------------------------------------------
-
-class ActoListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        anio_actual = timezone.now().year
-        actos = Acto.objects.filter(fecha__year = anio_actual).order_by('fecha')
-        serializer = ActoSerializer(actos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def post(self, request):
-        serializer = ActoSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        nuevo_acto = create_acto_service(
-            usuario=request.user,
-            data_validada=serializer.validated_data                   
-        )
-
-        response_serializer = ActoSerializer(nuevo_acto)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-    
-
-class ActoDetalleView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        """
-        Recuperar un acto específico por su ID.
-        """
-        acto = get_object_or_404(Acto, pk=pk)
-        serializer = ActoSerializer(acto, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def put(self, request, pk):
-        """
-        Actualización completa de un acto.
-        """
-        acto = get_object_or_404(Acto, pk=pk)
-        serializer = ActoSerializer(acto, data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        acto_actualizado = update_acto_service(usuario=request.user, acto_id=pk, data_validada=serializer.validated_data)
-
-        response_serializer = ActoSerializer(acto_actualizado)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
-    
-    def patch(self, request, pk):
-        """
-        Actualización parcial de un acto (solo algunos campos).
-        """
-        acto = get_object_or_404(Acto, pk=pk)
-
-        serializer = ActoSerializer(acto, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-
-        acto_actualizado = update_acto_service(
-            usuario=request.user,
-            acto_id=pk,
-            data_validada=serializer.validated_data
-        )
-
-        response_serializer = ActoSerializer(acto_actualizado)
-        return Response(response_serializer.data, status=status.HTTP_200_OK)
-    
-    
 # -----------------------------------------------------------------------------
 # VIEWS: TIPOS DE ACTO
 # -----------------------------------------------------------------------------
@@ -308,57 +238,57 @@ class HermanoAdminDetailView(APIView):
 # -----------------------------------------------------------------------------
 # VIEWS: ACTUALIZAR ACTO
 # -----------------------------------------------------------------------------
-class ActoUpdateView(APIView):
-    """
-    Vista para editar un acto existente.
-    Soporta PUT (actualización total) y PATCH (actualización parcial).
-    Delega la validación de negocio al Service.
-    """
-    permission_classes = [IsAuthenticated]
+# class ActoUpdateView(APIView):
+#     """
+#     Vista para editar un acto existente.
+#     Soporta PUT (actualización total) y PATCH (actualización parcial).
+#     Delega la validación de negocio al Service.
+#     """
+#     permission_classes = [IsAuthenticated]
 
-    def put(self, request, pk):
-        """Actualización completa del recurso."""
-        return self._handle_update(request, pk, partial=False)
+#     def put(self, request, pk):
+#         """Actualización completa del recurso."""
+#         return self._handle_update(request, pk, partial=False)
 
-    def patch(self, request, pk):
-        """Actualización parcial del recurso."""
-        return self._handle_update(request, pk, partial=True)
+#     def patch(self, request, pk):
+#         """Actualización parcial del recurso."""
+#         return self._handle_update(request, pk, partial=True)
 
-    def _handle_update(self, request, pk, partial):
-        """
-        Método auxiliar para evitar duplicar código entre PUT y PATCH.
-        """
-        serializer = ActoCreateSerializer(data=request.data, partial=partial)
+#     def _handle_update(self, request, pk, partial):
+#         """
+#         Método auxiliar para evitar duplicar código entre PUT y PATCH.
+#         """
+#         serializer = ActoCreateSerializer(data=request.data, partial=partial)
         
-        if serializer.is_valid():
-            try:
-                acto_actualizado = actualizar_acto_service(
-                    usuario_solicitante=request.user,
-                    acto_id=pk,
-                    data_validada=serializer.validated_data
-                )
+#         if serializer.is_valid():
+#             try:
+#                 acto_actualizado = actualizar_acto_service(
+#                     usuario_solicitante=request.user,
+#                     acto_id=pk,
+#                     data_validada=serializer.validated_data
+#                 )
 
-                response_serializer = ActoCreateSerializer(acto_actualizado)
-                return Response(response_serializer.data, status=status.HTTP_200_OK)
+#                 response_serializer = ActoCreateSerializer(acto_actualizado)
+#                 return Response(response_serializer.data, status=status.HTTP_200_OK)
 
-            except DjangoValidationError as e:
-                if hasattr(e, 'message_dict'):
-                    return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
-                return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
+#             except DjangoValidationError as e:
+#                 if hasattr(e, 'message_dict'):
+#                     return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
+#                 return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
             
-            except DRFValidationError as e:
-                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+#             except DRFValidationError as e:
+#                 return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
 
-            except PermissionDenied as e:
-                return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
+#             except PermissionDenied as e:
+#                 return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
             
-            except Exception as e:
-                return Response(
-                    {"detail": "Ocurrió un error inesperado al actualizar el acto."}, 
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+#             except Exception as e:
+#                 return Response(
+#                     {"detail": "Ocurrió un error inesperado al actualizar el acto."}, 
+#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
+#                 )
         
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # -----------------------------------------------------------------------------

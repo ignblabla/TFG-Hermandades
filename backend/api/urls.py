@@ -14,9 +14,9 @@ from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsi
 from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
-from . import views
+from api.vistas.acto.acto_view import ActoDetalleView
 
-from .views import ActoListCreateView, ActoUpdateView, ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, ActoDetalleView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, TelegramWebhookView, TipoActoListView, UsuarioLogueadoView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
@@ -44,7 +44,7 @@ urlpatterns = [
 
     #UrlS para actos
     path('actos/crear/', ActoCreateView.as_view(), name='crear_acto'),
-    path('actos/<int:pk>/editar/', ActoUpdateView.as_view(), name='acto-update'),
+    # path('actos/<int:pk>/editar/', ActoUpdateView.as_view(), name='acto-update'),
 
     path("papeletas/solicitar-insignia/", SolicitarInsigniaView.as_view(), name="solicitar-insignia"),
     path("papeletas/solicitar-cirio/", SolicitarCirioView.as_view(), name="solicitar-cirio"),
