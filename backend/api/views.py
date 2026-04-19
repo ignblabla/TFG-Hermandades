@@ -4,16 +4,11 @@ from django.contrib.auth.models import User
 from rest_framework import generics, status
 from django.db.models import Q
 
-from api.servicios.comunicado.creacion_comunicado_service import ComunicadoService
 from api.servicios.papeleta_telegram import TelegramWebhookService
 from api.servicios.hermano.edicion_datos_hermano_service import update_mi_perfil_service
 from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
-from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
-from api.servicios.acto.acto_service import crear_acto_service, update_acto_service
-from api.serializadores.acto.acto_serializer import ActoCreateSerializer, ActoSerializer
 from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
-from api.serializadores.tipo_acto.tipo_acto_serializer import TipoActoSerializer
 from api.serializadores.tipo_puesto.tipo_puesto_serializer import TipoPuestoSerializer
 from api.serializadores.puesto.puesto_serializer import PuestoSerializer, PuestoUpdateSerializer
 
@@ -25,10 +20,8 @@ from .models import Acto, AreaInteres, Comunicado, Puesto
 from django.utils import timezone
 from .pagination import StandardResultsSetPagination
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.exceptions import ValidationError as DRFValidationError 
-from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .services import get_listado_hermanos_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service, get_tipos_acto_service
+from .services import get_listado_hermanos_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service
 
 # Create your views here.
 
@@ -64,17 +57,6 @@ class UsuarioLogueadoView(APIView):
                 return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# -----------------------------------------------------------------------------
-# VIEWS: TIPOS DE ACTO
-# -----------------------------------------------------------------------------
-class TipoActoListView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        tipos = get_tipos_acto_service()
-        serializer = TipoActoSerializer(tipos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # -----------------------------------------------------------------------------
 # VIEWS: PUESTO

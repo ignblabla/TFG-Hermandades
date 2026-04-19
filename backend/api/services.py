@@ -65,13 +65,6 @@ def get_tipos_puesto_service():
 
 
 # -----------------------------------------------------------------------------
-# SERVICES: TIPO DE ACTO
-# -----------------------------------------------------------------------------
-def get_tipos_acto_service():
-    """Retorna todos los tipos de actos disponibles"""
-    return TipoActo.objects.all()
-
-# -----------------------------------------------------------------------------
 # SERVICES: PANEL DE ADMINISTRADOR
 # -----------------------------------------------------------------------------
 def get_listado_hermanos_service(usuario_solicitante):
