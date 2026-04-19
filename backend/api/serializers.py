@@ -5,26 +5,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.serializadores.datos_bancarios.datos_bancarios_serializer import DatosBancariosSerializer
-from api.serializadores.cuota.cuota_serializer import CuotaSerializer
-from .models import (AreaInteres, CuerpoPertenencia, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
-from django.core.signing import Signer
-import base64
+from .models import (CuerpoPertenencia, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 
 User = get_user_model()
-
-class CuerpoPertenenciaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CuerpoPertenencia
-        fields = ['id', 'nombre_cuerpo']
-
-class TipoActoSerializer(serializers.ModelSerializer):
-    nombre_mostrar = serializers.CharField(source='get_tipo_display', read_only=True)
-
-    class Meta:
-        model = TipoActo
-        fields = ['id', 'tipo', 'nombre_mostrar', 'requiere_papeleta']
-
 
 # -----------------------------------------------------------------------------
 # SERIALIZERS DE RELACIONES (HERMANO - CUERPO)
