@@ -5,8 +5,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
-from api.serializers import UserSerializer
 from api.service.register_service import create_hermano_solicitud_service, activar_hermano_service
+from api.serializadores.hermano.hermano_serializer import UserSerializer
 
 # -----------------------------------------------------------------------------
 # VIEWS: GESTIÓN DE HERMANOS
