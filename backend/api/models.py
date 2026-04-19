@@ -400,7 +400,7 @@ class Acto(models.Model):
             if self.fecha and self.inicio_solicitud and self.inicio_solicitud >= self.fecha:
                 errors["inicio_solicitud"] = "El inicio de solicitud no puede ser igual o posterior a la fecha del acto."
 
-            if self.fecha and self.fin_solicitud and self.fin_solicitud > self.fecha:
+            if self.fecha and self.fin_solicitud and self.fin_solicitud >= self.fecha:
                 errors["fin_solicitud"] = "El fin de solicitud no puede ser posterior a la fecha del acto."
 
             if self.modalidad == self.ModalidadReparto.TRADICIONAL:

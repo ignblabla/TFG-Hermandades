@@ -231,6 +231,10 @@ class ActoCreateSerializer(serializers.ModelSerializer):
 
         return value
     
+    def validate_fecha(self, value):
+        if value < timezone.now():
+            raise serializers.ValidationError("La fecha del acto no puede ser anterior a la actual.")
+        return value
 
 
 class ActoListSerializer(serializers.ModelSerializer):
