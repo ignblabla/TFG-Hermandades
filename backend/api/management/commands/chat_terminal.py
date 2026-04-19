@@ -1,6 +1,7 @@
 import sys
 from django.core.management.base import BaseCommand
-from ...servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
+
+from api.servicios.comunicado.comunicado_service import ComunicadoRAGService
 
 class Command(BaseCommand):
     help = 'Prueba el chat RAG de comunicados directamente desde la terminal'

@@ -150,7 +150,7 @@ class ActoSerializer(serializers.ModelSerializer):
     def get_total_puestos_cirios(self, obj):
         """Cuenta el número de registros de Puesto que NO son insignias"""
         return obj.puestos_disponibles.filter(tipo_puesto__es_insignia=False).count()
-    
+
 
 
 class ActoCreateSerializer(serializers.ModelSerializer):

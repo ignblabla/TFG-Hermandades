@@ -3,11 +3,8 @@ from django.urls import path
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
-from api.vistas.comunicado.comunicado_general_view import ComunicadoListCreateView
-from api.vistas.comunicado.comunicado_especifico_view import ComunicadoDetailView
 from api.vistas.acto.acto_general_view import ActoCreateView, ActoListAPIView
 from api.vistas.acto.proximos_actos_view import ProximosActosView
-from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionadosView, UltimosComunicadosAreaInteresView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
@@ -17,7 +14,7 @@ from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListVie
 from api.vistas.acto.acto_view import ActoDetalleView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
 from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
-from api.vistas.comunicado.comunicado_view import ChatComunicadosView, MisComunicadosListView
+from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
 from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
 
 from .views import CrearPuestoView, PuestoDetalleView
