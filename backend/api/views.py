@@ -17,7 +17,6 @@ from api.serializadores.tipo_acto.tipo_acto_serializer import TipoActoSerializer
 from api.serializadores.tipo_puesto.tipo_puesto_serializer import TipoPuestoSerializer
 from api.serializadores.puesto.puesto_serializer import PuestoSerializer, PuestoUpdateSerializer
 
-from .serializers import DetalleVinculacionSerializer, SolicitudUnificadaSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response

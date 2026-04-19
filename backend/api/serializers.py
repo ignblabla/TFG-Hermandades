@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import (TipoActo, Acto, Puesto, PapeletaSitio)
+from api.serializadores.papeleta_sitio.papeleta_sitio_serializer import PreferenciaSolicitudDTO
+
+from .models import (Acto, Puesto, PapeletaSitio)
 
 User = get_user_model()
 
@@ -48,10 +50,6 @@ class SolicitudCirioSerializer(serializers.Serializer):
 # -----------------------------------------------------------------------------
 # SERIALIZERS PARA LA SOLICITUD DE PAPELETA DE SITIO
 # -----------------------------------------------------------------------------
-class PreferenciaSolicitudDTO(serializers.Serializer):
-    puesto_id = serializers.PrimaryKeyRelatedField(queryset=Puesto.objects.all(), source='puesto_solicitado')
-    orden = serializers.IntegerField(source='orden_prioridad')
-
 
 class SolicitudUnificadaSerializer(serializers.ModelSerializer):
     nombre_acto = serializers.CharField(source='acto.nombre', read_only=True)
@@ -85,32 +83,3 @@ class SolicitudUnificadaSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['id', 'anio', 'estado_papeleta', 'fecha_solicitud']
-
-
-# -----------------------------------------------------------------------------
-# SERIALIZERS PARA LA VINCULACIÓN DE PAPELETAS DE SITIO
-# -----------------------------------------------------------------------------
-class VincularPapeletaSerializer(serializers.Serializer):
-    """
-    Serializer simple para recibir el número de registro del hermano objetivo.
-    """
-    numero_registro_objetivo = serializers.IntegerField(
-        required=True, 
-        min_value=1,
-        help_text="Número de registro del hermano con el que quieres ir."
-    )
-
-class DetalleVinculacionSerializer(serializers.ModelSerializer):
-    """
-    Para devolver la respuesta con los datos del hermano vinculado.
-    """
-    nombre_vinculado = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = PapeletaSitio
-        fields = ['id', 'vinculado_a', 'nombre_vinculado']
-
-    def get_nombre_vinculado(self, obj):
-        if obj.vinculado_a:
-            return f"{obj.vinculado_a.nombre} {obj.vinculado_a.primer_apellido}"
-        return None

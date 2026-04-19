@@ -185,9 +185,7 @@ function HermanoCrearSolicitudUnificada() {
             
             // Enviamos el ID del puesto general o null si está vacío
             puesto_general_id: selectedPuestoGeneralId ? parseInt(selectedPuestoGeneralId) : null,
-            
-            // CORREGIDO AQUÍ:
-            // El Serializer 'PreferenciaSolicitudDTO' espera las claves 'puesto_id' y 'orden'.
+
             preferencias_solicitadas: preferenciasInsignias.map((p, index) => ({
                 puesto_id: p.id,       // Antes enviabas: puesto_solicitado
                 orden: index + 1       // Antes enviabas: orden_prioridad

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from api.models import CuerpoPertenencia, PapeletaSitio, Tramo
+from api.models import CuerpoPertenencia, PapeletaSitio, Puesto, Tramo
 
 class FilaTablaInsigniaSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=9)
@@ -138,3 +138,9 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
                 })
 
         return data
+
+
+
+class PreferenciaSolicitudDTO(serializers.Serializer):
+    puesto_id = serializers.PrimaryKeyRelatedField(queryset=Puesto.objects.all(), source='puesto_solicitado')
+    orden = serializers.IntegerField(source='orden_prioridad')
