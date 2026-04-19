@@ -3,9 +3,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Sum, Q
 
-from api.serializers import CuotaSerializer
+
 from api.pagination import StandardResultsSetPagination
 from api.models import Cuota
+from api.serializadores.cuota.cuota_serializer import CuotaSerializer
 
 class MisCuotasListView(generics.ListAPIView):
     """

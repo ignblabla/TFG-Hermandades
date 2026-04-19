@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from api.serializadores.datos_bancarios.datos_bancarios_serializer import DatosBancariosSerializer
+from api.serializadores.cuota.cuota_serializer import CuotaSerializer
 from .models import (AreaInteres, Comunicado, CuerpoPertenencia, Cuota, DatosBancarios, HermanoCuerpo, PreferenciaSolicitud, TipoActo, Acto, Puesto, PapeletaSitio, TipoPuesto, Tramo)
 from django.db import transaction
 from django.core.signing import Signer
@@ -15,27 +16,6 @@ import base64
 from django.db.models import Q, Count
 
 User = get_user_model()
-
-# -----------------------------------------------------------------------------
-# SERIALIZERS FINANCIEROS (NUEVOS)
-# -----------------------------------------------------------------------------
-
-class CuotaSerializer(serializers.ModelSerializer):
-    """
-    Historial de pagos. Generalmente es de solo lectura desde la API de perfil,
-    ya que los pagos se generan por procesos (Service) o pasarelas.
-    """
-    estado_display = serializers.CharField(source='get_estado_display', read_only=True)
-    tipo_display = serializers.CharField(source='get_tipo_display', read_only=True)
-
-    class Meta:
-        model = Cuota
-        fields = [
-            'id', 'anio', 'tipo', 'tipo_display', 'descripcion', 
-            'importe', 'estado', 'estado_display', 
-            'fecha_emision', 'fecha_pago', 'metodo_pago', 'observaciones'
-        ]
-        read_only_fields = fields
 
 
 # -----------------------------------------------------------------------------
