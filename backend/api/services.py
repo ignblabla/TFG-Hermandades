@@ -51,13 +51,3 @@ def update_puesto_service(usuario, puesto_id, data_validada):
 
     puesto.save()
     return puesto
-
-# -----------------------------------------------------------------------------
-# SERVICES: TIPO DE PUESTO
-# -----------------------------------------------------------------------------
-def get_tipos_puesto_service():
-    """
-    Servicio para recuperar el catálogo completo de tipos de puestos.
-    Puede incluir lógica de filtrado si fuera necesaria en el futuro.
-    """
-    return TipoPuesto.objects.all()

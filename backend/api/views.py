@@ -1,18 +1,16 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 
-from api.servicios.papeleta_telegram import TelegramWebhookService
-from api.serializadores.tipo_puesto.tipo_puesto_serializer import TipoPuestoSerializer
 from api.serializadores.puesto.puesto_serializer import PuestoSerializer, PuestoUpdateSerializer
 
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import Puesto
 
-from .services import create_puesto_service, get_tipos_puesto_service, update_puesto_service
+from .services import create_puesto_service, update_puesto_service
 
 # Create your views here.
 
@@ -81,16 +79,3 @@ class PuestoDetalleView(APIView):
 
         return Response(PuestoSerializer(puesto_actualizado).data, status=status.HTTP_200_OK)
 
-# -----------------------------------------------------------------------------
-# VIEWS: TIPO DE PUESTO
-# -----------------------------------------------------------------------------
-class TipoPuestoListView(APIView):
-    """
-    Endpoint para listar los tipos de puestos disponibles.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        tipos = get_tipos_puesto_service()
-        serializer = TipoPuestoSerializer(tipos, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

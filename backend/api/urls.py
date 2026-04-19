@@ -18,8 +18,9 @@ from api.vistas.acto.acto_view import ActoDetalleView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
 from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
 from api.vistas.comunicado.comunicado_view import ChatComunicadosView, MisComunicadosListView
+from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
 
-from .views import CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import CrearPuestoView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
