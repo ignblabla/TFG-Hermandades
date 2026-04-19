@@ -16,8 +16,9 @@ from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiri
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.acto.acto_view import ActoDetalleView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
+from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView
 
-from .views import ChatComunicadosView, HermanoAdminDetailView, HermanoListView, MisComunicadosListView, TelegramWebhookView, UsuarioLogueadoView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import ChatComunicadosView, MisComunicadosListView, TelegramWebhookView, UsuarioLogueadoView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),

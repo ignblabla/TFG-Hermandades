@@ -5,10 +5,9 @@ from rest_framework import generics, status
 from django.db.models import Q
 
 from api.servicios.papeleta_telegram import TelegramWebhookService
-from api.servicios.hermano.edicion_datos_hermano_service import update_mi_perfil_service
 from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
-from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
+from api.serializadores.hermano.hermano_serializer import UserSerializer, UserUpdateSerializer
 from api.serializadores.tipo_puesto.tipo_puesto_serializer import TipoPuestoSerializer
 from api.serializadores.puesto.puesto_serializer import PuestoSerializer, PuestoUpdateSerializer
 
@@ -16,12 +15,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import Acto, AreaInteres, Comunicado, Puesto
-from django.utils import timezone
-from .pagination import StandardResultsSetPagination
-from rest_framework.exceptions import PermissionDenied
 
-from .services import get_listado_hermanos_service, create_puesto_service, get_tipos_puesto_service, update_hermano_por_admin_service, update_puesto_service
+from api.servicios.hermano.hermano_service import update_mi_perfil_service
+from .models import AreaInteres, Comunicado, Puesto
+
+from .services import create_puesto_service, get_tipos_puesto_service, update_puesto_service
 
 # Create your views here.
 
@@ -136,144 +134,6 @@ class TipoPuestoListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 # -----------------------------------------------------------------------------
-# VIEWS: PANEL PARA ADMINISTRADORES
-# -----------------------------------------------------------------------------
-class HermanoListView(APIView):
-    permission_classes = [IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
-
-    def get(self, request):
-        try:
-            queryset_hermanos = get_listado_hermanos_service(usuario_solicitante=request.user)
-            paginator = self.pagination_class()
-            page = paginator.paginate_queryset(queryset_hermanos, request)
-            if page is not None:
-                serializer = HermanoListadoSerializer(page, many=True)
-                return paginator.get_paginated_response(serializer.data)
-            
-            serializer = HermanoListadoSerializer(queryset_hermanos, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        except PermissionDenied as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-        except Exception as e:
-            return Response(
-                {"detail": "Error al recuperar el listado.", "error": str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-class HermanoAdminDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        if not getattr(request.user, 'esAdmin', False):
-            return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
-        
-        hermano = get_object_or_404(User, pk=pk)
-        serializer = HermanoAdminUpdateSerializer(hermano)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-    def put(self, request, pk):
-        """
-        Actualización completa (requiere enviar todos los campos obligatorios).
-        """
-        hermano = get_object_or_404(User, pk=pk)
-
-        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            hermano_actualizado = update_hermano_por_admin_service(
-                usuario_solicitante=request.user,
-                hermano_id=pk,
-                data_validada=serializer.validated_data
-            )
-            return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)
-        
-        except PermissionDenied as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-        
-
-    def patch(self, request, pk):
-        """
-        Actualización parcial (solo los campos enviados).
-        """
-        hermano = get_object_or_404(User, pk=pk)
-
-        serializer = HermanoAdminUpdateSerializer(hermano, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            hermano_actualizado = update_hermano_por_admin_service(
-                usuario_solicitante=request.user,
-                hermano_id=pk,
-                data_validada=serializer.validated_data
-            )
-            return Response(HermanoAdminUpdateSerializer(hermano_actualizado).data, status=status.HTTP_200_OK)
-        
-        except PermissionDenied as e:
-            return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-
-
-
-# -----------------------------------------------------------------------------
-# VIEWS: ACTUALIZAR ACTO
-# -----------------------------------------------------------------------------
-# class ActoUpdateView(APIView):
-#     """
-#     Vista para editar un acto existente.
-#     Soporta PUT (actualización total) y PATCH (actualización parcial).
-#     Delega la validación de negocio al Service.
-#     """
-#     permission_classes = [IsAuthenticated]
-
-#     def put(self, request, pk):
-#         """Actualización completa del recurso."""
-#         return self._handle_update(request, pk, partial=False)
-
-#     def patch(self, request, pk):
-#         """Actualización parcial del recurso."""
-#         return self._handle_update(request, pk, partial=True)
-
-#     def _handle_update(self, request, pk, partial):
-#         """
-#         Método auxiliar para evitar duplicar código entre PUT y PATCH.
-#         """
-#         serializer = ActoCreateSerializer(data=request.data, partial=partial)
-        
-#         if serializer.is_valid():
-#             try:
-#                 acto_actualizado = actualizar_acto_service(
-#                     usuario_solicitante=request.user,
-#                     acto_id=pk,
-#                     data_validada=serializer.validated_data
-#                 )
-
-#                 response_serializer = ActoCreateSerializer(acto_actualizado)
-#                 return Response(response_serializer.data, status=status.HTTP_200_OK)
-
-#             except DjangoValidationError as e:
-#                 if hasattr(e, 'message_dict'):
-#                     return Response(e.message_dict, status=status.HTTP_400_BAD_REQUEST)
-#                 return Response(e.messages, status=status.HTTP_400_BAD_REQUEST)
-            
-#             except DRFValidationError as e:
-#                 return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
-
-#             except PermissionDenied as e:
-#                 return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
-            
-#             except Exception as e:
-#                 return Response(
-#                     {"detail": "Ocurrió un error inesperado al actualizar el acto."}, 
-#                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#                 )
-        
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# -----------------------------------------------------------------------------
 # VIEWS: CREAR COMUNICADO
 # -----------------------------------------------------------------------------
 class MisComunicadosListView(generics.ListAPIView):
@@ -303,14 +163,11 @@ class TelegramWebhookView(APIView):
     """
     Endpoint público para recibir notificaciones (Webhooks) directamente desde los servidores de Telegram.
     """
-    permission_classes = [AllowAny] # IMPORTANTE: Debe ser público para Telegram
+    permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        # Le pasamos la información a nuestro servicio
         TelegramWebhookService.procesar_actualizacion(request.data)
-        
-        # SIEMPRE debemos responder 200 OK a Telegram rápido. 
-        # Si no lo hacemos, Telegram pensará que nuestro servidor está caído y reenviará el mensaje repetidas veces.
+
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
