@@ -11,14 +11,15 @@ from api.vistas.comunicado.ultimo_comunicado_view import ComunicadosRelacionados
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
-from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, UltimaPapeletaView
+from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.acto.acto_view import ActoDetalleView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
-from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView
+from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
+from api.vistas.comunicado.comunicado_view import ChatComunicadosView, MisComunicadosListView
 
-from .views import ChatComunicadosView, MisComunicadosListView, TelegramWebhookView, UsuarioLogueadoView, CrearPuestoView, TipoPuestoListView, PuestoDetalleView
+from .views import CrearPuestoView, TipoPuestoListView, PuestoDetalleView
 
 urlpatterns = [
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),

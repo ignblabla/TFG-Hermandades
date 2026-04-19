@@ -1,12 +1,12 @@
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 
 from api.pagination import StandardResultsSetPagination
-from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer
-from api.servicios.hermano.hermano_service import get_listado_hermanos_service, update_hermano_por_admin_service
+from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
+from api.servicios.hermano.hermano_service import get_listado_hermanos_service, update_hermano_por_admin_service, update_mi_perfil_service
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
@@ -91,3 +91,37 @@ class HermanoAdminDetailView(APIView):
         
         except PermissionDenied as e:
             return Response({"detail": str(e)}, status=status.HTTP_403_FORBIDDEN)
+        
+
+
+class UsuarioLogueadoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    
+    def patch(self, request):
+        user = request.user
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            try:
+                usuario_actualizado = update_mi_perfil_service(
+                    usuario=user,
+                    data_validada=serializer.validated_data
+                )
+                response_serializer = UserUpdateSerializer(usuario_actualizado)
+                return Response(response_serializer.data, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
