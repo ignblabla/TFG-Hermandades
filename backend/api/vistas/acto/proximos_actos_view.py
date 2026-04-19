@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from api.models import Acto
-from api.serializadores.acto.proximos_actos_serializer import ActoCultoCardSerializer
+from api.serializadores.acto.acto_serializer import ActoCultoCardSerializer
 
 class ProximosActosView(APIView):
     """

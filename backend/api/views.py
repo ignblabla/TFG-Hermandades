@@ -11,8 +11,9 @@ from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
 from api.serializadores.comunicado.comunicado_form_serializer import ComunicadoFormSerializer
 from api.serializadores.comunicado.comunicado_list_serializer import ComunicadoListSerializer
 from api.servicios.acto.acto_service import actualizar_acto_service, crear_acto_service
+from api.serializadores.acto.acto_serializer import ActoSerializer
 
-from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, ActoSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
+from .serializers import ActoCreateSerializer, DetalleVinculacionSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, PuestoUpdateSerializer, SolicitudUnificadaSerializer, TipoActoSerializer, UserSerializer, UserUpdateSerializer, PuestoSerializer, TipoPuestoSerializer, VincularPapeletaSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response

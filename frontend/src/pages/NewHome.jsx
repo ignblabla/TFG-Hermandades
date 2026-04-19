@@ -185,11 +185,11 @@ function HermanoNewHome() {
                         <span className="tooltip-dashboard">User</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Noticias</span>
                     </li>
                     <li>
                         <a href="/listado-cuotas">

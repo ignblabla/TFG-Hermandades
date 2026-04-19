@@ -5,9 +5,10 @@ from rest_framework.exceptions import PermissionDenied
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from api.serializers import ActoCreateSerializer, ActoSerializer
+from api.serializers import ActoCreateSerializer
 from api.servicios.acto.acto_service import ActoService, crear_acto_service
 from api.pagination import PaginacionDiezElementos
+from api.serializadores.acto.acto_serializer import ActoSerializer
 
 
 class ActoCreateView(APIView):

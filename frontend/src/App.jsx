@@ -129,7 +129,7 @@ function App() {
           }
         />
         <Route
-          path="/noticias-hermano"
+          path="/noticias"
           element={
             <ProtectedRoute>
               <NoticiasHermano />
