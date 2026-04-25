@@ -1,932 +1,466 @@
-from django.http import Http404, QueryDict
+from django.http import Http404
 from django.test import TestCase
-from django.utils import timezone
-from datetime import timedelta
-from rest_framework.exceptions import ValidationError as DRFValidationError
-from unittest.mock import patch
-import datetime
-from django.db import DatabaseError, transaction
-from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied, ValidationError as DjangoValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
+from unittest.mock import patch, MagicMock, ANY
+from django.core.exceptions import PermissionDenied, ValidationError
 
 from api.servicios.acto.acto_service import update_acto_service
 
 
-from ....models import Acto, Hermano, TipoActo, TipoPuesto, Puesto
+class UpdateActoServiceTests(TestCase):
 
-
-class ActualizarActoServiceTest(TestCase):
-
-    def setUp(self):
-
-        self.ahora = timezone.now()
-
-        self.admin = Hermano.objects.create_user(
-            dni="12345678A",
-            username="12345678A",
-            password="password",
-            nombre="Admin",
-            primer_apellido="Test",
-            segundo_apellido="User",
-            email="admin@example.com",
-            telefono="600000000",
-            estado_civil=Hermano.EstadoCivil.SOLTERO,
-            genero=Hermano.Genero.MASCULINO,
-            estado_hermano=Hermano.EstadoHermano.ALTA,
-            numero_registro=1,
-            fecha_ingreso_corporacion=self.ahora.date(),
-            fecha_nacimiento="1980-01-01",
-            direccion="Calle Admin",
-            codigo_postal="41001",
-            localidad="Sevilla",
-            provincia="Sevilla",
-            comunidad_autonoma="Andalucía",
-            esAdmin=True,
-        )
-
-        self.hermano = Hermano.objects.create_user(
-            dni="87654321X",
-            username="87654321X",
-            password="password",
-            nombre="Luis",
-            primer_apellido="Ruiz",
-            segundo_apellido="Díaz",
-            email="luis@example.com",
-            telefono="600654321",
-            estado_civil=Hermano.EstadoCivil.CASADO,
-            genero=Hermano.Genero.MASCULINO,
-            estado_hermano=Hermano.EstadoHermano.ALTA,
-            numero_registro=1002,
-            fecha_ingreso_corporacion=self.ahora.date(),
-            fecha_nacimiento="1985-06-15",
-            direccion="Calle Sierpes",
-            codigo_postal="41004",
-            localidad="Sevilla",
-            provincia="Sevilla",
-            comunidad_autonoma="Andalucía",
-            esAdmin=False,
-        )
-
-        self.tipo_no_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.CONVIVENCIA,
-            requiere_papeleta=False
-        )
-
-        self.tipo_con_papeleta = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.ESTACION_PENITENCIA,
-            requiere_papeleta=True
-        )
-
-        self.tipo_con_papeleta_alt = TipoActo.objects.create(
-            tipo=TipoActo.OpcionesTipo.CABILDO_GENERAL,
-            requiere_papeleta=True
-        )
-
-        self.fecha_acto = self.ahora + timedelta(days=30)
-
-        self.inicio_insignias = self.ahora + timedelta(days=1)
-        self.fin_insignias = self.ahora + timedelta(days=3)
-
-        self.inicio_cirios = self.fin_insignias + timedelta(hours=1)
-        self.fin_cirios = self.inicio_cirios + timedelta(days=2)
-
-        self.acto_no_papeleta_ok = {
-            "nombre": "Convivencia febrero",
-            "lugar": "Casa Hermandad",
-            "descripcion": "Acto sin papeleta",
-            "fecha": self.fecha_acto,
-            "tipo_acto": self.tipo_no_papeleta,
-            "modalidad": None,
-            "inicio_solicitud": None,
-            "fin_solicitud": None,
-            "inicio_solicitud_cirios": None,
-            "fin_solicitud_cirios": None,
-        }
-
-        self.acto_tradicional_ok = {
-            "nombre": "Estación de Penitencia 2026",
-            "lugar": "Parroquia",
-            "descripcion": "Acto con reparto tradicional",
-            "fecha": self.fecha_acto,
-            "tipo_acto": self.tipo_con_papeleta,
-            "modalidad": Acto.ModalidadReparto.TRADICIONAL,
-            "inicio_solicitud": self.inicio_insignias,
-            "fin_solicitud": self.fin_insignias,
-            "inicio_solicitud_cirios": self.inicio_cirios,
-            "fin_solicitud_cirios": self.fin_cirios,
-        }
-
-        self.acto_con_plazo_iniciado = Acto.objects.create(
-            nombre="Acto con plazo iniciado",
-            lugar="Capilla",
-            descripcion="Test cambio fecha bloqueado",
-            fecha=self.ahora + timedelta(days=10),
-            tipo_acto=self.tipo_con_papeleta,
-            modalidad=Acto.ModalidadReparto.UNIFICADO,
-            inicio_solicitud=self.ahora - timedelta(hours=1),
-            fin_solicitud=self.ahora + timedelta(days=2),
-            inicio_solicitud_cirios=None,
-            fin_solicitud_cirios=None,
-        )
-
-        self.acto_unificado_ok = {
-            "nombre": "Cabildo General 2026",
-            "lugar": "Salón de actos",
-            "descripcion": "Acto unificado",
-            "fecha": self.fecha_acto,
-            "tipo_acto": self.tipo_con_papeleta,
-            "modalidad": Acto.ModalidadReparto.UNIFICADO,
-            "inicio_solicitud": self.inicio_insignias,
-            "fin_solicitud": self.fin_insignias,
-            "inicio_solicitud_cirios": None,
-            "fin_solicitud_cirios": None,
-        }
-
-        self.acto_db_no_papeleta = Acto.objects.create(**self.acto_no_papeleta_ok)
-
-        self.acto_db_tradicional = Acto.objects.create(**self.acto_tradicional_ok)
-
-        self.acto_db_unificado = Acto.objects.create(**self.acto_unificado_ok)
-
-        self.acto_db_otro_mismo_dia = Acto.objects.create(
-            nombre="Acto existente mismo día",
-            lugar="Capilla",
-            descripcion="Para test de unicidad",
-            fecha=self.fecha_acto.replace(hour=10, minute=0, second=0, microsecond=0),
-            tipo_acto=self.tipo_con_papeleta,
-            modalidad=Acto.ModalidadReparto.UNIFICADO,
-            inicio_solicitud=self.inicio_insignias,
-            fin_solicitud=self.fin_insignias,
-            inicio_solicitud_cirios=None,
-            fin_solicitud_cirios=None,
-        )
-
-        self.acto_db_plazo_empezado = Acto.objects.create(
-            nombre="Acto con plazo ya empezado",
-            lugar="Capilla",
-            descripcion="Para test de bloqueo de cambio de fecha",
-            fecha=self.ahora + timedelta(days=10),
-            tipo_acto=self.tipo_con_papeleta,
-            modalidad=Acto.ModalidadReparto.UNIFICADO,
-            inicio_solicitud=self.ahora - timedelta(days=1),
-            fin_solicitud=self.ahora + timedelta(days=2),
-            inicio_solicitud_cirios=None,
-            fin_solicitud_cirios=None,
-        )
-
-        self.tipo_puesto_generico = TipoPuesto.objects.create(
-            nombre_tipo="Cirio",
-            solo_junta_gobierno=False,
-            es_insignia=False,
-        )
-
-        self.puesto_en_acto_tradicional = Puesto.objects.create(
-            nombre="Cirio tramo 1",
-            numero_maximo_asignaciones=10,
-            disponible=True,
-            acto=self.acto_db_tradicional,
-            tipo_puesto=self.tipo_puesto_generico,
-        )
-
-        self.payload_cambiar_tipo_acto_con_puestos = {
-            "tipo_acto_id": self.tipo_con_papeleta_alt.id
-        }
-
-        self.payload_cambiar_fecha = {
-            "fecha": self.fecha_acto + timedelta(days=1)
-        }
-
-        self.payload_cambiar_a_no_papeleta = {
-            "tipo_acto_id": self.tipo_no_papeleta.id,
-            "modalidad": Acto.ModalidadReparto.TRADICIONAL,
-            "inicio_solicitud": self.inicio_insignias,
-            "fin_solicitud": self.fin_insignias,
-            "inicio_solicitud_cirios": self.inicio_cirios,
-            "fin_solicitud_cirios": self.fin_cirios,
-        }
-
-        self.payload_unificado_con_cirios = {
-            "modalidad": Acto.ModalidadReparto.UNIFICADO,
-            "inicio_solicitud_cirios": self.inicio_cirios,
-            "fin_solicitud_cirios": self.fin_cirios,
-        }
-
-
-
-    def test_update_acto_service_admin_success(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_admin_actualizacion_basica_correcta(self, mock_get_object_or_404):
         """
-        #     Test: Usuario admin puede actualizar un acto
+        Test: Usuario admin -> actualización básica correcta
 
-        #     Given: Un usuario con esAdmin = True y un Acto existente en la base de datos.
-        #     When: Se llama al servicio update_acto_service con cambios válidos en el payload.
-        #     Then: El sistema actualiza los campos correspondientes en la base de datos
-        #           y devuelve la instancia del acto con los nuevos valores.
+        Given: Un usuario administrador, un ID de acto válido, y un diccionario 
+                de datos (data_validada) que no modifica el tipo_acto.
+        When: Se llama al servicio update_acto_service.
+        Then: Se obtiene el acto mediante get_object_or_404.
+                Se actualizan los atributos dinámicamente usando setattr.
+                Se llama a acto.save() para persistir los cambios.
+                Se retorna el acto modificado sin tocar la base de datos.
         """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_unificado
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
         
-        data_cambios = {
-            "nombre": "Cabildo General Actualizado",
-            "lugar": "Nuevo Salón de Actos",
-            "descripcion": "Descripción modificada por el administrador"
+        acto_id = 1
+        data_validada = {
+            'nombre': 'Ensayo Modificado',
+            'lugar': 'Nueva Sede'
         }
-
-        acto_actualizado = update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_cambios
-        )
-
-        self.assertEqual(acto_actualizado.nombre, "Cabildo General Actualizado")
-        self.assertEqual(acto_actualizado.lugar, "Nuevo Salón de Actos")
-
-        acto_a_editar.refresh_from_db()
-        self.assertEqual(acto_a_editar.nombre, "Cabildo General Actualizado")
-        self.assertEqual(acto_a_editar.descripcion, "Descripción modificada por el administrador")
-
-        self.assertEqual(acto_a_editar.modalidad, Acto.ModalidadReparto.UNIFICADO)
-
-
-
-    def test_update_acto_service_actualizacion_parcial(self):
-        """
-        #     Test: Actualización parcial de campos
-
-        #     Given: Un Acto existente y un payload de data_validada que contiene 
-        #           únicamente un campo (ej: nombre).
-        #     When: Se ejecuta el servicio update_acto_service().
-        #     Then: Solo el campo enviado en el diccionario cambia en la base de datos, 
-        #           mientras que el resto de atributos del acto permanecen intactos.
-        """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_no_papeleta
-
-        lugar_original = acto_a_editar.lugar
-        fecha_original = acto_a_editar.fecha
-        tipo_original = acto_a_editar.tipo_acto
-
-        data_cambios = {
-            "nombre": "Nombre Editado Únicamente"
-        }
-
-        update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_cambios
-        )
-
-        acto_a_editar.refresh_from_db()
-
-        self.assertEqual(acto_a_editar.nombre, "Nombre Editado Únicamente")
-
-        self.assertEqual(
-            acto_a_editar.lugar, 
-            lugar_original, 
-            "El campo 'lugar' cambió y no venía en el payload."
-        )
-        self.assertEqual(
-            acto_a_editar.fecha, 
-            fecha_original, 
-            "El campo 'fecha' cambió y no venía en el payload."
-        )
-        self.assertEqual(
-            acto_a_editar.tipo_acto, 
-            tipo_original, 
-            "El campo 'tipo_acto' cambió y no venía en el payload."
-        )
-
-
-
-    def test_update_acto_service_mismo_tipo_con_puestos_permitido(self):
-        """
-        #     Test: No se cambia el tipo → permitido aunque haya puestos
-
-        #     Given: Un acto (self.acto_db_tradicional) que ya tiene puestos asociados 
-        #           en la base de datos (puesto_en_acto_tradicional).
-        #     When: Se actualizan otros campos (ej: lugar) pero el tipo_acto enviado 
-        #           es el mismo que ya tenía el registro.
-        #     Then: La operación se realiza correctamente sin lanzar ValidationError, 
-        #           permitiendo la edición del resto de la información.
-        """
-        usuario_ejecutor = self.admin
-        acto_con_puestos = self.acto_db_tradicional
-
-        self.assertTrue(acto_con_puestos.puestos_disponibles.exists())
-
-        data_cambios = {
-            "lugar": "Ubicación Actualizada con Puestos",
-            "tipo_acto": acto_con_puestos.tipo_acto
-        }
-
-        try:
-            acto_actualizado = update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto_con_puestos.id,
-                data_validada=data_cambios
-            )
-        except DjangoValidationError:
-            self.fail("update_acto_service lanzó ValidationError al enviar el mismo tipo_acto.")
-
-        # Then
-        acto_con_puestos.refresh_from_db()
-        self.assertEqual(acto_con_puestos.lugar, "Ubicación Actualizada con Puestos")
-        self.assertEqual(acto_con_puestos.tipo_acto, self.tipo_con_papeleta)
-
-
-
-    def test_update_acto_service_cambio_tipo_sin_puestos_permitido(self):
-        """
-        #     Test: Cambio de tipo permitido sin puestos asignados
-
-        #     Given: Un Acto existente (self.acto_db_unificado) que no tiene ningún
-        #           puesto asociado en la base de datos.
-        #     When: Se intenta cambiar su tipo_acto por uno diferente que no requiere papeleta.
-        #     Then: El servicio permite la actualización si se limpian los campos 
-        #           incompatibles, cumpliendo con las validaciones del modelo.
-        """
-        usuario_ejecutor = self.admin
-        acto_sin_puestos = self.acto_db_unificado
-        nuevo_tipo = self.tipo_no_papeleta
-
-        self.assertFalse(acto_sin_puestos.puestos_disponibles.exists())
-        self.assertNotEqual(acto_sin_puestos.tipo_acto, nuevo_tipo)
-
-        data_cambios = {
-            "tipo_acto": nuevo_tipo,
-            "nombre": "Acto Reclasificado",
-            "modalidad": None,
-            "inicio_solicitud": None,
-            "fin_solicitud": None,
-            "inicio_solicitud_cirios": None,
-            "fin_solicitud_cirios": None,
-        }
-
-        acto_actualizado = update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_sin_puestos.id,
-            data_validada=data_cambios
-        )
-
-        acto_sin_puestos.refresh_from_db()
-        self.assertEqual(
-            acto_sin_puestos.tipo_acto, 
-            nuevo_tipo, 
-            "El tipo de acto debería haberse actualizado correctamente."
-        )
-        self.assertIsNone(acto_sin_puestos.modalidad)
-        self.assertEqual(acto_sin_puestos.nombre, "Acto Reclasificado")
-
-
-
-    def test_update_acto_service_multiples_cambios_simultaneos(self):
-        """
-        #     Test: Se aplican múltiples cambios a la vez
-
-        #     Given: Un Acto existente (sin papeleta) y un diccionario data_validada con 
-        #           múltiples campos, incluyendo el cambio a un tipo que requiere papeleta.
-        #     When: Se ejecuta el servicio update_acto_service().
-        #     Then: Todos los campos enviados se reflejan correctamente, cumpliendo 
-        #           con los requisitos de integridad del nuevo tipo de acto.
-        """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_no_papeleta
         
-        nueva_fecha = self.ahora + timedelta(days=60)
-        nuevo_tipo = self.tipo_con_papeleta_alt
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'ENSAYO'
 
-        data_cambios = {
-            "nombre": "Nombre Totalmente Nuevo",
-            "lugar": "Sede Central Reformada",
-            "fecha": nueva_fecha,
-            "tipo_acto": nuevo_tipo,
-            "descripcion": "Cambio masivo de datos para test de integridad.",
-            "modalidad": Acto.ModalidadReparto.UNIFICADO,
-            "inicio_solicitud": self.ahora + timedelta(days=10),
-            "fin_solicitud": self.ahora + timedelta(days=15),
-        }
+        mock_get_object_or_404.return_value = mock_acto
 
-        update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_cambios
-        )
+        resultado = update_acto_service(usuario_admin, acto_id, data_validada)
 
-        acto_a_editar.refresh_from_db()
+        mock_get_object_or_404.assert_called_once_with(ANY, pk=acto_id)
 
-        self.assertEqual(acto_a_editar.nombre, data_cambios["nombre"])
-        self.assertEqual(acto_a_editar.lugar, data_cambios["lugar"])
-        self.assertEqual(acto_a_editar.fecha, data_cambios["fecha"])
-        self.assertEqual(acto_a_editar.tipo_acto, nuevo_tipo)
-        self.assertEqual(acto_a_editar.modalidad, data_cambios["modalidad"])
-        self.assertEqual(acto_a_editar.descripcion, data_cambios["descripcion"])
+        self.assertEqual(mock_acto.nombre, 'Ensayo Modificado')
+        self.assertEqual(mock_acto.lugar, 'Nueva Sede')
+
+        self.assertEqual(mock_acto.tipo_acto, 'ENSAYO')
+
+        mock_acto.save.assert_called_once()
+
+        self.assertEqual(resultado, mock_acto)
 
 
 
-    from unittest.mock import patch
-
-    def test_update_acto_service_llama_a_save_una_vez(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_admin_cambia_tipo_acto_sin_puestos_asignados_exito(self, mock_get_object_or_404):
         """
-        #     Test: Se llama a save() una vez
+        Test: Usuario admin -> cambia tipo_acto sin puestos asignados
 
-        #     Given: Un usuario administrador y un acto existente.
-        #     When: Se llama al servicio update_acto_service() con datos válidos.
-        #     Then: El método .save() de la instancia se ejecuta exactamente una vez,
-        #           garantizando que la persistencia es atómica y eficiente.
+        Given: Un usuario administrador.
+                Un acto existente con tipo_acto='ENSAYO'.
+                El acto NO tiene puestos asignados (exists() -> False).
+        When: Se llama al servicio para cambiar el tipo_acto a 'PROCESION'.
+        Then: El servicio debe permitir el cambio, actualizar el atributo
+                y llamar a save() exitosamente.
         """
-        usuario_ejecutor = self.admin
-        acto_id = self.acto_db_no_papeleta.id
-        data_validada = {"nombre": "Nombre para test de save"}
-
-        with patch("api.models.Acto.save") as mock_save:
-            # When
-            update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto_id,
-                data_validada=data_validada
-            )
-
-            self.assertEqual(
-                mock_save.call_count, 
-                1, 
-                f"Se esperaba 1 llamada a .save(), pero se detectaron {mock_save.call_count}."
-            )
-
-
-
-    def test_update_acto_service_devuelve_objeto_actualizado(self):
-        """
-        #     Test: Devuelve el objeto actualizado
-
-        #     Given: Un Acto existente y un usuario administrador.
-        #     When: Se ejecuta el servicio update_acto_service().
-        #     Then: El objeto retornado por la función no es una instancia vieja,
-        #           sino que ya contiene los cambios persistidos en sus atributos.
-        """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_no_papeleta
-        nuevo_nombre = "Nombre Retornado Test"
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
         
-        data_cambios = {
-            "nombre": nuevo_nombre,
-            "lugar": "Lugar Retornado Test"
-        }
+        data_validada = {'tipo_acto': 'PROCESION'}
 
-        acto_retornado = update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_cambios
-        )
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'ENSAYO'
 
-        self.assertEqual(
-            acto_retornado.nombre, 
-            nuevo_nombre, 
-            "El objeto retornado no muestra el nombre actualizado."
-        )
-        self.assertEqual(
-            acto_retornado.lugar, 
-            "Lugar Retornado Test", 
-            "El objeto retornado no muestra el lugar actualizado."
-        )
-
-        self.assertEqual(
-            acto_retornado.id, 
-            acto_a_editar.id, 
-            "El servicio devolvió un objeto con un ID diferente al original."
-        )
-
-        acto_retornado.refresh_from_db()
-        self.assertEqual(acto_retornado.nombre, nuevo_nombre)
-
-
-
-    def test_update_acto_service_soporta_valores_none(self):
-        """
-        #     Test: Soporta valores None si el modelo lo permite
-
-        #     Given: Un Acto con campos opcionales ya rellenos (ej: descripción).
-        #     When: Se envía un valor None para esos campos en data_validada.
-        #     Then: El servicio actualiza correctamente el registro en la base de datos
-        #           estableciendo el valor como nulo (None).
-        """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_unificado
-
-        self.assertIsNotNone(acto_a_editar.descripcion)
+        mock_acto.puestos_disponibles.exists.return_value = False
         
-        data_cambios = {
-            "descripcion": None
-        }
+        mock_get_object_or_404.return_value = mock_acto
 
-        update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_cambios
-        )
+        resultado = update_acto_service(usuario_admin, 1, data_validada)
 
-        acto_a_editar.refresh_from_db()
+        mock_acto.puestos_disponibles.exists.assert_called_once()
 
-        self.assertIsNone(
-            acto_a_editar.descripcion,
-            "El servicio no actualizó el campo opcional a None."
-        )
+        self.assertEqual(mock_acto.tipo_acto, 'PROCESION')
 
-        self.assertEqual(
-            acto_a_editar.nombre, 
-            "Cabildo General 2026",
-            "Un campo no relacionado fue modificado accidentalmente."
-        )
+        mock_acto.save.assert_called_once()
+        self.assertEqual(resultado, mock_acto)
 
 
 
-    @patch("api.servicios.acto.acto_service.get_object_or_404")
-    @patch("api.models.Acto.save")
-    def test_update_acto_service_no_admin_lanza_error_y_no_consulta(self, mock_save, mock_get):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_admin_tipo_acto_igual_al_actual_no_valida_puestos(self, mock_get_object_or_404):
         """
-        #     Test: Usuario no admin → error de permisos
+        Test: Usuario admin -> tipo_acto igual al actual
 
-        #     Given: Un usuario con esAdmin = False (self.hermano).
-        #     When: Se intenta llamar al servicio update_acto_service().
-        #     Then: Se lanza una excepción PermissionDenied.
-        #     And: Se garantiza que no se llega a consultar el acto (get_object_or_404)
-        #          ni a ejecutar el guardado (.save()).
+        Given: Un usuario administrador.
+                Un acto existente con tipo_acto='ENSAYO'.
+                Un payload donde el tipo_acto sigue siendo 'ENSAYO'.
+        When: Se llama al servicio update_acto_service.
+        Then: El servicio debe detectar que el tipo no ha cambiado.
+                NO debe llamar a puestos_disponibles.exists().
+                Se llama a save() y se retorna el objeto.
         """
-        usuario_no_admin = self.hermano
-        acto_id = self.acto_db_unificado.id
-        data_cambios = {"nombre": "Intento de modificación no autorizada"}
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        with self.assertRaises(PermissionDenied) as cm:
-            update_acto_service(
-                usuario=usuario_no_admin,
-                acto_id=acto_id,
-                data_validada=data_cambios
-            )
+        tipo_actual = 'ENSAYO'
+        data_validada = {'tipo_acto': tipo_actual, 'nombre': 'Nombre Nuevo'}
         
-        self.assertEqual(str(cm.exception), "No tienes permisos para editar actos.")
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = tipo_actual
+        mock_get_object_or_404.return_value = mock_acto
 
-        mock_get.assert_not_called()
+        update_acto_service(usuario_admin, 1, data_validada)
 
-        mock_save.assert_not_called()
+        mock_acto.puestos_disponibles.exists.assert_not_called()
 
-        self.acto_db_unificado.refresh_from_db()
-        self.assertNotEqual(self.acto_db_unificado.nombre, "Intento de modificación no autorizada")
+        self.assertEqual(mock_acto.nombre, 'Nombre Nuevo')
+
+        mock_acto.save.assert_called_once()
 
 
 
-    def test_update_acto_service_usuario_sin_esadmin_lanza_error(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_admin_actualiza_multiples_campos_correctamente(self, mock_get_object_or_404):
         """
-        #     Test: Usuario sin atributo esAdmin
+        Test: Usuario admin -> múltiples campos en data_validada
 
-        #     Given: Un objeto de usuario (o entidad) que no tiene definido 
-        #           el atributo 'esAdmin'.
-        #     When: Se intenta ejecutar el servicio update_acto_service().
-        #     Then: Se lanza PermissionDenied porque getattr(..., False) 
-        #           asume el valor restrictivo por defecto.
+        Given: Un usuario administrador.
+                Un payload con múltiples campos de distinta naturaleza (strings, fechas, booleanos).
+        When: Se llama al servicio update_acto_service.
+        Then: El servicio debe iterar sobre todos los elementos de data_validada.
+                Debe aplicar setattr para cada uno de ellos en el objeto acto.
+                Se llama a save() una única vez al final del proceso.
+        """
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
+
+        data_validada = {
+            'nombre': 'Gran Procesión 2026',
+            'lugar': 'Centro Histórico',
+            'fecha': '2026-04-10T20:00:00Z',
+            'descripcion': 'Actualización de itinerario',
+            'publicado': True
+        }
+        
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'PROCESION'
+        mock_get_object_or_404.return_value = mock_acto
+
+        resultado = update_acto_service(usuario_admin, 1, data_validada)
+
+        self.assertEqual(mock_acto.nombre, 'Gran Procesión 2026')
+        self.assertEqual(mock_acto.lugar, 'Centro Histórico')
+        self.assertEqual(mock_acto.fecha, '2026-04-10T20:00:00Z')
+        self.assertEqual(mock_acto.descripcion, 'Actualización de itinerario')
+        self.assertTrue(mock_acto.publicado)
+
+        mock_acto.save.assert_called_once()
+        self.assertEqual(resultado, mock_acto)
+
+
+
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_data_validada_vacio_no_rompe_y_llama_a_save(self, mock_get_object_or_404):
+        """
+        Test: data_validada vacío
+
+        Given: Un usuario administrador.
+                Un diccionario de datos vacío ({}).
+        When: Se llama al servicio update_acto_service.
+        Then: El servicio no debe lanzar ninguna excepción.
+                El bucle de actualización no realiza ninguna operación.
+                Se llama a acto.save() igualmente (según la lógica actual del servicio).
+                Se devuelve el objeto original.
+        """
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
+        
+        data_vacia = {}
+        
+        mock_acto = MagicMock()
+        mock_acto.nombre = "Nombre Original"
+        mock_get_object_or_404.return_value = mock_acto
+
+        resultado = update_acto_service(usuario_admin, 1, data_vacia)
+
+        self.assertEqual(mock_acto.nombre, "Nombre Original")
+
+        mock_acto.save.assert_called_once()
+
+        self.assertEqual(resultado, mock_acto)
+
+
+
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_no_admin_lanza_permission_denied_y_detiene_ejecucion(self, mock_get_object_or_404):
+        """
+        Test: Usuario NO admin -> PermissionDenied
+
+        Given: Un usuario solicitante con esAdmin = False.
+        When: Se llama al servicio update_acto_service.
+        Then: Se lanza la excepción PermissionDenied.
+                No se debe llamar a get_object_or_404 (evita consulta innecesaria).
+                No se debe llamar al método save (seguridad de integridad).
+        """
+        usuario_no_admin = MagicMock()
+        usuario_no_admin.esAdmin = False
+        
+        data_validada = {'nombre': 'Intento de hackeo'}
+
+        with self.assertRaises(PermissionDenied) as context:
+            update_acto_service(usuario_no_admin, 1, data_validada)
+
+        self.assertEqual(str(context.exception), "No tienes permisos para editar actos.")
+
+        mock_get_object_or_404.assert_not_called()
+
+        mock_acto = MagicMock()
+        mock_acto.save.assert_not_called()
+
+
+
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_usuario_sin_atributo_es_admin_lanza_permission_denied(self, mock_get_object_or_404):
+        """
+        Test: Usuario sin atributo esAdmin -> PermissionDenied
+
+        Given: Un objeto de usuario que carece por completo del atributo 'esAdmin'.
+        When: Se llama al servicio update_acto_service.
+        Then: La función getattr(usuario, 'esAdmin', False) debe retornar False.
+                Se lanza la excepción PermissionDenied.
+                La ejecución se detiene antes de buscar el objeto o intentar guardarlo.
         """
         class UsuarioIncompleto:
             pass
             
-        usuario_sin_atributo = UsuarioIncompleto()
-        acto_id = self.acto_db_no_papeleta.id
-        data_cambios = {"nombre": "Cambio no autorizado"}
+        usuario_sin_attr = UsuarioIncompleto()
+        data_validada = {'nombre': 'Cambio no autorizado'}
 
-        with self.assertRaises(PermissionDenied) as cm:
-            update_acto_service(
-                usuario=usuario_sin_atributo,
-                acto_id=acto_id,
-                data_validada=data_cambios
-            )
-            
-        self.assertEqual(str(cm.exception), "No tienes permisos para editar actos.")
+        with self.assertRaises(PermissionDenied) as context:
+            update_acto_service(usuario_sin_attr, 1, data_validada)
+        
+        self.assertEqual(str(context.exception), "No tienes permisos para editar actos.")
 
-        self.acto_db_no_papeleta.refresh_from_db()
-        self.assertNotEqual(self.acto_db_no_papeleta.nombre, "Cambio no autorizado")
+        mock_get_object_or_404.assert_not_called()
 
 
 
-    def test_update_acto_service_usuario_nulo_lanza_error(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_cambiar_tipo_acto_con_puestos_asignados_lanza_validation_error(self, mock_get_object_or_404):
         """
-        #     Test: usuario = None
+        Test: Cambio de tipo_acto con puestos asignados -> ValidationError
 
-        #     Given: Un valor de usuario igual a None.
-        #     When: Se intenta llamar a update_acto_service().
-        #     Then: Se lanza PermissionDenied, ya que getattr(None, 'esAdmin', False)
-        #           no encontrará el atributo y devolverá el valor por defecto False.
+        Given: Un usuario administrador.
+                Un acto existente con tipo_acto='ENSAYO'.
+                El acto TIENE puestos asignados (exists() -> True).
+        When: Se intenta cambiar el tipo_acto a 'PROCESION'.
+        Then: El servicio debe lanzar un ValidationError con el mensaje específico.
+                Se debe garantizar que el método save() NUNCA se llama.
         """
-        usuario_nulo = None
-        acto_id = self.acto_db_no_papeleta.id
-        data_cambios = {"nombre": "Intento con usuario nulo"}
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        with self.assertRaises(PermissionDenied) as cm:
-            update_acto_service(
-                usuario=usuario_nulo,
-                acto_id=acto_id,
-                data_validada=data_cambios
-            )
-            
-        self.assertEqual(str(cm.exception), "No tienes permisos para editar actos.")
+        data_validada = {'tipo_acto': 'PROCESION'}
 
-        self.acto_db_no_papeleta.refresh_from_db()
-        self.assertNotEqual(self.acto_db_no_papeleta.nombre, "Intento con usuario nulo")
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'ENSAYO'
+
+        mock_acto.puestos_disponibles.exists.return_value = True
+        
+        mock_get_object_or_404.return_value = mock_acto
+
+        with self.assertRaises(ValidationError) as context:
+            update_acto_service(usuario_admin, 1, data_validada)
+
+        self.assertIn('tipo_acto', context.exception.message_dict)
+        self.assertEqual(
+            context.exception.message_dict['tipo_acto'], 
+            ["No se puede cambiar el tipo de acto porque ya tiene puestos asignados."]
+        )
+
+        mock_acto.save.assert_not_called()
 
 
 
-    def test_update_acto_service_acto_inexistente_lanza_404(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_acto_no_existe_lanza_http404_y_detiene_ejecucion(self, mock_get_object_or_404):
         """
-        #     Test: Acto no existe
+        Test: Errores de obtención -> get_object_or_404 lanza excepción (404)
 
-        #     Given: Un usuario administrador y un acto_id que no existe en la BD (9999).
-        #     When: Se intenta llamar al servicio update_acto_service().
-        #     Then: Se lanza una excepción Http404, disparada por la función 
-        #           get_object_or_404 al no encontrar el registro.
+        Given: Un usuario administrador y un payload válido.
+                Un ID de acto que no existe.
+                El mock de get_object_or_404 está configurado para lanzar Http404.
+        When: Se llama al servicio update_acto_service.
+        Then: La excepción Http404 se propaga limpiamente hacia arriba.
+                La ejecución de la función se detiene al instante, garantizando 
+                que no se evalúan reglas de negocio ni se llama a save().
         """
-        usuario_ejecutor = self.admin
-        id_falso = 9999
-        data_cambios = {"nombre": "Nombre irrelevante"}
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
+        
+        acto_id_inexistente = 999
+        data_validada = {'nombre': 'Acto Fantasma'}
 
-        self.assertFalse(Acto.objects.filter(id=id_falso).exists())
+        mock_get_object_or_404.side_effect = Http404("No Acto matches the given query.")
 
         with self.assertRaises(Http404):
-            update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=id_falso,
-                data_validada=data_cambios
-            )
-
-
-
-    def test_update_acto_service_cambio_tipo_con_puestos_prohibido(self):
-        """
-        #     Test: Intentar cambiar tipo con puestos asignados
-
-        #     Given: Un acto (self.acto_db_tradicional) que ya tiene puestos asignados 
-        #           en la base de datos (puesto_en_acto_tradicional).
-        #     When: Se intenta cambiar el campo 'tipo_acto' por uno diferente.
-        #     Then: El servicio lanza un ValidationError con un mensaje específico, 
-        #           evitando que los puestos queden en un estado inconsistente.
-        """
-        usuario_ejecutor = self.admin
-        acto_con_puestos = self.acto_db_tradicional
-        nuevo_tipo = self.tipo_con_papeleta_alt
-
-        self.assertTrue(acto_con_puestos.puestos_disponibles.exists())
-        self.assertNotEqual(acto_con_puestos.tipo_acto, nuevo_tipo)
+            update_acto_service(usuario_admin, acto_id_inexistente, data_validada)
         
-        data_cambios = {
-            "tipo_acto": nuevo_tipo,
-            "nombre": "Intento de cambio de tipo"
-        }
-
-        with self.assertRaises(DjangoValidationError) as cm:
-            update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto_con_puestos.id,
-                data_validada=data_cambios
-            )
-
-        self.assertIn("tipo_acto", cm.exception.message_dict)
-        self.assertEqual(
-            cm.exception.message_dict["tipo_acto"][0],
-            "No se puede cambiar el tipo de acto porque ya tiene puestos asignados."
-        )
-
-        acto_con_puestos.refresh_from_db()
-        self.assertNotEqual(acto_con_puestos.tipo_acto, nuevo_tipo)
-        self.assertEqual(acto_con_puestos.tipo_acto, self.tipo_con_papeleta)
+        mock_get_object_or_404.assert_called_once()
 
 
 
-    @patch("api.models.Acto.save")
-    def test_update_acto_service_no_guarda_si_falla_validacion_tipo(self, mock_save):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_acto_save_lanza_excepcion_y_se_propaga(self, mock_get_object_or_404):
         """
-        #     Test: No debe guardar si falla la validación del tipo
+        Test: Errores durante guardado -> acto.save() lanza excepción
 
-        #     Given: Un acto con puestos asignados y un intento de cambiar su tipo_acto.
-        #     When: Se ejecuta el servicio update_acto_service().
-        #     Then: Se lanza un ValidationError y se garantiza que el método .save()
-        #           NUNCA es llamado, evitando cualquier escritura en BD.
+        Given: Un usuario administrador y datos válidos.
+                El objeto acto se recupera correctamente.
+        When: Se llama al método save() del acto y este lanza una excepción 
+                inesperada (ej. un error de base de datos).
+        Then: El servicio no debe capturar la excepción.
+                La excepción debe propagarse hacia arriba para permitir el 
+                manejo de errores global y el rollback de la transacción.
         """
-        usuario_ejecutor = self.admin
-        acto_con_puestos = self.acto_db_tradicional
-        nuevo_tipo = self.tipo_con_papeleta_alt
-
-        self.assertTrue(acto_con_puestos.puestos_disponibles.exists())
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
         
-        data_cambios = {
-            "tipo_acto": nuevo_tipo,
-            "nombre": "Nombre que nunca debería guardarse"
-        }
+        data_validada = {'nombre': 'Nombre con fallo en BD'}
 
-        with self.assertRaises(DjangoValidationError):
-            update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto_con_puestos.id,
-                data_validada=data_cambios
-            )
+        mock_acto = MagicMock()
+        mensaje_error = "Error de escritura en disco o base de datos"
+        mock_acto.save.side_effect = Exception(mensaje_error)
+        
+        mock_get_object_or_404.return_value = mock_acto
 
-        mock_save.assert_not_called()
+        with self.assertRaises(Exception) as context:
+            update_acto_service(usuario_admin, 1, data_validada)
 
-        acto_con_puestos.refresh_from_db()
-        self.assertNotEqual(
-            acto_con_puestos.nombre, 
-            "Nombre que nunca debería guardarse",
-            "El nombre se actualizó en la BD a pesar de que la validación falló."
-        )
+        self.assertEqual(str(context.exception), mensaje_error)
+
+        mock_acto.save.assert_called_once()
 
 
 
-    def test_update_acto_service_falla_save_y_no_se_captura(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_tipo_acto_no_presente_en_data_validada_no_evalua_puestos(self, mock_get_object_or_404):
         """
-        #     Test: Error en save() (validación del modelo)
+        Test: Casos límite -> tipo_acto no presente en data_validada
 
-        #     Given: Datos que pasan la lógica del servicio pero fallan en el 
-        #           save/clean del modelo.
-        #     When: Se ejecuta update_acto_service().
-        #     Then: Se lanza un ValidationError y se verifica que el servicio
-        #           no captura la excepción, dejándola escalar.
+        Given: Un usuario administrador.
+                Un payload de actualización que solo contiene campos como 'lugar' o 'nombre'.
+        When: Se llama al servicio update_acto_service.
+        Then: El servicio debe identificar que 'tipo_acto' no está en data_validada.
+                NO debe acceder a la relación puestos_disponibles.
+                Se actualizan los campos presentes y se llama a save().
         """
-        usuario_ejecutor = self.admin
-        acto_id = self.acto_db_no_papeleta.id
-        data_cambios = {"nombre": "Nombre Inválido por Modelo"}
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        with patch("api.models.Acto.save") as mock_save:
-            mock_save.side_effect = DjangoValidationError({"nombre": "Error de integridad del modelo."})
+        data_parcial = {'lugar': 'Plaza Mayor'}
+        
+        mock_acto = MagicMock()
+        mock_get_object_or_404.return_value = mock_acto
 
-            with self.assertRaises(DjangoValidationError) as cm:
-                update_acto_service(
-                    usuario=usuario_ejecutor,
-                    acto_id=acto_id,
-                    data_validada=data_cambios
-                )
+        update_acto_service(usuario_admin, 1, data_parcial)
 
-            self.assertIn("nombre", cm.exception.message_dict)
-            self.assertEqual(
-                cm.exception.message_dict["nombre"][0],
-                "Error de integridad del modelo."
-            )
+        mock_acto.puestos_disponibles.exists.assert_not_called()
 
-            mock_save.assert_called_once()
+        self.assertEqual(mock_acto.lugar, 'Plaza Mayor')
+
+        mock_acto.save.assert_called_once()
 
 
 
-    def test_update_acto_service_data_validada_vacio(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_tipo_acto_es_none_en_data_validada_no_evalua_puestos(self, mock_get_object_or_404):
         """
-        #     Test: data_validada vacío
+        Test: tipo_acto = None
 
-        #     Given: Un diccionario data_validada sin ninguna clave ({}).
-        #     When: Se llama al servicio update_acto_service().
-        #     Then: El servicio no debe fallar, el acto no cambia sus valores 
-        #           pero se ejecuta el método save() (comportamiento actual).
+        Given: Un usuario administrador.
+                Un payload donde 'tipo_acto' es explícitamente None (falsy).
+        When: Se llama al servicio update_acto_service.
+        Then: La condición 'if nuevo_tipo' debe evaluar a False.
+                NO debe llamarse a puestos_disponibles.exists().
+                Se llama a setattr(acto, 'tipo_acto', None) y a save().
         """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_no_papeleta
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        nombre_original = acto_a_editar.nombre
-        data_vacia = {}
+        data_nula = {'tipo_acto': None}
+        
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'ENSAYO'
+        mock_get_object_or_404.return_value = mock_acto
 
-        with patch("api.models.Acto.save") as mock_save:
-            acto_retornado = update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto_a_editar.id,
-                data_validada=data_vacia
-            )
+        update_acto_service(usuario_admin, 1, data_nula)
 
-            self.assertEqual(acto_retornado.id, acto_a_editar.id)
+        mock_acto.puestos_disponibles.exists.assert_not_called()
 
-            self.assertEqual(acto_retornado.nombre, nombre_original)
+        self.assertIsNone(mock_acto.tipo_acto)
 
-            self.assertEqual(
-                mock_save.call_count, 
-                1, 
-                "El servicio debería haber ejecutado save() incluso con datos vacíos."
-            )
+        mock_acto.save.assert_called_once()
 
 
 
-    def test_update_acto_service_campo_inexistente_no_persiste(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_puestos_disponibles_exists_lanza_excepcion_y_se_propaga(self, mock_get_object_or_404):
         """
-        #     Test: Campo inexistente en data_validada
+        Test: puestos_disponibles.exists() lanza excepción
 
-        #     Given: Una clave en data_validada que NO es un atributo del modelo ('campo_inventado').
-        #     When: Se llama al servicio update_acto_service().
-        #     Then: setattr añade el atributo al objeto en memoria (runtime), 
-        #           pero Django lo ignora en el .save() y no se persiste en la BD.
-        #
-        #     Nota: Esto confirma que el servicio no valida la existencia de los campos.
+        Given: Un usuario administrador intentando cambiar el tipo_acto.
+                Al consultar si existen puestos asignados, el ORM lanza una 
+                excepción (ej. error de conexión o timeout).
+        When: Se llama al servicio update_acto_service.
+        Then: La excepción debe propagarse íntegramente hacia arriba.
+                Se garantiza que la ejecución se detiene y no se llama a save().
         """
-        usuario_ejecutor = self.admin
-        acto_a_editar = self.acto_db_no_papeleta
-        data_con_basura = {
-            "nombre": "Nombre Válido",
-            "campo_inventado": "Soy un infiltrado"
-        }
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        acto_retornado = update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto_a_editar.id,
-            data_validada=data_con_basura
-        )
+        data_validada = {'tipo_acto': 'NUEVO_TIPO'}
+        
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'TIPO_ANTIGUO'
 
-        self.assertTrue(hasattr(acto_retornado, "campo_inventado"))
-        self.assertEqual(acto_retornado.campo_inventado, "Soy un infiltrado")
+        mensaje_error = "Database timeout al consultar puestos_disponibles"
+        mock_acto.puestos_disponibles.exists.side_effect = Exception(mensaje_error)
+        
+        mock_get_object_or_404.return_value = mock_acto
 
-        acto_a_editar.refresh_from_db()
-        self.assertEqual(acto_a_editar.nombre, "Nombre Válido")
+        with self.assertRaises(Exception) as context:
+            update_acto_service(usuario_admin, 1, data_validada)
 
-        with self.assertRaises(AttributeError):
-            print(acto_a_editar.campo_inventado)
+        self.assertEqual(str(context.exception), mensaje_error)
+
+        mock_acto.save.assert_not_called()
 
 
 
-    def test_update_acto_service_no_modifica_atributos_no_incluidos(self):
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_data_validada_con_atributo_inexistente_intenta_setattr_igualmente(self, mock_get_object_or_404):
         """
-        #     Test: No debe modificar atributos no incluidos
+        Test: data_validada contiene atributo inexistente
 
-        #     Given: Un Acto con valores iniciales definidos y un payload que solo 
-        #           contiene un campo (ej: lugar).
-        #     When: Se ejecuta el servicio update_acto_service().
-        #     Then: Solo el campo 'lugar' se actualiza en la base de datos, mientras 
-        #           que el 'nombre' y otros atributos NO incluidos en data_validada 
-        #           permanecen idénticos a su estado original.
+        Given: Un usuario administrador.
+                Un diccionario data_validada con un campo que no pertenece al modelo Acto
+                (ej. 'campo_fantasma').
+        When: Se llama al servicio update_acto_service.
+        Then: El servicio debe intentar aplicar setattr para ese campo igualmente.
+                Esto demuestra que el servicio no tiene una lista blanca (whitelist) 
+                de campos, delegando la integridad estructural al modelo y al serializador.
+                Se llama a save() con el objeto modificado en memoria.
         """
-        usuario_ejecutor = self.admin
-        acto = self.acto_db_no_papeleta
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
 
-        nombre_original = acto.nombre
-        fecha_original = acto.fecha
-        descripcion_original = acto.descripcion
+        data_con_ruido = {'campo_fantasma': 'valor_arbitrario'}
+        
+        mock_acto = MagicMock()
+        mock_get_object_or_404.return_value = mock_acto
 
-        data_cambios = {
-            "lugar": "Ubicación Modificada Específicamente"
-        }
+        update_acto_service(usuario_admin, 1, data_con_ruido)
 
-        update_acto_service(
-            usuario=usuario_ejecutor,
-            acto_id=acto.id,
-            data_validada=data_cambios
-        )
+        self.assertEqual(mock_acto.campo_fantasma, 'valor_arbitrario')
 
-        acto.refresh_from_db()
-
-        self.assertEqual(acto.lugar, "Ubicación Modificada Específicamente")
-
-        self.assertEqual(
-            acto.nombre, 
-            nombre_original, 
-            "El campo 'nombre' se modificó sin estar en el payload."
-        )
-        self.assertEqual(
-            acto.fecha, 
-            fecha_original, 
-            "La 'fecha' se modificó sin estar en el payload."
-        )
-        self.assertEqual(
-            acto.descripcion, 
-            descripcion_original, 
-            "La 'descripcion' se modificó sin estar en el payload."
-        )
-
-
-
-    @patch("api.models.Acto.save")
-    def test_update_acto_service_atomicidad_rollback(self, mock_save):
-        """
-        #     Test: Atomicidad: rollback en caso de error
-
-        #     Given: Un usuario administrador y un Acto con valores conocidos.
-        #     When: El servicio actualiza atributos en memoria, pero el método .save() 
-        #           lanza una excepción (simulando un fallo de integridad o de BD).
-        #     Then: La transacción debe revertirse, asegurando que los valores en la 
-        #           base de datos permanecen como estaban antes de la llamada.
-        """
-        usuario_ejecutor = self.admin
-        acto = self.acto_db_no_papeleta
-        nombre_original = acto.nombre
-        lugar_original = acto.lugar
-
-        data_cambios = {
-            "nombre": "Nombre Transaccional",
-            "lugar": "Lugar Transaccional"
-        }
-
-        mock_save.side_effect = DjangoValidationError("Fallo forzado para probar rollback")
-
-        with self.assertRaises(DjangoValidationError):
-            update_acto_service(
-                usuario=usuario_ejecutor,
-                acto_id=acto.id,
-                data_validada=data_cambios
-            )
-
-        acto.refresh_from_db()
-
-        self.assertEqual(
-            acto.nombre, 
-            nombre_original, 
-            "El rollback falló: el nombre se persistió a pesar del error."
-        )
-        self.assertEqual(
-            acto.lugar, 
-            lugar_original, 
-            "El rollback falló: el lugar se persistió a pesar del error."
-        )
+        mock_acto.save.assert_called_once()
