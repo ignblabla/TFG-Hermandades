@@ -9,8 +9,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
 from api.serializadores.comunicado.comunicado_serializer import ComunicadoFormSerializer, ComunicadoListSerializer, ComunicadoSerializer
-from api.servicios.comunicado.comunicado_service import ComunicadoRAGService, ComunicadoService
+from api.servicios.comunicado.comunicado_service import ComunicadoService
 from api.pagination import PaginacionDoceElementos
+from api.servicios.comunicado.comunicado_rag_service import ComunicadoRAGService
 
 
 class MisComunicadosListView(generics.ListAPIView):
