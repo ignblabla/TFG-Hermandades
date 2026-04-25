@@ -365,6 +365,20 @@ class Acto(models.Model):
         super().clean()
         errors = {}
 
+        if self.nombre and self.fecha:
+            actos_existentes = Acto.objects.filter(
+                nombre=self.nombre.strip(), 
+                fecha__date=self.fecha.date()
+            )
+
+            if self.pk:
+                actos_existentes = actos_existentes.exclude(pk=self.pk)
+                
+            if actos_existentes.exists():
+                raise ValidationError({
+                    "non_field_errors": [f"Ya existe un acto llamado '{self.nombre}' para la fecha {self.fecha.strftime('%d/%m/%Y')}."]
+                })
+
         if self.nombre is not None and not self.nombre.strip():
             errors["nombre"] = "El nombre del acto no puede estar vacío."
 
