@@ -4,7 +4,7 @@ from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
 from api.vistas.cuota.cuota_view import MisCuotasListView
-from api.vistas.solicitud_insignia.solicitud_insignia_view import DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
+from api.vistas.solicitud_insignia.solicitud_insignia_view import SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
@@ -13,6 +13,10 @@ from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
 from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
 from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
 from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
+from api.vistas.solicitud_insignia.ejecutar_asignacion_automatica_view import EjecutarRepartoView
+from api.vistas.solicitud_insignia.descargar_listado_insignias_asignadas_view import DescargarListadoInsigniasView
+from api.vistas.solicitud_insignia.descargar_listado_insignias_vacantes_view import DescargarListadoVacantesView
+from api.vistas.solicitud_insignia.descargar_listado_todas_insignias_view import DescargarListadoTodasInsigniasView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
