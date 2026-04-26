@@ -9,27 +9,9 @@ from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 
 from api.serializadores.solicitud_insignia.solicitud_insignia_serializer import ActoInsigniaResumenSerializer, SolicitudInsigniaSerializer
-from api.servicios.solicitud_insignia.solicitud_insignia_service import ActoService, RepartoService, SolicitudInsigniaService
+from api.servicios.solicitud_insignia.solicitud_insignia_service import SolicitudInsigniaService
 from api.models import Acto, PapeletaSitio, Puesto
-
-
-class ActoActivoInsigniasView(APIView):
-    """
-    Endpoint para obtener el acto cuyo plazo de solicitud de insignias 
-    se encuentra actualmente abierto.
-    """
-    
-    def get(self, request, *args, **kwargs):
-        acto = ActoService.obtener_acto_activo_insignias()
-        
-        if acto:
-            serializer = ActoInsigniaResumenSerializer(acto)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(
-                {"detail": "No hay ningún acto con el plazo de solicitud de insignias abierto actualmente."}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+from api.servicios.solicitud_insignia.ejecucion_automatica_insignia_service import RepartoService
 
 
 

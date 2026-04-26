@@ -4,7 +4,7 @@ from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
 from api.vistas.cuota.cuota_view import MisCuotasListView
-from api.vistas.solicitud_insignia.solicitud_insignia_view import ActoActivoInsigniasView, DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
+from api.vistas.solicitud_insignia.solicitud_insignia_view import DescargarListadoInsigniasView, DescargarListadoTodasInsigniasView, DescargarListadoVacantesView, EjecutarRepartoView, SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
@@ -63,7 +63,6 @@ urlpatterns = [
 
 
     #Actos
-    path('actos/activo-insignias/', ActoActivoInsigniasView.as_view(), name='acto-activo-insignias'),
     path('actos/', ActoListAPIView.as_view(), name='acto-list'),
 
 
