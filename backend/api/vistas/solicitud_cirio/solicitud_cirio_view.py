@@ -7,8 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from api.servicios.solicitud_cirio.solicitud_cirio_service import ReportesCiriosService
 from api.models import Acto
+from api.servicios.solicitud_cirio.ejecucion_automatica_cirio_service import ReportesCiriosService
 
 class EjecutarRepartoCiriosView(APIView):
     """

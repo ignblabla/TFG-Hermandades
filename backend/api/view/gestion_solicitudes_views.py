@@ -4,13 +4,10 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
 
-from api.servicios.solicitud_cirio_tradicional import SolicitudCirioTradicionalService
+from api.servicios.solicitud_cirio.solicitud_cirio_service import SolicitudCirioTradicionalService
 
 from ..servicios.papeleta_sitio_service import PapeletaSitioService
-from ..serializers import (
-    SolicitudCirioSerializer, 
-    SolicitudUnificadaSerializer,
-)
+from ..serializers import (SolicitudCirioSerializer, SolicitudUnificadaSerializer)
 
 # -----------------------------------------------------------------------------
 # VISTA 2: SOLICITUD DE CIRIO (MODALIDAD TRADICIONAL - FASE 2)

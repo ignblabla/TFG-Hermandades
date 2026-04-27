@@ -16,7 +16,7 @@ from api.models import (
 
 from api.servicios.papeleta_sitio_service import PapeletaSitioService
 from api.tests.factories import HermanoFactory
-from api.servicios.solicitud_cirio_tradicional import SolicitudCirioTradicionalService
+from api.servicios.solicitud_cirio.solicitud_cirio_service import SolicitudCirioTradicionalService
 
 User = get_user_model()
 

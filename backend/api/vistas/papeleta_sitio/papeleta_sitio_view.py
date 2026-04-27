@@ -7,7 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 from api.servicios.papeleta_sitio.papeleta_sitio_service import get_historial_papeletas_hermano_service, get_ultima_papeleta_hermano_service, obtener_datos_tabla_insignias_acto
 from api.serializadores.papeleta_sitio.papeleta_sitio_serializer import FilaTablaInsigniaSerializer, HistorialPapeletaSerializer
 from api.pagination import StandardResultsSetPagination
-from api.servicios.papeleta_telegram import TelegramWebhookService
+from api.servicios.papeleta_sitio.papeleta_telegram_service import TelegramWebhookService
 
 class TablaInsigniasActoView(APIView):
     permission_classes = [IsAuthenticated]

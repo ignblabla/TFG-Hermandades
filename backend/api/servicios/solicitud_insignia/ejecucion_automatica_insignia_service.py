@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import F, Q, Count, Max
 
 from api.models import Acto, PapeletaSitio, Puesto
-from api.servicios.papeleta_telegram import TelegramWebhookService
+from api.servicios.papeleta_sitio.papeleta_telegram_service import TelegramWebhookService
 
 
 class RepartoService:

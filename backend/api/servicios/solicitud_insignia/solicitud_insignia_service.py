@@ -1,6 +1,6 @@
 from django.utils import timezone
 from api.models import Acto, CuerpoPertenencia, Cuota, Hermano, PapeletaSitio, PreferenciaSolicitud, Puesto
-from api.servicios.papeleta_telegram import TelegramWebhookService
+from api.servicios.papeleta_sitio.papeleta_telegram_service import TelegramWebhookService
 from datetime import datetime, time
 import uuid
 from django.utils import timezone

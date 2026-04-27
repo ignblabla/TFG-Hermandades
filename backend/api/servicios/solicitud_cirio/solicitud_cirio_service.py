@@ -1,311 +1,310 @@
 import uuid
-from io import BytesIO
-import math 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import F, Max, Q
 
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet
+from api.models import Acto, CuerpoPertenencia, Cuota, Hermano, PapeletaSitio, Puesto
 
-from api.models import Acto, PapeletaSitio, Tramo, Puesto
-from api.servicios.papeleta_telegram import TelegramWebhookService
 
-class ReportesCiriosService:
-    def ejecutar_asignacion_automatica_cirios(acto_id: int):
-        """
-        Algoritmo de reparto de cirios con INTEGRIDAD DE GRUPOS.
-        Retorna el número de papeletas que han sido asignadas con éxito.
-        """
-        with transaction.atomic():
-            try:
-                acto = Acto.objects.select_for_update().get(id=acto_id)
-            except Acto.DoesNotExist:
-                raise ValidationError("El acto especificado no existe.")
-            
-            if acto.fecha_ejecucion_cirios is not None:
-                raise ValidationError(f"El reparto de cirios ya se ejecutó el {acto.fecha_ejecucion_cirios.strftime('%d/%m/%Y %H:%M')}.")
-                
-            if acto.modalidad == Acto.ModalidadReparto.TRADICIONAL and acto.fecha_ejecucion_reparto is None:
-                raise ValidationError("No se puede ejecutar el reparto de cirios sin haber ejecutado previamente el de insignias.")
-            
-            if not acto.inicio_solicitud_cirios:
-                raise ValidationError("El acto no tiene configuradas las fechas de solicitud de cirios.")
-            
-            ahora = timezone.now()
-            fecha_hoy = ahora.date()
+class SolicitudCirioTradicionalService:
+    ESTADOS_NO_ACTIVOS = (
+        PapeletaSitio.EstadoPapeleta.ANULADA,
+        PapeletaSitio.EstadoPapeleta.NO_ASIGNADA,
+    )
 
-            PapeletaSitio.objects.filter(
-                Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
-                acto=acto
-            ).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).update(
-                tramo=None,
-                numero_papeleta=None,
-                fecha_emision=None,
-                codigo_verificacion=None,
-                orden_en_tramo=None,
-                lado=None,
-                estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
+    def _qs_papeletas_activas(self):
+        return PapeletaSitio.objects.exclude(estado_papeleta__in=self.ESTADOS_NO_ACTIVOS)
+
+    @transaction.atomic
+    def procesar_solicitud_cirio_tradicional(self, hermano: Hermano, acto: Acto, puesto: Puesto, numero_registro_vinculado: int = None):
+
+        Hermano.objects.select_for_update().only("id").get(pk=hermano.pk)
+
+        ahora = timezone.now()
+
+        self._validar_configuracion_acto_tradicional(acto)
+        self._validar_plazo_vigente(ahora, acto.inicio_solicitud_cirios, acto.fin_solicitud_cirios, "cirios")
+
+        cuerpos_hermano_set = set(hermano.cuerpos.values_list('nombre_cuerpo', flat=True))
+        self._validar_hermano_apto_para_solicitar(hermano, cuerpos_hermano_set, ahora)
+
+        self._validar_item_puesto_cirio(cuerpos_hermano_set, acto, puesto)
+
+        solicitud_insignia_a_anular = self._gestionar_conflicto_insignia_y_unicidad(hermano, acto, puesto)
+
+        if solicitud_insignia_a_anular:
+            anulado = (
+                PapeletaSitio.objects
+                .select_for_update()
+                .filter(
+                    pk=solicitud_insignia_a_anular.pk,
+                    estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+                    es_solicitud_insignia=True,
+                    hermano=hermano,
+                    acto=acto,
+                )
+                .update(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA)
             )
 
-            max_papeleta_existente = PapeletaSitio.objects.filter(
-                acto=acto
-            ).aggregate(Max('numero_papeleta'))['numero_papeleta__max']
-
-            contador_global_papeleta = 1 if max_papeleta_existente is None else max_papeleta_existente + 1
-            papeletas_para_actualizar = []
-            candidatos_totales = 0
-
-            flujos = [
-                {'nombre': 'CRISTO', 'cortejo_bool': True, 'paso_enum': Tramo.PasoCortejo.CRISTO},
-                {'nombre': 'VIRGEN', 'cortejo_bool': False, 'paso_enum': Tramo.PasoCortejo.VIRGEN},
-            ]
-
-            for flujo in flujos:
-                qs_candidatos = PapeletaSitio.objects.filter(
-                    Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
-                    acto=acto,
-                    puesto__cortejo_cristo=flujo['cortejo_bool'],
-                    estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA
-                ).select_related('hermano')
-
-                raw_candidatos = list(qs_candidatos)
-                candidatos_totales += len(raw_candidatos)
-                
-                mapa_hermanos_papeletas = {p.hermano.id: p for p in raw_candidatos}
-                
-                mapa_solicitudes_inversas = {}
-                for p in raw_candidatos:
-                    if p.vinculado_a_id:
-                        target_id = p.vinculado_a_id
-                        if target_id not in mapa_solicitudes_inversas:
-                            mapa_solicitudes_inversas[target_id] = []
-                        mapa_solicitudes_inversas[target_id].append(p)
-
-                grupos_procesados = []
-                ids_procesados = set()
-
-                for papeleta in raw_candidatos:
-                    if papeleta.id in ids_procesados:
-                        continue
-
-                    grupo = [papeleta]
-                    ids_procesados.add(papeleta.id)
-
-                    if papeleta.vinculado_a_id:
-                        id_destino = papeleta.vinculado_a_id
-                        if id_destino in mapa_hermanos_papeletas:
-                            target_papeleta = mapa_hermanos_papeletas[id_destino]
-                            if target_papeleta.id not in ids_procesados:
-                                grupo.append(target_papeleta)
-                                ids_procesados.add(target_papeleta.id)
-
-                    mi_hermano_id = papeleta.hermano.id
-                    if mi_hermano_id in mapa_solicitudes_inversas:
-                        solicitantes = mapa_solicitudes_inversas[mi_hermano_id]
-                        for solicitante in solicitantes:
-                            if solicitante.id not in ids_procesados:
-                                grupo.append(solicitante)
-                                ids_procesados.add(solicitante.id)
-
-                    fechas = [p.hermano.fecha_ingreso_corporacion or fecha_hoy for p in grupo]
-                    fecha_efectiva_grupo = max(fechas)
-                    
-                    registros = [p.hermano.numero_registro or 999999 for p in grupo]
-                    registro_maximo_grupo = max(registros)
-
-                    grupos_procesados.append({
-                        'fecha_sort': fecha_efectiva_grupo,
-                        'registro_sort': registro_maximo_grupo,
-                        'papeletas': grupo
-                    })
-
-                grupos_procesados.sort(key=lambda x: (x['fecha_sort'], x['registro_sort']))
-
-                qs_tramos = Tramo.objects.filter(
-                    acto=acto,
-                    paso=flujo['paso_enum']
-                ).order_by('-numero_orden')
-
-                lista_tramos = list(qs_tramos)
-
-                total_grupos = len(grupos_procesados)
-                total_tramos = len(lista_tramos)
-                
-                if total_tramos == 0 and total_grupos > 0:
-                    raise ValidationError(f"Hay hermanos solicitando sitio en {flujo['nombre']} pero no existen tramos configurados para ese paso.")
-                
-                index_grupo_actual = 0
-
-                for i, tramo_actual in enumerate(lista_tramos):
-                    if index_grupo_actual >= total_grupos:
-                        break
-
-                    tramos_restantes = total_tramos - i
-
-                    personas_restantes_count = sum(len(grupos_procesados[k]['papeletas']) for k in range(index_grupo_actual, total_grupos))
-
-                    if tramos_restantes > 0:
-                        cupo_ideal = math.ceil(personas_restantes_count / tramos_restantes)
-                    else:
-                        cupo_ideal = personas_restantes_count
-
-                    ocupacion_actual_tramo = 0
-                    contador_interno_tramo = 0 
-
-                    while index_grupo_actual < total_grupos:
-                        grupo_data = grupos_procesados[index_grupo_actual]
-                        grupo_papeletas = grupo_data['papeletas']
-                        tamano_grupo = len(grupo_papeletas)
-
-                        if (ocupacion_actual_tramo + tamano_grupo) > tramo_actual.numero_maximo_cirios:
-                            if tamano_grupo > tramo_actual.numero_maximo_cirios:
-                                raise ValidationError(f"El grupo vinculado al hermano {grupo_papeletas[0].hermano} tiene {tamano_grupo} personas y supera la capacidad total del tramo {tramo_actual.nombre} ({tramo_actual.numero_maximo_cirios}).")
-                            break 
-
-                        if ocupacion_actual_tramo >= cupo_ideal:
-                            break 
-
-                        for papeleta in grupo_papeletas:
-                            papeleta.tramo = tramo_actual
-                            papeleta.numero_papeleta = contador_global_papeleta
-                            papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.EMITIDA
-                            papeleta.fecha_emision = fecha_hoy
-                            papeleta.codigo_verificacion = uuid.uuid4().hex[:12].upper()
-
-                            papeleta.orden_en_tramo = (contador_interno_tramo // 2) + 1
-                            
-                            if contador_interno_tramo % 2 == 0:
-                                papeleta.lado = PapeletaSitio.LadoTramo.DERECHA
-                            else:
-                                papeleta.lado = PapeletaSitio.LadoTramo.IZQUIERDA
-                            
-                            papeletas_para_actualizar.append(papeleta)
-                            
-                            contador_global_papeleta += 1
-                            contador_interno_tramo += 1
-
-                        ocupacion_actual_tramo += tamano_grupo
-                        index_grupo_actual += 1
-
-                if index_grupo_actual < total_grupos:
-                    personas_sin_asignar = sum(len(grupos_procesados[k]['papeletas']) for k in range(index_grupo_actual, total_grupos))
-                    raise ValidationError(
-                        f"ERROR DE AFORO EN {flujo['nombre']}: Se han quedado {personas_sin_asignar} hermanos sin asignar "
-                        f"por falta de espacio físico en los tramos. Por favor, aumente el aforo máximo de los tramos o cree nuevos."
-                    )
-
-            if candidatos_totales == 0:
-                sin_puesto = PapeletaSitio.objects.filter(acto=acto, puesto__isnull=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
-                es_insignia = PapeletaSitio.objects.filter(acto=acto, es_solicitud_insignia=True).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
-                total_activas = PapeletaSitio.objects.filter(acto=acto).exclude(estado_papeleta=PapeletaSitio.EstadoPapeleta.ANULADA).count()
-                
+            if anulado == 0:
                 raise ValidationError(
-                    f"No se ha encontrado ninguna papeleta válida para asignar a tramos. "
-                    f"Detalle del Acto (Total activas: {total_activas}) -> "
-                    f"Ignoradas por ser Insignias: {es_insignia} | "
-                    f"Ignoradas por NO tener Puesto asignado: {sin_puesto}. "
-                    f"Para que el algoritmo funcione, las papeletas de cirio DEBEN tener un Puesto asociado para saber si van en Cristo o Virgen."
+                    "Tu solicitud de insignia cambió de estado durante el proceso. "
+                    "Vuelve a intentarlo o contacta con secretaría."
                 )
 
-            if papeletas_para_actualizar:
-                PapeletaSitio.objects.bulk_update(
-                    papeletas_para_actualizar, 
-                    fields=[
-                        'tramo', 'numero_papeleta', 'estado_papeleta', 
-                        'fecha_emision', 'codigo_verificacion', 
-                        'orden_en_tramo', 'lado'
-                    ],
-                    batch_size=1000
-                )
+        try:
+            papeleta = self._crear_papeleta_base(hermano, acto, ahora)
+            papeleta.puesto = puesto
+            papeleta.save(update_fields=['puesto'])
 
-                for papeleta in papeletas_para_actualizar:
-                    if papeleta.hermano.telegram_chat_id:
-                        nombre_puesto_asignado = papeleta.puesto.nombre if papeleta.puesto else "Cirio / Nazareno base"
-                        
-                        try:
-                            TelegramWebhookService.notificar_papeleta_asignada(
-                                chat_id=papeleta.hermano.telegram_chat_id,
-                                nombre_hermano=papeleta.hermano.nombre,
-                                nombre_acto=acto.nombre,
-                                estado="ASIGNADA",
-                                nombre_puesto=nombre_puesto_asignado
-                            )
-                        except Exception as e:
-                            print(f"Error al enviar Telegram a {papeleta.hermano.nombre}: {e}")
+        except IntegrityError:
+            raise ValidationError(
+                "Ya existe una papeleta activa para este acto. "
+                "Si has pulsado dos veces, espera unos segundos y recarga."
+            )
 
-            acto.fecha_ejecucion_cirios = ahora
-            acto.save(update_fields=['fecha_ejecucion_cirios'])
+        if numero_registro_vinculado:
+            self._procesar_vinculacion(hermano, acto, papeleta, puesto, numero_registro_vinculado)
 
-        return len(papeletas_para_actualizar)
+        return papeleta
+    
 
 
+    def _validar_configuracion_acto_tradicional(self, acto: Acto):
+        """
+        Verifica que el acto sea del tipo correcto para este endpoint.
+        """
+        if acto is None or acto.tipo_acto_id is None:
+            raise ValidationError({"tipo_acto": "El tipo de acto es obligatorio."})
 
-    @staticmethod
-    def generar_pdf_cirios_asignados(acto, filtro_paso=None) -> BytesIO:
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=18)
-        elementos = []
-        styles = getSampleStyleSheet()
+        if not acto.tipo_acto.requiere_papeleta:
+            raise ValidationError(f"El acto '{acto.nombre}' no admite solicitudes de papeleta.")
 
-        titulo_texto = f"Asignación de Tramos y Cirios - {acto.nombre}"
-        if filtro_paso == 'CRISTO':
-            titulo_texto = f"Asignación Cirios (Cristo) - {acto.nombre}"
-        elif filtro_paso == 'VIRGEN':
-            titulo_texto = f"Asignación Cirios (Virgen) - {acto.nombre}"
-
-        titulo = Paragraph(titulo_texto, styles['Title'])
-        elementos.append(titulo)
-        elementos.append(Spacer(1, 20))
-
-        asignaciones_query = PapeletaSitio.objects.filter(
-            acto=acto,
-            tramo__isnull=False
-        ).filter(
-            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True)
-        )
-
-        if filtro_paso:
-            asignaciones_query = asignaciones_query.filter(tramo__paso=filtro_paso)
-
-        asignaciones = asignaciones_query.select_related('hermano', 'puesto', 'tramo').order_by(
-            F('hermano__numero_registro').asc(nulls_last=True) 
-        )
-
-        data = [["Nº Reg.", "Puesto", "Tramo", "Lado", "Orden"]]
+        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
+            raise ValidationError("Este proceso es exclusivo para actos de modalidad TRADICIONAL.")
         
-        for asignacion in asignaciones:
-            num_registro = str(asignacion.hermano.numero_registro) if asignacion.hermano.numero_registro else "Sin N.R."
-            nombre_puesto = asignacion.puesto.nombre if asignacion.puesto else "Cirio"
 
-            nombre_tramo = f"{asignacion.tramo.numero_orden}º - {asignacion.tramo.get_paso_display()}" if asignacion.tramo else "-"
+
+    def _validar_plazo_vigente(self, ahora, inicio, fin, nombre_plazo: str):
+        """
+        Valida que el momento actual esté dentro del rango definido.
+        """
+        if not inicio or not fin:
+            raise ValidationError(f"El plazo de {nombre_plazo} no está configurado en el acto.")
             
-            lado = asignacion.get_lado_display() if asignacion.lado else "-"
-            orden = str(asignacion.orden_en_tramo) if asignacion.orden_en_tramo else "-"
+        if ahora < inicio:
+            raise ValidationError(f"El plazo de solicitud de {nombre_plazo} aún no ha comenzado.")
+        
+        if ahora > fin:
+            raise ValidationError(f"El plazo de solicitud de {nombre_plazo} ha finalizado.")
+        
+
+
+    def _validar_hermano_apto_para_solicitar(self, hermano: Hermano, cuerpos_hermano_set: set, ahora):
+        """Agrupa las validaciones de estado del hermano."""
+        self._validar_hermano_en_alta(hermano)
+        self._validar_hermano_al_corriente_hasta_anio_anterior(hermano, ahora)
+        self._validar_pertenencia_cuerpos(cuerpos_hermano_set)
+
+
+
+    def _validar_hermano_en_alta(self, hermano):
+        if hermano.estado_hermano != Hermano.EstadoHermano.ALTA:
+            raise ValidationError("Solo los hermanos en estado ALTA pueden solicitar papeleta.")
+        
+
+
+    def _validar_hermano_al_corriente_hasta_anio_anterior(self, hermano: Hermano, ahora):
+        anio_actual = ahora.date().year
+        anio_limite = anio_actual - 1
+
+        estados_deuda = [
+            Cuota.EstadoCuota.PENDIENTE, 
+            Cuota.EstadoCuota.DEVUELTA
+        ]
+
+        deuda = hermano.cuotas.filter(
+            anio__lte=anio_limite,
+            estado__in=estados_deuda
+        ).values('anio').order_by('anio').first()
+
+        if deuda:
+            raise ValidationError(
+                f"Consta una cuota pendiente o devuelta del año {deuda['anio']}. "
+                f"Por favor, contacte con mayordomía para regularizar su situación."
+            )
+
+        existe_historial = hermano.cuotas.filter(anio__lte=anio_limite).exists()
+        
+        if not existe_historial:
+            raise ValidationError(
+                f"No constan cuotas registradas hasta el año {anio_limite}. "
+                "Contacte con secretaría para verificar su ficha."
+            )
+        
+
+
+    def _validar_pertenencia_cuerpos(self, cuerpos_hermano_set: set):
+        cuerpos_permitidos = {
+            CuerpoPertenencia.NombreCuerpo.NAZARENOS.value,
+            CuerpoPertenencia.NombreCuerpo.PRIOSTÍA.value,
+            CuerpoPertenencia.NombreCuerpo.JUVENTUD.value,
+            CuerpoPertenencia.NombreCuerpo.CARIDAD_ACCION_SOCIAL.value,
+            CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value,
+        }
+
+        if not cuerpos_hermano_set:
+            return
+
+        cuerpos_no_aptos = set(cuerpos_hermano_set) - cuerpos_permitidos
+
+        if cuerpos_no_aptos:
+            raise ValidationError(
+                "Tu pertenencia a los siguientes cuerpos no permite solicitar esta papeleta: "
+                + ", ".join(sorted(cuerpos_no_aptos))
+            )
+        
+
+
+    def _validar_item_puesto_cirio(self, cuerpos_hermano_set: set, acto: Acto, puesto: Puesto):
+        """Validaciones específicas para un puesto único de Cirio"""
+        if not puesto:
+            raise ValidationError("Debe seleccionar un puesto válido.")
+        
+        if puesto.acto_id != acto.id:
+            raise ValidationError("El puesto no pertenece a este acto.")
+        
+        if puesto.tipo_puesto.es_insignia:
+            raise ValidationError(f"El puesto '{puesto.nombre}' es una Insignia. No puede solicitarse en este formulario.")
+
+        if not puesto.disponible:
+            raise ValidationError(f"El puesto '{puesto.nombre}' no está marcado como disponible.")
             
-            data.append([num_registro, nombre_puesto, nombre_tramo, lado, orden])
+        if (puesto.tipo_puesto.solo_junta_gobierno and CuerpoPertenencia.NombreCuerpo.JUNTA_GOBIERNO.value not in cuerpos_hermano_set):
+            raise ValidationError(f"El puesto '{puesto.nombre}' es exclusivo para la Junta de Gobierno.")
+        
 
-        if len(data) == 1:
-            elementos.append(Paragraph("No se han asignado cirios para estos criterios.", styles['Normal']))
-        else:
-            table = Table(data, colWidths=[60, 140, 190, 80, 60])
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#800020")),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ]))
-            elementos.append(table)
 
-        doc.build(elementos)
-        buffer.seek(0)
-        return buffer
+    def _gestionar_conflicto_insignia_y_unicidad(self, hermano: Hermano, acto: Acto, puesto_nuevo: Puesto):
+        """
+        Maneja la lógica compleja de interacción entre Insignias y Cirios.
+        Retorna: La instancia de Papeleta (Insignia) PENDIENTE si debe anularse.
+        Lanza ValidationError si hay bloqueo insalvable.
+        """
+        papeletas_activas = (
+            self._qs_papeletas_activas()
+            .select_for_update()
+            .filter(hermano=hermano, acto=acto)
+        )
+
+        insignia_a_anular = None
+
+        for p in papeletas_activas:
+            if p.es_solicitud_insignia and p.estado_papeleta in [PapeletaSitio.EstadoPapeleta.EMITIDA, PapeletaSitio.EstadoPapeleta.RECOGIDA, PapeletaSitio.EstadoPapeleta.LEIDA]:
+                raise ValidationError("Ya tienes asignada una Insignia para este acto. No puedes solicitar cirio o cruz de penitente.")
+
+            elif p.es_solicitud_insignia and p.estado_papeleta == PapeletaSitio.EstadoPapeleta.SOLICITADA:
+                insignia_a_anular = p
+                continue
+
+            elif not p.es_solicitud_insignia:
+                tipo_existente = p.puesto.tipo_puesto if p.puesto else None
+                tipo_nuevo = puesto_nuevo.tipo_puesto
+                
+                if tipo_existente and tipo_existente.id == tipo_nuevo.id:
+                    raise ValidationError(f"Ya tienes una solicitud activa para '{tipo_nuevo.nombre_tipo}'.")
+                else:
+                    raise ValidationError("Solo puedes tener una solicitud de sitio (no puedes pedir Cirio y Penitente a la vez).")
+
+        return insignia_a_anular
+    
+
+
+    def _crear_papeleta_base(self, hermano, acto, fecha_solicitud, vinculado_a=None):
+        return PapeletaSitio.objects.create(
+            hermano=hermano,
+            acto=acto,
+            anio=acto.fecha.year,
+            fecha_solicitud=fecha_solicitud,
+            estado_papeleta=PapeletaSitio.EstadoPapeleta.SOLICITADA,
+            vinculado_a=vinculado_a,
+            es_solicitud_insignia=False,
+            codigo_verificacion=uuid.uuid4().hex[:8].upper()
+        )
+    
+
+
+    def _procesar_vinculacion(self, hermano, acto, mi_papeleta, mi_puesto, numero_objetivo):
+        """Lógica compleja de vinculación entre hermanos para tramos"""
+
+        if not numero_objetivo:
+            raise ValidationError("Debe indicar un número de registro válido para vincularse.")
+        
+        if acto.modalidad != Acto.ModalidadReparto.TRADICIONAL:
+            raise ValidationError("La vinculación solo está disponible en modalidad TRADICIONAL.")
+
+        try:
+            hermano_objetivo = Hermano.objects.get(numero_registro=numero_objetivo)
+        except Hermano.DoesNotExist:
+            raise ValidationError(f"No existe hermano con Nº {numero_objetivo}.")
+
+        if hermano_objetivo.id == hermano.id:
+            raise ValidationError("No puedes vincularte contigo mismo.")
+        
+        if hermano.numero_registro is None or hermano_objetivo.numero_registro is None:
+            raise ValidationError("Ambos hermanos deben tener número de registro para poder vincularse.")
+        
+        if hermano.numero_registro > hermano_objetivo.numero_registro:
+            raise ValidationError(
+                f"Tú (Nº {hermano.numero_registro}) eres más nuevo que el Nº {hermano_objetivo.numero_registro}. "
+                "Solo el hermano antiguo puede vincularse al nuevo (perdiendo antigüedad)."
+            )
+
+        qs_obj = (
+            self._qs_papeletas_activas()
+            .select_for_update()
+            .filter(hermano=hermano_objetivo, acto=acto)
+            .order_by("-fecha_solicitud", "-id")
+        )
+
+        count = qs_obj.count()
+        if count == 0:
+            raise ValidationError(f"El hermano Nº {numero_objetivo} no tiene solicitud activa.")
+        if count > 1:
+            raise ValidationError(
+                f"El hermano Nº {numero_objetivo} tiene múltiples solicitudes activas para este acto. "
+                "Contacte con secretaría."
+            )
+
+        papeleta_objetivo = qs_obj.get()
+
+        tengo_dependientes = (
+            self._qs_papeletas_activas()
+            .filter(acto=acto, vinculado_a=hermano)
+            .exists()
+        )
+
+        if tengo_dependientes:
+            raise ValidationError(
+                "No puedes vincularte a otro hermano porque ya tienes a otros hermanos vinculados a ti. "
+                "No se permiten cadenas de vinculación (A->B->C). Diles que se vinculen directamente al hermano objetivo."
+            )
+
+        es_insignia_obj = papeleta_objetivo.es_solicitud_insignia or (
+            papeleta_objetivo.puesto and papeleta_objetivo.puesto.tipo_puesto.es_insignia
+        )
+        if es_insignia_obj:
+            raise ValidationError("No puedes vincularte a un hermano que solicita Insignia.")
+
+        puesto_objetivo = papeleta_objetivo.puesto
+        if not puesto_objetivo:
+            raise ValidationError(f"El hermano Nº {numero_objetivo} no tiene puesto seleccionado.")
+
+        if mi_puesto.tipo_puesto_id != puesto_objetivo.tipo_puesto_id:
+            raise ValidationError("Ambos deben solicitar el mismo tipo de puesto (ej: ambos Cirio).")
+
+        if mi_puesto.cortejo_cristo != puesto_objetivo.cortejo_cristo:
+            raise ValidationError("Conflicto de sección: Uno va en Cristo y otro en Virgen.")
+
+        mi_papeleta.vinculado_a = hermano_objetivo
+        mi_papeleta.save(update_fields=['vinculado_a'])
