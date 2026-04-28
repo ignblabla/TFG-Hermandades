@@ -307,262 +307,349 @@ function EditarMiPerfil() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
-                <div className="text-dashboard">Edición de datos personales</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
-                        {error && (
-                            <div className="alert-banner-edicion-hermano error-edicion-hermano">
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="alert-banner-edicion-hermano success-edicion-hermano">
-                                <CheckCircle size={20} />
-                                <span>{successMsg}</span>
-                            </div>
-                        )}
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-editar-perfil">
+                        <div className="historical-header-container-editar-perfil">
+                            <h1 className="historical-header-title-editar-perfil">EDITAR DATOS PERSONALES</h1>
+                        </div>
+
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                                <span className="plazos-text">Datos del Hermano</span>
+                            <div className="plazos-line"></div>
+                        </div>
 
                         <form onSubmit={handleSubmit}>
-                            <div className="form-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano"><User size={18}/> Datos personales</h3>
-                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Nombre</label>
-                                        <input type="text" name="nombre" value={readOnlyData.nombre} disabled style={{ backgroundColor: '#e9ecef' }}/>
+                            <div className="form-container-editar-perfil">
+                                <div className="form-row-editar-perfil">
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="nombre" className="form-label-editar-perfil">
+                                            Nombre
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="nombre"
+                                                name="nombre" 
+                                                value={readOnlyData.nombre} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Primer apellido</label>
-                                        <input type="text" name="primer_apellido" value={readOnlyData.primer_apellido} disabled style={{ backgroundColor: '#e9ecef' }}/>
+
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="primer_apellido" className="form-label-editar-perfil">
+                                            Primer apellido
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="primer_apellido"
+                                                name="primer_apellido" 
+                                                value={readOnlyData.primer_apellido} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Segundo apellido</label>
-                                        <input type="text" name="segundo_apellido" value={readOnlyData.segundo_apellido} disabled style={{ backgroundColor: '#e9ecef' }}/>
+
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="segundo_apellido" className="form-label-editar-perfil">
+                                            Segundo apellido
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="segundo_apellido"
+                                                name="segundo_apellido" 
+                                                value={readOnlyData.segundo_apellido} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>DNI</label>
-                                        <input type="text" name="dni" value={readOnlyData.dni} disabled style={{ backgroundColor: '#e9ecef' }}/>
+                                    
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="dni" className="form-label-editar-perfil">
+                                            DNI
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="dni"
+                                                name="dni" 
+                                                value={readOnlyData.dni} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Fecha de nacimiento</label>
-                                        <input type="date" name="fecha_nacimiento" value={readOnlyData.fecha_nacimiento || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
+                                </div>
+
+                                <div className="form-row-editar-perfil">
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="fecha_nacimiento" className="form-label-editar-perfil">
+                                            Fecha de nacimiento
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="date" 
+                                                id="fecha_nacimiento"
+                                                name="fecha_nacimiento" 
+                                                value={readOnlyData.fecha_nacimiento || ''} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Género</label>
-                                        <input type="text" name="genero" value={readOnlyData.genero} disabled style={{ backgroundColor: '#e9ecef' }}/>
+
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="genero" className="form-label-editar-perfil">
+                                            Género
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="genero"
+                                                name="genero" 
+                                                value={readOnlyData.genero} 
+                                                disabled 
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Estado Civil</label>
-                                        <select name="estado_civil" value={formData.estado_civil} onChange={handleChange}>
-                                            <option value="SOLTERO">Soltero/a</option>
-                                            <option value="CASADO">Casado/a</option>
-                                            <option value="SEPARADO">Separado/a</option>
-                                            <option value="VIUDO">Viudo/a</option>
-                                        </select>
+
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="estado_civil" className="form-label-editar-perfil">
+                                            Estado Civil
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <select 
+                                                id="estado_civil"
+                                                name="estado_civil" 
+                                                value={formData.estado_civil} 
+                                                onChange={handleChange}
+                                                className="form-control-editar-perfil"
+                                            >
+                                                <option value="SOLTERO">Soltero/a</option>
+                                                <option value="CASADO">Casado/a</option>
+                                                <option value="SEPARADO">Separado/a</option>
+                                                <option value="VIUDO">Viudo/a</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Nueva Contraseña</label>
-                                        <input 
-                                            type="password" name="password" value={formData.password} 
-                                            onChange={handleChange} placeholder="Opcional" autoComplete="new-password"
-                                        />
+                                    
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="password" className="form-label-editar-perfil">
+                                            Nueva Contraseña
+                                        </label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="password" 
+                                                id="password"
+                                                name="password" 
+                                                value={formData.password} 
+                                                onChange={handleChange} 
+                                                placeholder="Opcional" 
+                                                autoComplete="new-password"
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano"><MapPin size={18}/> Dirección y contacto</h3>
-                                <div className="form-grid-edicion-hermano grid-6-mixed-edicion-hermano">
-                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
-                                        <label>Dirección Postal</label>
-                                        <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} />
-                                    </div>
-                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
-                                        <label>Localidad</label>
-                                        <input type="text" name="localidad" value={formData.localidad} onChange={handleChange} />
-                                    </div>
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Información de contacto</span>
+                                <div className="plazos-line"></div>
+                            </div>
 
-                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
-                                        <label>C. Postal</label>
-                                        <input type="text" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} />
+                            <div className="form-grid-editar-perfil">
+                                <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
+                                    <label htmlFor="direccion" className="form-label-editar-perfil">Dirección Postal</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
-                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
-                                        <label>Provincia</label>
-                                        <input type="text" name="provincia" value={formData.provincia} onChange={handleChange} />
+                                </div>
+                                <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
+                                    <label htmlFor="localidad" className="form-label-editar-perfil">Localidad</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="localidad" name="localidad" value={formData.localidad} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
-                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
-                                        <label>Comunidad Autónoma</label>
-                                        <input type="text" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} />
-                                    </div>
+                                </div>
 
-                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
-                                        <label>Teléfono</label>
-                                        <input type="text" name="telefono" value={formData.telefono} onChange={handleChange} required />
+                                <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
+                                    <label htmlFor="codigo_postal" className="form-label-editar-perfil">C. Postal</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="codigo_postal" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
-                                    <div className="form-group-edicion-hermano span-3-edicion-hermano">
-                                        <label>Email</label>
-                                        <input type="email" name="email" value={formData.email} onChange={handleChange} required />
+                                </div>
+                                <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
+                                    <label htmlFor="provincia" className="form-label-editar-perfil">Provincia</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="provincia" name="provincia" value={formData.provincia} onChange={handleChange} className="form-control-editar-perfil" />
+                                    </div>
+                                </div>
+                                <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
+                                    <label htmlFor="comunidad_autonoma" className="form-label-editar-perfil">Comunidad Autónoma</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="comunidad_autonoma" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} className="form-control-editar-perfil" />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
+                                    <label htmlFor="telefono" className="form-label-editar-perfil">Teléfono</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} required className="form-control-editar-perfil" />
+                                    </div>
+                                </div>
+                                <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
+                                    <label htmlFor="email" className="form-label-editar-perfil">Email</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="form-control-editar-perfil" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano"><CreditCard size={18}/> Datos Bancarios</h3>
-                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
-                                    <div className="form-group-edicion-hermano span-2-edicion-hermano">
-                                        <label>IBAN de la cuenta</label>
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Datos bancarios</span>
+                                <div className="plazos-line"></div>
+                            </div>
+
+                            <div className="form-grid-4-editar-perfil">
+                                <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
+                                    <label htmlFor="iban" className="form-label-editar-perfil">IBAN de la cuenta</label>
+                                    <div className="input-wrapper-editar-perfil">
                                         <input 
                                             type="text" 
+                                            id="iban"
                                             name="iban" 
                                             value={formData.datos_bancarios.iban} 
                                             onChange={handleBankChange} 
                                             placeholder="ES00..." 
                                             required 
+                                            className="form-control-editar-perfil"
                                         />
                                     </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Periodicidad de cobro</label>
-                                        <select name="periodicidad" value={formData.datos_bancarios.periodicidad} onChange={handleBankChange}>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="periodicidad" className="form-label-editar-perfil">Periodicidad</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <select 
+                                            id="periodicidad"
+                                            name="periodicidad" 
+                                            value={formData.datos_bancarios.periodicidad} 
+                                            onChange={handleBankChange}
+                                            className="form-control-editar-perfil"
+                                        >
                                             <option value="TRIMESTRAL">Trimestral</option>
                                             <option value="SEMESTRAL">Semestral</option>
                                             <option value="ANUAL">Anual</option>
                                         </select>
                                     </div>
-                                    <div className="form-group-edicion-hermano checkbox-group-edicion-hermano" style={{ justifyContent: 'center' }}>
-                                        <label>
-                                            <input 
-                                                type="checkbox" 
-                                                name="es_titular" 
-                                                checked={formData.datos_bancarios.es_titular} 
-                                                onChange={handleBankChange} 
-                                            />
-                                            <span>Soy titular de la cuenta</span>
-                                        </label>
-                                    </div>
-                                    
-                                    {/* Mostrar solo si NO es titular */}
-                                    {!formData.datos_bancarios.es_titular && (
-                                        <div className="form-group-edicion-hermano span-2-edicion-hermano">
-                                            <label>Nombre y apellidos del titular de la cuenta</label>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil checkbox-container-editar-perfil">
+                                    <label className="checkbox-label-editar-perfil">
+                                        <input 
+                                            type="checkbox" 
+                                            name="es_titular" 
+                                            checked={formData.datos_bancarios.es_titular} 
+                                            onChange={handleBankChange} 
+                                            className="form-checkbox-editar-perfil"
+                                        />
+                                        <span>Soy titular de la cuenta</span>
+                                    </label>
+                                </div>
+
+                                {!formData.datos_bancarios.es_titular && (
+                                    <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
+                                        <label htmlFor="titular_cuenta" className="form-label-editar-perfil">Nombre y apellidos del titular</label>
+                                        <div className="input-wrapper-editar-perfil">
                                             <input 
                                                 type="text" 
+                                                id="titular_cuenta"
                                                 name="titular_cuenta" 
                                                 value={formData.datos_bancarios.titular_cuenta || ''} 
                                                 onChange={handleBankChange} 
                                                 placeholder="Solo si no es tu cuenta"
                                                 required={!formData.datos_bancarios.es_titular} 
+                                                className="form-control-editar-perfil"
                                             />
                                         </div>
-                                    )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Datos eclesiásticos</span>
+                                <div className="plazos-line"></div>
+                            </div>
+
+                            <div className="form-row-editar-perfil">
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="fecha_bautismo" className="form-label-editar-perfil">Fecha Bautismo</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="date" 
+                                            id="fecha_bautismo"
+                                            name="fecha_bautismo" 
+                                            value={readOnlyData.fecha_bautismo || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="lugar_bautismo" className="form-label-editar-perfil">Lugar Bautismo</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="text" 
+                                            id="lugar_bautismo"
+                                            name="lugar_bautismo" 
+                                            value={readOnlyData.lugar_bautismo || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="parroquia_bautismo" className="form-label-editar-perfil">Parroquia</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="text" 
+                                            id="parroquia_bautismo"
+                                            name="parroquia_bautismo" 
+                                            value={readOnlyData.parroquia_bautismo || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano"><Calendar size={18}/> Datos Eclesiásticos</h3>
-                                <div className="form-grid-edicion-hermano grid-3-edicion-hermano">
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Fecha Bautismo</label>
-                                        <input type="date" name="fecha_bautismo" value={readOnlyData.fecha_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Lugar Bautismo</label>
-                                        <input type="text" name="lugar_bautismo" value={readOnlyData.lugar_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Parroquia</label>
-                                        <input type="text" name="parroquia_bautismo" value={readOnlyData.parroquia_bautismo || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="form-section-edicion-hermano admin-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano admin-title-edicion-hermano"><ShieldAlert size={18}/> Gestión Interna (Secretaría)</h3>
-                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Nº Registro Hermandad</label>
-                                        <input type="number" name="numero_registro" value={readOnlyData.numero_registro} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Estado</label>
-                                        <input type="text" name="estado_hermano" value={readOnlyData.estado_hermano} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Fecha Ingreso</label>
-                                        <input type="date" name="fecha_ingreso_corporacion" value={readOnlyData.fecha_ingreso} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                    <div className="form-group-edicion-hermano">
-                                        <label>Fecha Baja</label>
-                                        <input type="date" name="fecha_baja_corporacion" value={readOnlyData.fecha_baja || ''} disabled style={{ backgroundColor: '#e9ecef' }}/>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="form-section-edicion-hermano">
-                                <h3 className="section-title-edicion-hermano"><ListTodo size={18}/> Mis Áreas de interés</h3>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                                    Selecciona los grupos de los que quieres recibir notificaciones.
-                                </p>
+                            <div className="form-actions-editar-perfil">
+                                <button 
+                                    type="button" 
+                                    className="btn-cancel-editar-perfil" 
+                                    onClick={() => navigate("/hermanos/listado")}
+                                >
+                                    Cancelar
+                                </button>
                                 
-                                <div className="form-grid-edicion-hermano grid-4-edicion-hermano">
-                                    {sortedAreasDB.map(area => {
-                                        const visualInfo = areaInfoEstatica[area.nombre_area] || {};
-                                        const isMandatory = area.nombre_area === 'TODOS_HERMANOS';
-                                        const isSelected = isMandatory ? true : formData.areas_interes.includes(area.nombre_area);
-                                        
-                                        return (
-                                            <div 
-                                                key={area.id}
-                                                onClick={() => handleAreaToggle(area.nombre_area)}
-                                                // Asignamos la nueva clase si es la tarjeta general
-                                                className={isMandatory ? 'span-full-edicion' : ''}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '12px',
-                                                    padding: '12px 16px',
-                                                    borderRadius: '8px',
-                                                    border: isSelected ? '2px solid var(--burgundy-primary)' : '1px solid var(--border-color)',
-                                                    backgroundColor: isSelected ? 'var(--focus-ring)' : '#fff',
-                                                    cursor: isMandatory ? 'not-allowed' : 'pointer',
-                                                    transition: 'all 0.2s ease',
-                                                    boxSizing: 'border-box',
-                                                    opacity: isMandatory ? 0.9 : 1
-                                                }}
-                                            >
-                                                <div style={{ color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-muted)', display: 'flex' }}>
-                                                    {visualInfo.icon}
-                                                </div>
-                                                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <span style={{ 
-                                                            fontSize: '0.9rem', 
-                                                            color: isSelected ? 'var(--burgundy-primary)' : 'var(--text-dark)',
-                                                            fontWeight: isSelected ? '700' : '600'
-                                                        }}>
-                                                            {visualInfo.title || area.nombre_area}
-                                                        </span>
-                                                        {isMandatory && (
-                                                            <span style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#6c757d', backgroundColor: '#e9ecef', padding: '3px 8px', borderRadius: '12px' }}>
-                                                                OBLIGATORIO
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {isMandatory && visualInfo.desc && (
-                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                                            {visualInfo.desc}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="form-actions-edicion-hermano">
-                                <button type="button" className="btn-cancel-edicion-hermano" onClick={() => navigate("/hermanos/listado")}>Cancelar</button>
-                                <button type="submit" className="btn-save-edicion-hermano" disabled={saving}>
+                                <button 
+                                    type="submit" 
+                                    className="btn-save-editar-perfil" 
+                                    disabled={saving}
+                                >
                                     <Save size={18} />
                                     {saving ? "Guardando..." : "Guardar Cambios"}
                                 </button>

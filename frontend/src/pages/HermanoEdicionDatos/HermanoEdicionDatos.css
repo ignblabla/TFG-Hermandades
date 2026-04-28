@@ -1,298 +1,237 @@
-:root {
-    --burgundy-primary: #800020;
-    --border-color: #e2e8f0;
-    --bg-light: #f8fafc;
-    --text-dark: #1e293b;
-    --text-muted: #64748b;
-    --focus-ring: rgba(128, 0, 32, 0.15);
-}
-
-.form-grid-edicion-hermano {
-    display: grid;
-    gap: 1.25rem;
+.dashboard-panel-editar-perfil {
     width: 100%;
-}
-
-@media (min-width: 1024px) {
-    .grid-4-edicion-hermano {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .grid-3-edicion-hermano {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 1023px) and (min-width: 640px) {
-    .grid-4-edicion-hermano, .grid-3-edicion-hermano {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 639px) {
-    .grid-4-edicion-hermano, .grid-3-edicion-hermano {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (min-width: 1024px) {
-    .span-2-edicion-hermano {
-        grid-column: span 2;
-    }
-}
-
-/* ESTILOS DE LOS INPUTS Y LABELS */
-.form-section-edicion-hermano {
-    margin-bottom: 2rem;
-}
-
-.section-title-edicion-hermano {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--burgundy-primary);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 2px solid #fce7f3;
-    padding-bottom: 0.75rem;
-    width: 100%;
-}
-
-.form-group-edicion-hermano {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.form-group-edicion-hermano label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.form-group-edicion-hermano input, 
-.form-group-edicion-hermano select {
-    padding: 0.7rem 0.9rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    color: var(--text-dark);
-    background-color: #fff;
-    transition: all 0.2s ease;
-    width: 100%;
+    height: auto;
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px 24px 40px 24px;
     box-sizing: border-box;
 }
 
-.form-group-edicion-hermano input:focus, 
-.form-group-edicion-hermano select:focus {
-    outline: none;
-    border-color: var(--burgundy-primary);
-    box-shadow: 0 0 0 4px var(--focus-ring);
-}
-
-.form-group-edicion-hermano input:hover, 
-.form-group-edicion-hermano select:hover {
-    border-color: #cbd5e1;
-}
-
-/* ESTILOS DE GESTIÓN INTERNA (ADMIN) */
-.admin-section-edicion-hermano {
-    background-color: #fff1f2;
-    border: 1px solid #fecdd3;
-    border-radius: 12px;
-    padding: 1.5rem;
-}
-
-.admin-title-edicion-hermano {
-    border-bottom-color: #fda4af;
-    margin-bottom: 1.5rem;
-}
-
-/* BOTONES */
-.form-actions-edicion-hermano {
+.historical-header-container-editar-perfil {
     display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-color);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #1a1a1a;
+    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../../assets/ImagenFondo.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+    margin: -24px -24px 0 -24px;
+    border-radius: 9px 9px 0 0;
 }
 
-.btn-cancel-edicion-hermano {
-    padding: 0.75rem 1.5rem;
-    background: white;
-    border: 1px solid var(--border-color);
+.historical-header-title-editar-perfil {
+    font-size: 3.1rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.form-container-editar-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+    width: 100%;
+}
+
+.form-row-editar-perfil {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+}
+
+.form-group-solicitud-editar-perfil {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.form-label-editar-perfil {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #800020;
+}
+
+.input-wrapper-editar-perfil {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-control-editar-perfil {
+    width: 100%;
+    padding: 0.5rem 0.75rem; 
+    border: 1px solid #CCCCCC;
     border-radius: 8px;
-    color: var(--text-muted);
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #333333;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    background-color: #FFFFFF;
+    appearance: none;
 }
 
-.btn-cancel-edicion-hermano:hover {
-    background: #f1f5f9;
-    color: var(--text-dark);
+.form-control-editar-perfil:focus {
+    outline: none;
+    border-color: #800020;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.1);
 }
 
-.btn-save-edicion-hermano {
-    padding: 0.75rem 2rem;
-    background: var(--burgundy-primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+.form-control-editar-perfil:disabled {
+    background-color: #F5F5F5;
+    color: #999999;
+    cursor: not-allowed;
+}
+
+.form-grid-editar-perfil {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
+    width: 100%;
+}
+
+.span-2-editar-perfil {
+    grid-column: span 2;
+}
+
+.span-3-editar-perfil {
+    grid-column: span 3;
+}
+
+.form-grid-4-editar-perfil {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+}
+
+.checkbox-container-editar-perfil {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 24px;
+}
+
+.checkbox-label-editar-perfil {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.95rem;
+    color: #333333;
     cursor: pointer;
-    box-shadow: 0 4px 6px -1px rgba(128, 0, 32, 0.2);
-    transition: all 0.2s;
+    font-weight: 500;
 }
 
-.btn-save-edicion-hermano:hover {
-    background-color: #600018;
-    transform: translateY(-1px);
+.form-checkbox-editar-perfil {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #800020;
 }
 
-.btn-save-edicion-hermano:disabled {
-    opacity: 0.7;
+.form-actions-editar-perfil {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    width: 100%;
+}
+
+.btn-cancel-editar-perfil {
+    padding: 0 24px;
+    height: 38px;
+    background-color: #ffffff;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-cancel-editar-perfil:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+    border-color: #9ca3af;
+}
+
+.btn-save-editar-perfil {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px;
+    height: 38px;
+    background-color: #800020;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-save-editar-perfil:hover:not(:disabled) {
+    background-color: #570015;
+    transform: translateY(-2px);
+}
+
+.btn-save-editar-perfil:disabled {
+    background-color: #A98C92;
     cursor: not-allowed;
     transform: none;
 }
 
-.alert-banner-edicion-hermano {
-    padding: 1rem 1.25rem;
-    border-radius: 8px;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    animation: slideDown 0.3s ease-out;
-}
-
-.alert-banner-edicion-hermano.error-edicion-hermano {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-}
-
-.alert-banner-edicion-hermano.success-edicion-hermano {
-    background-color: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-.checkbox-group-edicion-hermano label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    padding: 8px 0;
-    user-select: none;
-    margin-top: 5px;
-}
-
-.checkbox-group-edicion-hermano label span {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-dark);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    transition: color 0.2s ease;
-}
-
-.checkbox-group-edicion-hermano label:hover span {
-    color: var(--burgundy-primary);
-}
-
-.checkbox-group-edicion-hermano input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #cbd5e1;
-    border-radius: 10;
-    background-color: white;
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    margin: 0;
-}
-
-.checkbox-group-edicion-hermano input[type="checkbox"]:checked {
-    background-color: var(--burgundy-primary);
-    border-color: var(--burgundy-primary);
-}
-
-.checkbox-group-edicion-hermano input[type="checkbox"]:checked::after {
-    content: '';
-    position: absolute;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.checkbox-group-edicion-hermano input[type="checkbox"]:focus {
-    box-shadow: 0 0 0 3px var(--focus-ring);
-    outline: none;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media (min-width: 1024px) {
-    .grid-6-mixed-edicion-hermano {
-        grid-template-columns: repeat(6, 1fr);
+@media (max-width: 768px) {
+    .form-row-editar-perfil {
+        flex-direction: column;
     }
 
-    .grid-6-mixed-edicion-hermano .span-3-edicion-hermano {
-        grid-column: span 3;
+    .form-grid-editar-perfil {
+        grid-template-columns: 1fr;
     }
 
-    .grid-6-mixed-edicion-hermano .span-2-edicion-hermano {
-        grid-column: span 2;
+    .span-2-editar-perfil, 
+    .span-3-editar-perfil {
+        grid-column: span 1;
     }
-}
 
-@media (max-width: 1023px) and (min-width: 640px) {
-    .grid-6-mixed-edicion-hermano {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .grid-6-mixed-edicion-hermano .span-3-edicion-hermano,
-    .grid-6-mixed-edicion-hermano .span-2-edicion-hermano {
-        grid-column: auto;
-    }
-    
-    .grid-6-mixed-edicion-hermano .span-3-edicion-hermano:last-child {
-        grid-column: span 2;
-    }
-}
-
-@media (max-width: 639px) {
-    .grid-6-mixed-edicion-hermano {
+    .form-grid-4-editar-perfil {
         grid-template-columns: 1fr;
     }
     
-    .grid-6-mixed-edicion-hermano .span-3-edicion-hermano,
-    .grid-6-mixed-edicion-hermano .span-2-edicion-hermano {
-        grid-column: auto;
+    .checkbox-container-editar-perfil {
+        padding-top: 8px;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-actions-editar-perfil {
+        flex-direction: column-reverse;
+    }
+    
+    .btn-cancel-editar-perfil,
+    .btn-save-editar-perfil {
+        width: 100%;
+        justify-content: center;
     }
 }

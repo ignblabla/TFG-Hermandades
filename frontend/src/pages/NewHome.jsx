@@ -187,9 +187,9 @@ function HermanoNewHome() {
                     <li>
                         <a href="/noticias">
                             <i className="bx bx-news"></i>
-                            <span className="link_name-dashboard">Noticias</span>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Noticias</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
                         <a href="/listado-cuotas">
