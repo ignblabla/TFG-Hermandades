@@ -366,7 +366,7 @@ function MisPapeletas() {
                             ) : (
                                 <div className="empty-state">
                                     <CalendarX size={48} className="empty-icon" />
-                                    <p>No tienes histórico de papeletas de sitio.</p>
+                                    <p>No existen registros de papeletas de sitio anteriores.</p>
                                 </div>
                             )}
 

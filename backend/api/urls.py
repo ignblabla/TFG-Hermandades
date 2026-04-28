@@ -2,11 +2,11 @@ from django.urls import path
 
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
 from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
-from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView, SolicitarCirioView
+from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import SolicitarInsigniaView
 from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
-from api.vistas.solicitud_cirio.solicitud_cirio_view import DescargarListadoCiriosView, EjecutarRepartoCiriosView
+from api.vistas.solicitud_cirio.solicitud_cirio_view import SolicitarCirioView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.acto.acto_view import ActoCreateView, ActoDetalleView, ActoListAPIView, ProximaEstacionPenitenciaView, ProximosActosView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
@@ -17,6 +17,8 @@ from api.vistas.solicitud_insignia.ejecutar_asignacion_automatica_view import Ej
 from api.vistas.solicitud_insignia.descargar_listado_insignias_asignadas_view import DescargarListadoInsigniasView
 from api.vistas.solicitud_insignia.descargar_listado_insignias_vacantes_view import DescargarListadoVacantesView
 from api.vistas.solicitud_insignia.descargar_listado_todas_insignias_view import DescargarListadoTodasInsigniasView
+from api.vistas.solicitud_cirio.ejecutar_asignacion_automatica_cirios_view import EjecutarRepartoCiriosView
+from api.vistas.solicitud_cirio.descargar_listado_cirios_cofradia_view import DescargarListadoCiriosView
 
 from .views import CrearPuestoView, PuestoDetalleView
 

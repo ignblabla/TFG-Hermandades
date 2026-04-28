@@ -300,7 +300,7 @@ function HermanoListadoCuotas() {
                             ) : (
                                 <div className="empty-state">
                                     <AlertCircle size={48} className="empty-icon" />
-                                    <p>No se encontraron cuotas en tu historial.</p>
+                                    <p>No se encontraron cuotas en tu historial. Por favor, contacte con Mayordomía.</p>
                                 </div>
                             )}
 

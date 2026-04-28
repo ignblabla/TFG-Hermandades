@@ -189,7 +189,7 @@ function EditarMiPerfil() {
 
         try {
             await api.patch("api/me/", payload);
-            setSuccessMsg("Perfil y preferencias actualizadas correctamente.");
+            setSuccessMsg("Sus datos han sido actualizados con éxito");
             setFormData(prev => ({ ...prev, password: '' }));
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {

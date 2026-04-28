@@ -1,77 +1,55 @@
-import base64
-from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from api.models import Acto
-from api.servicios.solicitud_cirio.ejecucion_automatica_cirio_service import ReportesCiriosService
+from api.serializers import SolicitudCirioSerializer
+from api.servicios.solicitud_cirio.solicitud_cirio_service import SolicitudCirioTradicionalService
 
-class EjecutarRepartoCiriosView(APIView):
+
+class SolicitarCirioView(APIView):
     """
-    Endpoint administrativo para disparar el algoritmo de asignación de cirios
-    y retornar el PDF con las posiciones resultantes.
+    Endpoint para solicitar puesto directo (Cirio/Diputado) cuando el acto es TRADICIONAL.
+    Permite vinculación de hermanos.
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, acto_id):
-        acto = get_object_or_404(Acto, pk=acto_id)
-
-        try:
-            cantidad_asignadas = ReportesCiriosService.ejecutar_asignacion_automatica_cirios(acto_id)
-
-            pdf_buffer = ReportesCiriosService.generar_pdf_cirios_asignados(acto)
-            pdf_bytes = pdf_buffer.getvalue()
-            pdf_buffer.close()
-
-            pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
-            
-            return Response({
-                "mensaje": f"El reparto se ha ejecutado con éxito. Se han asignado {cantidad_asignadas} papeletas de sitio en los tramos.",
-                "acto_id": acto_id,
-                "asignadas": cantidad_asignadas,
-                "pdf_base64": pdf_base64,
-                "filename": f"asignacion_cirios_tramos_{acto.id}.pdf"
-            }, status=status.HTTP_200_OK)
-
-        except ValidationError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(
-                {"error": "Error interno del servidor durante el reparto.", "detalle": str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-
-
-class DescargarListadoCiriosView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, pk):
-        acto = get_object_or_404(Acto, pk=pk)
-
-        filtro_paso = request.query_params.get('paso', None)
+    def post(self, request):
+        serializer = SolicitudCirioSerializer(data=request.data)
         
-        try:
-            pdf_buffer = ReportesCiriosService.generar_pdf_cirios_asignados(acto, filtro_paso)
+        if serializer.is_valid():
+            try:
+                service = SolicitudCirioTradicionalService()
+                
+                acto = serializer.validated_data['acto']
+                puesto = serializer.validated_data['puesto']
+                numero_vinculado = serializer.validated_data.get('numero_registro_vinculado')
 
-            nombre_archivo = f"asignacion_cirios_{acto.id}.pdf"
-            if filtro_paso == 'CRISTO':
-                nombre_archivo = f"asignacion_cirios_cristo_{acto.id}.pdf"
-            elif filtro_paso == 'VIRGEN':
-                nombre_archivo = f"asignacion_cirios_virgen_{acto.id}.pdf"
+                papeleta = service.procesar_solicitud_cirio_tradicional(
+                    hermano=request.user, 
+                    acto=acto, 
+                    puesto=puesto,
+                    numero_registro_vinculado=numero_vinculado
+                )
+                
+                mensaje_exito = f"Solicitud para {puesto.nombre} realizada correctamente."
+                if numero_vinculado:
+                    mensaje_exito += f" Vinculada al hermano Nº {numero_vinculado}."
 
-            response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+                return Response({
+                    "status": "success",
+                    "mensaje": mensaje_exito,
+                    "id": papeleta.id,
+                    "numero_papeleta": papeleta.numero_papeleta,
+                    "fecha": papeleta.fecha_solicitud
+                }, status=status.HTTP_201_CREATED)
             
-            pdf_buffer.close()
-            return response
+            except DjangoValidationError as e:
+                mensaje = e.message if hasattr(e, 'message') else str(e)
+                return Response({"detail": mensaje}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(f"Error en SolicitarCirioView: {e}")
+                return Response({"detail": "Error interno del servidor."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-        except Exception as e:
-            return Response(
-                {"error": "Error al generar el documento de cirios", "detalle": str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
