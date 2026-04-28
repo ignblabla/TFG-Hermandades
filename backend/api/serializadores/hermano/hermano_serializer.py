@@ -225,3 +225,22 @@ class HermanoAdminUpdateSerializer(serializers.ModelSerializer):
             if ingreso and baja and baja < ingreso:
                 raise serializers.ValidationError("La fecha de baja no puede ser anterior a la de ingreso.")
         return data
+    
+
+
+class EstadisticasHermanosSerializer(serializers.Serializer):
+    """
+    Serializador para las métricas y estadísticas del panel de administración.
+    """
+    total_alta = serializers.IntegerField(
+        read_only=True, 
+        help_text="Número total de hermanos con estado de ALTA"
+    )
+    total_baja = serializers.IntegerField(
+        read_only=True, 
+        help_text="Número total de hermanos con estado de BAJA"
+    )
+    ingresos_anio_actual = serializers.IntegerField(
+        read_only=True, 
+        help_text="Número de hermanos cuya fecha de ingreso es en el año en curso"
+    )

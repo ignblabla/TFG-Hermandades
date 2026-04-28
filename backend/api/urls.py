@@ -10,7 +10,7 @@ from api.vistas.solicitud_cirio.solicitud_cirio_view import SolicitarCirioView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.acto.acto_view import ActoCreateView, ActoDetalleView, ActoListAPIView, ProximaEstacionPenitenciaView, ProximosActosView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
-from api.vistas.hermano.hermano_view import HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
+from api.vistas.hermano.hermano_view import EstadisticasHermanosView, HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
 from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
 from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
 from api.vistas.solicitud_insignia.ejecutar_asignacion_automatica_view import EjecutarRepartoView
@@ -99,4 +99,7 @@ urlpatterns = [
 
     #Áreas de interés
     path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
+
+    #Hermanos
+    path("hermanos/estadisticas/", EstadisticasHermanosView.as_view(), name="estadisticas-hermanos"),
 ]

@@ -3,6 +3,7 @@ from rest_framework.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.utils import timezone
 
 from api.models import DatosBancarios
 
@@ -69,3 +70,24 @@ def update_mi_perfil_service(usuario, data_validada):
         )
 
     return usuario
+
+
+
+def get_estadisticas_hermanos_service():
+    """
+    Calcula y retorna un diccionario con las estadísticas principales de los hermanos.
+    """
+    anio_actual = timezone.now().year
+
+    total_alta = User.objects.filter(estado_hermano=User.EstadoHermano.ALTA).count()
+    total_baja = User.objects.filter(estado_hermano=User.EstadoHermano.BAJA).count()
+
+    ingresos_anio_actual = User.objects.filter(
+        fecha_ingreso_corporacion__year=anio_actual
+    ).count()
+
+    return {
+        'total_alta': total_alta,
+        'total_baja': total_baja,
+        'ingresos_anio_actual': ingresos_anio_actual
+    }

@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 
-from api.pagination import StandardResultsSetPagination
-from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
-from api.servicios.hermano.hermano_service import get_listado_hermanos_service, update_hermano_por_admin_service, update_mi_perfil_service
+from api.pagination import PaginacionDiezElementos
+from api.serializadores.hermano.hermano_serializer import EstadisticasHermanosSerializer, HermanoAdminUpdateSerializer, HermanoListadoSerializer, UserSerializer, UserUpdateSerializer
+from api.servicios.hermano.hermano_service import get_estadisticas_hermanos_service, get_listado_hermanos_service, update_hermano_por_admin_service, update_mi_perfil_service
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
@@ -15,7 +15,7 @@ User = get_user_model()
 
 class HermanoListView(APIView):
     permission_classes = [IsAuthenticated]
-    pagination_class = StandardResultsSetPagination
+    pagination_class = PaginacionDiezElementos
 
     def get(self, request):
         try:
@@ -125,3 +125,32 @@ class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+
+
+
+class EstadisticasHermanosView(APIView):
+    """
+    Endpoint para obtener estadísticas generales de la nómina de hermanos.
+    Exclusivo para administradores.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not getattr(request.user, 'esAdmin', False):
+            return Response(
+                {"detail": "No tienes permisos para ver las estadísticas de la Hermandad."}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            datos_estadisticas = get_estadisticas_hermanos_service()
+
+            serializer = EstadisticasHermanosSerializer(datos_estadisticas)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {"detail": "Error al calcular las estadísticas.", "error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
