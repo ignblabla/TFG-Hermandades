@@ -641,6 +641,70 @@ function EditarMiPerfil() {
                                 </div>
                             </div>
 
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                    <span className="plazos-text">Gestión interna (Secretaría)</span>
+                                <div className="plazos-line"></div>
+                            </div>
+
+                            <div className="form-grid-4-editar-perfil">
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="numero_registro" className="form-label-editar-perfil">Nº Registro Hermandad</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="number" 
+                                            id="numero_registro"
+                                            name="numero_registro" 
+                                            value={readOnlyData.numero_registro || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="estado_hermano" className="form-label-editar-perfil">Estado</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="text" 
+                                            id="estado_hermano"
+                                            name="estado_hermano" 
+                                            value={readOnlyData.estado_hermano || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="fecha_ingreso_corporacion" className="form-label-editar-perfil">Fecha Ingreso</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="date" 
+                                            id="fecha_ingreso_corporacion"
+                                            name="fecha_ingreso_corporacion" 
+                                            value={readOnlyData.fecha_ingreso || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label htmlFor="fecha_baja_corporacion" className="form-label-editar-perfil">Fecha Baja</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <input 
+                                            type="date" 
+                                            id="fecha_baja_corporacion"
+                                            name="fecha_baja_corporacion" 
+                                            value={readOnlyData.fecha_baja || ''} 
+                                            disabled 
+                                            className="form-control-editar-perfil"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="form-actions-editar-perfil">
                                 <button 
                                     type="button" 
