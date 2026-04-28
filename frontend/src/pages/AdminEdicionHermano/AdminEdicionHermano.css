@@ -1,4 +1,13 @@
-:root {
+
+
+
+
+
+
+
+
+
+/* :root {
     --burgundy-primary: #800020;
     --border-color: #e2e8f0;
     --bg-light: #f8fafc;
@@ -7,14 +16,12 @@
     --focus-ring: rgba(128, 0, 32, 0.15);
 }
 
-/* SISTEMA DE GRID RESPONSIVE */
 .form-grid-edicion {
     display: grid;
     gap: 1.25rem;
     width: 100%;
 }
 
-/* PANTALLAS GRANDES (Desktop) */
 @media (min-width: 1024px) {
     .grid-4-edicion {
         grid-template-columns: repeat(4, 1fr);
@@ -25,14 +32,12 @@
     }
 }
 
-/* TABLETS (2 Columnas para todo) */
 @media (max-width: 1023px) and (min-width: 640px) {
     .grid-4-edicion, .grid-3-edicion {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* MÓVILES (1 Columna) */
 @media (max-width: 639px) {
     .grid-4-edicion, .grid-3-edicion {
         grid-template-columns: 1fr;
@@ -45,7 +50,6 @@
     }
 }
 
-/* ESTILOS DE LOS INPUTS Y LABELS */
 .form-section-edicion {
     margin-bottom: 2rem;
 }
@@ -102,7 +106,6 @@
     border-color: #cbd5e1;
 }
 
-/* ESTILOS DE GESTIÓN INTERNA (ADMIN) */
 .admin-section-edicion {
     background-color: #fff1f2;
     border: 1px solid #fecdd3;
@@ -115,7 +118,6 @@
     margin-bottom: 1.5rem;
 }
 
-/* BOTONES */
 .form-actions-edicion {
     display: flex;
     justify-content: flex-end;
@@ -179,14 +181,12 @@
     animation: slideDown 0.3s ease-out;
 }
 
-/* Estilo para Errores */
 .alert-banner-edicion.error-edicion {
     background-color: #fef2f2;
     color: #991b1b;
     border: 1px solid #fecaca;
 }
 
-/* Estilo para Éxito */
 .alert-banner-edicion.success-edicion {
     background-color: #f0fdf4;
     color: #166534;
@@ -203,7 +203,6 @@
     margin-top: 5px;
 }
 
-/* ESTILO DEL TEXTO */
 .checkbox-group-edicion label span {
     font-size: 0.85rem;
     font-weight: 600;
@@ -213,7 +212,6 @@
     transition: color 0.2s ease;
 }
 
-/* NUEVO: El hover solo cambia el color de las letras */
 .checkbox-group-edicion label:hover span {
     color: var(--burgundy-primary);
 }
@@ -233,13 +231,11 @@
     margin: 0;
 }
 
-/* Estado marcado */
 .checkbox-group-edicion input[type="checkbox"]:checked {
     background-color: var(--burgundy-primary);
     border-color: var(--burgundy-primary);
 }
 
-/* El tick dentro del checkbox */
 .checkbox-group-edicion input[type="checkbox"]:checked::after {
     content: '';
     position: absolute;
@@ -282,7 +278,6 @@
     }
 }
 
-/* PANTALLAS MEDIANAS (Tablets) */
 @media (max-width: 1023px) and (min-width: 640px) {
     .grid-6-mixed-edicion {
         grid-template-columns: repeat(2, 1fr);
@@ -298,7 +293,6 @@
     }
 }
 
-/* MÓVILES */
 @media (max-width: 639px) {
     .grid-6-mixed-edicion {
         grid-template-columns: 1fr;
@@ -308,4 +302,4 @@
     .grid-6-mixed-edicion .span-2-edicion {
         grid-column: auto;
     }
-}
+} */

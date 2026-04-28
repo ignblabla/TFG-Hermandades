@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api'; 
-import '../styles/AdminEdicionHermano.css'; 
+import '../pages/AdminEdicionHermano/AdminEdicionHermano.css'; 
 import { 
     Plus, 
     FileText, 
