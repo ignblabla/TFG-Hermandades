@@ -117,28 +117,60 @@
     width: 100%;
 }
 
-.checkbox-container-editar-perfil {
+.checkbox-box-editar-perfil {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding-top: 24px;
-}
-
-.checkbox-label-editar-perfil {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    color: #333333;
+    justify-content: center;
+    gap: 10px; /* Separación entre el cuadradito y el texto */
     cursor: pointer;
-    font-weight: 500;
+    user-select: none;
+    transition: all 0.2s ease;
+    margin: 0;
 }
 
-.form-checkbox-editar-perfil {
+.checkbox-box-editar-perfil:hover:not(.checked) {
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.checkbox-box-editar-perfil.checked {
+    background-color: #800020;
+    color: #ffffff;
+    border-color: #800020;
+}
+
+.styled-checkbox-editar-perfil {
+    appearance: none;
+    -webkit-appearance: none;
     width: 18px;
     height: 18px;
+    background-color: #ffffff;
+    border: 2px solid #9ca3af;
+    border-radius: 4px;
     cursor: pointer;
-    accent-color: #800020;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.checkbox-box-editar-perfil.checked .styled-checkbox-editar-perfil {
+    background-color: #ffffff; 
+    border-color: #ffffff;
+}
+
+.checkbox-box-editar-perfil.checked .styled-checkbox-editar-perfil::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 10px;
+    border: solid #800020;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    top: 1px;
 }
 
 .form-actions-editar-perfil {

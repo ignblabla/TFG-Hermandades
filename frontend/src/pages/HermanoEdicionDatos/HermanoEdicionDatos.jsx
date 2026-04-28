@@ -463,7 +463,7 @@ function EditarMiPerfil() {
 
                             <div className="plazos-separator-asignacion">
                                 <div className="plazos-line"></div>
-                                    <span className="plazos-text">Información de contacto</span>
+                                    <span className="plazos-text">Datos de contacto</span>
                                 <div className="plazos-line"></div>
                             </div>
 
@@ -554,17 +554,22 @@ function EditarMiPerfil() {
                                     </div>
                                 </div>
 
-                                <div className="form-group-solicitud-editar-perfil checkbox-container-editar-perfil">
-                                    <label className="checkbox-label-editar-perfil">
-                                        <input 
-                                            type="checkbox" 
-                                            name="es_titular" 
-                                            checked={formData.datos_bancarios.es_titular} 
-                                            onChange={handleBankChange} 
-                                            className="form-checkbox-editar-perfil"
-                                        />
-                                        <span>Soy titular de la cuenta</span>
-                                    </label>
+                                <div className="form-group-solicitud-editar-perfil">
+                                    <label className="form-label-editar-perfil">Titularidad</label>
+                                    <div className="input-wrapper-editar-perfil">
+                                        <label 
+                                            className={`form-control-editar-perfil checkbox-box-editar-perfil ${formData.datos_bancarios.es_titular ? 'checked' : ''}`}
+                                        >
+                                            <input 
+                                                type="checkbox" 
+                                                name="es_titular" 
+                                                checked={formData.datos_bancarios.es_titular} 
+                                                onChange={handleBankChange} 
+                                                className="styled-checkbox-editar-perfil" 
+                                            />
+                                            <span>Soy titular de la cuenta</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 {!formData.datos_bancarios.es_titular && (
@@ -651,7 +656,7 @@ function EditarMiPerfil() {
                                     disabled={saving}
                                 >
                                     <Save size={18} />
-                                    {saving ? "Guardando..." : "Guardar Cambios"}
+                                    {saving ? "Guardando..." : "Guardar cambios"}
                                 </button>
                             </div>
                         </form>
