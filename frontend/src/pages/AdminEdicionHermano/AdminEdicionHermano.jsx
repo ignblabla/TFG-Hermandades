@@ -503,60 +503,62 @@ function AdminEditarHermano() {
                                 <div className="plazos-line"></div>
                             </div>
 
-                            <div className="form-grid-4-editar-perfil">
-                                <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="numero_registro" className="form-label-editar-perfil">Nº Registro Hermandad</label>
-                                    <div className="input-wrapper-editar-perfil">
-                                        <input 
-                                            type="number" 
-                                            id="numero_registro"
-                                            name="numero_registro" 
-                                            value={formData.numero_registro || ''} 
-                                            onChange={handleChange}
-                                            className="form-control-editar-perfil"
-                                        />
+                            <div className="admin-highlight-editar-perfil">
+                                <div className="form-grid-4-editar-perfil">
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="numero_registro" className="form-label-editar-perfil">Nº Registro Hermandad</label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="number" 
+                                                id="numero_registro"
+                                                name="numero_registro" 
+                                                value={formData.numero_registro || ''} 
+                                                onChange={handleChange}
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="estado_hermano" className="form-label-editar-perfil">Estado</label>
-                                    <div className="input-wrapper-editar-perfil">
-                                        <input 
-                                            type="text" 
-                                            id="estado_hermano"
-                                            name="estado_hermano" 
-                                            value={formData.estado_hermano || ''} 
-                                            onChange={handleChange}
-                                            className="form-control-editar-perfil"
-                                        />
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="estado_hermano" className="form-label-editar-perfil">Estado</label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="text" 
+                                                id="estado_hermano"
+                                                name="estado_hermano" 
+                                                value={formData.estado_hermano || ''} 
+                                                onChange={handleChange}
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="fecha_ingreso_corporacion" className="form-label-editar-perfil">Fecha Ingreso</label>
-                                    <div className="input-wrapper-editar-perfil">
-                                        <input 
-                                            type="date" 
-                                            id="fecha_ingreso_corporacion"
-                                            name="fecha_ingreso_corporacion" 
-                                            value={formData.fecha_ingreso_corporacion || ''} 
-                                            onChange={handleChange}
-                                            className="form-control-editar-perfil"
-                                        />
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="fecha_ingreso_corporacion" className="form-label-editar-perfil">Fecha Ingreso</label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="date" 
+                                                id="fecha_ingreso_corporacion"
+                                                name="fecha_ingreso_corporacion" 
+                                                value={formData.fecha_ingreso_corporacion || ''} 
+                                                onChange={handleChange}
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="fecha_baja_corporacion" className="form-label-editar-perfil">Fecha Baja</label>
-                                    <div className="input-wrapper-editar-perfil">
-                                        <input 
-                                            type="date" 
-                                            id="fecha_baja_corporacion"
-                                            name="fecha_baja_corporacion" 
-                                            value={formData.fecha_baja_corporacion || ''} 
-                                            onChange={handleChange}
-                                            className="form-control-editar-perfil"
-                                        />
+                                    <div className="form-group-solicitud-editar-perfil">
+                                        <label htmlFor="fecha_baja_corporacion" className="form-label-editar-perfil">Fecha Baja</label>
+                                        <div className="input-wrapper-editar-perfil">
+                                            <input 
+                                                type="date" 
+                                                id="fecha_baja_corporacion"
+                                                name="fecha_baja_corporacion" 
+                                                value={formData.fecha_baja_corporacion || ''} 
+                                                onChange={handleChange}
+                                                className="form-control-editar-perfil"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
