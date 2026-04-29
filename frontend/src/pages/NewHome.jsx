@@ -206,6 +206,13 @@ function HermanoNewHome() {
                         <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
+                        </a>
+                        <span className="tooltip-dashboard">Actos</span>
+                    </li>
+                    <li>
                         <a href="/areas-de-interes">
                             <i className="bx bx-list-ul"></i>
                             <span className="link_name-dashboard">Áreas de Interés</span>
@@ -230,13 +237,15 @@ function HermanoNewHome() {
                             {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
                         </span>
                     </li>
-                    <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
-                        </a>
-                        <span className="tooltip-dashboard">Settings</span>
-                    </li>
+                    {currentUser?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">

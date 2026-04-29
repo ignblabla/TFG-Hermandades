@@ -246,6 +246,7 @@ class ActoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Acto
         fields = [
+            'id',
             'nombre', 
             'descripcion', 
             'fecha', 

@@ -122,7 +122,7 @@ function AdminCenso() {
             <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
                 <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
                 <p>Esta sección es exclusiva para la Secretaría.</p>
-                <button onClick={() => navigate("/home")} className="btn-purple">Volver al inicio</button>
+                <button onClick={() => navigate("/new-home")} className="btn-purple">Volver al inicio</button>
             </div>
         );
     }
