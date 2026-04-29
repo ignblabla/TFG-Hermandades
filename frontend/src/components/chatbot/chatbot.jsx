@@ -30,12 +30,47 @@ const ChatBot = () => {
         try {
             const response = await api.post("api/comunicados/chat/", { 
                 pregunta: userText 
+            }, {
+                responseType: 'blob' 
             });
 
-            setMessages(prev => [...prev, { text: response.data.respuesta, isBot: true }]);
+            const contentType = response.headers['content-type'] || response.headers.get?.('content-type');
+
+            if (contentType && contentType.includes('application/pdf')) {
+                const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'horarios.pdf');
+                document.body.appendChild(link);
+                link.click();
+
+                link.parentNode.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                setMessages(prev => [...prev, { text: "📥 Iniciando la descarga del programa de mano...", isBot: true }]);
+                
+            } else {
+                const textData = await response.data.text();
+                const jsonData = JSON.parse(textData);
+                
+                setMessages(prev => [...prev, { text: jsonData.respuesta, isBot: true }]);
+            }
             
         } catch (error) {
             console.error("Error al consultar la IA:", error);
+
+            if (error.response && error.response.data) {
+                try {
+                    const errorText = await error.response.data.text();
+                    const errorJson = JSON.parse(errorText);
+                    setMessages(prev => [...prev, { text: errorJson.detail || "Error en el servidor.", isBot: true }]);
+                    setIsLoading(false);
+                    return;
+                } catch (e) {
+                    console.error("Error leyendo blob de fallo", e);
+                }
+            }
+
             setMessages(prev => [...prev, { 
                 text: "Lo siento, ha ocurrido un error al conectar con el servidor. Por favor, inténtalo más tarde.", 
                 isBot: true 
