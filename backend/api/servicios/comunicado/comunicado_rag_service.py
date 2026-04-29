@@ -11,7 +11,6 @@ class ComunicadoRAGService:
 
     def __init__(self):
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.ruta_pdf_horarios = os.path.join(settings.BASE_DIR, 'media', 'documentos', 'horarios.pdf')
 
     def _recuperar_contexto_semantico(self, pregunta: str) -> str:
         try:
@@ -25,7 +24,10 @@ class ComunicadoRAGService:
             print(f"Error vectorizando la pregunta: {e}")
             return ""
 
-        comunicados = Comunicado.objects.filter(embedding__isnull=False).only('titulo', 'contenido', 'fecha_emision', 'embedding')
+        # Nota: Asegúrate de que el modelo Comunicado esté importado en el archivo
+        comunicados = Comunicado.objects.filter(
+            embedding__isnull=False
+        ).only('titulo', 'contenido', 'fecha_emision', 'embedding')
         
         resultados_puntuados = []
         for com in comunicados:
@@ -42,53 +44,24 @@ class ComunicadoRAGService:
             
         return contexto
 
-
-
     def _calcular_similitud_coseno(self, vec1: list[float], vec2: list[float]) -> float:
-        if not vec1 or not vec2: return 0.0
+        if not vec1 or not vec2: 
+            return 0.0
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
         magnitude1 = math.sqrt(sum(a * a for a in vec1))
         magnitude2 = math.sqrt(sum(b * b for b in vec2))
-        if not magnitude1 or not magnitude2: return 0.0
+        if not magnitude1 or not magnitude2: 
+            return 0.0
         return dot_product / (magnitude1 * magnitude2)
-
-
-
-    def _obtener_o_subir_pdf(self):
-        """Sube el PDF a Gemini y cachea su referencia durante 24 horas."""
-        file_name = cache.get('gemini_horarios_pdf_name')
-        
-        if file_name:
-            try:
-                archivo_en_nube = self.client.files.get(name=file_name)
-                return archivo_en_nube
-            except Exception:
-                cache.delete('gemini_horarios_pdf_name')
-
-        if os.path.exists(self.ruta_pdf_horarios):
-            try:
-                archivo_subido = self.client.files.upload(file=self.ruta_pdf_horarios)
-                cache.set('gemini_horarios_pdf_name', archivo_subido.name, 86400)
-                return archivo_subido
-            except Exception as e:
-                print(f"Error subiendo el PDF a Gemini: {e}")
-                return None
-        else:
-            print(f"Advertencia: No se encontró el PDF en {self.ruta_pdf_horarios}")
-            return None
-
-
 
     def preguntar_a_comunicados(self, pregunta_usuario: str) -> str:
         contexto_textual = self._recuperar_contexto_semantico(pregunta_usuario)
         
         prompt_estricto = f"""
         Eres el asistente virtual oficial de la Hermandad. 
-        Tu tarea es responder a la pregunta del hermano utilizando ÚNICAMENTE la información proporcionada en:
-        A) El bloque "COMUNICADOS OFICIALES" detallado abajo.
-        B) El documento PDF adjunto que contiene los horarios e información de las cofradías.
+        Tu tarea es responder a la pregunta del hermano utilizando ÚNICAMENTE la información proporcionada en el bloque "COMUNICADOS OFICIALES" detallado abajo.
 
-        Si la respuesta no se encuentra en el PDF ni en el texto proporcionado, responde EXACTAMENTE: "Lo siento, no encuentro información sobre esa consulta en los comunicados oficiales ni en los horarios."
+        Si la respuesta no se encuentra en el texto proporcionado, responde EXACTAMENTE: "Lo siento, no encuentro información sobre esa consulta en los comunicados oficiales."
 
         COMUNICADOS OFICIALES:
         {contexto_textual if contexto_textual.strip() else "No hay comunicados relevantes para esta consulta."}
@@ -98,21 +71,14 @@ class ComunicadoRAGService:
         """
 
         try:
-            contenidos = []
-
-            archivo_pdf = self._obtener_o_subir_pdf()
-            
-            if archivo_pdf:
-                contenidos.append(archivo_pdf)
-
-            contenidos.append(prompt_estricto)
-
+            # Se genera el contenido directamente con el prompt de texto
             respuesta = self.client.models.generate_content(
                 model='gemini-2.5-flash',
-                contents=contenidos
+                contents=prompt_estricto
             )
             
             return respuesta.text
             
         except Exception as e:
+            print(f"ERROR EXACTO DE GEMINI: {str(e)}") 
             raise Exception(f"Error al generar la respuesta con la IA: {str(e)}")

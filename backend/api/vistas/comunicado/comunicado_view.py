@@ -59,7 +59,6 @@ class ChatComunicadosView(APIView):
                 {"detail": "Ocurrió un error interno procesando la consulta con la IA.", "error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
 
 
 class UltimosComunicadosAreaInteresView(APIView):
