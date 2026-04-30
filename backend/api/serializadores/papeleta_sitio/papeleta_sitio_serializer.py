@@ -152,6 +152,8 @@ class AsistenteActoSimplificadoSerializer(serializers.ModelSerializer):
     tramo = serializers.SerializerMethodField()
     puesto = serializers.SerializerMethodField()
 
+    lado_display = serializers.CharField(source='get_lado_display', read_only=True)
+
     class Meta:
         model = PapeletaSitio
         fields = [
@@ -159,6 +161,8 @@ class AsistenteActoSimplificadoSerializer(serializers.ModelSerializer):
             'hermano',
             'tramo',
             'puesto',
+            'orden_en_tramo',
+            'lado_display',
             'estado_papeleta',
             'es_solicitud_insignia'
         ]
@@ -177,7 +181,7 @@ class AsistenteActoSimplificadoSerializer(serializers.ModelSerializer):
             return None
         return {
             "nombre": obj.tramo.nombre,
-            "paso_display": getattr(obj.tramo, 'paso_display', ''),
+            "paso_display": obj.tramo.get_paso_display(),
             "numero_orden": obj.tramo.numero_orden
         }
 

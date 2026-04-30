@@ -1,5 +1,7 @@
-from api.models import PapeletaSitio
+from api.models import Acto, PapeletaSitio
 from rest_framework.exceptions import PermissionDenied
+from django.db.models import Count, Q
+from django.core.exceptions import ValidationError
 
 
 def obtener_datos_tabla_insignias_acto(acto_id: int):
@@ -98,7 +100,8 @@ def get_historial_papeletas_hermano_service(usuario):
 def obtener_asistentes_leidos_por_acto(acto_id: int):
     """
     Recupera únicamente las papeletas en estado LEIDA de un acto,
-    optimizando la carga del hermano, puesto y tramo.
+    optimizando la carga del hermano, puesto y tramo,
+    y ordenando por Cortejo (Cristo -> Virgen) y luego por Tramo.
     """
     return PapeletaSitio.objects.filter(
         acto_id=acto_id,
@@ -107,4 +110,42 @@ def obtener_asistentes_leidos_por_acto(acto_id: int):
         'hermano',
         'puesto',
         'tramo'
+    ).order_by(
+        'tramo__paso',
+        'tramo__numero_orden',
+        'orden_en_tramo'
     )
+
+
+
+def obtener_estadisticas_asistencia(acto_id: int):
+    """
+    Calcula de forma eficiente los totales de papeletas de un acto 
+    usando una única consulta a la base de datos con aggregate.
+    """
+    if not Acto.objects.filter(id=acto_id).exists():
+        raise ValidationError("El acto especificado no existe.")
+
+    estados_validos = [
+        PapeletaSitio.EstadoPapeleta.EMITIDA,
+        PapeletaSitio.EstadoPapeleta.RECOGIDA,
+        PapeletaSitio.EstadoPapeleta.LEIDA
+    ]
+
+    estadisticas = PapeletaSitio.objects.filter(
+        acto_id=acto_id,
+        estado_papeleta__in=estados_validos
+    ).aggregate(
+        total=Count('id'),
+        leidas=Count('id', filter=Q(estado_papeleta=PapeletaSitio.EstadoPapeleta.LEIDA))
+    )
+
+    total = estadisticas['total'] or 0
+    leidas = estadisticas['leidas'] or 0
+    pendientes = total - leidas
+
+    return {
+        "total_papeletas": total,
+        "papeletas_leidas": leidas,
+        "papeletas_pendientes": pendientes
+    }

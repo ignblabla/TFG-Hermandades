@@ -20,6 +20,7 @@ from api.vistas.solicitud_insignia.descargar_listado_todas_insignias_view import
 from api.vistas.solicitud_cirio.ejecutar_asignacion_automatica_cirios_view import EjecutarRepartoCiriosView
 from api.vistas.solicitud_cirio.descargar_listado_cirios_cofradia_view import DescargarListadoCiriosView
 from api.vistas.papeleta_sitio.lista_asistentes_leidos_view import ListarAsistentesLeidosActoView
+from api.vistas.papeleta_sitio.estadisticas_asistencia_view import EstadisticasAsistenciaView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
@@ -85,6 +86,7 @@ urlpatterns = [
 
     #Papeletas de sitio
     path('actos/<int:acto_id>/solicitudes-insignias/', TablaInsigniasActoView.as_view(), name='acto-solicitudes-insignias'),
+    path('actos/<int:acto_id>/estadisticas-asistencia/', EstadisticasAsistenciaView.as_view(), name='acto-estadisticas-asistencia'),
 
     #Asignación de insignias
     path('actos/<int:pk>/descargar-listado-insignias/', DescargarListadoInsigniasView.as_view(), name='descargar-listado-insignias'),

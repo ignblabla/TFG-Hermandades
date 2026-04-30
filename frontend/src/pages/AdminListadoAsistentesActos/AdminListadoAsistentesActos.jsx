@@ -24,6 +24,12 @@ function ListadoAsistentes() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    const [estadisticas, setEstadisticas] = useState({
+        total_papeletas: 0,
+        papeletas_leidas: 0,
+        papeletas_pendientes: 0
+    });
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleLogout = () => {
@@ -71,17 +77,19 @@ function ListadoAsistentes() {
                     return;
                 }
 
-                const actoRes = await api.get(`/api/actos/${actoId}/`);
-                if (isMounted) {
-                    setNombreActo(actoRes.data.nombre);
-                }
-
-                const response = await api.get(`/api/actos/${actoId}/asistentes-leidos/?page=${currentPage}`);
+                const [actoRes, asistentesRes, statsRes] = await Promise.all([
+                    api.get(`/api/actos/${actoId}/`),
+                    api.get(`/api/actos/${actoId}/asistentes-leidos/?page=${currentPage}`),
+                    api.get(`/api/actos/${actoId}/estadisticas-asistencia/`)
+                ]);
                 
                 if (isMounted) {
-                    setAsistentes(response.data.results); 
+                    setNombreActo(actoRes.data.nombre);
 
-                    setTotalPages(Math.ceil(response.data.count / 20));
+                    setAsistentes(asistentesRes.data.results); 
+                    setTotalPages(Math.ceil(asistentesRes.data.count / 20));
+
+                    setEstadisticas(statsRes.data); 
                 }
             } catch (err) {
                 if (isMounted) {
@@ -218,12 +226,12 @@ function ListadoAsistentes() {
                                     <div className="asistentes-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="asistentes-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="asistentes-card-title">TOTAL DE PAPELETAS</h3>
                                     <p className="asistentes-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de papeletas de sitio emitidas.
                                     </p>
                                     <div className="asistentes-card-date">
-                                        100
+                                        {estadisticas.total_papeletas}
                                     </div>
                                 </div>
                             </div>
@@ -233,12 +241,12 @@ function ListadoAsistentes() {
                                     <div className="asistentes-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="asistentes-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="asistentes-card-title">PAPELETAS LEÍDAS</h3>
                                     <p className="asistentes-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de papeletas de sitio que han sido leídas hasta el momento.
                                     </p>
                                     <div className="asistentes-card-date">
-                                        100
+                                        {estadisticas.papeletas_leidas}
                                     </div>
                                 </div>
                             </div>
@@ -248,12 +256,12 @@ function ListadoAsistentes() {
                                     <div className="asistentes-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="asistentes-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="asistentes-card-title">PAPELETAS PENDIENTES</h3>
                                     <p className="asistentes-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de papeletas que aún no han sido leídas.
                                     </p>
                                     <div className="asistentes-card-date">
-                                        100
+                                        {estadisticas.papeletas_pendientes}
                                     </div>
                                 </div>
                             </div>
