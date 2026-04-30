@@ -144,3 +144,46 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
 class PreferenciaSolicitudDTO(serializers.Serializer):
     puesto_id = serializers.PrimaryKeyRelatedField(queryset=Puesto.objects.all(), source='puesto_solicitado')
     orden = serializers.IntegerField(source='orden_prioridad')
+
+
+
+class AsistenteActoSimplificadoSerializer(serializers.ModelSerializer):
+    hermano = serializers.SerializerMethodField()
+    tramo = serializers.SerializerMethodField()
+    puesto = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PapeletaSitio
+        fields = [
+            'id',
+            'hermano',
+            'tramo',
+            'puesto',
+            'estado_papeleta',
+            'es_solicitud_insignia'
+        ]
+
+    def get_hermano(self, obj):
+        if not obj.hermano:
+            return None
+        return {
+            "numero_registro": getattr(obj.hermano, 'numero_registro', '-'),
+            "nombre_completo": f"{obj.hermano.nombre} {obj.hermano.primer_apellido} {obj.hermano.segundo_apellido}".strip(),
+            "dni": getattr(obj.hermano, 'dni', 'Sin DNI') 
+        }
+
+    def get_tramo(self, obj):
+        if not obj.tramo:
+            return None
+        return {
+            "nombre": obj.tramo.nombre,
+            "paso_display": getattr(obj.tramo, 'paso_display', ''),
+            "numero_orden": obj.tramo.numero_orden
+        }
+
+    def get_puesto(self, obj):
+        if not obj.puesto:
+            return None
+        return {
+            "nombre": obj.puesto.nombre
+        }

@@ -103,9 +103,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'tfg-hermandades'),
-        'USER': os.getenv('DB_USER', 'adminSG'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'Coronacion2017'),
+        'NAME': os.getenv('DB_NAME', 'Ejemplo'),
+        'USER': os.getenv('DB_USER', 'Ejemplo'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Ejemplo'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {

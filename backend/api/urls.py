@@ -19,6 +19,7 @@ from api.vistas.solicitud_insignia.descargar_listado_insignias_vacantes_view imp
 from api.vistas.solicitud_insignia.descargar_listado_todas_insignias_view import DescargarListadoTodasInsigniasView
 from api.vistas.solicitud_cirio.ejecutar_asignacion_automatica_cirios_view import EjecutarRepartoCiriosView
 from api.vistas.solicitud_cirio.descargar_listado_cirios_cofradia_view import DescargarListadoCiriosView
+from api.vistas.papeleta_sitio.lista_asistentes_leidos_view import ListarAsistentesLeidosActoView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
@@ -70,6 +71,7 @@ urlpatterns = [
 
     #Actos
     path('actos/', ActoListAPIView.as_view(), name='acto-list'),
+    path('actos/<int:acto_id>/asistentes-leidos/', ListarAsistentesLeidosActoView.as_view(), name='acto-asistentes-leidos'),
 
 
 

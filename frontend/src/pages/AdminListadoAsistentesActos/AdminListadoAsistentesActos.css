@@ -1,0 +1,221 @@
+.dashboard-panel-asistentes {
+    width: 100%;
+    height: auto;
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px 24px 40px 24px;
+    box-sizing: border-box;
+}
+
+.historical-header-container-asistentes {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #1a1a1a;
+    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../../assets/ImagenFondo.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+    margin: -24px -24px 0 -24px;
+    border-radius: 9px 9px 0 0;
+}
+
+.historical-header-title-asistentes {
+    font-size: 3.1rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.asistentes-cards-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 24px;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.asistentes-card-wrapper {
+    position: relative;
+    flex: 0 0 calc(33.333% - 16px);
+    width: calc(33.333% - 16px);
+    max-width: none;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.asistentes-card-content {
+    background-color: #ffffff;
+    border: 2px solid #800020;
+    border-radius: 8px;
+    padding: 24px; 
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    height: 100%;
+    box-shadow: 0 8px 16px rgba(211, 59, 59, 0.3);
+}
+
+.asistentes-card-icon {
+    color: #800020;
+    margin-bottom: 4px;
+}
+
+.asistentes-card-title {
+    color: #800020;
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    text-align: center;
+    min-height: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.asistentes-card-description {
+    color: #4a4a4a;
+    margin: 8px 0 0 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.asistentes-card-date {
+    font-size: 28px;
+    font-weight: 600;
+    color: #800020;
+    text-align: center;
+    margin-top: auto;
+}
+
+.historial-asistentes-section {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.asistentes-table {
+    width: 100%;
+    border-collapse: separate;
+    background-color: #ffffff;
+    text-align: center;
+}
+
+.asistentes-table th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.asistentes-table th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.asistentes-table th {
+    background-color: #800020;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 14px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    text-align: center;
+    vertical-align: middle;
+    border: none;
+}
+
+.asistentes-table td {
+    padding: 14px;
+    border-bottom: 1px solid #eaeaea;
+    color: #333;
+    font-size: 0.95rem;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.asistentes-table tbody tr:hover {
+    background-color: #fcf6f6;
+}
+
+.asistentes-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.asistentes-table td > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.fw-bold {
+    font-weight: bold;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.empty-icon {
+    margin-bottom: 1rem;
+    color: #adb5bd;
+}
+
+.pagination-controls-asistentes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    font-weight: 500;
+    color: #4a4a4a;
+}
+
+.pagination-controls-asistentes button {
+    background-color: #ffffff;
+    border: 1px solid #800020;
+    color: #800020;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-controls-asistentes button:hover:not(.disabled) {
+    background-color: #800020;
+    color: #ffffff;
+}
+
+.pagination-controls-asistentes button.disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}

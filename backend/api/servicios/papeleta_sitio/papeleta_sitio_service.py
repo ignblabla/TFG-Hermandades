@@ -92,3 +92,19 @@ def get_historial_papeletas_hermano_service(usuario):
     ).select_related('acto', 'puesto', 'puesto__tipo_puesto', 'tramo').order_by('-anio', '-acto__fecha')
 
     return queryset
+
+
+
+def obtener_asistentes_leidos_por_acto(acto_id: int):
+    """
+    Recupera únicamente las papeletas en estado LEIDA de un acto,
+    optimizando la carga del hermano, puesto y tramo.
+    """
+    return PapeletaSitio.objects.filter(
+        acto_id=acto_id,
+        estado_papeleta=PapeletaSitio.EstadoPapeleta.LEIDA
+    ).select_related(
+        'hermano',
+        'puesto',
+        'tramo'
+    )

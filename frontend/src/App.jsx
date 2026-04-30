@@ -43,6 +43,8 @@ import HermanoListadoCuotas from "./pages/HermanoListadoCuotas/HermanoListadoCuo
 import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia/HermanoConsultaNoticia"
 import NoticiasHermano from "./pages/HermanoNoticias/NoticiasHermanos"
 
+import ListadoAsistentes from "./pages/AdminListadoAsistentesActos/AdminListadoAsistentesActos"
+
 
 function Logout() {
   localStorage.clear()
@@ -314,6 +316,15 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminListadoSolicitudesInsigniasActoConcreto />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/actos/:actoId/asistentes"
+          element={
+            <ProtectedRoute>
+              <ListadoAsistentes />
             </ProtectedRoute>
           }
         />
