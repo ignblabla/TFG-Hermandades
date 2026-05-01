@@ -10,7 +10,6 @@ from api.vistas.solicitud_cirio.solicitud_cirio_view import SolicitarCirioView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.acto.acto_view import ActoCreateView, ActoDetalleView, ActoListAPIView, ProximaEstacionPenitenciaView, ProximosActosView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
-from api.vistas.hermano.hermano_view import EstadisticasHermanosView, HermanoAdminDetailView, HermanoListView, UsuarioLogueadoView
 from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
 from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
 from api.vistas.solicitud_insignia.ejecutar_asignacion_automatica_view import EjecutarRepartoView
@@ -21,6 +20,10 @@ from api.vistas.solicitud_cirio.ejecutar_asignacion_automatica_cirios_view impor
 from api.vistas.solicitud_cirio.descargar_listado_cirios_cofradia_view import DescargarListadoCiriosView
 from api.vistas.papeleta_sitio.lista_asistentes_leidos_view import ListarAsistentesLeidosActoView
 from api.vistas.papeleta_sitio.estadisticas_asistencia_view import EstadisticasAsistenciaView
+from api.vistas.hermano.hermano_list_view import HermanoListView
+from api.vistas.hermano.hermano_admin_detail_view import HermanoAdminDetailView
+from api.vistas.hermano.estadisticas_hermano_view import EstadisticasHermanosView
+from api.vistas.hermano.hermano_logueado_view import UsuarioLogueadoView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
