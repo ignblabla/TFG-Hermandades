@@ -71,6 +71,52 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/new-home"
+          element={
+            <ProtectedRoute>
+              <HermanoNewHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/censo-hermanos"
+          element={
+            <ProtectedRoute>
+              <AdminCenso />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/noticias"
+          element={
+            <ProtectedRoute>
+              <NoticiasHermano />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/listado-cuotas"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoCuotas />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/mis-papeletas-de-sitio"
+          element={
+            <ProtectedRoute>
+              <MisPapeletas />
+            </ProtectedRoute>
+          }
+        />
+
+
+
+
+
         <Route
           path="/editar-mi-perfil"
           element={
@@ -114,26 +160,10 @@ function App() {
           }
         />
         <Route
-          path="/mis-papeletas-de-sitio"
-          element={
-            <ProtectedRoute>
-              <MisPapeletas />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/comunicados/:id"
           element={
             <ProtectedRoute>
               <HermanoConsultaNoticia />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/noticias"
-          element={
-            <ProtectedRoute>
-              <NoticiasHermano />
             </ProtectedRoute>
           }
         />
@@ -198,14 +228,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        {/* <Route
-          path="/admin/editar-acto/:id"
-          element={
-            <ProtectedRoute>
-              <AdminEdicionActo />
-            </ProtectedRoute>
-          }
-        /> */}
 
         <Route
           path="editar-acto/:id"
@@ -247,31 +269,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudCirio />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/new-home"
-          element={
-            <ProtectedRoute>
-              <HermanoNewHome />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/listado-cuotas"
-          element={
-            <ProtectedRoute>
-              <HermanoListadoCuotas />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/censo-hermanos"
-          element={
-            <ProtectedRoute>
-              <AdminCenso />
             </ProtectedRoute>
           }
         />
