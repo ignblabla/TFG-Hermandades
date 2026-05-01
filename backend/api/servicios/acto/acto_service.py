@@ -4,7 +4,7 @@ from django.http import QueryDict
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 
-from api.models import Acto
+from api.models import Acto, TipoActo
 
 # -----------------------------------------------------------------------------
 # SERVICES: CREAR ACTO
@@ -55,3 +55,34 @@ class ActoService:
         para garantizar una paginación predecible y consistente.
         """
         return Acto.objects.all().order_by('-fecha')
+
+# -----------------------------------------------------------------------------
+# SERVICES: OBTENER PRÓXIMA ESTACIÓN DE PENITENCIA
+# -----------------------------------------------------------------------------
+def obtener_proxima_estacion_penitencia() -> Acto | None:
+    """
+    Busca en la base de datos el próximo acto que sea 
+    'Estación de Penitencia' a partir del momento actual.
+    """
+    ahora = timezone.now()
+    
+    return Acto.objects.filter(
+        tipo_acto__tipo=TipoActo.OpcionesTipo.ESTACION_PENITENCIA,
+        fecha__gte=ahora
+    ).select_related('tipo_acto').order_by('fecha').first()
+
+# -----------------------------------------------------------------------------
+# SERVICES: OBTENER PRÓXIMOS 3 ACTOS
+# -----------------------------------------------------------------------------
+def obtener_proximos_actos_dashboard(limite: int = 3):
+    """
+    Obtiene los actos más próximos a partir de la fecha y hora actual,
+    optimizados para las tarjetas del Dashboard.
+    """
+    ahora = timezone.now()
+    
+    return Acto.objects.filter(
+        fecha__gte=ahora
+    ).only(
+        'id', 'nombre', 'fecha', 'lugar'
+    ).order_by('fecha')[:limite]
