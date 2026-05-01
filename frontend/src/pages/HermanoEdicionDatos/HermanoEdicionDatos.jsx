@@ -213,6 +213,17 @@ function EditarMiPerfil() {
         }
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     if (loading) return <div className="loading-screen">Cargando tu perfil...</div>;
 
     const sortedAreasDB = [...areasDB].sort((a, b) => {
@@ -247,47 +258,74 @@ function EditarMiPerfil() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {currentUser?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
@@ -423,7 +461,7 @@ function EditarMiPerfil() {
 
                                     <div className="form-group-solicitud-editar-perfil">
                                         <label htmlFor="estado_civil" className="form-label-editar-perfil">
-                                            Estado Civil
+                                            Estado civil
                                         </label>
                                         <div className="input-wrapper-editar-perfil">
                                             <select 
@@ -443,7 +481,7 @@ function EditarMiPerfil() {
                                     
                                     <div className="form-group-solicitud-editar-perfil">
                                         <label htmlFor="password" className="form-label-editar-perfil">
-                                            Nueva Contraseña
+                                            Nueva contraseña
                                         </label>
                                         <div className="input-wrapper-editar-perfil">
                                             <input 
@@ -469,7 +507,7 @@ function EditarMiPerfil() {
 
                             <div className="form-grid-editar-perfil">
                                 <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
-                                    <label htmlFor="direccion" className="form-label-editar-perfil">Dirección Postal</label>
+                                    <label htmlFor="direccion" className="form-label-editar-perfil">Dirección postal</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
@@ -482,7 +520,7 @@ function EditarMiPerfil() {
                                 </div>
 
                                 <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
-                                    <label htmlFor="codigo_postal" className="form-label-editar-perfil">C. Postal</label>
+                                    <label htmlFor="codigo_postal" className="form-label-editar-perfil">Código postal</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input type="text" id="codigo_postal" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
@@ -494,7 +532,7 @@ function EditarMiPerfil() {
                                     </div>
                                 </div>
                                 <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
-                                    <label htmlFor="comunidad_autonoma" className="form-label-editar-perfil">Comunidad Autónoma</label>
+                                    <label htmlFor="comunidad_autonoma" className="form-label-editar-perfil">Comunidad autónoma</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input type="text" id="comunidad_autonoma" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} className="form-control-editar-perfil" />
                                     </div>
@@ -599,7 +637,7 @@ function EditarMiPerfil() {
 
                             <div className="form-row-editar-perfil">
                                 <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="fecha_bautismo" className="form-label-editar-perfil">Fecha Bautismo</label>
+                                    <label htmlFor="fecha_bautismo" className="form-label-editar-perfil">Fecha de bautismo</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input 
                                             type="date" 
@@ -613,7 +651,7 @@ function EditarMiPerfil() {
                                 </div>
 
                                 <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="lugar_bautismo" className="form-label-editar-perfil">Lugar Bautismo</label>
+                                    <label htmlFor="lugar_bautismo" className="form-label-editar-perfil">Localidad de bautismo</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input 
                                             type="text" 
@@ -627,7 +665,7 @@ function EditarMiPerfil() {
                                 </div>
 
                                 <div className="form-group-solicitud-editar-perfil">
-                                    <label htmlFor="parroquia_bautismo" className="form-label-editar-perfil">Parroquia</label>
+                                    <label htmlFor="parroquia_bautismo" className="form-label-editar-perfil">Parroquia de bautismo</label>
                                     <div className="input-wrapper-editar-perfil">
                                         <input 
                                             type="text" 
@@ -650,7 +688,7 @@ function EditarMiPerfil() {
                             <div className="admin-highlight-editar-perfil">
                                 <div className="form-grid-4-editar-perfil">
                                     <div className="form-group-solicitud-editar-perfil">
-                                        <label htmlFor="numero_registro" className="form-label-editar-perfil">Nº Registro Hermandad</label>
+                                        <label htmlFor="numero_registro" className="form-label-editar-perfil">Número de registro</label>
                                         <div className="input-wrapper-editar-perfil">
                                             <input 
                                                 type="number" 
@@ -678,7 +716,7 @@ function EditarMiPerfil() {
                                     </div>
 
                                     <div className="form-group-solicitud-editar-perfil">
-                                        <label htmlFor="fecha_ingreso_corporacion" className="form-label-editar-perfil">Fecha Ingreso</label>
+                                        <label htmlFor="fecha_ingreso_corporacion" className="form-label-editar-perfil">Fecha ingreso</label>
                                         <div className="input-wrapper-editar-perfil">
                                             <input 
                                                 type="date" 
@@ -692,7 +730,7 @@ function EditarMiPerfil() {
                                     </div>
 
                                     <div className="form-group-solicitud-editar-perfil">
-                                        <label htmlFor="fecha_baja_corporacion" className="form-label-editar-perfil">Fecha Baja</label>
+                                        <label htmlFor="fecha_baja_corporacion" className="form-label-editar-perfil">Fecha baja</label>
                                         <div className="input-wrapper-editar-perfil">
                                             <input 
                                                 type="date" 

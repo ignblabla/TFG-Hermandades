@@ -112,11 +112,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
-
-
-
+        <Route
+          path="/areas-de-interes"
+          element={
+            <ProtectedRoute>
+              <HermanoAreaInteres />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/editar-mi-perfil"
           element={
@@ -125,6 +128,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+
+
+
         <Route
           path="/admin/crear-comunicado"
           element={
@@ -146,16 +155,6 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminCrearActo />
-            </ProtectedRoute>
-          }
-        />
-
-
-        <Route
-          path="/areas-de-interes"
-          element={
-            <ProtectedRoute>
-              <HermanoAreaInteres />
             </ProtectedRoute>
           }
         />
