@@ -5,7 +5,7 @@ from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAcce
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import SolicitarInsigniaView
-from api.vistas.papeleta_sitio.papeleta_sitio_view import MisPapeletasListView, TablaInsigniasActoView, TelegramWebhookView, UltimaPapeletaView
+from api.vistas.papeleta_sitio.papeleta_telegram_webhook_view import TelegramWebhookView
 from api.vistas.solicitud_cirio.solicitud_cirio_view import SolicitarCirioView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
@@ -28,6 +28,8 @@ from api.vistas.acto.actos_proximos_view import ProximosActosView
 from api.vistas.acto.proxima_estacion_penitencia_view import ProximaEstacionPenitenciaView
 from api.vistas.acto.crear_acto_view import ActoCreateView
 from api.vistas.acto.listado_actos_view import ActoListAPIView
+from api.vistas.papeleta_sitio.ultima_papeleta_view import UltimaPapeletaView
+from api.vistas.papeleta_sitio.listado_papeletas_view import MisPapeletasListView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
@@ -92,7 +94,6 @@ urlpatterns = [
 
 
     #Papeletas de sitio
-    path('actos/<int:acto_id>/solicitudes-insignias/', TablaInsigniasActoView.as_view(), name='acto-solicitudes-insignias'),
     path('actos/<int:acto_id>/estadisticas-asistencia/', EstadisticasAsistenciaView.as_view(), name='acto-estadisticas-asistencia'),
 
     #Asignación de insignias

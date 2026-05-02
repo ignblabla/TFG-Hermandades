@@ -12,6 +12,8 @@ class ComunicadoRAGService:
     def __init__(self):
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
+
+
     def _recuperar_contexto_semantico(self, pregunta: str) -> str:
         try:
             resultado = self.client.models.embed_content(
@@ -24,7 +26,6 @@ class ComunicadoRAGService:
             print(f"Error vectorizando la pregunta: {e}")
             return ""
 
-        # Nota: Asegúrate de que el modelo Comunicado esté importado en el archivo
         comunicados = Comunicado.objects.filter(
             embedding__isnull=False
         ).only('titulo', 'contenido', 'fecha_emision', 'embedding')
@@ -44,6 +45,8 @@ class ComunicadoRAGService:
             
         return contexto
 
+
+
     def _calcular_similitud_coseno(self, vec1: list[float], vec2: list[float]) -> float:
         if not vec1 or not vec2: 
             return 0.0
@@ -53,6 +56,8 @@ class ComunicadoRAGService:
         if not magnitude1 or not magnitude2: 
             return 0.0
         return dot_product / (magnitude1 * magnitude2)
+
+
 
     def preguntar_a_comunicados(self, pregunta_usuario: str) -> str:
         contexto_textual = self._recuperar_contexto_semantico(pregunta_usuario)
@@ -71,7 +76,6 @@ class ComunicadoRAGService:
         """
 
         try:
-            # Se genera el contenido directamente con el prompt de texto
             respuesta = self.client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt_estricto

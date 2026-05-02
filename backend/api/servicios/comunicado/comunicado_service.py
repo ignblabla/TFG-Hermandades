@@ -30,7 +30,7 @@ class ComunicadoService:
                 return
 
         raise PermissionDenied("No tienes permisos para gestionar comunicados.")
-        
+
 
 
     @transaction.atomic
