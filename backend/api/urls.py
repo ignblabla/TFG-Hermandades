@@ -39,93 +39,75 @@ from api.vistas.comunicado.comunicados_general_view import ComunicadoListCreateV
 from .views import CrearPuestoView, PuestoDetalleView
 
 urlpatterns = [
-    path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
     path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),
     path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
 
-    path("actos/proximos/", ProximosActosView.as_view(), name="proximos-actos"),
-    path("actos/proxima-estacion/", ProximaEstacionPenitenciaView.as_view(), name="proxima-estacion"),
-
-    path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
     path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
-    path("tipos-puesto/", TipoPuestoListView.as_view(), name="lista-tipos-puesto"),
-    path("tipos-acto/", TipoActoListView.as_view(), name="lista-tipos-acto"),
-
-    path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
 
     path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
 
     path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
 
-    #Urls para el panel de administrador
-    path("hermanos/listado/", HermanoListView.as_view(), name="listado-hermanos"),
-    path("hermanos/<int:pk>/gestion/", HermanoAdminDetailView.as_view(), name="gestion-hermano-detalle"),
-
-    #UrlS para actos
-    path('actos/crear/', ActoCreateView.as_view(), name='crear_acto'),
-    # path('actos/<int:pk>/editar/', ActoUpdateView.as_view(), name='acto-update'),
-
-    path("papeletas/solicitar-insignia/", SolicitarInsigniaView.as_view(), name="solicitar-insignia"),
-    path("papeletas/solicitar-cirio/", SolicitarCirioView.as_view(), name="solicitar-cirio"),
     path("papeletas/solicitar-unificada/", CrearSolicitudUnificadaView.as_view(), name="solicitar-unificada"),
 
-    path("comunicados/", ComunicadoListCreateView.as_view(), name="lista-crear-comunicados"),
-    path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
-    path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
-    path('comunicados/<int:exclude_id>/relacionados/', ComunicadosRelacionadosView.as_view(), name='comunicados-relacionados'),
-    path('comunicados/ultimos-area-interes/', UltimosComunicadosAreaInteresView.as_view(), name='ultimos-comunicado-areas'),
-
-    path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
-
-    path("comunicados/chat/", ChatComunicadosView.as_view(), name="chat-comunicados"),
-
-    #Cuotas
-    path('mis-cuotas/', MisCuotasListView.as_view(), name='mis_cuotas_list'),
 
 
-    #Actos
+
+
+
+
+
+    # Actos
+    path("actos/<int:pk>/", ActoDetalleView.as_view(), name="detalle-acto"),
+    path("actos/proximos/", ProximosActosView.as_view(), name="proximos-actos"),
+    path('actos/crear/', ActoCreateView.as_view(), name='crear_acto'),
     path('actos/', ActoListAPIView.as_view(), name='acto-list'),
+    path("actos/proxima-estacion/", ProximaEstacionPenitenciaView.as_view(), name="proxima-estacion"),
     path('actos/<int:acto_id>/asistentes-leidos/', ListarAsistentesLeidosActoView.as_view(), name='acto-asistentes-leidos'),
-
-
-
-
-
-
-
-
-
-
-
-    #Papeletas de sitio
     path('actos/<int:acto_id>/estadisticas-asistencia/', EstadisticasAsistenciaView.as_view(), name='acto-estadisticas-asistencia'),
 
-    #Asignación de insignias
+    # Áreas de interés
+    path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
+
+    # Comunicados
+    path("comunicados/chat/", ChatComunicadosView.as_view(), name="chat-comunicados"),
+    path("comunicados/<int:pk>/", ComunicadoDetailView.as_view(), name="detalle-comunicado"),
+    path("comunicados/", ComunicadoListCreateView.as_view(), name="lista-crear-comunicados"),
+    path('comunicados/<int:exclude_id>/relacionados/', ComunicadosRelacionadosView.as_view(), name='comunicados-relacionados'),
+    path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
+    path('comunicados/ultimos-area-interes/', UltimosComunicadosAreaInteresView.as_view(), name='ultimos-comunicado-areas'),
+
+    # Cuotas
+    path('mis-cuotas/', MisCuotasListView.as_view(), name='mis_cuotas_list'),
+
+    # Hermanos
+    path("hermanos/estadisticas/", EstadisticasHermanosView.as_view(), name="estadisticas-hermanos"),
+    path("hermanos/<int:pk>/gestion/", HermanoAdminDetailView.as_view(), name="gestion-hermano-detalle"),
+    path("hermanos/listado/", HermanoListView.as_view(), name="listado-hermanos"),
+    path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
+
+    # Papeletas de sitio
+    path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
+    path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
+    path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
+
+    # Solicitud de cirio
+    path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios'),
+    path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
+    path("papeletas/solicitar-cirio/", SolicitarCirioView.as_view(), name="solicitar-cirio"),
+
+    # Solicitud de insignias
     path('actos/<int:pk>/descargar-listado-insignias/', DescargarListadoInsigniasView.as_view(), name='descargar-listado-insignias'),
     path('actos/<int:pk>/descargar-listado-vacantes/', DescargarListadoVacantesView.as_view(), name='descargar-listado-vacantes'),
     path('actos/<int:pk>/descargar-todas-insignias/', DescargarListadoTodasInsigniasView.as_view(), name='descargar-listado-total-insignias'),
+    path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
+    path("papeletas/solicitar-insignia/", SolicitarInsigniaView.as_view(), name="solicitar-insignia"),
 
-    #Asignación de cirios
-    path('actos/<int:acto_id>/reparto-cirios/', EjecutarRepartoCiriosView.as_view(), name='ejecutar-reparto'),
-    path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios'),
+    # Tipos de acto
+    path("tipos-acto/", TipoActoListView.as_view(), name="lista-tipos-acto"),
 
-    #Papeletas de sitio
-    path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
-    path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
+    # Tipos de puesto
+    path("tipos-puesto/", TipoPuestoListView.as_view(), name="lista-tipos-puesto"),
 
-    #Áreas de interés
-    path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
-
-    #Hermanos
-    path("hermanos/estadisticas/", EstadisticasHermanosView.as_view(), name="estadisticas-hermanos"),
-
-
-
-
-
-
-
-
-    
 ]
