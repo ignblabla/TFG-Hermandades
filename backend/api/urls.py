@@ -9,7 +9,7 @@ from api.vistas.papeleta_sitio.papeleta_telegram_webhook_view import TelegramWeb
 from api.vistas.solicitud_cirio.solicitud_cirio_view import SolicitarCirioView
 from api.vistas.areas_de_interes.areas_de_interes_view import AreaInteresListView
 from api.vistas.tipo_acto.tipo_acto_view import TipoActoListView
-from api.vistas.comunicado.comunicado_view import ChatComunicadosView, ComunicadoDetailView, ComunicadoListCreateView, ComunicadosRelacionadosView, MisComunicadosListView, UltimosComunicadosAreaInteresView
+from api.vistas.comunicado.comunicado_view import ComunicadoDetailView
 from api.vistas.tipo_puesto.tipo_puesto_view import TipoPuestoListView
 from api.vistas.solicitud_insignia.ejecutar_asignacion_automatica_view import EjecutarRepartoView
 from api.vistas.solicitud_insignia.descargar_listado_insignias_asignadas_view import DescargarListadoInsigniasView
@@ -30,6 +30,11 @@ from api.vistas.acto.crear_acto_view import ActoCreateView
 from api.vistas.acto.listado_actos_view import ActoListAPIView
 from api.vistas.papeleta_sitio.ultima_papeleta_view import UltimaPapeletaView
 from api.vistas.papeleta_sitio.listado_papeletas_view import MisPapeletasListView
+from api.vistas.comunicado.listado_comunicados_view import MisComunicadosListView
+from api.vistas.comunicado.ultimos_comunicados_areas_interes_view import UltimosComunicadosAreaInteresView
+from api.vistas.comunicado.comunicados_relacionados_view import ComunicadosRelacionadosView
+from api.vistas.comunicado.chat_comunicados_view import ChatComunicadosView
+from api.vistas.comunicado.comunicados_general_view import ComunicadoListCreateView
 
 from .views import CrearPuestoView, PuestoDetalleView
 
@@ -114,4 +119,13 @@ urlpatterns = [
 
     #Hermanos
     path("hermanos/estadisticas/", EstadisticasHermanosView.as_view(), name="estadisticas-hermanos"),
+
+
+
+
+
+
+
+
+    
 ]

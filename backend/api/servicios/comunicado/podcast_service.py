@@ -34,9 +34,10 @@ def _hacer_peticion_con_reintentos(url, payload, max_reintentos=4):
             if intento == max_reintentos - 1:
                 raise Exception(f"Fallo de red: {e}")
             time.sleep(2 ** intento)
-            
-    # Seguro de vida: si el bucle termina por cualquier motivo, lanzamos error
+
     raise Exception("No se pudo obtener respuesta de la API tras varios intentos.")
+
+
 
 def generar_y_guardar_podcast_async(comunicado_id):
     try:
@@ -52,10 +53,7 @@ def generar_y_guardar_podcast_async(comunicado_id):
         for linea in guion_json.get("dialogos", []):
             locutor = linea.get("locutor")
             texto = linea.get("texto")
-            
-            # Asignamos las nuevas voces STUDIO de alta fidelidad
-            # es-ES-Studio-C es Femenina (Carmen)
-            # es-ES-Studio-F es Masculina (Antonio)
+
             if locutor == "Carmen":
                 nombre_voz = "es-ES-Studio-C"
             else:
@@ -66,8 +64,7 @@ def generar_y_guardar_podcast_async(comunicado_id):
             if audio_bytes:
                 segmento = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
                 audio_final += segmento
-                
-                # Pausa natural de medio segundo entre locutores para que no se pisen
+
                 audio_final += AudioSegment.silent(duration=500)
 
         if len(audio_final) > 0:
@@ -75,18 +72,16 @@ def generar_y_guardar_podcast_async(comunicado_id):
             audio_final.export(buffer_salida, format="mp3", bitrate="128k")
             
             nombre_archivo = f"podcast_comunicado_{comunicado.id}.mp3"
-            # Guardamos directamente el archivo
             comunicado.archivo_podcast.save(nombre_archivo, ContentFile(buffer_salida.getvalue()), save=True)
 
     except Exception as e:
         print(f"Error generando podcast para comunicado {comunicado_id}: {e}")
 
 
+
 def generar_guion_conversacional(comunicado, api_key):
-    # Definimos la URL principal
     url_principal = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-    
-    # ¡NUEVO PLAN B! Usamos la versión "Lite" actual, que sí está activa y tiene límites de cuota más permisivos
+
     url_respaldo = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
     
     prompt = f"""
@@ -112,15 +107,12 @@ def generar_guion_conversacional(comunicado, api_key):
     }
     
     try:
-        # 1. Intentamos con el modelo principal
         respuesta = _hacer_peticion_con_reintentos(url_principal, payload)
     except Exception as e:
         print(f"⚠️ El modelo principal falló ({e}). Activando Plan B con gemini-2.5-flash-lite...")
         try:
-            # 2. Si el principal falla, disparamos el modelo Lite de respaldo
             respuesta = _hacer_peticion_con_reintentos(url_respaldo, payload, max_reintentos=2)
         except Exception as e_respaldo:
-            # 3. Si ambos están caídos, lanzamos el error
             raise Exception(f"Ambos modelos de Gemini están caídos. Error final: {e_respaldo}")
     
     if not respuesta:
@@ -128,13 +120,15 @@ def generar_guion_conversacional(comunicado, api_key):
         
     return json.loads(respuesta.json()["candidates"][0]["content"]["parts"][0]["text"])
 
+
+
 def generar_audio_cloud_tts(texto, nombre_voz):
-    client = texttospeech.TextToSpeechClient()
-    synthesis_input = texttospeech.SynthesisInput(text=texto)
-    voice = texttospeech.VoiceSelectionParams(language_code="es-ES", name=nombre_voz)
-    audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
-    
     try:
+        client = texttospeech.TextToSpeechClient()
+        synthesis_input = texttospeech.SynthesisInput(text=texto)
+        voice = texttospeech.VoiceSelectionParams(language_code="es-ES", name=nombre_voz)
+        audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
+        
         response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
         return response.audio_content
     except Exception as e:
