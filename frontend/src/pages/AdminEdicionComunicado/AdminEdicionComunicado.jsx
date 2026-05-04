@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionComunicado/AdminCreacionComunicado.css'
-import '../AdminEdicionComunicado/AdminEdicionComunicado.css'
 import { Save, FileText, Users, Trash2, AlertCircle, CheckCircle, Church, Heart, Sun, Hammer, BookOpen, Crown, Image as ImageIcon, X } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -72,50 +71,54 @@ function AdminEdicionComunicado() {
         let isMounted = true;
 
         const fetchData = async () => {
-            try {
-                const resUser = await api.get("api/me/");
-                if (isMounted) setCurrentUser(resUser.data);
+        try {
+            const resUser = await api.get("api/me/");
+            if (isMounted) setCurrentUser(resUser.data);
 
-                const resAreas = await api.get("api/areas-interes/");
-                const listaAreas = resAreas.data.sort((a, b) => {
-                    if (a.nombre_area === 'TODOS_HERMANOS') return -1;
-                    if (b.nombre_area === 'TODOS_HERMANOS') return 1;
-                    return a.nombre_area.localeCompare(b.nombre_area);
+            const resAreas = await api.get("api/areas-interes/");
+            const listaAreas = resAreas.data.sort((a, b) => {
+                if (a.nombre_area === 'TODOS_HERMANOS') return -1;
+                if (b.nombre_area === 'TODOS_HERMANOS') return 1;
+
+                if (a.nombre_area === 'DIPUTACION_MAYOR_GOBIERNO') return 1;
+                if (b.nombre_area === 'DIPUTACION_MAYOR_GOBIERNO') return -1;
+
+                return a.nombre_area.localeCompare(b.nombre_area);
+            });
+            if (isMounted) setAreasDisponibles(listaAreas);
+
+            const resComunicado = await api.get(`api/comunicados/${id}/`);
+            const data = resComunicado.data;
+
+            if (isMounted) {
+                const areasIds = (data.areas_interes || []).map(nombreRecibido => {
+                    const areaEncontrada = listaAreas.find(a => 
+                        a.get_nombre_area_display === nombreRecibido || 
+                        a.nombre_area === nombreRecibido
+                    );
+                    return areaEncontrada ? areaEncontrada.id : null;
+                }).filter(id => id !== null);
+
+                setFormData({
+                    titulo: data.titulo,
+                    contenido: data.contenido,
+                    tipo_comunicacion: data.tipo_comunicacion,
+                    areas_interes: areasIds,
+                    imagen_portada: null
                 });
-                if (isMounted) setAreasDisponibles(listaAreas);
 
-                const resComunicado = await api.get(`api/comunicados/${id}/`);
-                const data = resComunicado.data;
-
-                if (isMounted) {
-                    const areasIds = (data.areas_interes || []).map(nombreRecibido => {
-                        const areaEncontrada = listaAreas.find(a => 
-                            a.get_nombre_area_display === nombreRecibido || 
-                            a.nombre_area === nombreRecibido
-                        );
-                        return areaEncontrada ? areaEncontrada.id : null;
-                    }).filter(id => id !== null);
-
-                    setFormData({
-                        titulo: data.titulo,
-                        contenido: data.contenido,
-                        tipo_comunicacion: data.tipo_comunicacion,
-                        areas_interes: areasIds,
-                        imagen_portada: null
-                    });
-
-                    if (data.imagen_portada) {
-                        setPreviewUrl(data.imagen_portada);
-                    }
+                if (data.imagen_portada) {
+                    setPreviewUrl(data.imagen_portada);
                 }
-
-            } catch (err) {
-                console.error(err);
-                if (isMounted) setError("Error al cargar los datos del comunicado.");
-            } finally {
-                if (isMounted) setLoading(false);
             }
-        };
+
+        } catch (err) {
+            console.error(err);
+            if (isMounted) setError("Error al cargar los datos del comunicado.");
+        } finally {
+            if (isMounted) setLoading(false);
+        }
+    };
 
         fetchData();
         return () => { isMounted = false; };
@@ -191,7 +194,7 @@ function AdminEdicionComunicado() {
             await api.patch(`api/comunicados/${id}/`, dataToSend); 
 
             setSuccessMsg("Comunicado actualizado correctamente.");
-            setTimeout(() => navigate("/comunicados/mis-noticias"), 1500);
+            setTimeout(() => navigate("/noticias"), 1500);
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data) {
@@ -225,6 +228,17 @@ function AdminEdicionComunicado() {
         navigate("/login");
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     if (loading) return <div className="loading-screen">Cargando datos...</div>;
 
     return (
@@ -253,47 +267,74 @@ function AdminEdicionComunicado() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {currentUser?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
@@ -313,60 +354,102 @@ function AdminEdicionComunicado() {
                 </ul>
             </div>
 
-            {/* CONTENIDO PRINCIPAL */}
-            <section className="home-section-dashboard">
-                <div className="text-dashboard">Editar Comunicado</div>
-                
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-crear-comunicado">
                         
+                        <div className="historical-header-container-crear-comunicado">
+                            <h1 className="historical-header-title-crear-comunicado">
+                                EDITAR COMUNICADO: {formData.titulo ? formData.titulo.toUpperCase() : ''}
+                            </h1>
+                        </div>
+
                         {error && (
-                            <div className="alert-banner-edicion error-edicion">
+                            <div className="alert-banner-edicion error-edicion" style={{ margin: '0 30px 20px' }}>
                                 <AlertCircle size={20} /> <span>{error}</span>
                             </div>
                         )}
+                        
                         {successMsg && (
-                            <div className="alert-banner-edicion success-edicion">
+                            <div className="alert-banner-edicion success-edicion" style={{ margin: '0 30px 20px' }}>
                                 <CheckCircle size={20} /> <span>{successMsg}</span>
                             </div>
                         )}
 
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                            <span className="plazos-text">Información del comunicado</span>
+                            <div className="plazos-line"></div>
+                        </div>
+
                         <form onSubmit={handleSubmit}>
-                            <div className="form-section-creacion-comunicado">
-                                <h3 className="section-title-creacion-comunicado"><FileText size={18}/> Información del Comunicado</h3>
-                                <div className="form-grid-creacion-comunicado grid-2-creacion-comunicado">
+                            <div className="form-container-crear-comunicado">
+                                <div className="form-grid-4-crear-comunicado">
                                     
-                                    <div className="form-group-creacion-comunicado span-3-creacion-comunicado">
-                                        <label>Título *</label>
-                                        <input 
-                                            type="text" 
-                                            name="titulo" 
-                                            value={formData.titulo} 
-                                            onChange={handleChange} 
-                                            required 
-                                        />
+                                    <div className="form-group-crear-comunicado span-3-crear-comunicado">
+                                        <label htmlFor="titulo" className="form-label-crear-comunicado">
+                                            Título *
+                                        </label>
+                                        <div className="input-wrapper-crear-comunicado">
+                                            <input 
+                                                type="text" 
+                                                id="titulo"
+                                                name="titulo" 
+                                                value={formData.titulo} 
+                                                onChange={handleChange} 
+                                                required 
+                                                className="form-control-crear-comunicado"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado">
-                                        <label>Tipo de Comunicación *</label>
-                                        <select 
-                                            name="tipo_comunicacion" 
-                                            value={formData.tipo_comunicacion} 
-                                            onChange={handleChange} 
-                                            required
-                                        >
-                                            {tiposComunicacion.map(opt => (
-                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                            ))}
-                                        </select>
+                                    <div className="form-group-crear-comunicado">
+                                        <label htmlFor="tipo_comunicacion" className="form-label-crear-comunicado">
+                                            Tipo de comunicación *
+                                        </label>
+                                        <div className="input-wrapper-crear-comunicado">
+                                            <select 
+                                                id="tipo_comunicacion"
+                                                name="tipo_comunicacion" 
+                                                value={formData.tipo_comunicacion} 
+                                                onChange={handleChange}
+                                                required
+                                                className="form-control-crear-comunicado"
+                                            >
+                                                {tiposComunicacion.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
-                                        <label>Imagen de Portada</label>
+                                    <div className="form-group-crear-comunicado span-full-crear-comunicado">
+                                        <label htmlFor="contenido" className="form-label-crear-comunicado">
+                                            Contenido del mensaje *
+                                        </label>
+                                        <div className="input-wrapper-crear-comunicado">
+                                            <textarea 
+                                                id="contenido"
+                                                name="contenido" 
+                                                value={formData.contenido} 
+                                                onChange={handleChange}
+                                                rows="5"
+                                                className="form-control-crear-comunicado textarea-crear-comunicado"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group-crear-comunicado span-full-crear-comunicado">
+                                        <label className="form-label-crear-comunicado">
+                                            Imagen de portada
+                                        </label>
                                         
                                         {!previewUrl ? (
                                             <div 
-                                                className="image-upload-area"
+                                                className="image-upload-area-crear-comunicado"
                                                 onClick={() => document.getElementById('imagen_portada').click()}
                                             >
                                                 <input 
@@ -375,27 +458,29 @@ function AdminEdicionComunicado() {
                                                     name="imagen_portada"
                                                     accept="image/*"
                                                     onChange={handleImageChange}
+                                                    style={{ display: 'none' }}
                                                 />
                                                 <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
                                                 <p>Haz clic para subir o cambiar la imagen</p>
-                                                <small>JPG, PNG (Max. 5MB)</small>
+                                                <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
                                             </div>
                                         ) : (
-                                            <div className="image-preview-container">
+                                            <div className="image-preview-container-crear-comunicado" style={{ position: 'relative' }}>
                                                 <img 
                                                     src={getFullImageUrl(previewUrl)} 
-                                                    alt="Portada" 
-                                                    className="image-preview-img"
+                                                    alt="Vista previa" 
+                                                    className="image-preview-img-crear-comunicado"
                                                     onError={(e) => {
                                                         e.target.style.display = 'none';
                                                     }}
                                                 />
                                                 
-                                                <div className="image-actions-overlay">
+                                                <div className="image-actions-overlay" style={{ position: 'absolute', top: '10px', left: '10px' }}>
                                                     <button
                                                         type="button"
                                                         onClick={() => document.getElementById('imagen_portada_edit').click()}
                                                         className="btn-change-image"
+                                                        style={{ padding: '6px 12px', background: 'rgba(0,0,0,0.6)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
                                                     >
                                                         Cambiar
                                                     </button>
@@ -404,14 +489,14 @@ function AdminEdicionComunicado() {
                                                         id="imagen_portada_edit"
                                                         accept="image/*"
                                                         onChange={handleImageChange}
-                                                        className="hidden-file-input"
+                                                        style={{ display: 'none' }}
                                                     />
                                                 </div>
 
                                                 <button
                                                     type="button"
                                                     onClick={removeImage}
-                                                    className="btn-delete-image"
+                                                    className="btn-delete-image-crear-comunicado"
                                                     title="Eliminar imagen"
                                                 >
                                                     <X size={18} color="#ef4444" />
@@ -420,88 +505,85 @@ function AdminEdicionComunicado() {
                                         )}
                                     </div>
 
-                                    <div className="form-group-creacion-comunicado span-full-creacion-comunicado">
-                                        <label>Contenido del Mensaje *</label>
-                                        <textarea 
-                                            name="contenido" 
-                                            value={formData.contenido} 
-                                            onChange={handleChange} 
-                                            rows="6"
-                                            className="textarea-standard-creacion-comunicado"
-                                            required
-                                        />
-                                    </div>
                                 </div>
                             </div>
 
-                            <div className="form-section-creacion-comunicado admin-section-creacion-comunicado">
-                                <h3 className="section-title-creacion-comunicado admin-title-creacion-comunicado">
-                                    <Users size={18}/> Áreas de Interés (Destinatarios)
-                                </h3>
+                            <div className="plazos-separator-asignacion">
+                                <div className="plazos-line"></div>
+                                <span className="plazos-text">Áreas o sectores a los que está dirigido el comunicado</span>
+                                <div className="plazos-line"></div>
+                            </div>
 
-                                <div className="help-text-container-creacion-comunicado">
+                            <div className="form-container-crear-comunicado">
+                                <div className="help-text-container-crear-comunicado">
                                     <small>
                                         Selecciona las áreas a las que va dirigido este comunicado. Si no seleccionas ninguna, 
                                         el comunicado se guardará como <strong>Borrador</strong> y no aparecerá en el muro de los hermanos.
                                     </small>
                                 </div>
-                                
-                                <div className="areas-grid-creacion-comunicado">
+
+                                <div className="areas-grid-crear-comunicado">
                                     {areasDisponibles.map(area => {
                                         const isSelected = formData.areas_interes.includes(area.id);
-
+                                        
                                         return (
                                             <div 
                                                 key={area.id}
                                                 onClick={() => toggleArea(area.id)}
-                                                className={`area-card-creacion-comunicado ${isSelected ? 'selected' : ''}`}
+                                                className={`area-card-crear-comunicado ${isSelected ? 'selected' : ''}`}
                                             >
                                                 <input 
                                                     type="checkbox" 
                                                     checked={isSelected} 
                                                     onChange={() => {}}
+                                                    className="area-checkbox-crear-comunicado"
                                                 />
 
-                                                <div className="area-icon-creacion-comunicado">
+                                                <div className="area-icon-crear-comunicado">
                                                     {getAreaIcon(area.nombre_area)}
                                                 </div>
 
-                                                <span className="area-name-creacion-comunicado">
+                                                <span className="area-name-crear-comunicado">
                                                     {area.get_nombre_area_display || area.nombre_area}
                                                 </span>
-
                                             </div>
                                         )
                                     })}
                                 </div>
                             </div>
 
-                            {/* ACCIONES DEL FORMULARIO */}
-                            <div className="form-actions-creacion-comunicado" style={{ justifyContent: 'space-between', marginTop: '30px' }}>
+                            <div className="form-actions-crear-comunicado" style={{ justifyContent: 'space-between' }}>
                                 
                                 <button 
                                     type="button" 
                                     onClick={handleDelete} 
                                     disabled={deleting}
                                     className="btn-delete-comunicado"
+                                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontWeight: '500' }}
                                 >
                                     <Trash2 size={18} />
                                     {deleting ? "Eliminando..." : "Eliminar Comunicado"}
                                 </button>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button type="button" className="btn-cancel-creacion-comunicado" onClick={() => navigate("/admin/comunicados")}>
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancel-crear-comunicado" 
+                                        onClick={() => navigate("/admin/comunicados")}
+                                    >
                                         Cancelar
                                     </button>
-                                    <button type="submit" className="btn-save-creacion-comunicado" disabled={saving}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <Save size={18} />
-                                            {saving ? "Guardando..." : "Guardar Cambios"}
-                                        </div>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        className="btn-save-crear-comunicado" 
+                                        disabled={saving}
+                                    >
+                                        <Save size={18} />
+                                        {saving ? "Guardando..." : "Guardar Cambios"}
                                     </button>
                                 </div>
                             </div>
-
                         </form>
                     </div>
                 </div>

@@ -128,12 +128,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
-
-
-
-
         <Route
           path="/admin/crear-comunicado"
           element={
@@ -150,6 +144,13 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+
+
+
+
         <Route
           path="/admin/crear-acto"
           element={
