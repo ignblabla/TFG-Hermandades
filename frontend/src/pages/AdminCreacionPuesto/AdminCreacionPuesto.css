@@ -1,0 +1,234 @@
+.dashboard-panel-crear-puesto {
+    width: 100%;
+    height: auto;
+    background-color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 24px 24px 40px 24px;
+    box-sizing: border-box;
+}
+
+.historical-header-container-crear-puesto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: #1a1a1a;
+    background-image: linear-gradient(rgba(99, 46, 46, 0.6), rgba(103, 35, 35, 0.6)), url('../../assets/ImagenFondo.png'); 
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    box-sizing: border-box;
+    margin: -24px -24px 0 -24px;
+    border-radius: 9px 9px 0 0;
+}
+
+.historical-header-title-crear-puesto {
+    font-size: 3.1rem;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin: 0 0 1rem 0;
+    font-weight: 800;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.form-container-crear-puesto {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+    width: 100%;
+}
+
+.form-grid-4-crear-puesto {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+}
+
+.form-group-crear-puesto {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+.span-3-crear-puesto {
+    grid-column: span 3;
+}
+
+.form-label-crear-puesto {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #800020;
+}
+
+.input-wrapper-crear-puesto {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-control-crear-puesto {
+    width: 100%;
+    padding: 0.5rem 0.75rem; 
+    border: 1px solid #CCCCCC;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #333333;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    background-color: #FFFFFF;
+    appearance: none;
+}
+
+.form-control-crear-puesto:focus {
+    outline: none;
+    border-color: #800020;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(128, 0, 32, 0.1);
+}
+
+.form-actions-crear-puesto {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e7eb;
+    width: 100%;
+}
+
+.btn-cancel-crear-puesto {
+    padding: 0 24px;
+    height: 38px;
+    background-color: #ffffff;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-cancel-crear-puesto:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+    border-color: #9ca3af;
+}
+
+.btn-save-crear-puesto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px;
+    height: 38px;
+    background-color: #800020;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-save-crear-puesto:hover:not(:disabled) {
+    background-color: #570015;
+    transform: translateY(-2px);
+}
+
+.btn-save-crear-puesto:disabled {
+    background-color: #A98C92;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.span-2-crear-puesto {
+    grid-column: span 2;
+}
+
+.checkbox-container-crear-puesto {
+    display: flex;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.checkbox-container-crear-puesto:hover {
+    border-color: #800020;
+    background-color: #fce9ed;
+}
+
+.checkbox-label-crear-puesto {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    margin: 0;
+    width: 100%;
+    user-select: none;
+}
+
+.checkbox-input-crear-puesto {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 2px 0 0 0;
+    accent-color: #800020;
+    flex-shrink: 0;
+}
+
+.checkbox-text-crear-puesto {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkbox-title-crear-puesto {
+    font-weight: 600;
+    color: #333333;
+    font-size: 0.95rem;
+}
+
+.checkbox-desc-crear-puesto {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .form-grid-4-crear-puesto {
+        grid-template-columns: 1fr;
+    }
+
+    .span-3-crear-puesto,
+    .span-2-crear-puesto {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-actions-crear-puesto {
+        flex-direction: column-reverse;
+    }
+    
+    .btn-cancel-crear-puesto,
+    .btn-save-crear-puesto {
+        width: 100%;
+        justify-content: center;
+    }
+}

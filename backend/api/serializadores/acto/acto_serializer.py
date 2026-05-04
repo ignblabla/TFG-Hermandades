@@ -251,5 +251,6 @@ class ActoListSerializer(serializers.ModelSerializer):
             'fecha', 
             'lugar', 
             'requiere_papeleta', 
-            'imagen_portada'
+            'imagen_portada',
+            'inicio_solicitud'
         ]

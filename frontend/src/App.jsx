@@ -24,7 +24,7 @@ import AdminEdicionComunicado from "./pages/AdminEdicionComunicado/AdminEdicionC
 import AdminCrearActo from "./pages/AdminCreacionActo/AdminCrearActo"
 import AdminEditarActo from "./pages/AdminEdicionActo/AdminEditarActo"
 
-import AdminCrearPuesto from "./pages/AdminCrearPuesto"
+import AdminCrearPuesto from "./pages/AdminCreacionPuesto/AdminCrearPuesto"
 import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
@@ -160,7 +160,30 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="admin/gestion-reparto-cirios/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoCirio />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/gestion-reparto-insignias/:id"
+          element={
+            <ProtectedRoute>
+              <GestionRepartoInsignias />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/gestion/hermanos/:id" 
+          element={
+            <ProtectedRoute>
+              <AdminEditarHermano />
+            </ProtectedRoute>
+          } 
+        />
 
 
 
@@ -171,14 +194,9 @@ function App() {
 
 
         <Route path="/validar-acceso/:id/:codigo" element={<ValidarAcceso />} />
-        <Route
-          path="admin/gestion-reparto-cirios/:id"
-          element={
-            <ProtectedRoute>
-              <GestionRepartoCirio />
-            </ProtectedRoute>
-          }
-        />
+
+
+
         <Route
           path="/panel-administracion" 
           element={
@@ -219,14 +237,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route 
-          path="/gestion/hermanos/:id" 
-          element={
-            <ProtectedRoute>
-              <AdminEditarHermano />
-            </ProtectedRoute>
-          } 
-        />
+
+
+
 
         <Route
           path="editar-acto/:id"
@@ -294,15 +307,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoConsultaActo />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/gestion-reparto-insignias/:id"
-          element={
-            <ProtectedRoute>
-              <GestionRepartoInsignias />
             </ProtectedRoute>
           }
         />

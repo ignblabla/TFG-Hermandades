@@ -18,10 +18,17 @@ def create_puesto_service(usuario, data_validada):
     acto = data_validada.get('acto')
     nombre = data_validada.get('nombre')
 
-    # Regla de Negocio: Solo actos que requieren papeleta pueden tener puestos
     if not acto.tipo_acto.requiere_papeleta:
         raise ValidationError({
             "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite puestos."
+        })
+
+    hoy = timezone.now().date()
+    fecha_inicio = acto.inicio_solicitud.date() if hasattr(acto.inicio_solicitud, 'date') else acto.inicio_solicitud
+
+    if not fecha_inicio or fecha_inicio <= hoy:
+        raise ValidationError({
+            "acto": "No se pueden crear puestos para actos cuyo periodo de solicitud ya ha comenzado, es en el pasado, o no tienen fecha definida."
         })
     
     if Puesto.objects.filter(acto=acto, nombre=nombre).exists():
@@ -29,6 +36,7 @@ def create_puesto_service(usuario, data_validada):
     
     puesto = Puesto.objects.create(**data_validada)
     return puesto
+
 
 
 def update_puesto_service(usuario, puesto_id, data_validada):
