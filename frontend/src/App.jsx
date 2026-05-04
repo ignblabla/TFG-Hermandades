@@ -144,13 +144,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-
-
-
-
-
-
         <Route
           path="/admin/crear-acto"
           element={
@@ -167,6 +160,12 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+
+
+
+
+
 
 
 
