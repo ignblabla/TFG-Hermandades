@@ -198,6 +198,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/listado-actos"
+          element={
+            <ProtectedRoute>
+              <HermanoListadoActos />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -264,15 +272,6 @@ function App() {
           element={
             <ProtectedRoute>
               <HermanoCrearSolicitudCirio />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/listado-actos"
-          element={
-            <ProtectedRoute>
-              <HermanoListadoActos />
             </ProtectedRoute>
           }
         />

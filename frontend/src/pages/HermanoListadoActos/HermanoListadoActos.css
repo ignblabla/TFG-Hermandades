@@ -33,6 +33,39 @@
     margin-top: 32px; 
 }
 
+.pagination-controls-actos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 30px;
+    padding-bottom: 20px;
+    font-weight: 500;
+    color: #4a4a4a;
+}
+
+.pagination-controls-actos button {
+    background-color: #ffffff;
+    border: 1px solid #800020;
+    color: #800020;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-controls-actos button:hover:not(.disabled) {
+    background-color: #800020;
+    color: #ffffff;
+}
+
+.pagination-controls-actos button.disabled {
+    border-color: #ccc;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
 @media (max-width: 1200px) {
     .actos-list {
         grid-template-columns: repeat(3, 1fr);

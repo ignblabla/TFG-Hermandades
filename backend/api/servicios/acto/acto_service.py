@@ -54,7 +54,7 @@ class ActoService:
         Devuelve el queryset con todos los actos, ordenados por fecha
         para garantizar una paginación predecible y consistente.
         """
-        return Acto.objects.all().order_by('-fecha')
+        return Acto.objects.filter(fecha__gte=timezone.now()).order_by('fecha')
 
 # -----------------------------------------------------------------------------
 # SERVICES: OBTENER PRÓXIMA ESTACIÓN DE PENITENCIA

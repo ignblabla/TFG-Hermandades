@@ -105,6 +105,17 @@ function HermanoListadoActos() {
         return `${cleanBaseUrl}${url}`;
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     return (
         <div>
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
@@ -131,47 +142,74 @@ function HermanoListadoActos() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {currentUser?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
@@ -198,27 +236,58 @@ function HermanoListadoActos() {
                             <h1 className="historical-header-title-censo">ACTOS</h1>
                         </div>
 
-                        <div className="actos-list">
-                            {actos.length > 0 ? (
-                                actos.map((acto) => (
-                                    <ActoCard
-                                        key={acto.id}
-                                        mes={getMes(acto.fecha)}
-                                        dia={getDia(acto.fecha)}
-                                        titulo={acto.nombre}
-                                        hora={getHora(acto.fecha)}
-                                        lugar={acto.lugar}
-                                        descripcion={acto.descripcion}
-                                        fechaInicioSolicitud={formatDateOnly(acto.inicio_solicitud)}
-                                        requierePapeleta={acto.requiere_papeleta} 
-                                        imagenPortada={getImagenUrl(acto.imagen_portada)}
-                                        onVerDetalles={() => navigate(`/acto/${acto.id}`)}
-                                    />
-                                ))
-                            ) : (
-                                <p>No hay actos disponibles en este momento.</p>
-                            )}
-                        </div>
+                        {loading && actos.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '3rem', color: '#555' }}>
+                                Cargando actos...
+                            </div>
+                        ) : (
+                            <>
+                                <div className="actos-list">
+                                    {actos.length > 0 ? (
+                                        actos.map((acto) => (
+                                            <ActoCard
+                                                key={acto.id}
+                                                mes={getMes(acto.fecha)}
+                                                dia={getDia(acto.fecha)}
+                                                titulo={acto.nombre}
+                                                hora={getHora(acto.fecha)}
+                                                lugar={acto.lugar}
+                                                descripcion={acto.descripcion}
+                                                fechaInicioSolicitud={formatDateOnly(acto.inicio_solicitud)}
+                                                requierePapeleta={acto.requiere_papeleta} 
+                                                imagenPortada={getImagenUrl(acto.imagen_portada)}
+                                                onVerDetalles={() => navigate(`/acto/${acto.id}`)}
+                                            />
+                                        ))
+                                    ) : (
+                                        <p>No hay actos disponibles en este momento.</p>
+                                    )}
+                                </div>
+
+                                {/* Controles de paginación añadidos aquí */}
+                                {actos.length > 0 && totalPages > 1 && (
+                                    <div className="pagination-controls-actos">
+                                        <button 
+                                            onClick={handlePrevPage} 
+                                            disabled={currentPage <= 1}
+                                            className={currentPage <= 1 ? 'disabled' : ''}
+                                        >
+                                            Anterior
+                                        </button>
+
+                                        <span>Página {currentPage} de {totalPages}</span>
+
+                                        <button 
+                                            onClick={handleNextPage} 
+                                            disabled={currentPage >= totalPages}
+                                            className={currentPage >= totalPages ? 'disabled' : ''}
+                                        >
+                                            Siguiente
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </section>
