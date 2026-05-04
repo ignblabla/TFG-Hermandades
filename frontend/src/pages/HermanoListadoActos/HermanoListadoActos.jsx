@@ -4,6 +4,8 @@ import api from '../../api';
 import './HermanoListadoActos.css'
 import ActoCard from '../../components/acto_card/ActoCard';
 
+import { Plus } from "lucide-react";
+
 function HermanoListadoActos() {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -234,6 +236,18 @@ function HermanoListadoActos() {
                     <div className="dashboard-panel-actos">
                         <div className="historical-header-container-actos">
                             <h1 className="historical-header-title-censo">ACTOS</h1>
+                            {currentUser?.esAdmin && (
+                                <div className="header-tags-container" style={{ marginTop: '15px' }}>
+                                    <div 
+                                        className="header-tag-pill-editar" 
+                                        onClick={() => navigate('/admin/crear-acto')}
+                                        title="Crear nuevo acto"
+                                    >
+                                        <Plus size={14} />
+                                        <span>Crear nuevo acto</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {loading && actos.length === 0 ? (

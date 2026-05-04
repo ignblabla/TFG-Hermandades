@@ -39,7 +39,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_usuario_admin_con_distintos_datos_validos(self, mock_acto_create):
         """
         Test: Usuario admin con distintos datos válidos
@@ -82,7 +82,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_usuario_admin_con_es_admin_truthy_no_booleano(self, mock_acto_create):
         """
         Test: Usuario admin con esAdmin truthy no booleano
@@ -112,7 +112,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_usuario_no_admin_lanza_permission_denied_y_no_crea_acto(self, mock_acto_create):
         """
         Test: Usuario NO admin -> PermissionDenied
@@ -144,7 +144,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_usuario_sin_atributo_es_admin_lanza_permission_denied(self, mock_acto_create):
         """
         Test: Usuario sin atributo esAdmin -> PermissionDenied
@@ -177,7 +177,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_usuario_con_es_admin_none_se_trata_como_no_admin(self, mock_acto_create):
         """
         Test: Usuario con esAdmin = None
@@ -208,7 +208,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_orm_lanza_excepcion_generica_se_propaga_hacia_arriba(self, mock_acto_create):
         """
         Test: Errores del ORM -> Acto.objects.create lanza excepción genérica
@@ -238,7 +238,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_orm_lanza_integrity_error_se_propaga_correctamente(self, mock_acto_create):
         """
         Test: Errores del ORM -> Acto.objects.create lanza IntegrityError
@@ -267,7 +267,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_data_validada_vacio_llama_a_create_sin_kwargs(self, mock_acto_create):
         """
         Test: Casos límite -> data_validada vacío
@@ -294,7 +294,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_data_validada_con_claves_inesperadas_se_pasan_integramente_al_orm(self, mock_acto_create):
         """
         Test: Casos límite -> data_validada con claves inesperadas
@@ -323,7 +323,7 @@ class CrearActoServiceTests(TestCase):
 
 
 
-    @patch('api.services.Acto.objects.create')
+    @patch('api.servicios.acto.acto_service.Acto.objects.create')
     def test_orm_devuelve_none_el_servicio_retorna_none(self, mock_acto_create):
         """
         Test: Acto.objects.create devuelve None

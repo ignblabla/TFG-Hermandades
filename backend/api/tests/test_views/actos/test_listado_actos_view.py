@@ -117,7 +117,7 @@ class TestActoListAPIViewPositivos(TestCase):
         mock_lista_actos = [MagicMock(), MagicMock()]
         mock_get_todos.return_value = mock_lista_actos
 
-        with patch('api.vistas.acto.listado_actos_view.PaginacionDiezElementos.paginate_queryset', return_value=None):
+        with patch('api.vistas.acto.listado_actos_view.PaginacionDoceElementos.paginate_queryset', return_value=None):
             self.view(request)
 
         mock_serializer_class.assert_called_once_with(
@@ -263,7 +263,7 @@ class TestActoListAPIViewPositivos(TestCase):
         mock_serializer_instancia.data = []
         mock_serializer_class.return_value = mock_serializer_instancia
 
-        with patch('api.vistas.acto.listado_actos_view.PaginacionDiezElementos.paginate_queryset', return_value=None):
+        with patch('api.vistas.acto.listado_actos_view.PaginacionDoceElementos.paginate_queryset', return_value=None):
             response = self.view(request)
 
         mock_serializer_class.assert_called_once_with([], many=True, context=ANY)
@@ -288,7 +288,7 @@ class TestActoListAPIViewPositivos(TestCase):
 
         mock_get_todos.return_value = None
         
-        with patch('api.vistas.acto.listado_actos_view.PaginacionDiezElementos.paginate_queryset', return_value=None):
+        with patch('api.vistas.acto.listado_actos_view.PaginacionDoceElementos.paginate_queryset', return_value=None):
             self.view(request)
 
         mock_serializer_class.assert_called_once_with(None, many=True, context=ANY)
