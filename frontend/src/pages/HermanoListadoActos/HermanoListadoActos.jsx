@@ -191,63 +191,35 @@ function HermanoListadoActos() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
-                <div className="text-dashboard">Listado de Actos</div>
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-actos">
+                        <div className="historical-header-container-actos">
+                            <h1 className="historical-header-title-censo">ACTOS</h1>
+                        </div>
 
-                <div className="actos-section-dashboard" style={{ padding: '0 20px' }}>
-                    {loading ? (
-                        <p>Cargando actos...</p>
-                    ) : error ? (
-                        <p style={{ color: 'red' }}>{error}</p>
-                    ) : (
-                        <>
-                            <div className="actos-list">
-                                {actos.length > 0 ? (
-                                    actos.map((acto) => (
-                                        <ActoCard
-                                            key={acto.id}
-                                            mes={getMes(acto.fecha)}
-                                            dia={getDia(acto.fecha)}
-                                            titulo={acto.nombre}
-                                            hora={getHora(acto.fecha)}
-                                            lugar={acto.lugar}
-                                            descripcion={acto.descripcion}
-                                            modalidad={acto.modalidad}
-                                            fechaInicioSolicitud={formatDateOnly(acto.inicio_solicitud)}
-                                            fechaFinSolicitud={formatDateOnly(acto.fin_solicitud)}
-                                            fechaInicioSolicitudCirios={formatDateOnly(acto.inicio_solicitud_cirios)}
-                                            fechaFinSolicitudCirios={formatDateOnly(acto.fin_solicitud_cirios)}
-                                            requierePapeleta={acto.requiere_papeleta} 
-                                            imagenPortada={getImagenUrl(acto.imagen_portada)}
-                                            onVerDetalles={() => navigate(`/acto/${acto.id}`)}
-                                        />
-                                    ))
-                                ) : (
-                                    <p>No hay actos disponibles en este momento.</p>
-                                )}
-                            </div>
-
-                            {totalPages > 1 && (
-                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '20px 0', gap: '15px' }}>
-                                    <button 
-                                        onClick={handlePrevPage} 
-                                        disabled={currentPage === 1}
-                                        style={{ padding: '8px 16px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
-                                    >
-                                        Anterior
-                                    </button>
-                                    <span>Página <strong>{currentPage}</strong> de <strong>{totalPages}</strong></span>
-                                    <button 
-                                        onClick={handleNextPage} 
-                                        disabled={currentPage === totalPages}
-                                        style={{ padding: '8px 16px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
-                                    >
-                                        Siguiente
-                                    </button>
-                                </div>
+                        <div className="actos-list">
+                            {actos.length > 0 ? (
+                                actos.map((acto) => (
+                                    <ActoCard
+                                        key={acto.id}
+                                        mes={getMes(acto.fecha)}
+                                        dia={getDia(acto.fecha)}
+                                        titulo={acto.nombre}
+                                        hora={getHora(acto.fecha)}
+                                        lugar={acto.lugar}
+                                        descripcion={acto.descripcion}
+                                        fechaInicioSolicitud={formatDateOnly(acto.inicio_solicitud)}
+                                        requierePapeleta={acto.requiere_papeleta} 
+                                        imagenPortada={getImagenUrl(acto.imagen_portada)}
+                                        onVerDetalles={() => navigate(`/acto/${acto.id}`)}
+                                    />
+                                ))
+                            ) : (
+                                <p>No hay actos disponibles en este momento.</p>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
