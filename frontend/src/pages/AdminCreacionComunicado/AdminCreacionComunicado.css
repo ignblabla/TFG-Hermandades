@@ -172,40 +172,93 @@
     font-family: inherit;
 }
 
-.podcast-checkbox-container-crear-comunicado {
+.checkbox-container-crear-comunicado {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
+    transition: all 0.2s ease;
+    height: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    width: 100%;
+    margin-top: 4px;
 }
 
-.podcast-checkbox-container-crear-comunicado:hover {
+.checkbox-container-crear-comunicado:hover:not(.checked) {
     border-color: #800020;
     background-color: #fce9ed;
 }
 
-.podcast-checkbox-input-crear-comunicado {
+.checkbox-container-crear-comunicado.checked {
+    background-color: #800020;
+    border-color: #800020;
+}
+
+.styled-checkbox-crear-comunicado {
+    appearance: none;
+    -webkit-appearance: none;
     width: 18px;
     height: 18px;
+    background-color: #ffffff;
+    border: 2px solid #9ca3af;
+    border-radius: 4px;
     cursor: pointer;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
     margin: 0;
-    accent-color: #800020;
     flex-shrink: 0;
 }
 
-.podcast-checkbox-label-crear-comunicado {
-    margin: 0;
-    cursor: pointer;
+.checkbox-container-crear-comunicado.checked .styled-checkbox-crear-comunicado {
+    background-color: #ffffff; 
+    border-color: #ffffff;
+}
+
+.checkbox-container-crear-comunicado.checked .styled-checkbox-crear-comunicado::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 10px;
+    border: solid #800020;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    top: 1px;
+}
+
+.checkbox-text-crear-comunicado {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.checkbox-title-crear-comunicado {
+    font-weight: 600;
     color: #333333;
-    user-select: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.checkbox-desc-crear-comunicado {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.4;
+    transition: color 0.2s ease;
+}
+
+.checkbox-container-crear-comunicado.checked .checkbox-title-crear-comunicado {
+    color: #ffffff;
+}
+
+.checkbox-container-crear-comunicado.checked .checkbox-desc-crear-comunicado {
+    color: #fce9ed;
 }
 
 .help-text-container-crear-comunicado {

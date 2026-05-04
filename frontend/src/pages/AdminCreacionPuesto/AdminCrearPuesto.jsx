@@ -9,7 +9,6 @@ function AdminCrearPuesto() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
 
     const [listaActos, setListaActos] = useState([]);
     const [listaTiposPuesto, setListaTiposPuesto] = useState([]);
@@ -185,6 +184,17 @@ function AdminCrearPuesto() {
         window.location.href = "/";
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (user && user.enlace_vinculacion_telegram) {
+            window.open(user.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     if (loading) return <div className="site-wrapper">Cargando...</div>;
     if (!user) return null;
 
@@ -214,53 +224,80 @@ function AdminCrearPuesto() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!user?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: user?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: user?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {user?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {user?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {user?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
                             <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="name-dashboard">{user ? `${user.nombre} ${user.primer_apellido}` : "Usuario"}</div>
                                 <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
@@ -329,45 +366,41 @@ function AdminCrearPuesto() {
                                     </div>
 
                                     <div className="form-group-crear-puesto span-2-crear-puesto">
-                                        <div className="checkbox-container-crear-puesto">
-                                            <label className="checkbox-label-crear-puesto">
-                                                <input 
-                                                    type="checkbox" 
-                                                    name="disponible" 
-                                                    checked={formData.disponible} 
-                                                    onChange={handleChange}
-                                                    className="checkbox-input-crear-puesto"
-                                                />
-                                                <div className="checkbox-text-crear-puesto">
-                                                    <span className="checkbox-title-crear-puesto">Disponible para asignación</span>
-                                                    <span className="checkbox-desc-crear-puesto">Marcar como Disponible para asignación inmediata.</span>
-                                                </div>
-                                            </label>
-                                        </div>
+                                        <label className={`checkbox-container-crear-puesto ${formData.disponible ? 'checked' : ''}`}>
+                                            <input 
+                                                type="checkbox" 
+                                                name="disponible" 
+                                                checked={formData.disponible} 
+                                                onChange={handleChange}
+                                                className="styled-checkbox-crear-puesto"
+                                            />
+                                            <div className="checkbox-text-crear-puesto">
+                                                <span className="checkbox-title-crear-puesto">Disponible para asignación</span>
+                                                <span className="checkbox-desc-crear-puesto">Marcar como disponible para asignación inmediata.</span>
+                                            </div>
+                                        </label>
                                     </div>
 
                                     <div className="form-group-crear-puesto span-2-crear-puesto">
-                                        <div className="checkbox-container-crear-puesto">
-                                            <label className="checkbox-label-crear-puesto">
-                                                <input 
-                                                    type="checkbox" 
-                                                    name="cortejo_cristo" 
-                                                    checked={formData.cortejo_cristo} 
-                                                    onChange={handleChange}
-                                                    className="checkbox-input-crear-puesto"
-                                                />
-                                                <div className="checkbox-text-crear-puesto">
-                                                    <span className="checkbox-title-crear-puesto">Sección del Cortejo</span>
-                                                    <span className="checkbox-desc-crear-puesto">Márquela si pertenece al cortejo de Cristo. Si pertenece al de Virgen, déjela en blanco.</span>
-                                                </div>
-                                            </label>
-                                        </div>
+                                        <label className={`checkbox-container-crear-puesto ${formData.cortejo_cristo ? 'checked' : ''}`}>
+                                            <input 
+                                                type="checkbox" 
+                                                name="cortejo_cristo" 
+                                                checked={formData.cortejo_cristo} 
+                                                onChange={handleChange}
+                                                className="styled-checkbox-crear-puesto"
+                                            />
+                                            <div className="checkbox-text-crear-puesto">
+                                                <span className="checkbox-title-crear-puesto">Sección del cortejo</span>
+                                                <span className="checkbox-desc-crear-puesto">Marcar si pertenece al cortejo de Cristo. Dejar en blanco si pertenece al de la Virgen.</span>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
 
                                 <div className="plazos-separator-asignacion">
                                     <div className="plazos-line"></div>
-                                        <span className="plazos-text">Detalles del acto y del puesto</span>
+                                        <span className="plazos-text">Selección del acto asociado y del tipo de puesto</span>
                                     <div className="plazos-line"></div>
                                 </div>
 
@@ -396,9 +429,6 @@ function AdminCrearPuesto() {
                                                 )}
                                             </select>
                                         </div>
-                                        <small style={{color: '#666', fontSize: '0.8rem', marginTop: '4px'}}>
-                                            Solo actos que requieran papeleta.
-                                        </small>
                                     </div>
 
                                     <div className="form-group-crear-puesto span-2-crear-puesto">
@@ -472,7 +502,7 @@ function AdminCrearPuesto() {
                                     <button 
                                         type="button" 
                                         className="btn-cancel-crear-puesto" 
-                                        onClick={() => navigate("/home")}
+                                        onClick={() => navigate("/new-home")}
                                     >
                                         Cancelar
                                     </button>
@@ -483,7 +513,7 @@ function AdminCrearPuesto() {
                                         disabled={saving}
                                     >
                                         <Save size={18} />
-                                        {saving ? "Guardando..." : "Guardar Puesto"}
+                                        {saving ? "Creando..." : "Crear puesto"}
                                     </button>
                                 </div>
                                 
@@ -492,70 +522,6 @@ function AdminCrearPuesto() {
                     </div>
                 </div>
             </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Crear nuevo puesto</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="card-container-listado" style={{ margin: '0', maxWidth: '100%' }}>
-                        {error && (
-                            <div className="alert-banner-creacion-puesto error-creacion-puesto">
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="alert-banner-creacion-puesto success-creacion-puesto">
-                                <CheckCircle size={20} />
-                                <span>{successMsg}</span>
-                            </div>
-                        )}
-
-                        <form onSubmit={handleSubmit}>
-                            
-
-                            <div className="form-section-creacion-puesto">
-                                <h3 className="section-title-creacion-puesto"><MapPin size={18}/> Datos de citación</h3>
-                                <div className="form-grid-creacion-puesto">
-                                    <div className="form-group-creacion-puesto span-2-main-puesto">
-                                        <label>Lugar de citación *</label>
-                                        <input
-                                            type="text"
-                                            id="lugar_citacion"
-                                            name="lugar_citacion"
-                                            value={formData.lugar_citacion}
-                                            onChange={handleChange}
-                                            placeholder="Ej: Parroquia de San Gonzalo"
-                                        />
-                                    </div>
-
-                                    <div className="form-group-creacion-puesto span-2-main-puesto">
-                                        <label>Hora de citación *</label>
-                                        <input
-                                            type="time"
-                                            id="hora_citacion"
-                                            name="hora_citacion"
-                                            value={formData.hora_citacion}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="form-actions-edicion">
-                                <button type="button" className="btn-cancel-edicion" onClick={() => navigate("/home")}>
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="btn-save-edicion" disabled={saving}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Save size={18} />
-                                        {saving ? "Creando..." : "Crear Puesto"}
-                                    </div>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </section> */}
         </div>
     )
 }

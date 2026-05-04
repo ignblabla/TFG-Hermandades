@@ -471,26 +471,27 @@ function AdminCreacionComunicado() {
                                     </div>
 
                                     <div className="form-group-crear-comunicado span-full-crear-comunicado">
-                                        <label htmlFor="contenido" className="form-label-crear-comunicado">
-                                                Formato podcast
-                                            </label>
-                                        <div className="podcast-checkbox-container-crear-comunicado">
+                                        <label className="form-label-crear-comunicado">
+                                            Formato podcast
+                                        </label>
+                                        <label className={`checkbox-container-crear-comunicado ${formData.generar_podcast ? 'checked' : ''}`}>
                                             <input
                                                 type="checkbox"
-                                                id="generar_podcast"
                                                 name="generar_podcast"
                                                 checked={formData.generar_podcast}
                                                 onChange={handleChange}
-                                                className="podcast-checkbox-input-crear-comunicado"
+                                                className="styled-checkbox-crear-comunicado"
                                             />
-                                            <label 
-                                                htmlFor="generar_podcast" 
-                                                className="podcast-checkbox-label-crear-comunicado"
-                                            >
-                                                <Headphones size={20} color="#800020" />
-                                                Generar podcast a dos voces automáticamente para este comunicado
-                                            </label>
-                                        </div>
+                                            <div className="checkbox-text-crear-comunicado">
+                                                <span className="checkbox-title-crear-comunicado" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <Headphones size={20} color={formData.generar_podcast ? "#ffffff" : "#800020"} />
+                                                    Generar podcast a dos voces
+                                                </span>
+                                                <span className="checkbox-desc-crear-comunicado">
+                                                    Crear automáticamente un audio inmersivo con el contenido de este comunicado.
+                                                </span>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

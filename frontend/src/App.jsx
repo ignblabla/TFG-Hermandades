@@ -5,7 +5,6 @@ import Register from "./pages/Register"
 import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
-import CrearPuesto from "./pages/CrearPuesto"
 import EditarActo from "./pages/EditarActo"
 import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
@@ -184,6 +183,14 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        <Route
+          path="/admin/crear-puesto"
+          element={
+            <ProtectedRoute>
+              <AdminCrearPuesto />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -202,22 +209,6 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/crear-puesto"
-          element={
-            <ProtectedRoute>
-              <CrearPuesto />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/crear-puesto"
-          element={
-            <ProtectedRoute>
-              <AdminCrearPuesto />
             </ProtectedRoute>
           }
         />
