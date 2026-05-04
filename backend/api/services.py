@@ -1,9 +1,7 @@
-from django.http import QueryDict
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
-from .models import Acto, PapeletaSitio, Puesto, TipoActo, TipoPuesto
-from django.db import transaction
+from .models import Puesto
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

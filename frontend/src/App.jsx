@@ -6,7 +6,6 @@ import Home from "./pages/Home"
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import EditarActo from "./pages/EditarActo"
-import EditarPuesto from "./pages/EditarPuesto"
 import HazteHermano from "./pages/HazteHermano"
 import HermanoCrearSolicitudCirio from "./pages/HermanoSolicitudCirio/HermanoCrearSolicitudCirio"
 import AdminDashboard from "./pages/Admin/Dashboard"
@@ -191,6 +190,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/editar-puesto/:id"
+          element={
+            <ProtectedRoute>
+              <AdminEdicionPuesto />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -212,22 +219,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/admin/editar-puesto/:id"
-          element={
-            <ProtectedRoute>
-              <AdminEdicionPuesto />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/editar-puesto/:id"
-          element={
-            <ProtectedRoute>
-              <EditarPuesto />
-            </ProtectedRoute>
-          }
-        />
+
 
 
 

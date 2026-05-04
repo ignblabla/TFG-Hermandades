@@ -10,7 +10,6 @@ function AdminEdicionPuesto() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState(null);
 
     const { id } = useParams(); 
     const isEditing = Boolean(id);
@@ -214,6 +213,17 @@ function AdminEdicionPuesto() {
         }
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (user && user.enlace_vinculacion_telegram) {
+            window.open(user.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     const handleLogout = () => {
         localStorage.removeItem("user_data");
         localStorage.removeItem(ACCESS_TOKEN || "access");
@@ -251,53 +261,80 @@ function AdminEdicionPuesto() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
+                    <li>
+                        <a 
+                            href="#" 
+                            onClick={!user?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{ 
+                                cursor: user?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: user?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {user?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {user?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {user?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
                     
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
                             <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="name-dashboard">{user ? `${user.nombre} ${user.primer_apellido}` : "Usuario"}</div>
                                 <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
