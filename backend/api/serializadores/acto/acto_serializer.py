@@ -73,12 +73,10 @@ class ActoSerializer(serializers.ModelSerializer):
     
     def get_total_solicitantes_insignia(self, obj):
         estados_inactivos = ['ANULADA']
-
-        return obj.papeletas.filter(
-            es_solicitud_insignia=True
-        ).exclude(
-            estado_papeleta__in=estados_inactivos
-        ).count()
+        return sum(
+            1 for p in obj.papeletas.all() 
+            if p.es_solicitud_insignia and p.estado_papeleta not in estados_inactivos
+        )
     
     def get_total_solicitudes_insignias(self, obj):
         estados_validos = ['SOLICITADA', 'EMITIDA', 'RECOGIDA', 'LEIDA', 'NO_ASIGNADA']
@@ -92,22 +90,21 @@ class ActoSerializer(serializers.ModelSerializer):
         return total
 
     def get_total_insignias(self, obj):
-        """Calcula el cupo máximo de insignias para este acto"""
-        puestos = obj.puestos_disponibles.filter(tipo_puesto__es_insignia=True)
-        return sum(p.numero_maximo_asignaciones for p in puestos)
+        return sum(
+            p.numero_maximo_asignaciones 
+            for p in obj.puestos_disponibles.all() 
+            if p.tipo_puesto.es_insignia
+        )
 
     def get_total_asignados(self, obj):
         if not obj.fecha_ejecucion_reparto:
             return None
             
         estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
-        
-        return obj.papeletas.filter(
-            es_solicitud_insignia=True, 
-            puesto__isnull=False
-        ).exclude(
-            estado_papeleta__in=estados_inactivos
-        ).count()
+        return sum(
+            1 for p in obj.papeletas.all() 
+            if p.es_solicitud_insignia and p.puesto_id is not None and p.estado_papeleta not in estados_inactivos
+        )
 
     def get_total_no_asignados(self, obj):
         if not obj.fecha_ejecucion_reparto:
@@ -127,29 +124,31 @@ class ActoSerializer(serializers.ModelSerializer):
 
     def get_total_cirios_cristo(self, obj):
         estados_inactivos = ['ANULADA']
-        return obj.papeletas.filter(
-            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
-            puesto__isnull=False,
-            puesto__cortejo_cristo=True,
-            puesto__tipo_puesto__es_insignia=False
-        ).exclude(
-            estado_papeleta__in=estados_inactivos
-        ).count()
+        return sum(
+            1 for p in obj.papeletas.all() 
+            if (p.es_solicitud_insignia is False or p.es_solicitud_insignia is None)
+            and p.puesto_id is not None
+            and p.puesto.cortejo_cristo is True
+            and p.puesto.tipo_puesto.es_insignia is False
+            and p.estado_papeleta not in estados_inactivos
+        )
 
     def get_total_cirios_virgen(self, obj):
         estados_inactivos = ['ANULADA']
-        return obj.papeletas.filter(
-            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True),
-            puesto__isnull=False,
-            puesto__cortejo_cristo=False,
-            puesto__tipo_puesto__es_insignia=False
-        ).exclude(
-            estado_papeleta__in=estados_inactivos
-        ).count()
+        return sum(
+            1 for p in obj.papeletas.all() 
+            if (p.es_solicitud_insignia is False or p.es_solicitud_insignia is None)
+            and p.puesto_id is not None
+            and p.puesto.cortejo_cristo is False
+            and p.puesto.tipo_puesto.es_insignia is False
+            and p.estado_papeleta not in estados_inactivos
+        )
 
     def get_total_puestos_cirios(self, obj):
-        """Cuenta el número de registros de Puesto que NO son insignias"""
-        return obj.puestos_disponibles.filter(tipo_puesto__es_insignia=False).count()
+        return sum(
+            1 for p in obj.puestos_disponibles.all() 
+            if not p.tipo_puesto.es_insignia
+        )
 
 
 

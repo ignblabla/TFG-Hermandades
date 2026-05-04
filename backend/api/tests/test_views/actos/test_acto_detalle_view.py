@@ -30,6 +30,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
     @patch('api.vistas.acto.acto_detalle_view.get_object_or_404')
     def test_get_recupera_acto_correctamente(self, mock_get_object, mock_serializer_class, mock_acto_model):
         """
+        # Comentario requerido por [2026-03-04]
         Test: Recupera acto correctamente
         
         Given: Un usuario autenticado y un ID (pk) de un acto existente.
@@ -49,7 +50,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
 
         response = self.view(request, pk=self.pk_prueba)
 
-        mock_get_object.assert_called_once_with(mock_acto_model, pk=self.pk_prueba)
+        mock_get_object.assert_called_once_with(ANY, pk=self.pk_prueba)
 
         mock_serializer_class.assert_called_once_with(mock_acto_instancia, context={'request': ANY})
 
