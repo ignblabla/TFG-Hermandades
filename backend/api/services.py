@@ -45,7 +45,16 @@ def update_puesto_service(usuario, puesto_id, data_validada):
 
     puesto = get_object_or_404(Puesto, pk=puesto_id)
     acto = puesto.acto
-    
+
+    hoy = timezone.now().date()
+
+    fecha_inicio = acto.inicio_solicitud 
+
+    if not fecha_inicio or fecha_inicio.date() <= hoy:
+        raise ValidationError({
+            "acto": "No se pueden actualizar puestos para actos cuyo periodo de solicitud ya ha comenzado, es en el pasado, o no tienen fecha definida."
+        })
+
     if not acto.tipo_acto.requiere_papeleta:
         raise ValidationError({"acto": "Este acto ya no admite la gestión de puestos."})
     
@@ -53,7 +62,7 @@ def update_puesto_service(usuario, puesto_id, data_validada):
 
     if Puesto.objects.filter(acto=acto, nombre=nuevo_nombre).exclude(pk=puesto_id).exists():
         raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' en este acto."]})
-    
+
     for attr, value in data_validada.items():
         setattr(puesto, attr, value)
 

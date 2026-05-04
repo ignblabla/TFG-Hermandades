@@ -50,7 +50,9 @@ class PuestoDetalleView(APIView):
         puesto = get_object_or_404(Puesto, pk=pk)
         serializer = PuestoSerializer(puesto)
         return Response(serializer.data, status = status.HTTP_200_OK)
-    
+
+
+
     def put(self, request, pk):
         """Actualización completa"""
         puesto = get_object_or_404(Puesto, pk=pk)
@@ -64,7 +66,9 @@ class PuestoDetalleView(APIView):
         )
 
         return Response(PuestoSerializer(puesto_actualizado).data, status=status.HTTP_200_OK)
-    
+
+
+
     def patch(self, request, pk):
         """Actualización parcial"""
         puesto = get_object_or_404(Puesto, pk=pk)
@@ -78,4 +82,3 @@ class PuestoDetalleView(APIView):
         )
 
         return Response(PuestoSerializer(puesto_actualizado).data, status=status.HTTP_200_OK)
-

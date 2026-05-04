@@ -24,7 +24,7 @@ import AdminCrearActo from "./pages/AdminCreacionActo/AdminCrearActo"
 import AdminEditarActo from "./pages/AdminEdicionActo/AdminEditarActo"
 
 import AdminCrearPuesto from "./pages/AdminCreacionPuesto/AdminCrearPuesto"
-import AdminEdicionPuesto from "./pages/AdminEdicionPuesto"
+import AdminEdicionPuesto from "./pages/AdminEdicionPuesto/AdminEdicionPuesto"
 import ChatAsistente from "./pages/ChatAsistente"
 import HermanoNewHome from "./pages/NewHome"
 import AdminCenso from "./pages/AdminCenso/AdminCenso"
