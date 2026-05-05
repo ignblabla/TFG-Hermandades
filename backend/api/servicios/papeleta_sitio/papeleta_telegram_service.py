@@ -41,6 +41,8 @@ class TelegramWebhookService:
         except Exception as e:
             print(f"Error procesando webhook de Telegram: {e}")
 
+
+
     @staticmethod
     def _enviar_bienvenida(chat_id, nombre_hermano):
         token = getattr(settings, 'TELEGRAM_BOT_TOKEN', None)
