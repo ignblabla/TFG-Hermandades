@@ -2,7 +2,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet
+from django.db.models import Q, Count, QuerySet
 
 from api.models import Puesto
 
@@ -83,3 +83,23 @@ def obtener_puestos_por_acto(acto_id: int) -> QuerySet[Puesto]:
     ).filter(
         acto_id=acto_id
     )
+
+
+
+def obtener_resumen_puestos_acto(acto_id: int) -> dict:
+    """
+    Retorna el total de puestos distintos disponibles en un acto,
+    desglosado también por cortejo de Cristo y Virgen.
+    Realiza una sola consulta SQL agrupada para mayor eficiencia.
+    """
+    resumen = Puesto.objects.filter(acto_id=acto_id, disponible=True).aggregate(
+        total_puestos=Count('id'),
+        total_cristo=Count('id', filter=Q(cortejo_cristo=True)),
+        total_virgen=Count('id', filter=Q(cortejo_cristo=False))
+    )
+    
+    return {
+        "total_puestos": resumen['total_puestos'] or 0,
+        "total_cristo": resumen['total_cristo'] or 0,
+        "total_virgen": resumen['total_virgen'] or 0,
+    }

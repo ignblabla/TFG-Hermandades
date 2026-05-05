@@ -18,6 +18,8 @@ function HermanoListadoPuestos() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
+    const [resumen, setResumen] = useState({ total_puestos: 0, total_cristo: 0, total_virgen: 0 });
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleLogout = () => {
@@ -60,6 +62,23 @@ function HermanoListadoPuestos() {
         fetchData();
         return () => { isMounted = false; };
     }, [actoId, currentUser, currentPage]);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchResumen = async () => {
+            try {
+                const res = await api.get(`api/actos/${actoId}/puestos/resumen/`);
+                if (isMounted) {
+                    setResumen(res.data);
+                }
+            } catch (err) {
+                console.error("Error cargando el resumen de puestos:", err);
+            }
+        };
+        
+        fetchResumen();
+        return () => { isMounted = false; };
+    }, [actoId]);
 
     const handleVincularTelegram = (e) => {
         e.preventDefault();
@@ -239,12 +258,12 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="puestos-card-title">TOTAL PUESTOS DISPONIBLES</h3>
                                     <p className="puestos-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de puestos distintos disponibles para este acto.
                                     </p>
                                     <div className="puestos-card-date">
-                                        100
+                                        {resumen.total_puestos}
                                     </div>
                                 </div>
                             </div>
@@ -254,12 +273,12 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="puestos-card-title">TOTAL PUESTOS CORTEJO CRISTO</h3>
                                     <p className="puestos-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de puestos que acompañan al paso de Cristo.
                                     </p>
                                     <div className="puestos-card-date">
-                                        100
+                                        {resumen.total_cristo}
                                     </div>
                                 </div>
                             </div>
@@ -269,12 +288,12 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL CUOTAS PAGADAS</h3>
+                                    <h3 className="puestos-card-title">TOTAL PUESTOS CORTEJO CRISTO</h3>
                                     <p className="puestos-card-description">
-                                        Número total de cuotas pagadas que constan actualmente en tu historial.
+                                        Número total de puestos que acompañan al paso de Virgen.
                                     </p>
                                     <div className="puestos-card-date">
-                                        100
+                                        {resumen.total_virgen}
                                     </div>
                                 </div>
                             </div>

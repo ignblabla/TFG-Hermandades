@@ -187,13 +187,17 @@
 }
 
 .badge-cortejo.cristo {
-    background-color: #fef3c7;
-    color: #92400e;
+    background-color: #800020;
+    color: #FFFFFF;
+    border: 1px solid #800020;
+    border-radius: 8px;
 }
 
 .badge-cortejo.virgen {
-    background-color: #e0e7ff;
-    color: #3730a3;
+    background-color: #FFFFFF;
+    color: #800020;
+    border: 1px solid #800020;
+    border-radius: 8px;
 }
 
 .pagination-controls-puestos {

@@ -38,6 +38,7 @@ from api.vistas.comunicado.comunicados_general_view import ComunicadoListCreateV
 from api.vistas.puesto.puesto_view import CrearPuestoView
 from api.vistas.puesto.puesto_detalle_view import PuestoDetalleView
 from api.vistas.puesto.listado_puesto_view import PuestosPorActoListView
+from api.vistas.puesto.resumen_puesto_view import ResumenPuestosActoAPIView
 
 
 urlpatterns = [
@@ -69,6 +70,7 @@ urlpatterns = [
     path('actos/<int:acto_id>/asistentes-leidos/', ListarAsistentesLeidosActoView.as_view(), name='acto-asistentes-leidos'),
     path('actos/<int:acto_id>/estadisticas-asistencia/', EstadisticasAsistenciaView.as_view(), name='acto-estadisticas-asistencia'),
     path('actos/<int:acto_id>/puestos/', PuestosPorActoListView.as_view(), name='acto-puestos-list'),
+    path('actos/<int:acto_id>/puestos/resumen/', ResumenPuestosActoAPIView.as_view(), name='resumen-puestos-acto'),
 
     # Áreas de interés
     path("areas-interes/", AreaInteresListView.as_view(), name="lista-areas-interes"),
