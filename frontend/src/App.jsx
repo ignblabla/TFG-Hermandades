@@ -42,6 +42,7 @@ import HermanoConsultaNoticia from "./pages/HermanoConsultaNoticia/HermanoConsul
 import NoticiasHermano from "./pages/HermanoNoticias/NoticiasHermanos"
 
 import ListadoAsistentes from "./pages/AdminListadoAsistentesActos/AdminListadoAsistentesActos"
+import HermanoListadoPuestos from "./pages/HermanoListadoPuestos/HermanoListadoPuestos"
 
 
 function Logout() {
@@ -227,6 +228,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/actos/:actoId/puestos" 
+          element={
+            <ProtectedRoute>
+              <HermanoListadoPuestos />
+            </ProtectedRoute>
+          }
+        />
+
 
 
 

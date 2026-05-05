@@ -278,7 +278,6 @@ function HermanoListadoActos() {
                                     )}
                                 </div>
 
-                                {/* Controles de paginación añadidos aquí */}
                                 {actos.length > 0 && totalPages > 1 && (
                                     <div className="pagination-controls-actos">
                                         <button 

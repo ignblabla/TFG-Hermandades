@@ -2,6 +2,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.db.models import QuerySet
 
 from api.models import Puesto
 
@@ -67,3 +68,18 @@ def update_puesto_service(usuario, puesto_id, data_validada):
 
     puesto.save()
     return puesto
+
+
+
+def obtener_puestos_por_acto(acto_id: int) -> QuerySet[Puesto]:
+    """
+    Retorna un queryset con todos los puestos (tanto insignias como no insignias) 
+    para un acto determinado.
+    """
+    return Puesto.objects.select_related(
+        'tipo_puesto', 
+        'acto', 
+        'acto__tipo_acto'
+    ).filter(
+        acto_id=acto_id
+    )

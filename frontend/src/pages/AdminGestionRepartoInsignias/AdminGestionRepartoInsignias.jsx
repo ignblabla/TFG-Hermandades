@@ -267,7 +267,7 @@ function GestionRepartoInsignias() {
         if (!tipo) return "de Sitio";
 
         const tipoStr = typeof tipo === 'object' ? tipo.tipo : tipo;
-        
+
         const diccionarioTipos = {
             'ESTACION_PENITENCIA': 'Estación de Penitencia',
             'CABILDO_GENERAL': 'Cabildo General',

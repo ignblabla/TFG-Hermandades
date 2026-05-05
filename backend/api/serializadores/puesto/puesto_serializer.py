@@ -47,3 +47,40 @@ class PuestoUpdateSerializer(PuestoSerializer):
     """
     class Meta(PuestoSerializer.Meta):
         read_only_fields = ['acto', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion']
+
+
+
+class TipoPuestoSimpleSerializer(serializers.ModelSerializer):
+    nombre_tipo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TipoPuesto
+        fields = ['id', 'nombre_tipo']
+
+    def get_nombre_tipo(self, obj):
+        if obj.nombre_tipo:
+            return obj.nombre_tipo.replace('_', ' ')
+        return obj.nombre_tipo
+
+
+
+class PuestoListadoSerializer(serializers.ModelSerializer):
+    tipo_puesto = TipoPuestoSimpleSerializer(read_only=True)
+    acto_nombre = serializers.CharField(source='acto.nombre', read_only=True)
+    acto_fecha = serializers.DateTimeField(source='acto.fecha', read_only=True)
+    acto_tipo = serializers.CharField(source='acto.tipo_acto.tipo', read_only=True)
+
+    class Meta:
+        model = Puesto
+        fields = [
+            'id',
+            'nombre',
+            'numero_maximo_asignaciones',
+            'disponible',
+            'cortejo_cristo',
+            'acto',
+            'acto_nombre',
+            'acto_fecha',
+            'acto_tipo',
+            'tipo_puesto'
+        ]
