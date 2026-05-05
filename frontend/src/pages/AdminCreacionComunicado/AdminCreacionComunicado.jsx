@@ -449,7 +449,7 @@ function AdminCreacionComunicado() {
                                                 />
                                                 <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
                                                 <p>Haz clic para subir una imagen de portada</p>
-                                                <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
+                                                <small>JPG, PNG (Max. 5MB) - <strong>Formato horizontal obligatorio</strong></small>
                                             </div>
                                         ) : (
                                             <div className="image-preview-container-crear-comunicado">

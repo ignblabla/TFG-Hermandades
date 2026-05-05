@@ -35,8 +35,9 @@ from api.vistas.comunicado.ultimos_comunicados_areas_interes_view import Ultimos
 from api.vistas.comunicado.comunicados_relacionados_view import ComunicadosRelacionadosView
 from api.vistas.comunicado.chat_comunicados_view import ChatComunicadosView
 from api.vistas.comunicado.comunicados_general_view import ComunicadoListCreateView
+from api.vistas.puesto.puesto_view import CrearPuestoView
+from api.vistas.puesto.puesto_detalle_view import PuestoDetalleView
 
-from .views import CrearPuestoView, PuestoDetalleView
 
 urlpatterns = [
     path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),

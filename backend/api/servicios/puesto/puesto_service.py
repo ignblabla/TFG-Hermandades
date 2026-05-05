@@ -1,0 +1,69 @@
+from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied, ValidationError
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
+from api.models import Puesto
+
+User = get_user_model()
+
+# -----------------------------------------------------------------------------
+# SERVICES: PUESTO
+# -----------------------------------------------------------------------------
+def create_puesto_service(usuario, data_validada):
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para crear puestos.")
+    
+    acto = data_validada.get('acto')
+    nombre = data_validada.get('nombre')
+
+    if not acto.tipo_acto.requiere_papeleta:
+        raise ValidationError({
+            "acto": f"El acto '{acto.nombre}' es de tipo '{acto.tipo_acto.get_tipo_display()}' y no admite puestos."
+        })
+
+    hoy = timezone.now().date()
+    fecha_inicio = acto.inicio_solicitud.date() if hasattr(acto.inicio_solicitud, 'date') else acto.inicio_solicitud
+
+    if not fecha_inicio or fecha_inicio <= hoy:
+        raise ValidationError({
+            "acto": "No se pueden crear puestos para actos cuyo periodo de solicitud ya ha comenzado, es en el pasado, o no tienen fecha definida."
+        })
+    
+    if Puesto.objects.filter(acto=acto, nombre=nombre).exists():
+        raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nombre}' en este acto."]})
+    
+    puesto = Puesto.objects.create(**data_validada)
+    return puesto
+
+
+
+def update_puesto_service(usuario, puesto_id, data_validada):
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para editar puestos.")
+
+    puesto = get_object_or_404(Puesto, pk=puesto_id)
+    acto = puesto.acto
+
+    hoy = timezone.now().date()
+
+    fecha_inicio = acto.inicio_solicitud 
+
+    if not fecha_inicio or fecha_inicio.date() <= hoy:
+        raise ValidationError({
+            "acto": "No se pueden actualizar puestos para actos cuyo periodo de solicitud ya ha comenzado, es en el pasado, o no tienen fecha definida."
+        })
+
+    if not acto.tipo_acto.requiere_papeleta:
+        raise ValidationError({"acto": "Este acto ya no admite la gestión de puestos."})
+    
+    nuevo_nombre = data_validada.get('nombre', puesto.nombre)
+
+    if Puesto.objects.filter(acto=acto, nombre=nuevo_nombre).exclude(pk=puesto_id).exists():
+        raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' en este acto."]})
+
+    for attr, value in data_validada.items():
+        setattr(puesto, attr, value)
+
+    puesto.save()
+    return puesto
