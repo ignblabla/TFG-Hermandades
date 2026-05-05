@@ -42,6 +42,14 @@
     width: 100%;
 }
 
+.form-container-crear-acto-espacio {
+    display: flex;
+    flex-direction: column;
+    gap: 16px; 
+    width: 100%;
+    margin-top: -17px;
+}
+
 .form-group-solicitud-crear-acto {
     flex: 1;
     display: flex;
@@ -182,13 +190,6 @@
     margin-bottom: -17px;
     font-weight: 500;
     line-height: 1.4;
-}
-
-.subtitle-crear-acto {
-    font-size: 1.1rem;
-    color: #800020;
-    margin: -17px 0 0 0;
-    font-weight: 700;
 }
 
 .mt-subtitle {

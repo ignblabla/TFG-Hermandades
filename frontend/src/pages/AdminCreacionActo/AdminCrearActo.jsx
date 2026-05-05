@@ -338,7 +338,7 @@ function AdminCrearActo() {
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-crear-acto">
                         <div className="historical-header-container-crear-acto">
-                            <h1 className="historical-header-title-crear-acto">CREAR NUEVO ACTO</h1>
+                            <h1 className="historical-header-title-crear-acto">CREAR ACTO</h1>
                         </div>
 
                         <div className="plazos-separator-asignacion">
@@ -479,7 +479,7 @@ function AdminCrearActo() {
 
                                 <div className="form-group-solicitud-crear-acto">
                                     <label className="form-label-crear-acto">
-                                        Imagen de Portada
+                                        Imagen de portada
                                     </label>
                                     
                                     {!previewUrl ? (
@@ -523,10 +523,10 @@ function AdminCrearActo() {
                                     <div className="plazos-line"></div>
                                 </div>
 
-                                <div className="form-container-crear-acto">
+                                <div className="form-container-crear-acto-espacio">
                                     <div className="form-group-solicitud-crear-acto">
                                         <label htmlFor="modalidad" className="form-label-crear-acto">
-                                            Modalidad de Reparto {requierePapeleta && <span className="required">*</span>}
+                                            Modalidad de reparto {requierePapeleta && <span className="required">*</span>}
                                         </label>
                                         <div className="input-wrapper-crear-acto">
                                             <select 
@@ -540,7 +540,7 @@ function AdminCrearActo() {
                                             >
                                                 <option value="" disabled>Seleccione una opción</option>
                                                 <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
-                                                <option value="UNIFICADO">Unificado / Express (Todo a la vez)</option>
+                                                <option value="UNIFICADO">Unificado (Insignias y cirios a la vez)</option>
                                             </select>
                                         </div>
                                         <small className="form-help-text-crear-acto">
@@ -561,17 +561,16 @@ function AdminCrearActo() {
                                     <div className="plazos-line"></div>
                                 </div>
 
-                                <div className="form-container-crear-acto">
-                    
-                                    <h4 className="subtitle-crear-acto">
-                                        {formData.modalidad === 'TRADICIONAL' && requierePapeleta
-                                            ? 'Plazo de solicitud de insignias, varas, maniguetas y cirios apagados' 
-                                            : 'Plazo único de solicitud (insignias y cirios)'}
-                                    </h4>
-                                    
+                                <div className="form-container-crear-acto-espacio">
                                     <div className="form-row-crear-acto">
                                         <div className="form-group-solicitud-crear-acto">
-                                            <label htmlFor="inicio_solicitud" className="form-label-crear-acto">Inicio Solicitud</label>
+                                            <label htmlFor="inicio_solicitud" className="form-label-crear-acto">
+                                                {formData.modalidad === 'UNIFICADO' 
+                                                    ? 'Inicio solicitud insignias y cirios' 
+                                                    : (formData.modalidad === 'TRADICIONAL' && requierePapeleta) 
+                                                        ? 'Inicio solicitud insignias' 
+                                                        : 'Inicio solicitud insignias'}
+                                            </label>
                                             <div className="input-wrapper-crear-acto">
                                                 <input 
                                                     type="datetime-local" 
@@ -588,7 +587,13 @@ function AdminCrearActo() {
                                         </div>
                                         
                                         <div className="form-group-solicitud-crear-acto">
-                                            <label htmlFor="fin_solicitud" className="form-label-crear-acto">Fin Solicitud</label>
+                                            <label htmlFor="fin_solicitud" className="form-label-crear-acto">
+                                                {formData.modalidad === 'UNIFICADO' 
+                                                    ? 'Fin solicitud insignias y cirios' 
+                                                    : (formData.modalidad === 'TRADICIONAL' && requierePapeleta) 
+                                                        ? 'Fin solicitud insignias' 
+                                                        : 'Fin solicitud insignias'}
+                                            </label>
                                             <div className="input-wrapper-crear-acto">
                                                 <input 
                                                     type="datetime-local" 
@@ -605,45 +610,47 @@ function AdminCrearActo() {
                                         </div>
                                     </div>
 
-                                    <h4 className="subtitle-crear-acto mt-subtitle">
-                                        Plazo de solicitud de cirios
-                                    </h4>
-                                    
-                                    <div className="form-row-crear-acto">
-                                        <div className="form-group-solicitud-crear-acto">
-                                            <label htmlFor="inicio_solicitud_cirios" className="form-label-crear-acto">Inicio Solicitud</label>
-                                            <div className="input-wrapper-crear-acto">
-                                                <input 
-                                                    type="datetime-local" 
-                                                    id="inicio_solicitud_cirios"
-                                                    name="inicio_solicitud_cirios" 
-                                                    value={formData.inicio_solicitud_cirios || ''} 
-                                                    onChange={handleChange} 
-                                                    min={minDate} max={maxDate}
-                                                    className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
-                                                    disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
-                                                />
-                                                {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
+                                    {formData.modalidad !== 'UNIFICADO' && (
+                                        <div className="form-row-crear-acto">
+                                            <div className="form-group-solicitud-crear-acto">
+                                                <label htmlFor="inicio_solicitud_cirios" className="form-label-crear-acto">
+                                                    {formData.modalidad === 'TRADICIONAL' ? 'Inicio solicitud cirios' : 'Inicio solicitud cirios'}
+                                                </label>
+                                                <div className="input-wrapper-crear-acto">
+                                                    <input 
+                                                        type="datetime-local" 
+                                                        id="inicio_solicitud_cirios"
+                                                        name="inicio_solicitud_cirios" 
+                                                        value={formData.inicio_solicitud_cirios || ''} 
+                                                        onChange={handleChange} 
+                                                        min={minDate} max={maxDate}
+                                                        className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
+                                                        disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
+                                                    />
+                                                    {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="form-group-solicitud-crear-acto">
+                                                <label htmlFor="fin_solicitud_cirios" className="form-label-crear-acto">
+                                                    {formData.modalidad === 'TRADICIONAL' ? 'Fin solicitud cirios' : 'Fin solicitud cirios'}
+                                                </label>
+                                                <div className="input-wrapper-crear-acto">
+                                                    <input 
+                                                        type="datetime-local" 
+                                                        id="fin_solicitud_cirios"
+                                                        name="fin_solicitud_cirios" 
+                                                        value={formData.fin_solicitud_cirios || ''} 
+                                                        onChange={handleChange}
+                                                        min={minDate} max={maxDate}
+                                                        className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
+                                                        disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
+                                                    />
+                                                    {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
+                                                </div>
                                             </div>
                                         </div>
-                                        
-                                        <div className="form-group-solicitud-crear-acto">
-                                            <label htmlFor="fin_solicitud_cirios" className="form-label-crear-acto">Fin Solicitud</label>
-                                            <div className="input-wrapper-crear-acto">
-                                                <input 
-                                                    type="datetime-local" 
-                                                    id="fin_solicitud_cirios"
-                                                    name="fin_solicitud_cirios" 
-                                                    value={formData.fin_solicitud_cirios || ''} 
-                                                    onChange={handleChange}
-                                                    min={minDate} max={maxDate}
-                                                    className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
-                                                    disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
-                                                />
-                                                {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    )}
 
                                     <div className="form-actions-crear-acto">
                                         <button 

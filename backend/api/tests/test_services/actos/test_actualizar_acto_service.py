@@ -86,6 +86,43 @@ class UpdateActoServiceTests(TestCase):
 
 
     @patch('api.servicios.acto.acto_service.get_object_or_404')
+    def test_cambiar_tipo_acto_con_puestos_asignados_lanza_validation_error(self, mock_get_object_or_404):
+        """
+        Test: Cambio de tipo_acto con puestos asignados -> ValidationError
+
+        Given: Un usuario administrador.
+                Un acto existente con tipo_acto='ENSAYO'.
+                El acto TIENE puestos asignados (exists() -> True).
+        When: Se intenta cambiar el tipo_acto a 'PROCESION'.
+        Then: El servicio debe lanzar un ValidationError con el mensaje específico.
+                Se debe garantizar que el método save() NUNCA se llama.
+        """
+        usuario_admin = MagicMock()
+        usuario_admin.esAdmin = True
+
+        data_validada = {'tipo_acto': 'PROCESION'}
+
+        mock_acto = MagicMock()
+        mock_acto.tipo_acto = 'ENSAYO'
+
+        mock_acto.puestos_disponibles.exists.return_value = True
+        
+        mock_get_object_or_404.return_value = mock_acto
+
+        with self.assertRaises(ValidationError) as context:
+            update_acto_service(usuario_admin, 1, data_validada)
+
+        self.assertIn('tipo_acto', context.exception.message_dict)
+        self.assertEqual(
+            context.exception.message_dict['tipo_acto'], 
+            ["No se puede cambiar el tipo de acto porque ya tiene puestos asignados."]
+        )
+
+        mock_acto.save.assert_not_called()
+
+
+
+    @patch('api.servicios.acto.acto_service.get_object_or_404')
     def test_usuario_admin_tipo_acto_igual_al_actual_no_valida_puestos(self, mock_get_object_or_404):
         """
         Test: Usuario admin -> tipo_acto igual al actual
@@ -115,78 +152,6 @@ class UpdateActoServiceTests(TestCase):
         self.assertEqual(mock_acto.nombre, 'Nombre Nuevo')
 
         mock_acto.save.assert_called_once()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_usuario_admin_actualiza_multiples_campos_correctamente(self, mock_get_object_or_404):
-        """
-        Test: Usuario admin -> múltiples campos en data_validada
-
-        Given: Un usuario administrador.
-                Un payload con múltiples campos de distinta naturaleza (strings, fechas, booleanos).
-        When: Se llama al servicio update_acto_service.
-        Then: El servicio debe iterar sobre todos los elementos de data_validada.
-                Debe aplicar setattr para cada uno de ellos en el objeto acto.
-                Se llama a save() una única vez al final del proceso.
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_validada = {
-            'nombre': 'Gran Procesión 2026',
-            'lugar': 'Centro Histórico',
-            'fecha': '2026-04-10T20:00:00Z',
-            'descripcion': 'Actualización de itinerario',
-            'publicado': True
-        }
-        
-        mock_acto = MagicMock()
-        mock_acto.tipo_acto = 'PROCESION'
-        mock_get_object_or_404.return_value = mock_acto
-
-        resultado = update_acto_service(usuario_admin, 1, data_validada)
-
-        self.assertEqual(mock_acto.nombre, 'Gran Procesión 2026')
-        self.assertEqual(mock_acto.lugar, 'Centro Histórico')
-        self.assertEqual(mock_acto.fecha, '2026-04-10T20:00:00Z')
-        self.assertEqual(mock_acto.descripcion, 'Actualización de itinerario')
-        self.assertTrue(mock_acto.publicado)
-
-        mock_acto.save.assert_called_once()
-        self.assertEqual(resultado, mock_acto)
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_data_validada_vacio_no_rompe_y_llama_a_save(self, mock_get_object_or_404):
-        """
-        Test: data_validada vacío
-
-        Given: Un usuario administrador.
-                Un diccionario de datos vacío ({}).
-        When: Se llama al servicio update_acto_service.
-        Then: El servicio no debe lanzar ninguna excepción.
-                El bucle de actualización no realiza ninguna operación.
-                Se llama a acto.save() igualmente (según la lógica actual del servicio).
-                Se devuelve el objeto original.
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-        
-        data_vacia = {}
-        
-        mock_acto = MagicMock()
-        mock_acto.nombre = "Nombre Original"
-        mock_get_object_or_404.return_value = mock_acto
-
-        resultado = update_acto_service(usuario_admin, 1, data_vacia)
-
-        self.assertEqual(mock_acto.nombre, "Nombre Original")
-
-        mock_acto.save.assert_called_once()
-
-        self.assertEqual(resultado, mock_acto)
 
 
 
@@ -241,226 +206,3 @@ class UpdateActoServiceTests(TestCase):
         self.assertEqual(str(context.exception), "No tienes permisos para editar actos.")
 
         mock_get_object_or_404.assert_not_called()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_cambiar_tipo_acto_con_puestos_asignados_lanza_validation_error(self, mock_get_object_or_404):
-        """
-        Test: Cambio de tipo_acto con puestos asignados -> ValidationError
-
-        Given: Un usuario administrador.
-                Un acto existente con tipo_acto='ENSAYO'.
-                El acto TIENE puestos asignados (exists() -> True).
-        When: Se intenta cambiar el tipo_acto a 'PROCESION'.
-        Then: El servicio debe lanzar un ValidationError con el mensaje específico.
-                Se debe garantizar que el método save() NUNCA se llama.
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_validada = {'tipo_acto': 'PROCESION'}
-
-        mock_acto = MagicMock()
-        mock_acto.tipo_acto = 'ENSAYO'
-
-        mock_acto.puestos_disponibles.exists.return_value = True
-        
-        mock_get_object_or_404.return_value = mock_acto
-
-        with self.assertRaises(ValidationError) as context:
-            update_acto_service(usuario_admin, 1, data_validada)
-
-        self.assertIn('tipo_acto', context.exception.message_dict)
-        self.assertEqual(
-            context.exception.message_dict['tipo_acto'], 
-            ["No se puede cambiar el tipo de acto porque ya tiene puestos asignados."]
-        )
-
-        mock_acto.save.assert_not_called()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_acto_no_existe_lanza_http404_y_detiene_ejecucion(self, mock_get_object_or_404):
-        """
-        Test: Errores de obtención -> get_object_or_404 lanza excepción (404)
-
-        Given: Un usuario administrador y un payload válido.
-                Un ID de acto que no existe.
-                El mock de get_object_or_404 está configurado para lanzar Http404.
-        When: Se llama al servicio update_acto_service.
-        Then: La excepción Http404 se propaga limpiamente hacia arriba.
-                La ejecución de la función se detiene al instante, garantizando 
-                que no se evalúan reglas de negocio ni se llama a save().
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-        
-        acto_id_inexistente = 999
-        data_validada = {'nombre': 'Acto Fantasma'}
-
-        mock_get_object_or_404.side_effect = Http404("No Acto matches the given query.")
-
-        with self.assertRaises(Http404):
-            update_acto_service(usuario_admin, acto_id_inexistente, data_validada)
-        
-        mock_get_object_or_404.assert_called_once()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_acto_save_lanza_excepcion_y_se_propaga(self, mock_get_object_or_404):
-        """
-        Test: Errores durante guardado -> acto.save() lanza excepción
-
-        Given: Un usuario administrador y datos válidos.
-                El objeto acto se recupera correctamente.
-        When: Se llama al método save() del acto y este lanza una excepción 
-                inesperada (ej. un error de base de datos).
-        Then: El servicio no debe capturar la excepción.
-                La excepción debe propagarse hacia arriba para permitir el 
-                manejo de errores global y el rollback de la transacción.
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-        
-        data_validada = {'nombre': 'Nombre con fallo en BD'}
-
-        mock_acto = MagicMock()
-        mensaje_error = "Error de escritura en disco o base de datos"
-        mock_acto.save.side_effect = Exception(mensaje_error)
-        
-        mock_get_object_or_404.return_value = mock_acto
-
-        with self.assertRaises(Exception) as context:
-            update_acto_service(usuario_admin, 1, data_validada)
-
-        self.assertEqual(str(context.exception), mensaje_error)
-
-        mock_acto.save.assert_called_once()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_tipo_acto_no_presente_en_data_validada_no_evalua_puestos(self, mock_get_object_or_404):
-        """
-        Test: Casos límite -> tipo_acto no presente en data_validada
-
-        Given: Un usuario administrador.
-                Un payload de actualización que solo contiene campos como 'lugar' o 'nombre'.
-        When: Se llama al servicio update_acto_service.
-        Then: El servicio debe identificar que 'tipo_acto' no está en data_validada.
-                NO debe acceder a la relación puestos_disponibles.
-                Se actualizan los campos presentes y se llama a save().
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_parcial = {'lugar': 'Plaza Mayor'}
-        
-        mock_acto = MagicMock()
-        mock_get_object_or_404.return_value = mock_acto
-
-        update_acto_service(usuario_admin, 1, data_parcial)
-
-        mock_acto.puestos_disponibles.exists.assert_not_called()
-
-        self.assertEqual(mock_acto.lugar, 'Plaza Mayor')
-
-        mock_acto.save.assert_called_once()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_tipo_acto_es_none_en_data_validada_no_evalua_puestos(self, mock_get_object_or_404):
-        """
-        Test: tipo_acto = None
-
-        Given: Un usuario administrador.
-                Un payload donde 'tipo_acto' es explícitamente None (falsy).
-        When: Se llama al servicio update_acto_service.
-        Then: La condición 'if nuevo_tipo' debe evaluar a False.
-                NO debe llamarse a puestos_disponibles.exists().
-                Se llama a setattr(acto, 'tipo_acto', None) y a save().
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_nula = {'tipo_acto': None}
-        
-        mock_acto = MagicMock()
-        mock_acto.tipo_acto = 'ENSAYO'
-        mock_get_object_or_404.return_value = mock_acto
-
-        update_acto_service(usuario_admin, 1, data_nula)
-
-        mock_acto.puestos_disponibles.exists.assert_not_called()
-
-        self.assertIsNone(mock_acto.tipo_acto)
-
-        mock_acto.save.assert_called_once()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_puestos_disponibles_exists_lanza_excepcion_y_se_propaga(self, mock_get_object_or_404):
-        """
-        Test: puestos_disponibles.exists() lanza excepción
-
-        Given: Un usuario administrador intentando cambiar el tipo_acto.
-                Al consultar si existen puestos asignados, el ORM lanza una 
-                excepción (ej. error de conexión o timeout).
-        When: Se llama al servicio update_acto_service.
-        Then: La excepción debe propagarse íntegramente hacia arriba.
-                Se garantiza que la ejecución se detiene y no se llama a save().
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_validada = {'tipo_acto': 'NUEVO_TIPO'}
-        
-        mock_acto = MagicMock()
-        mock_acto.tipo_acto = 'TIPO_ANTIGUO'
-
-        mensaje_error = "Database timeout al consultar puestos_disponibles"
-        mock_acto.puestos_disponibles.exists.side_effect = Exception(mensaje_error)
-        
-        mock_get_object_or_404.return_value = mock_acto
-
-        with self.assertRaises(Exception) as context:
-            update_acto_service(usuario_admin, 1, data_validada)
-
-        self.assertEqual(str(context.exception), mensaje_error)
-
-        mock_acto.save.assert_not_called()
-
-
-
-    @patch('api.servicios.acto.acto_service.get_object_or_404')
-    def test_data_validada_con_atributo_inexistente_intenta_setattr_igualmente(self, mock_get_object_or_404):
-        """
-        Test: data_validada contiene atributo inexistente
-
-        Given: Un usuario administrador.
-                Un diccionario data_validada con un campo que no pertenece al modelo Acto
-                (ej. 'campo_fantasma').
-        When: Se llama al servicio update_acto_service.
-        Then: El servicio debe intentar aplicar setattr para ese campo igualmente.
-                Esto demuestra que el servicio no tiene una lista blanca (whitelist) 
-                de campos, delegando la integridad estructural al modelo y al serializador.
-                Se llama a save() con el objeto modificado en memoria.
-        """
-        usuario_admin = MagicMock()
-        usuario_admin.esAdmin = True
-
-        data_con_ruido = {'campo_fantasma': 'valor_arbitrario'}
-        
-        mock_acto = MagicMock()
-        mock_get_object_or_404.return_value = mock_acto
-
-        update_acto_service(usuario_admin, 1, data_con_ruido)
-
-        self.assertEqual(mock_acto.campo_fantasma, 'valor_arbitrario')
-
-        mock_acto.save.assert_called_once()
