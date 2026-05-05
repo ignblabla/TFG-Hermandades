@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from api.servicios.puesto.puesto_service import update_puesto_service
+from api.servicios.puesto.puesto_service import delete_puesto_service, update_puesto_service
 
 User = get_user_model()
 
@@ -55,3 +55,15 @@ class PuestoDetalleView(APIView):
         )
 
         return Response(PuestoSerializer(puesto_actualizado).data, status=status.HTTP_200_OK)
+
+
+
+    def delete(self, request, pk):
+        """Eliminación de un puesto"""
+
+        delete_puesto_service(
+            usuario=request.user,
+            puesto_id=pk
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -558,7 +558,7 @@ function AdminEdicionComunicado() {
                                     type="button" 
                                     onClick={handleDelete} 
                                     disabled={deleting}
-                                    className="btn-delete-comunicado"
+                                    className="btn-delete-puesto"
                                     style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontWeight: '500' }}
                                 >
                                     <Trash2 size={18} />

@@ -44,6 +44,13 @@ def update_puesto_service(usuario, puesto_id, data_validada):
         raise PermissionDenied("No tienes permisos para editar puestos.")
 
     puesto = get_object_or_404(Puesto, pk=puesto_id)
+
+    nuevo_acto = data_validada.get('acto')
+    if nuevo_acto and nuevo_acto != puesto.acto:
+        raise ValidationError({
+            "acto": "No está permitido cambiar el acto asociado a un puesto una vez que ha sido creado."
+        })
+
     acto = puesto.acto
 
     hoy = timezone.now().date()
@@ -62,6 +69,8 @@ def update_puesto_service(usuario, puesto_id, data_validada):
 
     if Puesto.objects.filter(acto=acto, nombre=nuevo_nombre).exclude(pk=puesto_id).exists():
         raise ValidationError({"nombre": [f"Ya existe un puesto con el nombre '{nuevo_nombre}' en este acto."]})
+
+    data_validada.pop('acto', None)
 
     for attr, value in data_validada.items():
         setattr(puesto, attr, value)
@@ -103,3 +112,28 @@ def obtener_resumen_puestos_acto(acto_id: int) -> dict:
         "total_cristo": resumen['total_cristo'] or 0,
         "total_virgen": resumen['total_virgen'] or 0,
     }
+
+
+
+def delete_puesto_service(usuario, puesto_id):
+    """
+    Servicio para eliminar un puesto.
+    Solo accesible para administradores y si la fecha de inicio de solicitud del acto no ha comenzado.
+    """
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para eliminar puestos.")
+
+    puesto = get_object_or_404(Puesto, pk=puesto_id)
+    acto = puesto.acto
+
+    hoy = timezone.now().date()
+    fecha_inicio = acto.inicio_solicitud 
+
+    if fecha_inicio and fecha_inicio.date() <= hoy:
+        raise ValidationError({
+            "acto": "No se puede eliminar el puesto porque el periodo de solicitud para este acto ya ha comenzado."
+        })
+
+    puesto.delete()
+    
+    return True

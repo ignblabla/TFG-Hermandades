@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../HermanoListadoPuestos/HermanoListadoPuestos.css'
-import { ArrowLeft, CheckCircle2, XCircle, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, CheckCircle, AlertCircle, Plus } from "lucide-react";
 
 function HermanoListadoPuestos() {
     const { actoId } = useParams(); 
@@ -244,6 +244,18 @@ function HermanoListadoPuestos() {
                             <p className="historical-header-subtitle">
                                 {getNombreTipoActo(infoActo?.acto_tipo)} {infoActo?.acto_fecha ? new Date(infoActo.acto_fecha).getFullYear() : ""}
                             </p>
+                            {currentUser?.esAdmin && (
+                                <div className="header-tags-container-puestos">
+                                    <div 
+                                        className="header-tag-pill-editar" 
+                                        onClick={() => navigate('/admin/crear-puesto')}
+                                        title="Crear nuevo puesto"
+                                    >
+                                        <Plus size={14} />
+                                        <span>Crear nuevo puesto</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="plazos-separator-asignacion">
@@ -320,7 +332,18 @@ function HermanoListadoPuestos() {
                                         </thead>
                                         <tbody>
                                             {puestos.map((puesto) => (
-                                                <tr key={puesto.id}>
+                                                <tr 
+                                                    key={puesto.id}
+                                                    onClick={() => {
+                                                        if (currentUser?.esAdmin) {
+                                                            navigate(`/admin/editar-puesto/${puesto.id}`);
+                                                        }
+                                                    }}
+                                                    style={{ 
+                                                        cursor: currentUser?.esAdmin ? 'pointer' : 'default',
+                                                    }}
+                                                    title={currentUser?.esAdmin ? "Clic para editar puesto" : ""}
+                                                >
                                                     <td className="fw-bold">{puesto.nombre}</td>
                                                     <td>{puesto.tipo_puesto?.nombre_tipo || 'N/A'}</td>
                                                     <td>

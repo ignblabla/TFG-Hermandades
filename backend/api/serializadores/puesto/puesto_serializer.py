@@ -4,6 +4,9 @@ from api.models import Puesto, TipoPuesto
 
 
 class PuestoSerializer(serializers.ModelSerializer):
+    acto_nombre = serializers.CharField(source='acto.nombre', read_only=True)
+    acto_fecha = serializers.DateTimeField(source='acto.fecha', read_only=True)
+
     tipo_puesto = serializers.SlugRelatedField(
         slug_field='nombre_tipo',
         queryset=TipoPuesto.objects.all()
@@ -15,7 +18,7 @@ class PuestoSerializer(serializers.ModelSerializer):
         model = Puesto
         fields = [
             'id', 'nombre', 'numero_maximo_asignaciones', 
-            'disponible', 'lugar_citacion', 'hora_citacion', 'acto',
+            'disponible', 'lugar_citacion', 'hora_citacion', 'acto', 'acto_nombre', 'acto_fecha',
             'tipo_puesto', 'es_insignia', 'cortejo_cristo', 'cantidad_ocupada', 'plazas_disponibles', 'porcentaje_ocupacion'
         ]
         

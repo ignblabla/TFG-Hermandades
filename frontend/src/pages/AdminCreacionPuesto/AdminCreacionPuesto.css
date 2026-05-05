@@ -246,6 +246,20 @@
     color: #fce9ed;
 }
 
+.btn-delete-puesto {
+    transition: all 0.2s ease;
+}
+
+.btn-delete-puesto:hover:not(:disabled) {
+    background-color: #fca5a5 !important;
+    transform: scale(1.02);
+}
+
+.btn-delete-puesto:disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
 @media (max-width: 768px) {
     .form-grid-4-crear-puesto {
         grid-template-columns: 1fr;

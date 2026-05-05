@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from '../../api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../constants";
-import { ArrowLeft, FileText, MapPin, FolderDot, Save, AlertCircle, CheckCircle } from "lucide-react";
+import '../AdminCreacionPuesto/AdminCreacionPuesto.css'
+import { ArrowLeft, FileText, MapPin, FolderDot, Save, AlertCircle, CheckCircle, Trash2 } from "lucide-react";
 
 
 function AdminEdicionPuesto() {
@@ -21,7 +22,8 @@ function AdminEdicionPuesto() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
-        const [saving, setSaving] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const [formData, setFormData] = useState({
         nombre: "",
@@ -84,6 +86,18 @@ function AdminEdicionPuesto() {
                     actoAsignadoId = (puestoData.acto && typeof puestoData.acto === 'object') 
                         ? puestoData.acto.id 
                         : (puestoData.acto || null);
+
+                    const actoExiste = actosData.find(a => a.id === actoAsignadoId);
+
+                    if (!actoExiste && actoAsignadoId) {
+                        actosData.push({
+                            id: actoAsignadoId,
+                            nombre: puestoData.acto_nombre || `Acto ID: ${actoAsignadoId}`,
+                            fecha: puestoData.acto_fecha || new Date().toISOString(),
+                            requiere_papeleta: true,
+                            inicio_solicitud: new Date().toISOString()
+                        });
+                    }
                     
                     setFormData({
                         nombre: puestoData.nombre || "",
@@ -210,6 +224,32 @@ function AdminEdicionPuesto() {
             }
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm("¿Estás seguro de que deseas eliminar este puesto? Esta acción no se puede deshacer.")) {
+            return;
+        }
+
+        setDeleting(true);
+        setError("");
+        
+        try {
+            await api.delete(`/api/puestos/${id}/`);
+            setSuccessMsg("Puesto eliminado correctamente.");
+            setTimeout(() => {
+                navigate("/new-home"); 
+            }, 2500);
+        } catch (err) {
+            console.error(err);
+            if (err.response && err.response.data && err.response.data.acto) {
+                setError(`⚠️ ${err.response.data.acto}`);
+            } else {
+                setError("Error al eliminar el puesto. Inténtelo más tarde.");
+            }
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -466,6 +506,7 @@ function AdminEdicionPuesto() {
                                                 onChange={handleChange}
                                                 required
                                                 className="form-control-crear-puesto"
+                                                disabled={isEditing}
                                             >
                                                 <option value="" disabled>Seleccione un acto</option>
                                                 {listaActos.map(acto => (
@@ -547,25 +588,40 @@ function AdminEdicionPuesto() {
                                     </div>
                                 </div>
 
-                                <div className="form-actions-crear-puesto">
-                                    <button 
-                                        type="button" 
-                                        className="btn-cancel-crear-puesto" 
-                                        onClick={() => navigate("/home")}
-                                    >
-                                        Cancelar
-                                    </button>
+                                <div className="form-actions-crear-puesto" style={{ justifyContent: isEditing ? 'space-between' : 'flex-end' }}>
                                     
-                                    <button 
-                                        type="submit" 
-                                        className="btn-save-crear-puesto" 
-                                        disabled={saving}
-                                    >
-                                        <Save size={18} />
-                                        {saving ? "Guardando..." : "Guardar cambios"}
-                                    </button>
+                                    {isEditing && (
+                                        <button 
+                                            type="button" 
+                                            onClick={handleDelete} 
+                                            disabled={deleting}
+                                            className="btn-delete-puesto"
+                                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontWeight: '500' }}
+                                        >
+                                            <Trash2 size={18} />
+                                            {deleting ? "Eliminando..." : "Eliminar Puesto"}
+                                        </button>
+                                    )}
+
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <button 
+                                            type="button" 
+                                            className="btn-cancel-crear-puesto" 
+                                            onClick={() => navigate("/home")}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        
+                                        <button 
+                                            type="submit" 
+                                            className="btn-save-crear-puesto" 
+                                            disabled={saving || deleting}
+                                        >
+                                            <Save size={18} />
+                                            {saving ? "Guardando..." : "Guardar cambios"}
+                                        </button>
+                                    </div>
                                 </div>
-                                
                             </div>
                         </form>
                     </div>

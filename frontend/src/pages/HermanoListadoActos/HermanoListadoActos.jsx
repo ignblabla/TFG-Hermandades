@@ -237,7 +237,7 @@ function HermanoListadoActos() {
                         <div className="historical-header-container-actos">
                             <h1 className="historical-header-title-censo">ACTOS</h1>
                             {currentUser?.esAdmin && (
-                                <div className="header-tags-container" style={{ marginTop: '15px' }}>
+                                <div className="header-tags-container">
                                     <div 
                                         className="header-tag-pill-editar" 
                                         onClick={() => navigate('/admin/crear-acto')}
