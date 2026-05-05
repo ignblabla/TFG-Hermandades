@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from datetime import date, timedelta
+
 from django.http import Http404
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
@@ -23,7 +24,7 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Actualiza puesto correctamente (caso válido)
         
-        Given: Un usuario administrador, un ID de puesto existente, y datos validados a modificar. El acto asociado tiene fecha de solicitud futura y requiere papeleta.
+        Given: Un usuario administrador, un ID de puesto existente y datos validados a modificar. El acto asociado tiene fecha de solicitud futura y requiere papeleta.
         When: Se invoca la función de actualización.
         Then: Se verifica que el puesto recuperado se actualiza con los nuevos valores, se guarda correctamente y se retorna la instancia modificada sin conflictos de nombre.
         """
@@ -48,7 +49,8 @@ class TestUpdatePuestoService(unittest.TestCase):
 
         data_validada = {
             'nombre': 'Nuevo Nombre',
-            'descripcion': 'Nueva Descripción'
+            'descripcion': 'Nueva Descripción',
+            'acto': acto_mock 
         }
 
         mock_queryset_filter = MagicMock()
@@ -69,6 +71,8 @@ class TestUpdatePuestoService(unittest.TestCase):
         self.assertEqual(puesto_mock.nombre, 'Nuevo Nombre')
         self.assertEqual(puesto_mock.descripcion, 'Nueva Descripción')
 
+        self.assertNotIn('acto', data_validada)
+
         puesto_mock.save.assert_called_once()
 
         self.assertEqual(resultado, puesto_mock)
@@ -81,9 +85,9 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Devuelve el puesto actualizado
         
-        Given: Un proceso de actualización válido.
-        When: Se completa la ejecución de update_puesto_service.
-        Then: El servicio debe retornar la misma instancia del objeto puesto que fue recuperada y modificada.
+        Given: Una solicitud de actualización válida.
+        When: Finaliza la ejecución del servicio.
+        Then: El método debe retornar la instancia del puesto que ha sido modificada y guardada.
         """
         mock_timezone.now.return_value.date.return_value = self.hoy
         puesto_mock = MagicMock()
@@ -91,8 +95,8 @@ class TestUpdatePuestoService(unittest.TestCase):
         puesto_mock.acto.tipo_acto.requiere_papeleta = True
         mock_get_object.return_value = puesto_mock
 
-        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_puesto_model:
-            mock_puesto_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
+        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_model:
+            mock_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
 
             resultado = update_puesto_service(self.usuario_admin, 1, {'nombre': 'Nuevo'})
 
@@ -102,13 +106,13 @@ class TestUpdatePuestoService(unittest.TestCase):
 
     @patch('api.servicios.puesto.puesto_service.get_object_or_404')
     @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_actualiza_atributos_correctamente_con_setattr(self, mock_timezone, mock_get_object):
+    def test_actualiza_atributos_correctamente_sin_incluir_acto(self, mock_timezone, mock_get_object):
         """
-        Test: Actualiza atributos correctamente con setattr
+        Test: Actualiza atributos correctamente (sin incluir acto)
         
-        Given: Un diccionario con múltiples campos validados (nombre, descripción, prioridad).
-        When: Se itera sobre data_validada.items().
-        Then: Se verifica que cada atributo se asigna al objeto puesto mediante setattr y finalmente se invoca el método save().
+        Given: Un diccionario de datos que incluye el campo 'acto' (mismo que el original) y otros atributos.
+        When: Se procesa la actualización.
+        Then: El campo 'acto' debe ser eliminado del diccionario con .pop() y no debe intentarse un setattr sobre él, mientras que el resto de campos sí deben actualizarse.
         """
         mock_timezone.now.return_value.date.return_value = self.hoy
         puesto_mock = MagicMock()
@@ -117,19 +121,19 @@ class TestUpdatePuestoService(unittest.TestCase):
         mock_get_object.return_value = puesto_mock
         
         data_validada = {
-            'nombre': 'Capataz',
-            'descripcion': 'Líder del paso',
-            'prioridad': 10
+            'acto': puesto_mock.acto,
+            'nombre': 'Nombre Editado',
+            'descripcion': 'Nueva Desc'
         }
 
-        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_puesto_model:
-            mock_puesto_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
+        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_model:
+            mock_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
 
             update_puesto_service(self.usuario_admin, 1, data_validada)
 
-            self.assertEqual(puesto_mock.nombre, 'Capataz')
-            self.assertEqual(puesto_mock.descripcion, 'Líder del paso')
-            self.assertEqual(puesto_mock.prioridad, 10)
+            self.assertNotIn('acto', data_validada)
+            self.assertEqual(puesto_mock.nombre, 'Nombre Editado')
+            self.assertEqual(puesto_mock.descripcion, 'Nueva Desc')
             puesto_mock.save.assert_called_once()
 
 
@@ -140,26 +144,24 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Usa nombre existente si no viene en data_validada
         
-        Given: Un diccionario de actualización que no contiene la clave 'nombre'.
-        When: Se evalúa el conflicto de nombres en el mismo acto.
-        Then: El servicio debe utilizar el nombre actual del objeto puesto (puesto.nombre) para realizar la comprobación de duplicados en el queryset.
+        Given: Datos de actualización que no contienen la clave 'nombre'.
+        When: Se valida la duplicidad de nombres en el acto.
+        Then: El servicio debe usar el valor actual de puesto.nombre para realizar el filtrado en la base de datos.
         """
         mock_timezone.now.return_value.date.return_value = self.hoy
         puesto_mock = MagicMock()
-        puesto_mock.nombre = "Nombre Original"
+        puesto_mock.nombre = "Nombre Actual"
         puesto_mock.acto.inicio_solicitud.date.return_value = self.fecha_futura
         puesto_mock.acto.tipo_acto.requiere_papeleta = True
         mock_get_object.return_value = puesto_mock
 
-        data_sin_nombre = {'descripcion': 'Solo cambio esto'}
-
-        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_puesto_model:
-            mock_filter = mock_puesto_model.objects.filter
+        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_model:
+            mock_filter = mock_model.objects.filter
             mock_filter.return_value.exclude.return_value.exists.return_value = False
 
-            update_puesto_service(self.usuario_admin, 1, data_sin_nombre)
+            update_puesto_service(self.usuario_admin, 1, {'descripcion': 'Cambio'})
 
-            mock_filter.assert_called_once_with(acto=puesto_mock.acto, nombre="Nombre Original")
+            mock_filter.assert_called_once_with(acto=puesto_mock.acto, nombre="Nombre Actual")
 
 
 
@@ -167,9 +169,9 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Usuario no admin
         
-        Given: Un usuario sin privilegios de administrador (esAdmin=False).
-        When: Se intenta actualizar cualquier puesto.
-        Then: Se lanza una excepción PermissionDenied de REST Framework con el mensaje correspondiente.
+        Given: Un usuario que no tiene permisos de administrador (esAdmin=False).
+        When: Se intenta acceder al servicio de actualización.
+        Then: Se lanza una excepción PermissionDenied con el mensaje "No tienes permisos para editar puestos."
         """
         usuario = MagicMock(esAdmin=False)
 
@@ -181,19 +183,42 @@ class TestUpdatePuestoService(unittest.TestCase):
 
     @patch('api.servicios.puesto.puesto_service.get_object_or_404')
     @patch('api.servicios.puesto.puesto_service.Puesto')
-    def test_puesto_no_existe_lanza_404(self, mock_puesto, mock_get_404):
+    def test_puesto_no_existe_lanza_excepcion(self, mock_puesto_model, mock_get_404):
         """
         Test: Puesto no existe
         
-        Given: Un ID de puesto que no se encuentra en la base de datos.
-        When: Se llama a get_object_or_404.
-        Then: Se lanza una excepción Http404, deteniendo la ejecución del servicio.
+        Given: Un ID de puesto que no existe en la base de datos.
+        When: get_object_or_404 intenta recuperar el recurso.
+        Then: Se lanza una excepción Http404.
         """
-        usuario = MagicMock(esAdmin=True)
-        mock_get_404.side_effect = Http404("No se encontró el puesto.")
+        mock_get_404.side_effect = Http404("Puesto no encontrado")
 
         with self.assertRaises(Http404):
-            update_puesto_service(usuario, 999, {})
+            update_puesto_service(self.usuario_admin, 999, {})
+
+
+
+    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
+    def test_intento_de_cambiar_el_acto_lanza_error(self, mock_get_404):
+        """
+        Test: Intento de cambiar el acto
+        
+        Given: Un puesto existente vinculado a un Acto A, y datos validados que intentan vincularlo a un Acto B.
+        When: Se comparan los actos en el servicio.
+        Then: Se lanza una ValidationError indicando que no está permitido cambiar el acto asociado una vez creado el puesto.
+        """
+        acto_original = MagicMock(id=1)
+        acto_nuevo = MagicMock(id=2)
+        
+        puesto_mock = MagicMock()
+        puesto_mock.acto = acto_original
+        mock_get_404.return_value = puesto_mock
+        
+        data = {'acto': acto_nuevo}
+
+        with self.assertRaises(ValidationError) as context:
+            update_puesto_service(self.usuario_admin, 1, data)
+        self.assertIn("No está permitido cambiar el acto asociado", str(context.exception))
 
 
 
@@ -203,45 +228,45 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Fecha inicio es None
         
-        Given: Un puesto asociado a un acto que no tiene definida la fecha de inicio de solicitud (None).
-        When: Se intenta actualizar el puesto.
-        Then: Se lanza una ValidationError indicando que no se pueden actualizar puestos sin fecha definida.
+        Given: Un puesto cuyo acto asociado no tiene definida la fecha de inicio de solicitud.
+        When: Se valida el periodo de solicitud.
+        Then: Se lanza una ValidationError informando que no se pueden actualizar puestos sin fecha definida.
         """
-        usuario = MagicMock(esAdmin=True)
-        mock_timezone.now.return_value.date.return_value = date(2026, 5, 5)
+        mock_timezone.now.return_value.date.return_value = self.hoy
         
         puesto_mock = MagicMock()
         puesto_mock.acto.inicio_solicitud = None
         mock_get_404.return_value = puesto_mock
 
         with self.assertRaises(ValidationError) as context:
-            update_puesto_service(usuario, 1, {})
+            update_puesto_service(self.usuario_admin, 1, {})
         self.assertIn("no tienen fecha definida", str(context.exception))
 
 
 
     @patch('api.servicios.puesto.puesto_service.get_object_or_404')
     @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_fecha_inicio_ya_pasada_lanza_error(self, mock_timezone, mock_get_404):
+    def test_fecha_inicio_pasada_o_hoy_lanza_error(self, mock_timezone, mock_get_404):
         """
-        Test: Fecha inicio ya pasada
+        Test: Fecha inicio pasada o hoy
         
-        Given: Un puesto cuyo periodo de solicitud de acto ya ha comenzado o finalizado en el pasado.
-        When: Se evalúa la fecha mediante .date() contra la fecha actual.
-        Then: Se lanza una ValidationError prohibiendo la actualización.
+        Given: Un puesto cuyo acto asociado tiene una fecha de inicio de solicitud igual a hoy o anterior.
+        When: Se evalúa la condición temporal mediante .date().
+        Then: Se lanza una ValidationError prohibiendo la actualización ya que el periodo ha comenzado o es inválido.
         """
-        usuario = MagicMock(esAdmin=True)
-        hoy = date(2026, 5, 5)
-        mock_timezone.now.return_value.date.return_value = hoy
-        
-        puesto_mock = MagicMock()
+        mock_timezone.now.return_value.date.return_value = self.hoy
 
-        puesto_mock.acto.inicio_solicitud.date.return_value = hoy - timedelta(days=1)
+        puesto_mock = MagicMock()
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy
         mock_get_404.return_value = puesto_mock
 
         with self.assertRaises(ValidationError) as context:
-            update_puesto_service(usuario, 1, {})
+            update_puesto_service(self.usuario_admin, 1, {})
         self.assertIn("ya ha comenzado, es en el pasado", str(context.exception))
+
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy - timedelta(days=1)
+        with self.assertRaises(ValidationError):
+            update_puesto_service(self.usuario_admin, 1, {})
 
 
 
@@ -251,14 +276,15 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Acto no requiere papeleta
         
-        Given: Un puesto existente cuyo acto asociado ha cambiado de configuración y ya no requiere papeleta.
+        Given: Un acto cuya configuración ha cambiado y ya no requiere papeleta (tipo_acto.requiere_papeleta = False).
         When: Se intenta actualizar el puesto.
         Then: Se lanza una ValidationError con el mensaje "Este acto ya no admite la gestión de puestos."
         """
         mock_timezone.now.return_value.date.return_value = self.hoy
         
         puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=1)
+
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=5)
         puesto_mock.acto.tipo_acto.requiere_papeleta = False
         mock_get_404.return_value = puesto_mock
 
@@ -275,17 +301,17 @@ class TestUpdatePuestoService(unittest.TestCase):
         """
         Test: Ya existe otro puesto con mismo nombre
         
-        Given: Un intento de cambiar el nombre de un puesto a uno que ya pertenece a OTRO puesto dentro del mismo acto.
-        When: Se ejecuta el filtro con .exclude(pk=puesto_id).
-        Then: Se detecta la existencia del duplicado y se lanza una ValidationError.
+        Given: Un intento de actualizar el nombre de un puesto a uno que ya está en uso por OTRO puesto (diferente ID) en el mismo acto.
+        When: Se ejecuta la consulta filter().exclude(pk=puesto_id).exists().
+        Then: Se lanza una ValidationError por duplicidad de nombre.
         """
         puesto_id = 1
-        nuevo_nombre = "Nombre Duplicado"
+        nuevo_nombre = "Fiscal de Tramo"
         mock_timezone.now.return_value.date.return_value = self.hoy
         
         puesto_mock = MagicMock()
         puesto_mock.pk = puesto_id
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=1)
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=5)
         puesto_mock.acto.tipo_acto.requiere_papeleta = True
         mock_get_404.return_value = puesto_mock
 
@@ -306,19 +332,49 @@ class TestUpdatePuestoService(unittest.TestCase):
     @patch('api.servicios.puesto.puesto_service.Puesto')
     @patch('api.servicios.puesto.puesto_service.get_object_or_404')
     @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_data_validada_vacio_solo_guarda_sin_cambios(self, mock_timezone, mock_get_404, mock_puesto_model):
+    def test_acto_en_data_validada_es_el_mismo_se_ignora(self, mock_timezone, mock_get_404, mock_puesto_model):
         """
-        Test: data_validada vacío (solo guarda sin cambios)
+        Test: acto viene en data_validada pero es el mismo -> se ignora
         
-        Given: Un diccionario de datos vacío.
-        When: Se ejecuta el servicio de actualización.
-        Then: No se deben modificar atributos, pero se debe llamar al método save() del objeto para confirmar la transacción, y el filtro de duplicados debe usar el nombre actual.
+        Given: Un diccionario de datos que incluye la clave 'acto', pero el objeto es el mismo que ya tiene el puesto.
+        When: Se ejecuta la validación de cambio de acto.
+        Then: No se lanza ValidationError, el campo se elimina con .pop() y el proceso de guardado continúa normalmente.
         """
         mock_timezone.now.return_value.date.return_value = self.hoy
+        acto_mock = MagicMock()
         
         puesto_mock = MagicMock()
-        puesto_mock.nombre = "Nombre Persistente"
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=1)
+        puesto_mock.acto = acto_mock
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=5)
+        puesto_mock.acto.tipo_acto.requiere_papeleta = True
+        mock_get_404.return_value = puesto_mock
+        
+        mock_puesto_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
+
+        data = {'acto': acto_mock, 'nombre': 'Nombre Nuevo'}
+
+        update_puesto_service(self.usuario_admin, 1, data)
+
+        self.assertNotIn('acto', data)
+        puesto_mock.save.assert_called_once()
+
+
+
+    @patch('api.servicios.puesto.puesto_service.Puesto')
+    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
+    @patch('api.servicios.puesto.puesto_service.timezone')
+    def test_data_validada_vacio_solo_save_sin_cambios(self, mock_timezone, mock_get_404, mock_puesto_model):
+        """
+        Test: data_validada vacío (solo save sin cambios)
+        
+        Given: Un diccionario de datos vacío.
+        When: Se procesa la actualización.
+        Then: El servicio debe validar el estado actual del puesto y llamar a .save() sin haber modificado ningún atributo mediante setattr.
+        """
+        mock_timezone.now.return_value.date.return_value = self.hoy
+        puesto_mock = MagicMock()
+        puesto_mock.nombre = "Nombre Actual"
+        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=5)
         puesto_mock.acto.tipo_acto.requiere_papeleta = True
         mock_get_404.return_value = puesto_mock
         
@@ -326,30 +382,28 @@ class TestUpdatePuestoService(unittest.TestCase):
 
         update_puesto_service(self.usuario_admin, 1, {})
 
-        self.assertEqual(puesto_mock.nombre, "Nombre Persistente")
-
+        self.assertEqual(puesto_mock.nombre, "Nombre Actual")
         puesto_mock.save.assert_called_once()
 
 
 
     @patch('api.servicios.puesto.puesto_service.get_object_or_404')
     @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_no_se_llama_a_save_si_falla_validacion(self, mock_timezone, mock_get_404):
+    def test_no_se_llama_a_save_si_falla_validacion_previa(self, mock_timezone, mock_get_404):
         """
         Test: Verificar que no se llama a save si falla validación
         
-        Given: Un puesto cuyo acto ya ha comenzado el periodo de solicitud.
-        When: Se intenta realizar una actualización.
-        Then: Se lanza una ValidationError y se garantiza que el método save() del objeto nunca llega a ejecutarse para evitar persistencia de datos inválidos.
+        Given: Un intento de cambiar el acto asociado (lo cual está prohibido).
+        When: Se lanza la ValidationError correspondiente.
+        Then: El método .save() del puesto nunca debe ser invocado, asegurando que la base de datos no se altere.
         """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        
         puesto_mock = MagicMock()
-
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy - timedelta(days=5)
+        puesto_mock.acto = MagicMock(id=1)
         mock_get_404.return_value = puesto_mock
 
+        data = {'acto': MagicMock(id=2)}
+
         with self.assertRaises(ValidationError):
-            update_puesto_service(self.usuario_admin, 1, {'nombre': 'Nuevo'})
+            update_puesto_service(self.usuario_admin, 1, data)
 
         puesto_mock.save.assert_not_called()

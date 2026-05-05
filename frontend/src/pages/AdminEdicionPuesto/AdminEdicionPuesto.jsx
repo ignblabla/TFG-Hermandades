@@ -392,7 +392,7 @@ function AdminEdicionPuesto() {
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-crear-puesto">
                         <div className="historical-header-container-crear-puesto">
-                            <h1 className="historical-header-title-crear-puesto">EDITAR PUESTO</h1>
+                            <h1 className="historical-header-title-crear-puesto">EDITAR PUESTO: {formData.nombre ? formData.nombre.toUpperCase() : ''}</h1>
                         </div>
 
                         {error && (
@@ -592,14 +592,13 @@ function AdminEdicionPuesto() {
                                     
                                     {isEditing && (
                                         <button 
-                                            type="button" 
-                                            onClick={handleDelete} 
-                                            disabled={deleting}
-                                            className="btn-delete-puesto"
-                                            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontWeight: '500' }}
-                                        >
+                                        type="button" 
+                                        onClick={handleDelete} 
+                                        disabled={deleting}
+                                        className="btn-delete-puesto"
+                                    >
                                             <Trash2 size={18} />
-                                            {deleting ? "Eliminando..." : "Eliminar Puesto"}
+                                            {deleting ? "Eliminando..." : "Eliminar puesto"}
                                         </button>
                                     )}
 

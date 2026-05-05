@@ -247,6 +247,16 @@
 }
 
 .btn-delete-puesto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    background-color: #fee2e2;
+    color: #ef4444;
+    cursor: pointer;
+    font-weight: 500;
     transition: all 0.2s ease;
 }
 

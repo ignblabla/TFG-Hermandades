@@ -559,10 +559,9 @@ function AdminEdicionComunicado() {
                                     onClick={handleDelete} 
                                     disabled={deleting}
                                     className="btn-delete-puesto"
-                                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '6px', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', cursor: 'pointer', fontWeight: '500' }}
                                 >
                                     <Trash2 size={18} />
-                                    {deleting ? "Eliminando..." : "Eliminar Comunicado"}
+                                    {deleting ? "Eliminando..." : "Eliminar comunicado"}
                                 </button>
 
                                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -580,7 +579,7 @@ function AdminEdicionComunicado() {
                                         disabled={saving}
                                     >
                                         <Save size={18} />
-                                        {saving ? "Guardando..." : "Guardar Cambios"}
+                                        {saving ? "Guardando..." : "Guardar cambios"}
                                     </button>
                                 </div>
                             </div>
