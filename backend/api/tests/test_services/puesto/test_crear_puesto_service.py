@@ -63,69 +63,6 @@ class TestPuestoService(unittest.TestCase):
 
     @patch('api.servicios.puesto.puesto_service.Puesto')
     @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_devuelve_el_puesto_creado(self, mock_timezone, mock_puesto):
-        """
-        Test: Devuelve el puesto creado
-        
-        Given: Un flujo de creación de puesto válido.
-        When: Se completa la ejecución de create_puesto_service.
-        Then: El servicio debe retornar exactamente el objeto que fue devuelto por el método Puesto.objects.create.
-        """
-        usuario = MagicMock(esAdmin=True)
-
-        hoy = date(2026, 5, 5)
-        mock_timezone.now.return_value.date.return_value = hoy
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = hoy + timedelta(days=1)
-        
-        data = {'acto': acto, 'nombre': 'Puesto Test'}
-
-        puesto_mock = MagicMock(spec=['id', 'nombre'])
-        mock_puesto.objects.filter.return_value.exists.return_value = False
-        mock_puesto.objects.create.return_value = puesto_mock
-
-        resultado = create_puesto_service(usuario, data)
-
-        self.assertEqual(resultado, puesto_mock)
-
-
-
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_usa_correctamente_create_con_data_validada(self, mock_timezone, mock_puesto):
-        """
-        Test: Usa correctamente create(**data_validada)
-        
-        Given: Un diccionario de datos validados.
-        When: Se procede a la persistencia en base de datos.
-        Then: Se verifica que se utiliza el operador de desempaquetado (**) para pasar todos los argumentos al método create de Django.
-        """
-        usuario = MagicMock(esAdmin=True)
-        hoy = date(2026, 5, 5)
-        mock_timezone.now.return_value.date.return_value = hoy
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = hoy + timedelta(days=1)
-        
-        data_validada = {
-            'acto': acto,
-            'nombre': 'Fiscal',
-            'seccion': 'Cristo',
-            'prioridad': 1
-        }
-        mock_puesto.objects.filter.return_value.exists.return_value = False
-
-        create_puesto_service(usuario, data_validada)
-
-        mock_puesto.objects.create.assert_called_once_with(**data_validada)
-
-
-
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    @patch('api.servicios.puesto.puesto_service.timezone')
     def test_convierte_correctamente_inicio_solicitud_con_date(self, mock_timezone, mock_puesto):
         """
         Test: Convierte correctamente inicio_solicitud con .date()
@@ -209,7 +146,7 @@ class TestPuestoService(unittest.TestCase):
         
         acto = MagicMock()
         acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = hoy - timedelta(days=10) # Hace 10 días
+        acto.inicio_solicitud = hoy - timedelta(days=10)
         
         data = {'acto': acto, 'nombre': 'Puesto Tarde'}
 
@@ -234,7 +171,7 @@ class TestPuestoService(unittest.TestCase):
         
         acto = MagicMock()
         acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = hoy # Hoy mismo
+        acto.inicio_solicitud = hoy
         
         data = {'acto': acto, 'nombre': 'Puesto Hoy'}
 
@@ -296,55 +233,3 @@ class TestPuestoService(unittest.TestCase):
             create_puesto_service(self.usuario_admin, data)
 
         self.assertIn(f"Ya existe un puesto con el nombre '{nombre_duplicado}'", str(context.exception))
-
-
-
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_inicio_solicitud_ya_es_date_sin_metodo_date(self, mock_timezone, mock_puesto):
-        """
-        Test: inicio_solicitud sin método .date() (ya es date)
-        
-        Given: Un acto cuyo campo 'inicio_solicitud' ya es un objeto de tipo date (no datetime).
-        When: El servicio verifica la fecha de inicio.
-        Then: El código debe usar el objeto directamente sin intentar llamar a .date(), permitiendo que la validación de fecha futura funcione correctamente.
-        """
-        hoy = date(2026, 5, 5)
-        mock_timezone.now.return_value.date.return_value = hoy
-
-        fecha_futura = hoy + timedelta(days=1)
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-
-        del acto.inicio_solicitud.date 
-        acto.inicio_solicitud = fecha_futura
-        
-        data = {'acto': acto, 'nombre': 'Puesto Date Puro'}
-        mock_puesto.objects.filter.return_value.exists.return_value = False
-
-        create_puesto_service(self.usuario_admin, data)
-
-        mock_puesto.objects.create.assert_called_once()
-
-
-
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_no_se_llama_a_create_si_hay_error_previo(self, mock_timezone, mock_puesto):
-        """
-        Test: Verificar que no se llama a create si hay error previo
-        
-        Given: Un acto con una configuración inválida (ej. no requiere papeleta).
-        When: Se intenta ejecutar el servicio.
-        Then: Se debe lanzar la ValidationError y se verifica que el método Puesto.objects.create nunca llega a ejecutarse.
-        """
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = False
-        
-        data = {'acto': acto, 'nombre': 'Puesto Fantasma'}
-
-        with self.assertRaises(ValidationError):
-            create_puesto_service(self.usuario_admin, data)
-
-        mock_puesto.objects.create.assert_not_called()

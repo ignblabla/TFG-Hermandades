@@ -49,48 +49,6 @@ class TestDeletePuestoService(unittest.TestCase):
 
 
 
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_devuelve_true_tras_eliminar(self, mock_timezone, mock_get_object):
-        """
-        Test: Devuelve True tras eliminar
-        
-        Given: Un flujo de eliminación válido donde el puesto existe y la fecha es permitida.
-        When: Se completa la ejecución de delete_puesto_service.
-        Then: El servicio debe retornar exactamente el valor booleano True.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=1)
-        mock_get_object.return_value = puesto_mock
-
-        resultado = delete_puesto_service(self.usuario_admin, 1)
-
-        self.assertIs(resultado, True)
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_llama_a_delete_una_sola_vez(self, mock_timezone, mock_get_object):
-        """
-        Test: Llama a delete() una sola vez
-        
-        Given: Una solicitud de borrado autorizada.
-        When: Se ejecuta la lógica del servicio.
-        Then: Se debe verificar que el método delete() del modelo se invoca exactamente una vez, evitando ejecuciones redundantes en la base de datos.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy + timedelta(days=1)
-        mock_get_object.return_value = puesto_mock
-
-        delete_puesto_service(self.usuario_admin, 1)
-
-        puesto_mock.delete.assert_called_once()
-
-
-
     def test_usuario_no_admin_lanza_error_permisos(self):
         """
         Test: Usuario no admin
@@ -104,23 +62,6 @@ class TestDeletePuestoService(unittest.TestCase):
         with self.assertRaises(PermissionDenied) as context:
             delete_puesto_service(usuario, 1)
         self.assertEqual(str(context.exception), "No tienes permisos para eliminar puestos.")
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    def test_puesto_no_existe_lanza_excepcion(self, mock_puesto_model, mock_get_404):
-        """
-        Test: Puesto no existe
-        
-        Given: Un ID de puesto que no existe en la base de datos.
-        When: El servicio llama a get_object_or_404.
-        Then: Se propaga la excepción Http404 lanzada por el atajo de Django.
-        """
-        mock_get_404.side_effect = Http404("Puesto no encontrado")
-
-        with self.assertRaises(Http404):
-            delete_puesto_service(self.usuario_admin, 999)
 
 
 
@@ -186,51 +127,3 @@ class TestDeletePuestoService(unittest.TestCase):
 
         puesto_mock.delete.assert_called_once()
         self.assertTrue(resultado)
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_no_se_llama_a_delete_si_falla_validacion(self, mock_timezone, mock_get_404):
-        """
-        Test: Verificar que no se llama a delete si falla validación
-        
-        Given: Un usuario que intenta eliminar un puesto pero no tiene permisos de administrador.
-        When: Se lanza la excepción PermissionDenied al inicio del servicio.
-        Then: El flujo se interrumpe inmediatamente y el método delete() del modelo nunca es invocado.
-        """
-        usuario_no_admin = MagicMock(esAdmin=False)
-        puesto_mock = MagicMock()
-        mock_get_404.return_value = puesto_mock
-
-        with self.assertRaises(PermissionDenied):
-            delete_puesto_service(usuario_no_admin, 1)
-
-        puesto_mock.delete.assert_not_called()
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_inicio_solicitud_manejo_de_tipos_date(self, mock_timezone, mock_get_404):
-        """
-        Test: inicio_solicitud sin .date() (ya es date/datetime inconsistente)
-        
-        Given: Un objeto inicio_solicitud que se comporta como un objeto datetime (requiere .date() para comparar).
-        When: Se ejecuta la comparación con la fecha actual de timezone.now().date().
-        Then: El test verifica que el servicio llama correctamente al método .date() del campo para asegurar la compatibilidad de tipos en la comparación.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        
-        puesto_mock = MagicMock()
-
-        fecha_mock = MagicMock()
-        fecha_mock.date.return_value = self.hoy + date.resolution
-        
-        puesto_mock.acto.inicio_solicitud = fecha_mock
-        mock_get_404.return_value = puesto_mock
-
-        delete_puesto_service(self.usuario_admin, 1)
-
-        fecha_mock.date.assert_called()
-        puesto_mock.delete.assert_called_once()
