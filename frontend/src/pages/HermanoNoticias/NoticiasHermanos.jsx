@@ -5,7 +5,7 @@ import NewsCard from '../../components/NewsCard';
 import MisAreasCard from '../../components/mis_areas_card/MisAreasCard';
 import '../HermanoNoticias/NoticiasHermanos.css'
 import portadaDefecto from '../../assets/portada-comunicado.png';
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell, Plus } from "lucide-react";
 
 const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
@@ -246,6 +246,18 @@ function NoticiasHermano() {
                     <div className="dashboard-panel-noticias">
                         <div className="historical-header-container-noticias">
                             <h1 className="historical-header-title-noticias">NOTICIAS</h1>
+                            {user?.esAdmin && (
+                                <div className="header-tags-container">
+                                    <div 
+                                        className="header-tag-pill-editar" 
+                                        onClick={() => navigate('/admin/crear-comunicado')}
+                                        title="Crear nueva noticia"
+                                    >
+                                        <Plus size={14} />
+                                        <span>Crear nueva noticia</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {loading && noticias.length === 0 ? (

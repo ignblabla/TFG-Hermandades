@@ -94,11 +94,14 @@ function AdminCreacionComunicado() {
     }, [navigate]);
 
     useEffect(() => {
-        if (successMsg) {
-            const timer = setTimeout(() => setSuccessMsg(""), 3000);
+        if (successMsg || error) {
+            const timer = setTimeout(() => {
+                setSuccessMsg("");
+                setError("");
+            }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [successMsg]);
+    }, [successMsg, error]);
 
     useEffect(() => {
         return () => {
@@ -194,7 +197,7 @@ function AdminCreacionComunicado() {
             setSuccessMsg("Comunicado emitido correctamente.");
 
             setTimeout(() => {
-                navigate("/home");
+                navigate("/noticias");
             }, 1500);
 
         } catch (err) {
@@ -245,6 +248,22 @@ function AdminCreacionComunicado() {
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -503,12 +522,6 @@ function AdminCreacionComunicado() {
                             </div>
 
                             <div className="form-container-crear-comunicado">
-                                <div className="help-text-container-crear-comunicado">
-                                    <small>
-                                        Selecciona las áreas a las que va dirigido este comunicado. Si no seleccionas ninguna, 
-                                        el comunicado se guardará como <strong>Borrador</strong> y no aparecerá en el muro de los hermanos.
-                                    </small>
-                                </div>
 
                                 <div className="areas-grid-crear-comunicado">
                                     {areasDisponibles.map(area => {

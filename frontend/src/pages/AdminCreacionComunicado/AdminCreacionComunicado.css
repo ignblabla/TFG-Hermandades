@@ -261,16 +261,6 @@
     color: #fce9ed;
 }
 
-.help-text-container-crear-comunicado {
-    margin-bottom: 8px;
-    color: #6b7280;
-    line-height: 1.5;
-}
-
-.help-text-container-crear-comunicado strong {
-    color: #374151;
-}
-
 .areas-grid-crear-comunicado {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -384,6 +374,54 @@
     background-color: #A98C92;
     cursor: not-allowed;
     transform: none;
+}
+
+.toast-container-crear-comunicado {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toast-message-crear-comunicado {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    animation: slideInToast 0.3s ease-out forwards;
+    max-width: 350px;
+    word-wrap: break-word;
+    pointer-events: auto;
+}
+
+.toast-success-crear-comunicado {
+    background-color: #10b981;
+    border-left: 6px solid #059669;
+}
+
+.toast-error-crear-comunicado {
+    background-color: #ef4444;
+    border-left: 6px solid #b91c1c;
+}
+
+@keyframes slideInToast {
+    from {
+        transform: translateX(120%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @media (max-width: 1024px) {

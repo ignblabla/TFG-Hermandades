@@ -745,23 +745,33 @@ function EditarMiPerfil() {
                                 </div>
                             </div>
 
-                            <div className="form-actions-editar-perfil">
+                            <div className="form-actions-editar-perfil" style={{ justifyContent: 'space-between' }}>
                                 <button 
                                     type="button" 
-                                    className="btn-cancel-editar-perfil" 
-                                    onClick={() => navigate("/hermanos/listado")}
+                                    className="btn-danger-editar-perfil" 
+                                    onClick={() => navigate("/solicitar-baja")}
                                 >
-                                    Cancelar
+                                    <AlertCircle size={18} />
+                                    Solicitar baja
                                 </button>
-                                
-                                <button 
-                                    type="submit" 
-                                    className="btn-save-editar-perfil" 
-                                    disabled={saving}
-                                >
-                                    <Save size={18} />
-                                    {saving ? "Guardando..." : "Guardar cambios"}
-                                </button>
+                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancel-editar-perfil" 
+                                        onClick={() => navigate("/new-home")}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        className="btn-save-editar-perfil" 
+                                        disabled={saving}
+                                    >
+                                        <Save size={18} />
+                                        {saving ? "Guardando..." : "Guardar cambios"}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>

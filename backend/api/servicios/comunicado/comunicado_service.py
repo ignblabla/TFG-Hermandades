@@ -42,6 +42,9 @@ class ComunicadoService:
 
         areas = data_validada.pop('areas_interes', [])
 
+        if not areas:
+            raise ValueError("No se puede crear un comunicado sin al menos un área de interés asociada.")
+
         comunicado = Comunicado.objects.create(autor=usuario, **data_validada)
         
         if areas:

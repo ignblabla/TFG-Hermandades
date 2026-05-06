@@ -233,6 +233,30 @@
     transform: none;
 }
 
+.btn-danger-editar-perfil {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 24px;
+    height: 38px;
+    background-color: #dc2626;
+    color: #ffffff;
+    border: 1px solid #dc2626;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-danger-editar-perfil:hover {
+    background-color: #b91c1c;
+    color: #ffffff;
+    border-color: #b91c1c;
+}
+
 @media (max-width: 768px) {
     .form-row-editar-perfil {
         flex-direction: column;
@@ -260,7 +284,8 @@
     .form-actions-editar-perfil {
         flex-direction: column-reverse;
     }
-    
+
+    .btn-danger-editar-perfil,
     .btn-cancel-editar-perfil,
     .btn-save-editar-perfil {
         width: 100%;

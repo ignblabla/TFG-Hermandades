@@ -253,7 +253,7 @@ function HermanoConsultaActo() {
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
+            {/* <section className="home-section-dashboard">
                 <div className="text-dashboard">Detalles del acto</div>
 
                 <div className="dashboard-content-layout">
@@ -436,7 +436,7 @@ function HermanoConsultaActo() {
 
                     </div>
                 </div>
-            </section>
+            </section> */}
 
             {modalPlazo.isOpen && (
                 <div className="modal-overlay-observacion" onClick={() => setModalPlazo({ isOpen: false, titulo: '', mensaje: '' })}>
