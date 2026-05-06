@@ -39,6 +39,10 @@ from api.vistas.puesto.crear_puesto_view import CrearPuestoView
 from api.vistas.puesto.puesto_detalle_view import PuestoDetalleView
 from api.vistas.puesto.listado_puesto_view import PuestosPorActoListView
 from api.vistas.puesto.resumen_puesto_view import ResumenPuestosActoAPIView
+from api.vistas.solicitud_baja.crear_solicitud_baja_view import SolicitudBajaAPIView
+from api.vistas.solicitud_baja.listado_solicitudes_baja_admin_view import AdminListadoSolicitudesBajaAPIView
+from api.vistas.cuota.cuotas_pendientes_view import MisCuotasPendientesView
+from api.vistas.cuota.numero_cuotas_pendientes_view import NumeroCuotasPendientesView
 
 
 urlpatterns = [
@@ -56,7 +60,11 @@ urlpatterns = [
 
 
 
+    path('solicitudes-baja/', SolicitudBajaAPIView.as_view(), name='crear-solicitud-baja'),
+    path('admin/solicitudes-baja/', AdminListadoSolicitudesBajaAPIView.as_view(), name='admin-listado-bajas'),
 
+    path('mis-cuotas-pendientes/', MisCuotasPendientesView.as_view(), name='mis-cuotas-pendientes'),
+    path('mis-cuotas-pendientes/total/', NumeroCuotasPendientesView.as_view(), name='total-cuotas-pendientes'),
 
 
 

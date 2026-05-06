@@ -43,6 +43,8 @@ import NoticiasHermano from "./pages/HermanoNoticias/NoticiasHermanos"
 
 import ListadoAsistentes from "./pages/AdminListadoAsistentesActos/AdminListadoAsistentesActos"
 import HermanoListadoPuestos from "./pages/HermanoListadoPuestos/HermanoListadoPuestos"
+import HermanoSolicitudBaja from "./pages/HermanoSolicitudBaja/HermanoSolicitudBaja"
+import AdminListadoSolicitudesBaja from "./pages/AdminListadoSolicitudesBaja/AdminListadoSolicitudesBaja"
 
 
 function Logout() {
@@ -238,7 +240,23 @@ function App() {
         />
 
 
+        <Route
+          path="solicitar-baja"
+          element={
+            <ProtectedRoute>
+              <HermanoSolicitudBaja />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="admin/listado-solicitudes-baja"
+          element={
+            <ProtectedRoute>
+              <AdminListadoSolicitudesBaja />
+            </ProtectedRoute>
+          }
+        />
 
 
 

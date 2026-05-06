@@ -19,3 +19,16 @@ class CuotaSerializer(serializers.ModelSerializer):
             'fecha_emision', 'fecha_pago', 'metodo_pago', 'observaciones'
         ]
         read_only_fields = fields
+
+
+
+class CuotaPendienteSerializer(serializers.ModelSerializer):
+    estado_display = serializers.CharField(source='get_estado_display', read_only=True)
+
+    class Meta:
+        model = Cuota
+        fields = [
+            'id', 
+            'estado', 
+            'estado_display', 
+        ]

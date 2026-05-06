@@ -651,4 +651,25 @@ class PreferenciaSolicitud(models.Model):
 
     def __str__(self):
         return f"{self.papeleta} - Puesto: {self.puesto_solicitado.nombre} (Prioridad: {self.orden_prioridad})"
-    
+
+# -----------------------------------------------------------------------------
+# ENTIDAD: SOLICITUD DE BAJA
+# -----------------------------------------------------------------------------
+class SolicitudBaja(models.Model):
+    class EstadoSolicitud(models.TextChoices):
+        PENDIENTE = 'PENDIENTE', 'Pendiente de revisión'
+        APROBADA = 'APROBADA', 'Aprobada'
+        DENEGADA = 'DENEGADA', 'Denegada / En pausa'
+
+    hermano = models.ForeignKey(Hermano, on_delete=models.CASCADE, related_name='solicitudes_baja', verbose_name="Hermano solicitante")
+
+    motivo = models.TextField(blank=True, null=True, verbose_name="Motivo de la baja", help_text="El hermano puede indicar opcionalmente por qué solicita la baja.")
+
+    fecha_solicitud = models.DateTimeField(default=timezone.now, verbose_name="Fecha de solicitud")
+
+    estado = models.CharField(max_length=20, choices=EstadoSolicitud.choices, default=EstadoSolicitud.PENDIENTE, verbose_name="Estado de la solicitud")
+
+    fecha_resolucion = models.DateTimeField(null=True, blank=True, verbose_name="Fecha de resolución", help_text="Fecha en la que Secretaría aprueba o deniega la solicitud.")
+
+    def __str__(self):
+        return f"Solicitud de Baja - {self.hermano} ({self.get_estado_display()})"
