@@ -43,6 +43,7 @@ from api.vistas.solicitud_baja.crear_solicitud_baja_view import SolicitudBajaAPI
 from api.vistas.solicitud_baja.listado_solicitudes_baja_admin_view import AdminListadoSolicitudesBajaAPIView
 from api.vistas.cuota.cuotas_pendientes_view import MisCuotasPendientesView
 from api.vistas.cuota.numero_cuotas_pendientes_view import NumeroCuotasPendientesView
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import ResolverSolicitudBajaView
 
 
 urlpatterns = [
@@ -62,6 +63,7 @@ urlpatterns = [
 
     path('solicitudes-baja/', SolicitudBajaAPIView.as_view(), name='crear-solicitud-baja'),
     path('admin/solicitudes-baja/', AdminListadoSolicitudesBajaAPIView.as_view(), name='admin-listado-bajas'),
+    path('solicitudes-baja/<int:pk>/resolver/', ResolverSolicitudBajaView.as_view(), name='resolver-solicitud-baja'),
 
     path('mis-cuotas-pendientes/', MisCuotasPendientesView.as_view(), name='mis-cuotas-pendientes'),
     path('mis-cuotas-pendientes/total/', NumeroCuotasPendientesView.as_view(), name='total-cuotas-pendientes'),

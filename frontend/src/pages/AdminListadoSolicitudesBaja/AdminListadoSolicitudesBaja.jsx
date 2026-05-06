@@ -20,6 +20,9 @@ function AdminListadoSolicitudesBaja() {
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    
+    // Estado para forzar la recarga de datos al resolver una solicitud
+    const [refresh, setRefresh] = useState(0); 
 
     // Modal reutilizable para ver el Motivo o las Observaciones largas
     const [textoModal, setTextoModal] = useState({ isOpen: false, titulo: '', texto: '' });
@@ -53,7 +56,6 @@ function AdminListadoSolicitudesBaja() {
                     const userRes = await api.get("api/me/");
                     if (isMounted) setCurrentUser(userRes.data);
 
-                    // Opcional: Proteger la ruta para que solo entren administradores
                     if (userRes.data && !userRes.data.esAdmin) {
                         alert("Acceso denegado. Esta sección es solo para Secretaría/Administradores.");
                         navigate("/");
@@ -61,22 +63,18 @@ function AdminListadoSolicitudesBaja() {
                     }
                 }
 
-                // Asegúrate de tener este endpoint configurado en tu backend (urls.py y views.py)
                 const res = await api.get(`api/solicitudes-baja/?page=${currentPage}`);
                 
                 if (isMounted) {
                     setSolicitudes(res.data.results || res.data);
                     
-                    // Si tienes paginación de DRF
                     if (res.data.count) {
-                        setTotalPages(Math.ceil(res.data.count / 10)); // Ajusta según la paginación de tu backend
+                        setTotalPages(Math.ceil(res.data.count / 10));
                     }
 
-                    // Si el backend te devuelve un diccionario "resumen" extra
                     if (res.data.resumen) {
                         setResumen(res.data.resumen);
                     } else {
-                        // Cálculo manual si el backend no envía resumen (solo para la página actual)
                         const listado = res.data.results || res.data;
                         setResumen({
                             total_pendientes: listado.filter(s => s.estado === 'PENDIENTE').length,
@@ -95,7 +93,7 @@ function AdminListadoSolicitudesBaja() {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [currentPage, currentUser, navigate]);
+    }, [currentPage, currentUser, navigate, refresh]); // Añadido "refresh" a las dependencias
 
     const handleNextPage = () => {
         if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
@@ -134,9 +132,25 @@ function AdminListadoSolicitudesBaja() {
         setTextoModal({ isOpen: true, titulo, texto });
     };
 
+    // Función para procesar la resolución de la solicitud
+    const handleResolverSolicitud = async (id, accion) => {
+        const confirmar = window.confirm(`¿Estás seguro de que deseas ${accion} esta solicitud de baja?`);
+        if (!confirmar) return;
+
+        try {
+            await api.post(`api/solicitudes-baja/${id}/resolver/`, { accion: accion });
+            alert(`Solicitud ${accion.toLowerCase()}a correctamente.`);
+            setRefresh(prev => prev + 1); // Forzamos recarga para actualizar contadores y tabla
+        } catch (err) {
+            console.error(err);
+            const msg = err.response?.data?.error || err.response?.data?.detail || "Ocurrió un error al procesar la resolución.";
+            alert(`Error: ${msg}`);
+        }
+    };
+
     return (
         <div>
-            {/* PANEL LATERAL (SIDEBAR) EXACTAMENTE IGUAL AL TUYO */}
+            {/* PANEL LATERAL (SIDEBAR) */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -251,7 +265,7 @@ function AdminListadoSolicitudesBaja() {
             {/* CONTENIDO PRINCIPAL */}
             <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="dashboard-split-layout-solicitud">
-                    <div className="dashboard-panel-cuotas"> {/* Reutilizamos la misma clase CSS de layout */}
+                    <div className="dashboard-panel-cuotas">
                         
                         <div className="historical-header-container-cuotas">
                             <h1 className="historical-header-title-cuotas">SOLICITUDES DE BAJA</h1>
@@ -324,7 +338,6 @@ function AdminListadoSolicitudesBaja() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        {/* TABLA DE SOLICITUDES */}
                         <section className="historial-cuotas-section">
                             {solicitudes.length > 0 ? (
                                 <div className="table-responsive">
@@ -337,23 +350,24 @@ function AdminListadoSolicitudesBaja() {
                                                 <th>Fecha Resolución</th>
                                                 <th>Motivo</th>
                                                 <th>Observaciones</th>
+                                                <th>Acciones</th> {/* NUEVA COLUMNA */}
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {solicitudes.map((s) => (
                                                 <tr key={s.id}>
-                                                    <td className="fw-bold">{s.hermano}</td> {/* Idealmente enviar nombre desde el serializador */}
+                                                    <td className="fw-bold">{s.hermano}</td>
                                                     <td>{formatDate(s.fecha_solicitud)}</td>
                                                     <td>{renderEstado(s.estado)}</td>
                                                     <td>{formatDate(s.fecha_resolucion)}</td>
-                                                    
-                                                    {/* Botón ver Motivo */}
+
                                                     <td>
                                                         {s.motivo ? (
                                                             <button 
                                                                 className="btn-ver-observacion"
                                                                 onClick={() => abrirModalTexto('Motivo de la Baja', s.motivo)}
                                                                 title="Ver motivo"
+                                                                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
                                                             >
                                                                 <FileText size={18} />
                                                             </button>
@@ -362,18 +376,42 @@ function AdminListadoSolicitudesBaja() {
                                                         )}
                                                     </td>
 
-                                                    {/* Botón ver Observaciones de Secretaría */}
                                                     <td>
                                                         {s.observaciones_secretaria ? (
                                                             <button 
                                                                 className="btn-ver-observacion"
                                                                 onClick={() => abrirModalTexto('Observaciones de Secretaría', s.observaciones_secretaria)}
                                                                 title="Ver observaciones internas"
+                                                                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
                                                             >
                                                                 <MessageCircle size={18} />
                                                             </button>
                                                         ) : (
                                                             <span className="text-muted">-</span>
+                                                        )}
+                                                    </td>
+                                                    
+                                                    {/* BOTONES DE RESOLUCIÓN */}
+                                                    <td>
+                                                        {s.estado === 'PENDIENTE' ? (
+                                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                                <button
+                                                                    onClick={() => handleResolverSolicitud(s.id, 'ACEPTAR')}
+                                                                    title="Aceptar Baja"
+                                                                    style={{ background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                                                                >
+                                                                    <CheckCircle size={18} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleResolverSolicitud(s.id, 'DENEGAR')}
+                                                                    title="Denegar Baja"
+                                                                    style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                                                                >
+                                                                    <XCircle size={18} />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>Resuelta</span>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -388,7 +426,6 @@ function AdminListadoSolicitudesBaja() {
                                 </div>
                             )}
 
-                            {/* PAGINACIÓN */}
                             {totalPages > 1 && (
                                 <div className="pagination-controls-cuotas">
                                     <button 
