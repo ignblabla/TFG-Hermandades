@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 
 from api.models import SolicitudBaja
 from api.serializadores.solicitud_baja.solicitud_baja_serializer import SolicitudBajaSerializer
-from api.servicios.solicitud_baja.obtener_solicitudes_baja_admin_service import resolver_solicitud
+from api.servicios.solicitud_baja.solicitud_baja_service import resolver_solicitud
 
 
 
