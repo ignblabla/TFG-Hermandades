@@ -20,11 +20,9 @@ function AdminListadoSolicitudesBaja() {
     const [error, setError] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    
-    // Estado para forzar la recarga de datos al resolver una solicitud
+
     const [refresh, setRefresh] = useState(0); 
 
-    // Modal reutilizable para ver el Motivo o las Observaciones largas
     const [textoModal, setTextoModal] = useState({ isOpen: false, titulo: '', texto: '' });
 
     const toggleSidebar = () => setIsOpen(!isOpen);
@@ -93,7 +91,7 @@ function AdminListadoSolicitudesBaja() {
 
         fetchData();
         return () => { isMounted = false; };
-    }, [currentPage, currentUser, navigate, refresh]); // Añadido "refresh" a las dependencias
+    }, [currentPage, currentUser, navigate, refresh]);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
@@ -132,7 +130,6 @@ function AdminListadoSolicitudesBaja() {
         setTextoModal({ isOpen: true, titulo, texto });
     };
 
-    // Función para procesar la resolución de la solicitud
     const handleResolverSolicitud = async (id, accion) => {
         const confirmar = window.confirm(`¿Estás seguro de que deseas ${accion} esta solicitud de baja?`);
         if (!confirmar) return;
@@ -140,7 +137,7 @@ function AdminListadoSolicitudesBaja() {
         try {
             await api.post(`api/solicitudes-baja/${id}/resolver/`, { accion: accion });
             alert(`Solicitud ${accion.toLowerCase()}a correctamente.`);
-            setRefresh(prev => prev + 1); // Forzamos recarga para actualizar contadores y tabla
+            setRefresh(prev => prev + 1);
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.error || err.response?.data?.detail || "Ocurrió un error al procesar la resolución.";
@@ -150,7 +147,6 @@ function AdminListadoSolicitudesBaja() {
 
     return (
         <div>
-            {/* PANEL LATERAL (SIDEBAR) */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -262,7 +258,6 @@ function AdminListadoSolicitudesBaja() {
                 </ul>
             </div>
 
-            {/* CONTENIDO PRINCIPAL */}
             <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-cuotas">
@@ -284,7 +279,6 @@ function AdminListadoSolicitudesBaja() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        {/* TARJETAS DE RESUMEN */}
                         <div className="cuotas-cards-container">
                             <div className="cuotas-card-wrapper">
                                 <div className="cuotas-card-content">
@@ -344,19 +338,17 @@ function AdminListadoSolicitudesBaja() {
                                     <table className="cuotas-table">
                                         <thead>
                                             <tr>
-                                                <th>ID Hermano</th>
-                                                <th>Fecha Solicitud</th>
+                                                <th>Nombre y apellidos</th>
+                                                <th>Fecha solicitud</th>
                                                 <th>Estado</th>
-                                                <th>Fecha Resolución</th>
+                                                <th>Fecha resolución</th>
                                                 <th>Motivo</th>
-                                                <th>Observaciones</th>
-                                                <th>Acciones</th> {/* NUEVA COLUMNA */}
-                                            </tr>
+                                                <th>Acciones</th></tr> 
                                         </thead>
                                         <tbody>
                                             {solicitudes.map((s) => (
                                                 <tr key={s.id}>
-                                                    <td className="fw-bold">{s.hermano}</td>
+                                                    <td className="fw-bold">{s.nombre_completo}</td>
                                                     <td>{formatDate(s.fecha_solicitud)}</td>
                                                     <td>{renderEstado(s.estado)}</td>
                                                     <td>{formatDate(s.fecha_resolucion)}</td>
@@ -365,7 +357,7 @@ function AdminListadoSolicitudesBaja() {
                                                         {s.motivo ? (
                                                             <button 
                                                                 className="btn-ver-observacion"
-                                                                onClick={() => abrirModalTexto('Motivo de la Baja', s.motivo)}
+                                                                onClick={() => abrirModalTexto('Motivo de la baja', s.motivo)}
                                                                 title="Ver motivo"
                                                                 style={{ border: 'none', background: 'none', cursor: 'pointer' }}
                                                             >
@@ -375,36 +367,19 @@ function AdminListadoSolicitudesBaja() {
                                                             <span className="text-muted">-</span>
                                                         )}
                                                     </td>
-
-                                                    <td>
-                                                        {s.observaciones_secretaria ? (
-                                                            <button 
-                                                                className="btn-ver-observacion"
-                                                                onClick={() => abrirModalTexto('Observaciones de Secretaría', s.observaciones_secretaria)}
-                                                                title="Ver observaciones internas"
-                                                                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
-                                                            >
-                                                                <MessageCircle size={18} />
-                                                            </button>
-                                                        ) : (
-                                                            <span className="text-muted">-</span>
-                                                        )}
-                                                    </td>
-                                                    
-                                                    {/* BOTONES DE RESOLUCIÓN */}
                                                     <td>
                                                         {s.estado === 'PENDIENTE' ? (
                                                             <div style={{ display: 'flex', gap: '8px' }}>
                                                                 <button
                                                                     onClick={() => handleResolverSolicitud(s.id, 'ACEPTAR')}
-                                                                    title="Aceptar Baja"
+                                                                    title="Aceptar baja"
                                                                     style={{ background: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                                 >
                                                                     <CheckCircle size={18} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleResolverSolicitud(s.id, 'DENEGAR')}
-                                                                    title="Denegar Baja"
+                                                                    title="Denegar baja"
                                                                     style={{ background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                                 >
                                                                     <XCircle size={18} />
@@ -450,7 +425,6 @@ function AdminListadoSolicitudesBaja() {
                 </div>
             </section>
 
-            {/* MODAL REUTILIZABLE PARA TEXTOS LARGOS */}
             {textoModal.isOpen && (
                 <div className="modal-overlay-observacion" onClick={() => setTextoModal({ isOpen: false, titulo: '', texto: '' })}>
                     <div className="modal-content-observacion" onClick={(e) => e.stopPropagation()}>

@@ -117,6 +117,7 @@
     border-collapse: separate;
     background-color: #ffffff;
     text-align: center;
+    border-spacing: 1px;
 }
 
 .cuotas-table th:last-child {
@@ -217,11 +218,6 @@
 .btn-ver-observacion:hover {
     transform: scale(1.2);
     color: #600018;
-}
-
-.cuotas-table {
-    border-collapse: separate;
-    border-spacing: 0;
 }
 
 .cuotas-table th:first-child { border-top-left-radius: 12px; }

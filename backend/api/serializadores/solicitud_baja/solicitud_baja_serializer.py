@@ -5,12 +5,14 @@ from api.models import SolicitudBaja
 
 class SolicitudBajaSerializer(serializers.ModelSerializer):
     estado_display = serializers.CharField(source='get_estado_display', read_only=True)
+    nombre_completo = serializers.SerializerMethodField()
 
     class Meta:
         model = SolicitudBaja
         fields = [
             'id', 
-            'hermano', 
+            'hermano',
+            'nombre_completo',
             'motivo', 
             'fecha_solicitud', 
             'estado', 
@@ -25,6 +27,11 @@ class SolicitudBajaSerializer(serializers.ModelSerializer):
             'estado', 
             'fecha_resolucion', 
         ]
+
+    def get_nombre_completo(self, obj):
+        hermano = obj.hermano
+        apellidos = f"{hermano.primer_apellido} {hermano.segundo_apellido}".strip()
+        return f"{hermano.nombre} {apellidos}"
 
 
 
