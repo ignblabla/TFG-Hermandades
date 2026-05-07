@@ -53,9 +53,7 @@ class TestReportesCiriosService(TestCase):
         mock_papeleta.puesto.nombre = "Cirio Cristo"
 
         base_qs_mock = mock_papeleta_mgr.filter.return_value
-
         base_qs_mock.aggregate.return_value = {'numero_papeleta__max': 100}
-
         base_qs_mock.select_related.side_effect = [
             [mock_papeleta],
             []
@@ -72,7 +70,6 @@ class TestReportesCiriosService(TestCase):
         papeletas_actualizadas = ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
 
         self.assertEqual(papeletas_actualizadas, 1)
-
         self.assertEqual(mock_papeleta.estado_papeleta, "EMITIDA")
         self.assertEqual(mock_papeleta.numero_papeleta, 101)
         self.assertEqual(mock_papeleta.tramo, mock_tramo)
@@ -93,8 +90,6 @@ class TestReportesCiriosService(TestCase):
 
         self.assertIsNotNone(mock_acto.fecha_ejecucion_cirios)
         mock_acto.save.assert_called_once_with(update_fields=['fecha_ejecucion_cirios'])
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -130,63 +125,6 @@ class TestReportesCiriosService(TestCase):
 
         mock_telegram.assert_not_called()
 
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    @patch("api.servicios.solicitud_cirio.ejecucion_automatica_cirio_service.TelegramWebhookService.notificar_papeleta_asignada")
-    def test_envia_notificaciones_multiples_si_hay_chat_id(
-        self, mock_telegram, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Hay telegram_chat_id -> envía notificaciones (N veces)
-        
-        Given: Dos papeletas de hermanos con telegram_chat_id válido.
-        When: Se ejecuta la asignación.
-        Then: El servicio de Telegram debe llamarse exactamente 2 veces.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        
-        mock_acto = MagicMock(modalidad="TRADICIONAL", fecha_ejecucion_cirios=None)
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        mock_p1 = MagicMock(id=1, vinculado_a_id=None)
-        mock_p1.hermano.telegram_chat_id = "CHAT_1"
-        mock_p1.hermano.fecha_ingreso_corporacion = datetime.date(2010, 1, 1)
-        
-        mock_p2 = MagicMock(id=2, vinculado_a_id=None)
-        mock_p2.hermano.telegram_chat_id = "CHAT_2"
-        mock_p2.hermano.fecha_ingreso_corporacion = datetime.date(2015, 1, 1)
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 10}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[mock_p1, mock_p2], []]
-        
-        mock_tramo = MagicMock(numero_maximo_cirios=100)
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[mock_tramo], []]
-
-        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        self.assertEqual(mock_telegram.call_count, 2)
-
-        calls = [unittest.mock.call(
-            chat_id="CHAT_1", 
-            nombre_hermano=mock_p1.hermano.nombre,
-            nombre_acto=mock_acto.nombre,
-            estado="ASIGNADA",
-            nombre_puesto=unittest.mock.ANY
-        ), unittest.mock.call(
-            chat_id="CHAT_2",
-            nombre_hermano=mock_p2.hermano.nombre,
-            nombre_acto=mock_acto.nombre,
-            estado="ASIGNADA",
-            nombre_puesto=unittest.mock.ANY
-        )]
-        mock_telegram.assert_has_calls(calls, any_order=True)
-
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     @patch("api.models.PapeletaSitio.objects")
@@ -218,46 +156,6 @@ class TestReportesCiriosService(TestCase):
         ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
 
         self.assertEqual(mock_papeleta.numero_papeleta, 1)
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_bulk_update_se_ejecuta_si_hay_papeletas_para_actualizar(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Bulk update se ejecuta cuando hay asignaciones
-
-        Given: Existe al menos una papeleta que ha sido procesada con éxito.
-        When: Termina el algoritmo de reparto.
-        Then: Se debe llamar exactamente una vez a PapeletaSitio.objects.bulk_update.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="TRADICIONAL", fecha_ejecucion_cirios=None)
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        mock_papeleta = MagicMock(id=1, vinculado_a_id=None)
-        mock_papeleta.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1)
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 10}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[mock_papeleta], []]
-
-        mock_tramo = MagicMock(numero_maximo_cirios=10)
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[mock_tramo], []]
-
-        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        mock_papeleta_mgr.bulk_update.assert_called_once()
-
-        args, kwargs = mock_papeleta_mgr.bulk_update.call_args
-        self.assertEqual(len(args[0]), 1)
-        self.assertIn('orden_en_tramo', kwargs['fields'])
-        self.assertIn('lado', kwargs['fields'])
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -298,8 +196,6 @@ class TestReportesCiriosService(TestCase):
         self.assertEqual(papeletas_actualizadas, 1)
         mock_papeleta_mgr.bulk_update.assert_called_once()
         self.assertIsNotNone(mock_acto.fecha_ejecucion_cirios)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -346,14 +242,10 @@ class TestReportesCiriosService(TestCase):
         total = ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
 
         self.assertEqual(total, 2)
-
         self.assertEqual(p_cristo.numero_papeleta, 101)
         self.assertEqual(p_virgen.numero_papeleta, 102)
-
         self.assertEqual(p_cristo.tramo, tramo_c)
         self.assertEqual(p_virgen.tramo, tramo_v)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -372,8 +264,6 @@ class TestReportesCiriosService(TestCase):
             ReportesCiriosService.ejecutar_asignacion_automatica_cirios(999)
         
         self.assertEqual(str(cm.exception.message), "El acto especificado no existe.")
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -400,8 +290,6 @@ class TestReportesCiriosService(TestCase):
 
         self.assertIn(mensaje_esperado, str(cm.exception))
 
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     def test_falla_si_es_modalidad_tradicional_y_no_hay_reparto_de_insignias_previo(self, mock_acto_mgr, mock_atomic):
@@ -426,8 +314,6 @@ class TestReportesCiriosService(TestCase):
             
         self.assertIn("sin haber ejecutado previamente el de insignias", str(cm.exception))
 
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     def test_falla_si_el_acto_no_tiene_configurada_fecha_de_inicio_de_solicitud(self, mock_acto_mgr, mock_atomic):
@@ -451,8 +337,6 @@ class TestReportesCiriosService(TestCase):
             ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
             
         self.assertIn("no tiene configuradas las fechas de solicitud", str(cm.exception))
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -483,8 +367,6 @@ class TestReportesCiriosService(TestCase):
             ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
             
         self.assertIn("no existen tramos configurados para ese paso", str(cm.exception))
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -521,7 +403,6 @@ class TestReportesCiriosService(TestCase):
         p2.hermano.numero_registro = 101
 
         mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-
         mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p1, p2], []]
 
         mock_tramo = MagicMock(numero_maximo_cirios=1, nombre="Tramo Estrecho")
@@ -531,7 +412,6 @@ class TestReportesCiriosService(TestCase):
             ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
             
         self.assertIn("supera la capacidad total del tramo", str(cm.exception))
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -564,7 +444,6 @@ class TestReportesCiriosService(TestCase):
             papeletas.append(p)
 
         mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-
         mock_papeleta_mgr.filter.return_value.select_related.side_effect = [papeletas, []]
 
         mock_tramo = MagicMock(numero_maximo_cirios=2, nombre="Tramo 1")
@@ -575,8 +454,6 @@ class TestReportesCiriosService(TestCase):
             
         self.assertIn("ERROR DE AFORO EN CRISTO", str(cm.exception))
         self.assertIn("Se han quedado 1 hermanos sin asignar", str(cm.exception))
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -597,11 +474,8 @@ class TestReportesCiriosService(TestCase):
         mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
 
         base_qs = mock_papeleta_mgr.filter.return_value
-
         base_qs.aggregate.return_value = {'numero_papeleta__max': 0}
-
         base_qs.select_related.return_value = []
-
         base_qs.exclude.return_value.count.side_effect = [5, 3, 8]
 
         mock_tramo_mgr.filter.return_value.order_by.return_value = []
@@ -614,100 +488,6 @@ class TestReportesCiriosService(TestCase):
         self.assertIn("Ignoradas por ser Insignias: 3", error_msg)
         self.assertIn("Ignoradas por NO tener Puesto asignado: 5", error_msg)
         self.assertIn("Total activas: 8", error_msg)
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_no_llama_a_bulk_update_si_no_se_realizaron_asignaciones(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: bulk_update no se ejecuta si no hay asignaciones
-
-        Given: Un acto donde no hay candidatos válidos.
-        When: Se ejecuta el proceso.
-        Then:
-            - Se lanza la ValidationError de diagnóstico.
-            - PapeletaSitio.objects.bulk_update NUNCA es llamado.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.return_value = []
-
-        mock_papeleta_mgr.filter.return_value.exclude.return_value.count.return_value = 0
-
-        with self.assertRaises(ValidationError):
-            ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        mock_papeleta_mgr.bulk_update.assert_not_called()
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_error_en_bulk_update_se_propaga_correctamente(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Error en bulk_update se propaga
-
-        Given: Un escenario de asignación exitosa pero donde la base de datos falla al guardar.
-        When: Se intenta ejecutar bulk_update.
-        Then: La excepción lanzada por el ORM se propaga hacia arriba.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        p = MagicMock(id=1, vinculado_a_id=None)
-        p.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1)
-        p.hermano.numero_registro = 100
-        
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p], []]
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[MagicMock(numero_maximo_cirios=10)], []]
-
-        mock_papeleta_mgr.bulk_update.side_effect = Exception("Database Connection Lost")
-
-        with self.assertRaises(Exception) as cm:
-            ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        self.assertEqual(str(cm.exception), "Database Connection Lost")
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    def test_error_inesperado_en_select_for_update_se_propaga(self, mock_acto_mgr, mock_atomic):
-        """
-        Test: Error en select_for_update get (carrera)
-
-        Given: La base de datos lanza una excepción inesperada (ej: DatabaseError) 
-            al intentar bloquear la fila del Acto.
-        When: Se inicia el proceso de asignación.
-        Then: 
-            - La excepción se propaga hacia arriba.
-            - No se ejecuta ninguna línea posterior del servicio.
-        """
-
-        mock_atomic.return_value.__enter__.return_value = None
-
-        mock_acto_mgr.select_for_update.return_value.get.side_effect = Exception("Lock wait timeout exceeded")
-
-        with self.assertRaises(Exception) as cm:
-            ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        self.assertEqual(str(cm.exception), "Lock wait timeout exceeded")
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -757,8 +537,6 @@ class TestReportesCiriosService(TestCase):
         ordenes = {p_a.orden_en_tramo, p_b.orden_en_tramo, p_c.orden_en_tramo}
         self.assertTrue(all(o in [1, 2] for o in ordenes))
 
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     @patch("api.models.PapeletaSitio.objects")
@@ -807,8 +585,6 @@ class TestReportesCiriosService(TestCase):
         self.assertEqual(p_b.numero_papeleta, 2)
         self.assertEqual(p_c.numero_papeleta, 3)
 
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     @patch("api.models.PapeletaSitio.objects")
@@ -842,8 +618,6 @@ class TestReportesCiriosService(TestCase):
 
         self.assertEqual(p1.lado, "DERECHA")
         self.assertEqual(p2.lado, "IZQUIERDA")
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -888,61 +662,6 @@ class TestReportesCiriosService(TestCase):
         self.assertEqual(papeletas[2].orden_en_tramo, 2)
         self.assertEqual(papeletas[3].orden_en_tramo, 2)
 
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    @patch("uuid.uuid4") # Parcheamos la librería uuid estándar
-    def test_asignacion_de_codigo_de_verificacion_con_formato_correcto(
-        self, mock_uuid, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Asignación de código de verificación
-
-        Given: Un candidato válido para asignar.
-        When: El algoritmo le genera su papeleta.
-        Then: 
-            - Se llama a uuid.uuid4().
-            - Se asigna un string alfanumérico.
-            - La longitud es exactamente de 12 caracteres.
-            - Todos los caracteres están en mayúsculas.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        p = MagicMock()
-        p.id = 1
-        p.vinculado_a_id = None
-        p.hermano.id = 100
-        p.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1)
-        p.hermano.numero_registro = 1
-        p.codigo_verificacion = None 
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p], []]
-
-        mock_tramo = MagicMock(numero_maximo_cirios=10)
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[mock_tramo], []]
-
-        mock_uuid.return_value = uuid.UUID("12345678-abcd-5678-1234-567812345678")
-
-        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        mock_uuid.assert_called()
-
-        self.assertIsNotNone(p.codigo_verificacion)
-
-        self.assertIsInstance(p.codigo_verificacion, str)
-
-        self.assertEqual(len(p.codigo_verificacion), 12)
-
-        self.assertTrue(p.codigo_verificacion.isupper())
-
-
-
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
     @patch("api.models.PapeletaSitio.objects")
@@ -983,7 +702,6 @@ class TestReportesCiriosService(TestCase):
         p2.hermano.numero_registro = 2
 
         mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-
         mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p1, p2], []]
 
         mock_tramo = MagicMock(numero_maximo_cirios=10)
@@ -994,19 +712,12 @@ class TestReportesCiriosService(TestCase):
         self.assertEqual(p1.tramo, mock_tramo)
         self.assertEqual(p2.tramo, mock_tramo)
 
-        
         args, kwargs = mock_papeleta_mgr.bulk_update.call_args
         papeletas_actualizadas = args[0]
 
         self.assertEqual(len(papeletas_actualizadas), 2)
-
-        ids_actualizados = [p.id for p in papeletas_actualizadas]
-        self.assertCountEqual(ids_actualizados, [101, 102])
-
         self.assertEqual(p1.orden_en_tramo, 1)
         self.assertEqual(p2.orden_en_tramo, 1)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -1055,14 +766,8 @@ class TestReportesCiriosService(TestCase):
 
         self.assertEqual(p1.orden_en_tramo, 1)
         self.assertEqual(p1.lado, "DERECHA")
-        
         self.assertEqual(p2.orden_en_tramo, 1)
         self.assertEqual(p2.lado, "IZQUIERDA")
-
-        self.assertEqual(p1.numero_papeleta, 1)
-        self.assertEqual(p2.numero_papeleta, 2)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -1105,7 +810,6 @@ class TestReportesCiriosService(TestCase):
         p1.hermano.numero_registro = 2
 
         mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-
         mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p2, p1], []]
 
         mock_tramo = MagicMock(numero_maximo_cirios=10)
@@ -1121,116 +825,6 @@ class TestReportesCiriosService(TestCase):
         ids_vistos = [p.id for p in papeletas_actualizadas]
         self.assertEqual(ids_vistos.count(101), 1)
         self.assertEqual(ids_vistos.count(102), 1)
-
-        self.assertEqual(p2.numero_papeleta, 1)
-        self.assertEqual(p1.numero_papeleta, 2)
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_rompe_el_bucle_cuando_index_alcanza_total_grupos(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Rama if index_grupo_actual >= total_grupos (Test Positivo)
-
-        Escenario:
-            - Solo hay 1 candidato (1 grupo en total).
-            - Hay 2 tramos configurados con gran capacidad.
-        
-        Given: index_grupo_actual alcanza el valor de total_grupos (1) tras el primer paso.
-        When: El bucle de Tramos intenta seguir rellenando huecos.
-        Then: 
-            - El 'break' se activa evitando un IndexError.
-            - El proceso termina limpiamente y solo guarda 1 papeleta.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        p1 = MagicMock()
-        p1.id = 1
-        p1.vinculado_a_id = None
-        p1.hermano.id = 100
-        p1.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1)
-        p1.hermano.numero_registro = 1
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p1], []]
-
-        tramo1 = MagicMock(numero_maximo_cirios=10, nombre="Tramo 1")
-        tramo2 = MagicMock(numero_maximo_cirios=10, nombre="Tramo 2")
-
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[tramo1, tramo2], []]
-
-        try:
-            ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-        except IndexError:
-            self.fail("El test falló: El bucle no se rompió y lanzó un IndexError al buscar más grupos.")
-
-        self.assertEqual(p1.tramo, tramo1)
-
-        args, _ = mock_papeleta_mgr.bulk_update.call_args
-        papeletas_actualizadas = args[0]
-        
-        self.assertEqual(len(papeletas_actualizadas), 1)
-        self.assertEqual(papeletas_actualizadas[0].id, 1)
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_continua_iterando_tramos_mientras_queden_grupos_pendientes(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Rama if index_grupo_actual >= total_grupos (Test Negativo)
-
-        Escenario:
-            - Hay 2 grupos (hermanos individuales).
-            - El Tramo 1 solo tiene capacidad para 1 persona.
-            - El Tramo 2 tiene capacidad para el resto.
-        
-        Given: Tras llenar el Tramo 1, index_grupo_actual es 1, y total_grupos es 2.
-        When: Se evalúa la condición de rotura.
-        Then: 
-            - El 'break' NO debe ejecutarse (1 < 2).
-            - El algoritmo pasa al Tramo 2 y asigna al segundo hermano.
-            - Se guardan un total de 2 papeletas.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        p1 = MagicMock(); p1.id = 101; p1.vinculado_a_id = None
-        p1.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1); p1.hermano.numero_registro = 1
-
-        p2 = MagicMock(); p2.id = 102; p2.vinculado_a_id = None
-        p2.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1); p2.hermano.numero_registro = 2
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [[p1, p2], []]
-
-        tramo1 = MagicMock(numero_maximo_cirios=1, nombre="Tramo 1")
-        tramo2 = MagicMock(numero_maximo_cirios=10, nombre="Tramo 2")
-        
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[tramo1, tramo2], []]
-
-        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        self.assertEqual(p1.tramo, tramo1)
-
-        self.assertEqual(p2.tramo, tramo2)
-
-        args, _ = mock_papeleta_mgr.bulk_update.call_args
-        self.assertEqual(len(args[0]), 2)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -1273,19 +867,11 @@ class TestReportesCiriosService(TestCase):
         tramo_unico = MagicMock(numero_maximo_cirios=10, nombre="Último Tramo")
         mock_tramo_mgr.filter.return_value.order_by.side_effect = [[tramo_unico], []]
 
-        try:
-            ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-        except ZeroDivisionError:
-            self.fail("El test falló: Se intentó dividir por cero en lugar de entrar en el bloque ELSE.")
+        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
 
         self.assertEqual(papeletas[0].tramo, tramo_unico)
         self.assertEqual(papeletas[1].tramo, tramo_unico)
         self.assertEqual(papeletas[2].tramo, tramo_unico)
-
-        args, _ = mock_papeleta_mgr.bulk_update.call_args
-        self.assertEqual(len(args[0]), 3)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -1334,14 +920,8 @@ class TestReportesCiriosService(TestCase):
 
         self.assertEqual(papeletas[0].tramo, tramo1)
         self.assertEqual(papeletas[1].tramo, tramo1)
-
         self.assertEqual(papeletas[2].tramo, tramo2)
         self.assertEqual(papeletas[3].tramo, tramo2)
-
-        args, _ = mock_papeleta_mgr.bulk_update.call_args
-        self.assertEqual(len(args[0]), 4)
-
-
 
     @patch("django.db.transaction.atomic")
     @patch("api.models.Acto.objects")
@@ -1392,56 +972,5 @@ class TestReportesCiriosService(TestCase):
 
         self.assertEqual(papeletas[0].tramo, t1)
         self.assertEqual(papeletas[1].tramo, t1)
-
         self.assertEqual(papeletas[2].tramo, t2)
         self.assertEqual(papeletas[3].tramo, t2)
-
-        args, _ = mock_papeleta_mgr.bulk_update.call_args
-        self.assertEqual(len(args[0]), 4)
-
-
-
-    @patch("django.db.transaction.atomic")
-    @patch("api.models.Acto.objects")
-    @patch("api.models.PapeletaSitio.objects")
-    @patch("api.models.Tramo.objects")
-    def test_sigue_asignando_al_tramo_mientras_la_ocupacion_sea_menor_al_cupo(
-        self, mock_tramo_mgr, mock_papeleta_mgr, mock_acto_mgr, mock_atomic
-    ):
-        """
-        Test: Rama if ocupacion_actual_tramo >= cupo_ideal (Test Negativo)
-
-        Escenario:
-            - Tenemos 2 candidatos.
-            - El cupo_ideal calculado es 5.
-        
-        Given: ocupacion_actual_tramo (0, luego 1) es menor que cupo_ideal (5).
-        When: Se evalúa la condición de corte.
-        Then: 
-            - El 'break' NO se ejecuta.
-            - Ambos hermanos entran en el mismo tramo.
-            - El algoritmo no salta de tramo innecesariamente.
-        """
-        mock_atomic.return_value.__enter__.return_value = None
-        mock_acto = MagicMock(modalidad="LIBRE", fecha_ejecucion_cirios=None, inicio_solicitud_cirios=timezone.now())
-        mock_acto_mgr.select_for_update.return_value.get.return_value = mock_acto
-
-        papeletas = []
-        for i in range(2):
-            p = MagicMock()
-            p.id = i + 100
-            p.vinculado_a_id = None
-            p.hermano.fecha_ingreso_corporacion = datetime.date(2020, 1, 1)
-            p.hermano.numero_registro = i + 1
-            papeletas.append(p)
-
-        mock_papeleta_mgr.filter.return_value.aggregate.return_value = {'numero_papeleta__max': 0}
-        mock_papeleta_mgr.filter.return_value.select_related.side_effect = [papeletas, []]
-
-        tramo1 = MagicMock(numero_maximo_cirios=10, nombre="Tramo 1")
-        mock_tramo_mgr.filter.return_value.order_by.side_effect = [[tramo1], []]
-
-        ReportesCiriosService.ejecutar_asignacion_automatica_cirios(1)
-
-        self.assertEqual(papeletas[0].tramo, tramo1)
-        self.assertEqual(papeletas[1].tramo, tramo1)

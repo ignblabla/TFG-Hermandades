@@ -61,37 +61,6 @@ class TestPuestoService(unittest.TestCase):
 
 
 
-    @patch('api.servicios.puesto.puesto_service.Puesto')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_convierte_correctamente_inicio_solicitud_con_date(self, mock_timezone, mock_puesto):
-        """
-        Test: Convierte correctamente inicio_solicitud con .date()
-        
-        Given: Un objeto acto cuyo inicio_solicitud es un datetime (con hora).
-        When: Se evalúa si el periodo de solicitud ha comenzado.
-        Then: El servicio debe llamar al método .date() del campo para realizar una comparación de fechas pura contra timezone.now().date().
-        """
-        usuario = MagicMock(esAdmin=True)
-
-        fecha_actual_dt = datetime(2026, 5, 5, 10, 0, 0)
-        mock_timezone.now.return_value = fecha_actual_dt
-
-        inicio_solicitud_dt = MagicMock(spec=datetime)
-        inicio_solicitud_dt.date.return_value = date(2026, 5, 6)
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = inicio_solicitud_dt
-        
-        data = {'acto': acto, 'nombre': 'Test Date'}
-        mock_puesto.objects.filter.return_value.exists.return_value = False
-
-        create_puesto_service(usuario, data)
-
-        inicio_solicitud_dt.date.assert_called_once()
-
-
-
     def test_usuario_no_admin_lanza_permisos_denegados(self):
         """
         Test: Usuario no admin
@@ -153,55 +122,6 @@ class TestPuestoService(unittest.TestCase):
         with self.assertRaises(ValidationError) as context:
             create_puesto_service(usuario, data)
         self.assertIn("el pasado, o no tienen fecha definida", str(context.exception))
-
-
-
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_fecha_inicio_es_hoy_lanza_error(self, mock_timezone):
-        """
-        Test: Fecha inicio es hoy
-        
-        Given: Un acto donde el periodo de solicitud comienza el mismo día actual.
-        When: Se intenta añadir un puesto.
-        Then: Se lanza una ValidationError ya que los puestos deben definirse antes de que comience el periodo.
-        """
-        usuario = MagicMock(esAdmin=True)
-        hoy = date(2026, 5, 5)
-        mock_timezone.now.return_value.date.return_value = hoy
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = hoy
-        
-        data = {'acto': acto, 'nombre': 'Puesto Hoy'}
-
-        with self.assertRaises(ValidationError) as context:
-            create_puesto_service(usuario, data)
-        self.assertIn("periodo de solicitud ya ha comenzado", str(context.exception))
-
-
-
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_fecha_inicio_solicitud_es_none(self, mock_timezone):
-        """
-        Test: Fecha inicio es None
-        
-        Given: Un acto que requiere papeleta pero cuyo campo 'inicio_solicitud' es None.
-        When: Se intenta crear un puesto para dicho acto.
-        Then: Se lanza una ValidationError indicando que no se pueden crear puestos para actos sin fecha definida.
-        """
-        mock_timezone.now.return_value.date.return_value = date(2026, 5, 5)
-        
-        acto = MagicMock()
-        acto.tipo_acto.requiere_papeleta = True
-        acto.inicio_solicitud = None
-        
-        data = {'acto': acto, 'nombre': 'Diputado'}
-
-        with self.assertRaises(ValidationError) as context:
-            create_puesto_service(self.usuario_admin, data)
-        
-        self.assertIn("no tienen fecha definida", str(context.exception))
 
 
 

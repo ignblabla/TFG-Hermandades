@@ -9,114 +9,67 @@ from api.servicios.solicitud_insignia.solicitud_insignia_service import Solicitu
 class TestGenerarPdfTodasInsignias(TestCase):
 
     @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
     @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
+    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
     @patch('api.models.Puesto.objects.filter')
-    def test_genera_tabla_cuando_hay_puestos(self, mock_filter, mock_paragraph, mock_table, mock_doc):
+    def test_generar_pdf_todas_insignias_flujo_completo_con_datos(self, mock_filter, mock_table, mock_paragraph, mock_doc):
         """
-        Test: Genera tabla cuando hay puestos
+        Test: Catálogo generado correctamente con datos
 
-        Given: Un acto con al menos un puesto configurado como insignia en el queryset.
+        Given: Un acto válido y puestos de insignias configurados (Cristo y Virgen, incluyendo cupo 0).
         When: Se genera el catálogo de todas las insignias.
-        Then: Se debe instanciar el objeto Table y llamar al método build del documento para generar el PDF.
+        Then: 
+            - El título contiene el nombre del acto.
+            - Los booleanos de cortejo se traducen correctamente a texto ("Paso de Cristo" / "Paso de Virgen").
+            - Los cupos numéricos se convierten a string (incluso el 0).
+            - Se genera la tabla estructurada y se construye el documento.
         """
         service = SolicitudInsigniaService()
         mock_acto = MagicMock()
-        mock_acto.nombre = "Acto Principal"
+        mock_acto.nombre = "Salida Procesional 2026"
 
-        mock_doc_instance = mock_doc.return_value
+        p_cristo = MagicMock(nombre="Senatus", cortejo_cristo=True, numero_maximo_asignaciones=3)
+        p_virgen = MagicMock(nombre="Manto", cortejo_cristo=False, numero_maximo_asignaciones=1)
+        p_vacio = MagicMock(nombre="Insignia Vacía", cortejo_cristo=True, numero_maximo_asignaciones=0)
 
-        puesto_mock = MagicMock(
-            nombre="Senatus",
-            cortejo_cristo=True,
-            numero_maximo_asignaciones=3
-        )
-
-        mock_filter.return_value.order_by.return_value = [puesto_mock]
+        mock_filter.return_value.order_by.return_value = [p_cristo, p_virgen, p_vacio]
 
         service.generar_pdf_todas_insignias(mock_acto)
 
+        # Verificación del Título
+        args_titulo = mock_paragraph.call_args_list[0][0]
+        self.assertEqual(args_titulo[0], "Catálogo de Insignias - Salida Procesional 2026")
+
+        # Verificación de datos de la Tabla
         mock_table.assert_called_once()
-        mock_doc_instance.build.assert_called_once()
-
-
-
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
-    @patch('api.models.Puesto.objects.filter')
-    def test_transformacion_correcta_de_datos(self, mock_filter, mock_paragraph, mock_table, mock_doc):
-        """
-        Test: Transformación correcta de datos
-
-        Given: Un puesto con nombre "Varal", cortejo de cristo y 5 asignaciones.
-        When: Se genera el catálogo de insignias.
-        Then: La fila generada en la tabla debe ser ["Varal", "Paso de Cristo", "5"].
-        """
-        service = SolicitudInsigniaService()
-        mock_acto = MagicMock()
-
-        puesto_mock = MagicMock()
-        puesto_mock.nombre = "Varal"
-        puesto_mock.cortejo_cristo = True
-        puesto_mock.numero_maximo_asignaciones = 5
-
-        mock_filter.return_value.order_by.return_value = [puesto_mock]
-
-        service.generar_pdf_todas_insignias(mock_acto)
-
         data_enviada = mock_table.call_args[0][0]
+        
+        self.assertEqual(len(data_enviada), 4)
+        self.assertEqual(data_enviada[0], ["Puesto / Insignia", "Cortejo", "Cupo Total"])
+        self.assertEqual(data_enviada[1], ["Senatus", "Paso de Cristo", "3"])
+        self.assertEqual(data_enviada[2], ["Manto", "Paso de Virgen", "1"])
+        self.assertEqual(data_enviada[3], ["Insignia Vacía", "Paso de Cristo", "0"])
 
-        fila_esperada = ["Varal", "Paso de Cristo", "5"]
-        self.assertEqual(data_enviada[1], fila_esperada)
-
-
-
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
-    @patch('api.models.Puesto.objects.filter')
-    def test_conversion_cortejo_virgen_correcta(self, mock_filter, mock_paragraph, mock_table, mock_doc):
-        """
-        Test: Conversión Virgen
-
-        Given: Un puesto configurado con cortejo_cristo = False.
-        When: Se genera el catálogo de insignias.
-        Then: El texto del cortejo en la fila correspondiente debe ser "Paso de Virgen".
-        """
-        service = SolicitudInsigniaService()
-        mock_acto = MagicMock()
-
-        puesto_virgen = MagicMock()
-        puesto_virgen.nombre = "Manto"
-        puesto_virgen.cortejo_cristo = False
-        puesto_virgen.numero_maximo_asignaciones = 1
-
-        mock_filter.return_value.order_by.return_value = [puesto_virgen]
-
-        service.generar_pdf_todas_insignias(mock_acto)
-
-        data_enviada = mock_table.call_args[0][0]
-
-        columna_cortejo = data_enviada[1][1]
-        self.assertEqual(columna_cortejo, "Paso de Virgen")
-
+        mock_doc.return_value.build.assert_called_once()
 
 
     @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
     @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
+    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
     @patch('api.models.Puesto.objects.filter')
-    def test_sin_datos_muestra_mensaje_alternativo(self, mock_filter, mock_paragraph, mock_table, mock_doc):
+    def test_generar_pdf_todas_insignias_sin_datos_muestra_mensaje(self, mock_filter, mock_table, mock_paragraph, mock_doc):
         """
         Test: Sin datos → mensaje alternativo
 
         Given: Un acto que no tiene puestos configurados como insignia (queryset vacío).
         When: Se genera el catálogo de insignias.
-        Then: No se debe crear la tabla y se debe añadir un párrafo con el mensaje "No hay insignias configuradas para este acto.".
+        Then: 
+            - No se debe instanciar la clase Table.
+            - Se debe añadir un párrafo con el mensaje indicando que no hay insignias configuradas.
         """
         service = SolicitudInsigniaService()
         mock_acto = MagicMock()
+        mock_acto.nombre = "Acto Vacío"
 
         mock_filter.return_value.order_by.return_value = []
 
@@ -124,19 +77,20 @@ class TestGenerarPdfTodasInsignias(TestCase):
 
         mock_table.assert_not_called()
 
-        mensajes_enviados = [call.args[0] for call in mock_paragraph.call_args_list]
-        self.assertIn("No hay insignias configuradas para este acto.", mensajes_enviados)
-
+        args_aviso = mock_paragraph.call_args_list[1][0]
+        self.assertEqual(args_aviso[0], "No hay insignias configuradas para este acto.")
+        
+        mock_doc.return_value.build.assert_called_once()
 
 
     @patch('api.models.Puesto.objects.filter')
-    def test_error_en_queryset_se_propaga(self, mock_filter):
+    def test_generar_pdf_todas_insignias_error_en_queryset_se_propaga(self, mock_filter):
         """
         Test: Error en queryset
 
         Given: Una falla en la base de datos al intentar filtrar los puestos.
         When: Se llama al método de generación de PDF.
-        Then: La excepción lanzada por el ORM debe propagarse hacia arriba sin ser capturada silenciosamente.
+        Then: La excepción lanzada por el ORM debe propagarse hacia arriba sin ser capturada.
         """
         service = SolicitudInsigniaService()
         mock_acto = MagicMock()
@@ -147,82 +101,3 @@ class TestGenerarPdfTodasInsignias(TestCase):
             service.generar_pdf_todas_insignias(mock_acto)
         
         self.assertEqual(str(context.exception), "Error de conexión a BD")
-
-
-
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Table')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
-    @patch('api.models.Puesto.objects.filter')
-    def test_cupo_cero_se_renderiza_correctamente(self, mock_filter, mock_paragraph, mock_table, mock_doc):
-        """
-        Test: Cupo = 0
-
-        Given: Un puesto configurado con 0 asignaciones máximas.
-        When: Se genera el catálogo de insignias.
-        Then: El valor en la columna "Cupo Total" debe ser el string "0" y no omitirse.
-        """
-        service = SolicitudInsigniaService()
-        mock_acto = MagicMock()
-        
-        puesto_mock = MagicMock(
-            nombre="Insignia Vacía", 
-            cortejo_cristo=True, 
-            numero_maximo_asignaciones=0
-        )
-        mock_filter.return_value.order_by.return_value = [puesto_mock]
-
-        service.generar_pdf_todas_insignias(mock_acto)
-
-        data_enviada = mock_table.call_args[0][0]
-
-        self.assertEqual(data_enviada[1][2], "0")
-
-
-
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
-    @patch('api.models.Puesto.objects.filter')
-    def test_orden_aplicado_correctamente(self, mock_filter, mock_paragraph, mock_doc):
-        """
-        Test: Orden aplicado correctamente
-
-        Given: Una solicitud de generación de PDF.
-        When: Se consulta la base de datos para obtener los puestos.
-        Then: Se debe llamar a order_by con los criterios '-cortejo_cristo' (Cristo primero) y 'nombre'.
-        """
-        service = SolicitudInsigniaService()
-        mock_acto = MagicMock()
-
-        mock_order_by = mock_filter.return_value.order_by
-        mock_order_by.return_value = []
-
-        service.generar_pdf_todas_insignias(mock_acto)
-
-        mock_order_by.assert_called_once_with('-cortejo_cristo', 'nombre')
-
-
-
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.SimpleDocTemplate')
-    @patch('api.servicios.solicitud_insignia.solicitud_insignia_service.Paragraph')
-    @patch('api.models.Puesto.objects.filter')
-    def test_titulo_correcto(self, mock_filter, mock_paragraph, mock_doc):
-        """
-        Test: Título correcto
-
-        Given: Un acto con el nombre "Salida Procesional 2026".
-        When: Se genera el catálogo de insignias.
-        Then: El primer párrafo creado debe contener el texto "Catálogo de Insignias - Salida Procesional 2026".
-        """
-        service = SolicitudInsigniaService()
-        mock_acto = MagicMock()
-        mock_acto.nombre = "Salida Procesional 2026"
-
-        mock_filter.return_value.order_by.return_value = []
-
-        service.generar_pdf_todas_insignias(mock_acto)
-
-        llamada_titulo = mock_paragraph.call_args_list[0]
-        texto_titulo = llamada_titulo.args[0]
-        
-        self.assertEqual(texto_titulo, "Catálogo de Insignias - Salida Procesional 2026")

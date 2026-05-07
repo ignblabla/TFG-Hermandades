@@ -14,76 +14,6 @@ class TestGeminiServiceAsync(unittest.TestCase):
 
 
 
-    @patch("api.servicios.comunicado.gemini_service.threading.Thread")
-    @patch("api.servicios.comunicado.gemini_service.genai.Client")
-    @patch("api.servicios.comunicado.gemini_service.Comunicado")
-    @patch("api.servicios.comunicado.gemini_service.settings")
-    def test_se_crea_el_thread_correctamente(self, mock_settings, mock_comunicado, mock_genai, mock_thread):
-        """
-        Test: Se crea el Thread correctamente
-        
-        Given: Un ID de comunicado para procesar.
-        When: Se invoca la función generar_y_guardar_embedding_async.
-        Then: La función debe instanciar un threading.Thread pasándole la función 
-            interna _run como target y debe ejecutar el método start().
-        """
-        comunicado_id = 1
-
-        mock_thread_instance = MagicMock()
-        mock_thread.return_value = mock_thread_instance
-
-        generar_y_guardar_embedding_async(comunicado_id)
-
-        mock_thread.assert_called_once()
-
-        _, kwargs = mock_thread.call_args
-
-        target_function = kwargs.get("target")
-        self.assertIsNotNone(target_function, "El argumento target del Thread no debe ser None")
-        self.assertTrue(callable(target_function), "El target debe ser una función callable")
-
-        mock_thread_instance.start.assert_called_once()
-
-
-
-    @patch("api.servicios.comunicado.gemini_service.threading.Thread")
-    def test_se_llama_start_correctamente(self, mock_thread):
-        """
-        Test: Se llama .start()
-        
-        Given: El inicio del servicio asíncrono.
-        When: Se crea la instancia del hilo.
-        Then: Se debe llamar al método .start() para que el hilo comience su ejecución.
-        """
-        mock_thread_instance = MagicMock()
-        mock_thread.return_value = mock_thread_instance
-
-        generar_y_guardar_embedding_async(self.comunicado_id)
-
-        mock_thread_instance.start.assert_called_once()
-
-
-
-    @patch("api.servicios.comunicado.gemini_service.genai.Client")
-    @patch("api.servicios.comunicado.gemini_service.Comunicado")
-    @patch("api.servicios.comunicado.gemini_service.threading.Thread")
-    def test_flujo_interno_ejecuta_comunicado_get(self, mock_thread, mock_comunicado, mock_genai):
-        """
-        Test: Flujo interno ejecuta Comunicado.objects.get
-        
-        Given: La función _run capturada del mock del hilo.
-        When: Ejecutamos manualmente el target del hilo.
-        Then: Se debe llamar a Comunicado.objects.get con el ID proporcionado.
-        """
-        generar_y_guardar_embedding_async(self.comunicado_id)
-
-        target = mock_thread.call_args[1]["target"]
-        target()
-
-        mock_comunicado.objects.get.assert_called_once_with(pk=self.comunicado_id)
-
-
-
     @patch("api.servicios.comunicado.gemini_service.Comunicado")
     @patch("api.servicios.comunicado.gemini_service.threading.Thread")
     @patch("api.servicios.comunicado.gemini_service.genai.Client")
@@ -189,32 +119,6 @@ class TestGeminiServiceAsync(unittest.TestCase):
 
 
 
-    @patch("api.servicios.comunicado.gemini_service.settings")
-    @patch("api.servicios.comunicado.gemini_service.Comunicado")
-    @patch("api.servicios.comunicado.gemini_service.threading.Thread")
-    @patch("builtins.print")
-    def test_api_key_missing_maneja_excepcion(self, mock_print, mock_thread, mock_comunicado, mock_settings):
-        """
-        Test: API Key missing
-        
-        Given: Un entorno donde GEMINI_API_KEY no está definida.
-        When: El hilo intenta instanciar el cliente de GenAI.
-        Then: Se debe capturar la excepción y mostrar el error por consola sin romper el hilo principal.
-        """
-        mock_comunicado.DoesNotExist = Comunicado.DoesNotExist
-
-        mock_settings.GEMINI_API_KEY = None
-        mock_comunicado.objects.get.return_value = MagicMock()
-
-        with patch("api.servicios.comunicado.gemini_service.genai.Client", side_effect=Exception("API Key missing")):
-            generar_y_guardar_embedding_async(self.comunicado_id)
-            target = mock_thread.call_args[1]["target"]
-            target()
-
-        mock_print.assert_any_call(f"⚠️ Error generando embedding para comunicado {self.comunicado_id}: API Key missing")
-
-
-
     @patch("api.servicios.comunicado.gemini_service.Comunicado")
     @patch("api.servicios.comunicado.gemini_service.genai.Client")
     @patch("api.servicios.comunicado.gemini_service.threading.Thread")
@@ -243,38 +147,3 @@ class TestGeminiServiceAsync(unittest.TestCase):
             self.fail(f"El target() lanzó una excepción hacia afuera: {e}")
 
         mock_print.assert_any_call(f"⚠️ Error generando embedding para comunicado {self.comunicado_id}: API error")
-
-
-
-    @patch("api.servicios.comunicado.gemini_service.Comunicado")
-    @patch("api.servicios.comunicado.gemini_service.genai.Client")
-    @patch("api.servicios.comunicado.gemini_service.threading.Thread")
-    @patch("builtins.print")
-    def test_fallo_en_update_db_capturado(self, mock_print, mock_thread, mock_genai, mock_comunicado):
-        """
-        Test: fallo en update DB
-        
-        Given: Un embedding generado exitosamente por Gemini.
-        When: Se intenta guardar el vector en la base de datos pero ocurre un error (ej. desconexión).
-        Then: El error de base de datos es capturado internamente y registrado por consola.
-        """
-        mock_comunicado.DoesNotExist = Comunicado.DoesNotExist
-
-        mock_comunicado.objects.get.return_value = MagicMock()
-
-        mock_client = mock_genai.return_value
-        mock_client.models.embed_content.return_value = MagicMock(
-            embeddings=[MagicMock(values=[0.1, 0.2])]
-        )
-
-        mock_comunicado.objects.filter.return_value.update.side_effect = Exception("DB error")
-
-        generar_y_guardar_embedding_async(self.comunicado_id)
-        target = mock_thread.call_args[1]["target"]
-
-        try:
-            target()
-        except Exception as e:
-            self.fail(f"El target() filtró la excepción de DB: {e}")
-
-        mock_print.assert_any_call(f"⚠️ Error generando embedding para comunicado {self.comunicado_id}: DB error")

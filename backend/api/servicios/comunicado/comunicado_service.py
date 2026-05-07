@@ -127,6 +127,10 @@ class ComunicadoService:
 
         if 'areas_interes' in data_validada:
             areas = data_validada.pop('areas_interes')
+
+            if not areas:
+                raise ValueError("No se puede actualizar un comunicado sin al menos un área de interés asociada.")
+            
             comunicado_instance.areas_interes.set(areas)
 
         generar_nuevo_vector = False

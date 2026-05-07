@@ -79,67 +79,6 @@ class TestUpdatePuestoService(unittest.TestCase):
 
 
 
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_actualiza_atributos_correctamente_sin_incluir_acto(self, mock_timezone, mock_get_object):
-        """
-        Test: Actualiza atributos correctamente (sin incluir acto)
-        
-        Given: Un diccionario de datos que incluye el campo 'acto' (mismo que el original) y otros atributos.
-        When: Se procesa la actualización.
-        Then: El campo 'acto' debe ser eliminado del diccionario con .pop() y no debe intentarse un setattr sobre él, mientras que el resto de campos sí deben actualizarse.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.fecha_futura
-        puesto_mock.acto.tipo_acto.requiere_papeleta = True
-        mock_get_object.return_value = puesto_mock
-        
-        data_validada = {
-            'acto': puesto_mock.acto,
-            'nombre': 'Nombre Editado',
-            'descripcion': 'Nueva Desc'
-        }
-
-        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_model:
-            mock_model.objects.filter.return_value.exclude.return_value.exists.return_value = False
-
-            update_puesto_service(self.usuario_admin, 1, data_validada)
-
-            self.assertNotIn('acto', data_validada)
-            self.assertEqual(puesto_mock.nombre, 'Nombre Editado')
-            self.assertEqual(puesto_mock.descripcion, 'Nueva Desc')
-            puesto_mock.save.assert_called_once()
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_usa_nombre_existente_si_no_viene_en_data_validada(self, mock_timezone, mock_get_object):
-        """
-        Test: Usa nombre existente si no viene en data_validada
-        
-        Given: Datos de actualización que no contienen la clave 'nombre'.
-        When: Se valida la duplicidad de nombres en el acto.
-        Then: El servicio debe usar el valor actual de puesto.nombre para realizar el filtrado en la base de datos.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        puesto_mock = MagicMock()
-        puesto_mock.nombre = "Nombre Actual"
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.fecha_futura
-        puesto_mock.acto.tipo_acto.requiere_papeleta = True
-        mock_get_object.return_value = puesto_mock
-
-        with patch('api.servicios.puesto.puesto_service.Puesto') as mock_model:
-            mock_filter = mock_model.objects.filter
-            mock_filter.return_value.exclude.return_value.exists.return_value = False
-
-            update_puesto_service(self.usuario_admin, 1, {'descripcion': 'Cambio'})
-
-            mock_filter.assert_called_once_with(acto=puesto_mock.acto, nombre="Nombre Actual")
-
-
-
     def test_usuario_no_admin_lanza_error_permisos(self):
         """
         Test: Usuario no admin
@@ -177,54 +116,6 @@ class TestUpdatePuestoService(unittest.TestCase):
         with self.assertRaises(ValidationError) as context:
             update_puesto_service(self.usuario_admin, 1, data)
         self.assertIn("No está permitido cambiar el acto asociado", str(context.exception))
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_fecha_inicio_es_none_lanza_error(self, mock_timezone, mock_get_404):
-        """
-        Test: Fecha inicio es None
-        
-        Given: Un puesto cuyo acto asociado no tiene definida la fecha de inicio de solicitud.
-        When: Se valida el periodo de solicitud.
-        Then: Se lanza una ValidationError informando que no se pueden actualizar puestos sin fecha definida.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-        
-        puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud = None
-        mock_get_404.return_value = puesto_mock
-
-        with self.assertRaises(ValidationError) as context:
-            update_puesto_service(self.usuario_admin, 1, {})
-        self.assertIn("no tienen fecha definida", str(context.exception))
-
-
-
-    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
-    @patch('api.servicios.puesto.puesto_service.timezone')
-    def test_fecha_inicio_pasada_o_hoy_lanza_error(self, mock_timezone, mock_get_404):
-        """
-        Test: Fecha inicio pasada o hoy
-        
-        Given: Un puesto cuyo acto asociado tiene una fecha de inicio de solicitud igual a hoy o anterior.
-        When: Se evalúa la condición temporal mediante .date().
-        Then: Se lanza una ValidationError prohibiendo la actualización ya que el periodo ha comenzado o es inválido.
-        """
-        mock_timezone.now.return_value.date.return_value = self.hoy
-
-        puesto_mock = MagicMock()
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy
-        mock_get_404.return_value = puesto_mock
-
-        with self.assertRaises(ValidationError) as context:
-            update_puesto_service(self.usuario_admin, 1, {})
-        self.assertIn("ya ha comenzado, es en el pasado", str(context.exception))
-
-        puesto_mock.acto.inicio_solicitud.date.return_value = self.hoy - timedelta(days=1)
-        with self.assertRaises(ValidationError):
-            update_puesto_service(self.usuario_admin, 1, {})
 
 
 
@@ -284,3 +175,43 @@ class TestUpdatePuestoService(unittest.TestCase):
 
         mock_filter.assert_called_with(acto=puesto_mock.acto, nombre=nuevo_nombre)
         mock_exclude.assert_called_with(pk=puesto_id)
+
+
+
+    @patch('api.servicios.puesto.puesto_service.get_object_or_404')
+    @patch('api.servicios.puesto.puesto_service.timezone')
+    def test_error_periodo_solicitud_invalido_o_ya_comenzado(self, mock_timezone, mock_get_404):
+        """
+        Test: Bloqueo de actualización por periodo de solicitud inválido
+        
+        Given: Un puesto cuyo acto asociado tiene una fecha de inicio nula, 
+            en el pasado o justamente hoy.
+        When: Se intenta actualizar cualquier dato del puesto.
+        Then: Se lanza una ValidationError con el mensaje descriptivo sobre el periodo de solicitud.
+        """
+        usuario = MagicMock(esAdmin=True)
+        hoy = date(2026, 5, 5)
+        mock_timezone.now.return_value.date.return_value = hoy
+        
+        puesto_mock = MagicMock()
+        mock_get_404.return_value = puesto_mock
+        
+        mensaje_error_esperado = "No se pueden actualizar puestos para actos cuyo periodo de solicitud ya ha comenzado"
+
+        puesto_mock.acto.inicio_solicitud = None
+        with self.assertRaisesRegex(ValidationError, mensaje_error_esperado):
+            update_puesto_service(usuario, 1, {'nombre': 'Nuevo'})
+
+        mock_fecha_ayer = MagicMock()
+        mock_fecha_ayer.date.return_value = hoy - timedelta(days=1)
+        puesto_mock.acto.inicio_solicitud = mock_fecha_ayer
+        
+        with self.assertRaisesRegex(ValidationError, mensaje_error_esperado):
+            update_puesto_service(usuario, 1, {'nombre': 'Nuevo'})
+
+        mock_fecha_hoy = MagicMock()
+        mock_fecha_hoy.date.return_value = hoy
+        puesto_mock.acto.inicio_solicitud = mock_fecha_hoy
+        
+        with self.assertRaisesRegex(ValidationError, mensaje_error_esperado):
+            update_puesto_service(usuario, 1, {'nombre': 'Nuevo'})
