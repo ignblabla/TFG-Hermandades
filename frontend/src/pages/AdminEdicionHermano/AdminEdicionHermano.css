@@ -8,6 +8,57 @@
     box-shadow: 0 4px 6px rgba(128, 0, 32, 0.05);
 }
 
+.modal-overlay-editar-perfil {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content-editar-perfil {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 440px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: modal-fade-in 0.2s ease;
+}
+
+@keyframes modal-fade-in {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-content-editar-perfil h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.modal-content-editar-perfil p {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.modal-actions-editar-perfil {
+    display: flex;
+    gap: 12px;
+    margin-top: 0.5rem;
+    justify-content: center;
+}
+
 @media (max-width: 768px) {
     .admin-highlight-editar-perfil {
         padding: 16px;

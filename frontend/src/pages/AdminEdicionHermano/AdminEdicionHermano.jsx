@@ -14,6 +14,9 @@ function AdminEditarHermano() {
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
+    const [showConfirmBaja, setShowConfirmBaja] = useState(false);
+    const [givingBaja, setGivingBaja] = useState(false);
+
     const [currentUser, setCurrentUser] = useState(null);
     const [formData, setFormData] = useState({
         dni: '', nombre: '', primer_apellido: '', segundo_apellido: '',
@@ -96,6 +99,32 @@ function AdminEditarHermano() {
         }));
     };
 
+    const handleDarDeBaja = async () => {
+        setGivingBaja(true);
+        try {
+            await api.post(`api/hermanos/${id}/dar-de-baja/`);
+            setShowConfirmBaja(false);
+            setSuccessMsg(`El hermano ha sido dado de baja correctamente.`);
+            setFormData(prev => ({
+                ...prev,
+                estado_hermano: 'BAJA',
+                fecha_baja_corporacion: new Date().toISOString().split('T')[0],
+                is_active: false
+            }));
+            window.scrollTo(0, 0);
+        } catch (err) {
+            setShowConfirmBaja(false);
+            if (err.response?.status === 403) {
+                setError(err.response.data?.detail || "No tienes permisos para realizar esta acción.");
+            } else {
+                setError("Error al dar de baja al hermano.");
+            }
+            window.scrollTo(0, 0);
+        } finally {
+            setGivingBaja(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -165,6 +194,36 @@ function AdminEditarHermano() {
 
     return (
         <div>
+            {showConfirmBaja && (
+                <div className="modal-overlay-editar-perfil" onClick={() => setShowConfirmBaja(false)}>
+                    <div className="modal-content-editar-perfil" onClick={e => e.stopPropagation()}>
+                        <ShieldAlert size={40} color="#c0392b" />
+                        <h3>¿Dar de baja a este hermano?</h3>
+                        <p>
+                            Esta acción cambiará su estado a <strong>BAJA</strong>, registrará la fecha de hoy 
+                            y desactivará su acceso al sistema. 
+                        </p>
+                        <div className="modal-actions-editar-perfil">
+                            <button 
+                                className="btn-cancel-editar-perfil" 
+                                onClick={() => setShowConfirmBaja(false)}
+                                disabled={givingBaja}
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                className="btn-danger-editar-perfil" 
+                                onClick={handleDarDeBaja}
+                                disabled={givingBaja}
+                            >
+                                <ShieldAlert size={18} />
+                                {givingBaja ? "Procesando..." : "Confirmar baja"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -603,29 +662,44 @@ function AdminEditarHermano() {
                                 </div>
                             </div>
 
-                            <div className="form-actions-editar-perfil">
-                                <button 
-                                    type="button" 
-                                    className="btn-cancel-editar-perfil" 
-                                    onClick={() => navigate("/hermanos/listado")}
-                                >
-                                    Cancelar
-                                </button>
-                                
-                                <button 
-                                    type="submit" 
-                                    className="btn-save-editar-perfil" 
-                                    disabled={saving}
-                                >
-                                    <Save size={18} />
-                                    {saving ? "Guardando..." : "Guardar cambios"}
-                                </button>
+                            <div 
+                                className="form-actions-editar-perfil" 
+                                style={{ justifyContent: formData.estado_hermano !== 'BAJA' && !formData.fecha_baja_corporacion ? 'space-between' : 'flex-end' }}
+                            >
+                                {formData.estado_hermano !== 'BAJA' && !formData.fecha_baja_corporacion && (
+                                    <button 
+                                        type="button" 
+                                        className="btn-danger-editar-perfil" 
+                                        onClick={() => setShowConfirmBaja(true)}
+                                    >
+                                        <ShieldAlert size={18} />
+                                        Dar de baja
+                                    </button>
+                                )}
+
+                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancel-editar-perfil" 
+                                        onClick={() => navigate("/censo-hermanos")}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        className="btn-save-editar-perfil" 
+                                        disabled={saving}
+                                    >
+                                        <Save size={18} />
+                                        {saving ? "Guardando..." : "Guardar cambios"}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </section>
-
         </div>
     );
 }

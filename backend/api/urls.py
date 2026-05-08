@@ -1,7 +1,6 @@
 from django.urls import path
 
 from api.view.register_view import AprobarAltaHermanoView, HermanoCreateView
-from api.view.GenerarQRPapeletaView import DescargarPapeletaPDFView, ValidarAccesoQRView
 from api.view.gestion_solicitudes_views import CrearSolicitudUnificadaView
 from api.vistas.cuota.cuota_view import MisCuotasListView
 from api.vistas.solicitud_insignia.solicitud_insignia_view import SolicitarInsigniaView
@@ -45,6 +44,9 @@ from api.vistas.cuota.cuotas_pendientes_view import MisCuotasPendientesView
 from api.vistas.cuota.numero_cuotas_pendientes_view import NumeroCuotasPendientesView
 from api.vistas.solicitud_baja.resolver_solicitud_baja_view import ResolverSolicitudBajaView
 from api.vistas.comunicado.comunicado_admin_list_view import ComunicadoAdminListView
+from api.vistas.hermano.baja_hermano_admin_view import BajaHermanoAdminView
+from api.vistas.papeleta_sitio.validar_acceso_qr_papeleta_view import ValidarAccesoQRView
+from api.vistas.papeleta_sitio.descargar_papeleta_view import DescargarPapeletaPDFView
 
 
 urlpatterns = [
@@ -102,6 +104,7 @@ urlpatterns = [
     path("hermanos/<int:pk>/gestion/", HermanoAdminDetailView.as_view(), name="gestion-hermano-detalle"),
     path("hermanos/listado/", HermanoListView.as_view(), name="listado-hermanos"),
     path("me/", UsuarioLogueadoView.as_view(), name="usuario-logueado"),
+    path('hermanos/<int:pk>/dar-de-baja/', BajaHermanoAdminView.as_view(), name='admin-dar-de-baja-hermano'),
 
     # Papeletas de sitio
     path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),

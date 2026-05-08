@@ -1,7 +1,10 @@
 from api.models import Acto, PapeletaSitio
+
 from rest_framework.exceptions import PermissionDenied
+
 from django.db.models import Count, Q
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 
 def get_ultima_papeleta_hermano_service(usuario):
@@ -90,4 +93,37 @@ def obtener_estadisticas_asistencia(acto_id: int):
         "total_papeletas": total,
         "papeletas_leidas": leidas,
         "papeletas_pendientes": pendientes
+    }
+
+
+
+def validar_acceso_papeleta(papeleta_id, codigo_verificacion, usuario_escaneador):
+    """
+    Valida la papeleta y cambia el estado a LEIDA.
+    """
+    if not usuario_escaneador.is_staff and not usuario_escaneador.esAdmin:
+        raise PermissionDenied("No tienes permisos para validar accesos.")
+
+    papeleta = get_object_or_404(PapeletaSitio, pk=papeleta_id)
+
+    if str(papeleta.codigo_verificacion) != str(codigo_verificacion):
+        raise ValidationError("El código de verificación no es válido.")
+
+    if papeleta.estado_papeleta == PapeletaSitio.EstadoPapeleta.LEIDA:
+        return {
+            "status": "warning", 
+            "mensaje": f"Esta papeleta YA FUE LEÍDA anteriormente ({papeleta.fecha_emision}).",
+            "papeleta": papeleta
+        }
+
+    if papeleta.estado_papeleta not in [PapeletaSitio.EstadoPapeleta.EMITIDA, PapeletaSitio.EstadoPapeleta.RECOGIDA]:
+        raise ValidationError(f"La papeleta no está activa (Estado: {papeleta.estado_papeleta}).")
+
+    papeleta.estado_papeleta = PapeletaSitio.EstadoPapeleta.LEIDA
+    papeleta.save()
+
+    return {
+        "status": "success",
+        "mensaje": "Acceso Correcto. Papeleta marcada como LEÍDA.",
+        "papeleta": papeleta
     }

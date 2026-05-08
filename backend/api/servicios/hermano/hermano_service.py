@@ -91,3 +91,31 @@ def get_estadisticas_hermanos_service():
         'total_baja': total_baja,
         'ingresos_anio_actual': ingresos_anio_actual
     }
+
+
+
+@transaction.atomic
+def dar_de_baja_hermano_service(usuario_solicitante, hermano_id):
+    """
+    Da de baja a un hermano en la corporación.
+    Regla de negocio: 
+    - Solo los administradores pueden ejecutar esta acción.
+    - Un administrador no puede dar de baja a otro administrador.
+    - El estado pasa a BAJA.
+    - Se registra la fecha actual como fecha de baja.
+    - Se desactiva el usuario (is_active = False) para impedir el inicio de sesión.
+    """
+    if not getattr(usuario_solicitante, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para dar de baja a un hermano.")
+    
+    hermano = get_object_or_404(User, pk=hermano_id)
+
+    if getattr(hermano, 'esAdmin', False):
+        raise PermissionDenied("Un administrador no puede dar de baja a otro administrador.")
+
+    hermano.estado_hermano = User.EstadoHermano.BAJA
+    hermano.fecha_baja_corporacion = timezone.now().date()
+    hermano.is_active = False
+
+    hermano.save()
+    return hermano
