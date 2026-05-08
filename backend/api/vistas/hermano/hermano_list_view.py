@@ -1,4 +1,3 @@
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,14 +6,17 @@ from rest_framework.exceptions import PermissionDenied
 from api.pagination import PaginacionDiezElementos
 from api.serializadores.hermano.hermano_serializer import HermanoListadoSerializer
 from api.servicios.hermano.hermano_service import get_listado_hermanos_service
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 from django.contrib.auth import get_user_model
+
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 User = get_user_model()
 
 
 class HermanoListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
     pagination_class = PaginacionDiezElementos
 
     def get(self, request):

@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from api.servicios.puesto.puesto_service import delete_puesto_service, update_puesto_service
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 User = get_user_model()
 
@@ -19,7 +20,18 @@ class PuestoDetalleView(APIView):
     Endpoint para ver, editar o eliminar un puesto específico.
     """
 
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        """
+        Instancia y devuelve la lista de permisos que requiere esta vista.
+        """
+        if self.request.method == 'GET':
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [EsAdministrador]
+            
+        return [permission() for permission in permission_classes]
+
+
 
     def get(self, request, pk):
         puesto = get_object_or_404(Puesto, pk=pk)

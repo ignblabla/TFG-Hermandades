@@ -49,6 +49,7 @@ from api.vistas.solicitud_baja.resolver_solicitud_baja_view import ResolverSolic
 urlpatterns = [
     path("hermanos/registro/", HermanoCreateView.as_view(), name="registro-hermano"),
     path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
+    path("papeletas/solicitar-unificada/", CrearSolicitudUnificadaView.as_view(), name="solicitar-unificada"),
 
     path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
     path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
@@ -56,8 +57,6 @@ urlpatterns = [
     path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
 
     path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
-
-    path("papeletas/solicitar-unificada/", CrearSolicitudUnificadaView.as_view(), name="solicitar-unificada"),
 
 
 

@@ -10,7 +10,6 @@ class ResumenPuestosActoAPIView(APIView):
     API View para obtener la métrica total de puestos de un acto,
     desglosada por pasos (Cristo/Virgen).
     """
-    
     def get(self, request, acto_id, *args, **kwargs):
         resumen = obtener_resumen_puestos_acto(acto_id=acto_id)
         return Response(resumen, status=status.HTTP_200_OK)

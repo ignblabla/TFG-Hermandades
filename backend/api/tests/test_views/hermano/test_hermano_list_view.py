@@ -1,183 +1,162 @@
-from unittest.mock import patch, MagicMock
-from django.test import RequestFactory, TestCase
-from django.contrib.auth.models import AnonymousUser
-from rest_framework.test import APIClient, APIRequestFactory
+from unittest.mock import ANY, patch, MagicMock
+from django.test import TestCase
+from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 
 from api.vistas.hermano.hermano_list_view import HermanoListView
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class TestHermanoListView(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
-        self.vista = HermanoListView.as_view()
+        self.vista_callable = HermanoListView.as_view()
         self.path = "/api/hermanos/listado/" 
-        self.mock_user = MagicMock()
+        self.user = MagicMock()
+        self.user.is_authenticated = True
 
 
 
-    @patch('api.vistas.hermano.hermano_list_view.HermanoListadoSerializer')
-    @patch('api.vistas.hermano.hermano_list_view.PaginacionDiezElementos')
     @patch('api.vistas.hermano.hermano_list_view.get_listado_hermanos_service')
-    def test_get_respuesta_paginada_correcta(
-        self, 
-        mock_get_listado_service, 
-        mock_paginacion_class, 
-        mock_serializer_class
-    ):
+    @patch('api.vistas.hermano.hermano_list_view.HermanoListadoSerializer')
+    @patch.object(EsAdministrador, 'has_permission', return_value=True)
+    def test_get_listado_paginado_exitoso_200(self, mock_permiso, mock_serializer, mock_service):
         """
-        Test: Respuesta paginada correcta
+        Test: Listado paginado exitoso (200)
         
-        Given: Un usuario autenticado que realiza una petición GET a la vista.
-        When: El servicio devuelve el queryset de hermanos y el paginador genera una página con datos.
-        Then: Se pagina el resultado, se serializa con many=True y se retorna la respuesta paginada.
+        Given: Un usuario administrador autenticado.
+        When: Se solicita el listado de hermanos.
+        Then: La vista debe instanciar el paginador, paginar el queryset y retornar 200.
         """
-        vista = HermanoListView()
-
-        vista.pagination_class = mock_paginacion_class
-
-        mock_request = MagicMock()
-        mock_user = MagicMock()
-        mock_request.user = mock_user
+        request = self.factory.get(self.path)
+        force_authenticate(request, user=self.user)
 
         mock_queryset = MagicMock()
-        mock_get_listado_service.return_value = mock_queryset
+        mock_service.return_value = mock_queryset
 
-        mock_paginador_instancia = MagicMock()
-        mock_paginacion_class.return_value = mock_paginador_instancia
-        
-        mock_pagina = ['hermano1', 'hermano2']
-        mock_paginador_instancia.paginate_queryset.return_value = mock_pagina
-        
-        mock_respuesta_paginada = MagicMock(spec=Response)
-        mock_paginador_instancia.get_paginated_response.return_value = mock_respuesta_paginada
+        mock_paginador = MagicMock()
+        mock_paginador.paginate_queryset.return_value = ['hermano1']
+        mock_paginador.get_paginated_response.return_value = Response({'results': []}, status=200)
 
-        mock_serializer_instancia = MagicMock()
-        mock_serializer_class.return_value = mock_serializer_instancia
-        mock_serializer_instancia.data = [{'id': 1, 'nombre': 'Hermano 1'}]
+        with patch('api.vistas.hermano.hermano_list_view.HermanoListView.pagination_class', return_value=mock_paginador):
+            response = self.vista_callable(request)
 
-        response = vista.get(mock_request)
-
-        mock_get_listado_service.assert_called_once_with(usuario_solicitante=mock_user)
-
-        mock_paginador_instancia.paginate_queryset.assert_called_once_with(mock_queryset, mock_request)
-
-        mock_serializer_class.assert_called_once_with(mock_pagina, many=True)
-
-        mock_paginador_instancia.get_paginated_response.assert_called_once_with(mock_serializer_instancia.data)
-
-        self.assertEqual(response, mock_respuesta_paginada)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_service.assert_called_once_with(usuario_solicitante=self.user)
+        mock_paginador.paginate_queryset.assert_called_once_with(mock_queryset, ANY)
 
 
 
+    @patch.object(EsAdministrador, 'has_permission', return_value=True)
     @patch('api.vistas.hermano.hermano_list_view.HermanoListadoSerializer')
-    @patch('api.vistas.hermano.hermano_list_view.PaginacionDiezElementos')
     @patch('api.vistas.hermano.hermano_list_view.get_listado_hermanos_service')
-    def test_get_respuesta_sin_paginacion(
-        self, 
-        mock_get_listado_service, 
-        mock_paginacion_class, 
-        mock_serializer_class
-    ):
+    def test_get_listado_sin_paginacion_retorna_200_directo(self, mock_service, mock_serializer_class, mock_permiso):
         """
-        Test: Respuesta sin paginación (page = None)
+        Test: Listado sin paginación (page is None) -> 200 OK
         
-        Given: Un queryset de hermanos válido.
-        When: El paginador devuelve None al intentar paginar el queryset.
-        Then: No se usa get_paginated_response y se retorna una Response estándar con status 200.
+        Given: Un usuario administrador autenticado.
+        When: El paginador devuelve None (por ejemplo, porque la paginación está desactivada por parámetros).
+        Then: La vista serializa el queryset completo y retorna una Response estándar (status 200).
         """
-        vista = HermanoListView()
-        vista.pagination_class = mock_paginacion_class
-
-        mock_request = MagicMock()
-        mock_user = MagicMock()
-        mock_request.user = mock_user
+        request = self.factory.get(self.path)
+        force_authenticate(request, user=self.user)
 
         mock_queryset = MagicMock()
-        mock_get_listado_service.return_value = mock_queryset
-        
-        mock_paginador_instancia = MagicMock()
-        mock_paginacion_class.return_value = mock_paginador_instancia
-        mock_paginador_instancia.paginate_queryset.return_value = None
+        mock_service.return_value = mock_queryset
 
-        mock_serializer_instancia = MagicMock()
-        mock_serializer_class.return_value = mock_serializer_instancia
-        mock_serializer_instancia.data = [{'id': 1, 'nombre': 'Hermano Solo'}]
+        mock_paginador = MagicMock()
+        mock_paginador.paginate_queryset.return_value = None
 
-        response = vista.get(mock_request)
+        mock_serializer_instancia = mock_serializer_class.return_value
+        datos_esperados = [{'id': 1, 'nombre': 'Hermano Completo'}]
+        mock_serializer_instancia.data = datos_esperados
 
-        mock_paginador_instancia.paginate_queryset.assert_called_once_with(mock_queryset, mock_request)
-        mock_paginador_instancia.get_paginated_response.assert_not_called()
+        with patch('api.vistas.hermano.hermano_list_view.HermanoListView.pagination_class', return_value=mock_paginador):
+            response = self.vista_callable(request)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, datos_esperados)
 
         mock_serializer_class.assert_called_once_with(mock_queryset, many=True)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, mock_serializer_instancia.data)
+        mock_paginador.get_paginated_response.assert_not_called()
 
 
 
+    @patch.object(EsAdministrador, 'has_permission', return_value=True)
     @patch('api.vistas.hermano.hermano_list_view.get_listado_hermanos_service')
-    def test_get_permiso_denegado_retorna_403(self, mock_get_listado_service):
+    def test_get_permiso_denegado_en_servicio_retorna_403(self, mock_service, mock_permiso):
         """
-        Test: El servicio lanza PermissionDenied → respuesta 403
+        Test: PermissionDenied en servicio -> 403
         
-        Given: Un usuario que no tiene permisos suficientes según la lógica del servicio.
-        When: get_listado_hermanos_service lanza una excepción PermissionDenied.
-        Then: La vista captura la excepción y retorna una respuesta con status 403 
-            y el mensaje de error en el campo 'detail'.
+        Given: Un usuario que supera el permiso de la vista pero no la lógica del servicio.
+        When: El servicio lanza una excepción PermissionDenied.
+        Then: La vista captura el error y retorna status 403 con el detalle.
         """
-        vista = HermanoListView()
-        mock_request = MagicMock()
+        request = self.factory.get(self.path)
+        force_authenticate(request, user=self.user)
         
         mensaje_error = "No tienes permiso para ver este listado."
-        mock_get_listado_service.side_effect = PermissionDenied(mensaje_error)
+        mock_service.side_effect = PermissionDenied(mensaje_error)
 
-        response = vista.get(mock_request)
+        response = self.vista_callable(request)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data['detail'], mensaje_error)
 
 
 
+    @patch.object(EsAdministrador, 'has_permission', return_value=True)
     @patch('api.vistas.hermano.hermano_list_view.get_listado_hermanos_service')
-    def test_get_error_generico_retorna_500(self, mock_get_listado_service):
+    def test_get_error_generico_retorna_500(self, mock_service, mock_permiso):
         """
-        Test: El servicio lanza excepción genérica → respuesta 500
+        Test: Error genérico -> 500
         
-        Given: Un fallo inesperado en el servicio (ej. error de base de datos o bug).
+        Given: Un fallo inesperado en el servidor.
         When: El servicio lanza una excepción de tipo Exception.
-        Then: La vista captura el error y retorna un status 500 con un mensaje amigable 
-            y el detalle técnico del error.
+        Then: La vista retorna un status 500 con el mensaje de error técnico.
         """
-        vista = HermanoListView()
-        mock_request = MagicMock()
-        
-        error_tecnico = "Database connection lost"
-        mock_get_listado_service.side_effect = Exception(error_tecnico)
+        request = self.factory.get(self.path)
+        force_authenticate(request, user=self.user)
+        mock_service.side_effect = Exception("Database error")
 
-        response = vista.get(mock_request)
+        response = self.vista_callable(request)
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertEqual(response.data['detail'], "Error al recuperar el listado.")
-        self.assertEqual(response.data['error'], error_tecnico)
 
 
 
-    @patch('api.vistas.hermano.hermano_list_view.get_listado_hermanos_service')
-    def test_usuario_no_autenticado_bloqueado(self, mock_service):
+    @patch.object(EsAdministrador, 'has_permission', return_value=False)
+    def test_usuario_autenticado_no_admin_denegado_403(self, mock_permiso):
         """
-        Test: Usuario no autenticado (control de permisos)
+        Test: Usuario autenticado no admin -> 403
         
-        Given: Una petición sin credenciales de autenticación.
-        When: Se intenta acceder a la vista.
-        Then: DRF bloquea el acceso (401/403) gracias a IsAuthenticated y el servicio no se ejecuta.
+        Given: Un usuario autenticado que no es administrador.
+        When: Intenta acceder al listado de hermanos.
+        Then: El permiso EsAdministrador bloquea la petición antes de ejecutar la vista.
         """
         request = self.factory.get(self.path)
+        force_authenticate(request, user=self.user)
 
-        response = self.vista(request)
+        response = self.vista_callable(request)
 
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
-        mock_service.assert_not_called()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+
+    def test_usuario_no_autenticado_denegado_401(self):
+        """
+        Test: Usuario anónimo -> 401
+        
+        Given: Un usuario no autenticado.
+        When: Intenta acceder al listado.
+        Then: DRF bloquea el acceso devolviendo 401 Unauthorized.
+        """
+        request = self.factory.get(self.path)
+        response = self.vista_callable(request)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

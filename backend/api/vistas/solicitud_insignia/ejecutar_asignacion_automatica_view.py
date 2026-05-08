@@ -3,17 +3,17 @@ import base64
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 
 from api.servicios.solicitud_insignia.solicitud_insignia_service import SolicitudInsigniaService
 from api.models import Acto, PapeletaSitio, Puesto
 from api.servicios.solicitud_insignia.ejecucion_automatica_insignia_service import RepartoService
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class EjecutarRepartoView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def post(self, request, pk):
         acto = get_object_or_404(Acto, pk=pk)

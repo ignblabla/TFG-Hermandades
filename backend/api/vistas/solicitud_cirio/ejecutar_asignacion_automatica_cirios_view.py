@@ -1,6 +1,5 @@
 import base64
 
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,6 +9,7 @@ from django.core.exceptions import ValidationError
 
 from api.servicios.solicitud_cirio.ejecucion_automatica_cirio_service import ReportesCiriosService
 from api.models import Acto
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class EjecutarRepartoCiriosView(APIView):
@@ -17,7 +17,7 @@ class EjecutarRepartoCiriosView(APIView):
     Endpoint administrativo para disparar el algoritmo de asignación de cirios
     y retornar el PDF con las posiciones resultantes.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def post(self, request, acto_id):
         acto = get_object_or_404(Acto, pk=acto_id)

@@ -11,7 +11,6 @@ from api.servicios.solicitud_insignia.solicitud_insignia_service import Solicitu
 from api.models import Acto
 
 
-
 class SolicitarInsigniaView(APIView):
     """
     Endpoint para solicitar insignias cuando el acto es TRADICIONAL.

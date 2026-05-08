@@ -277,10 +277,6 @@ class TestActoDetalleViewGetPositivos(TestCase):
 
 
 
-    # ---------------------------------------------------------------------------
-    # TESTS TRANSVERSALES
-    # ---------------------------------------------------------------------------
-
     def test_transversal_usuario_no_autenticado_bloqueado_en_todos_los_metodos(self):
         """
         Test: Usuario no autenticado bloqueado transversalmente

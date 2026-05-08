@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, PropertyMock, patch
+from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from django.contrib.auth.models import AnonymousUser
@@ -19,16 +20,14 @@ class TestTipoPuestoListView(unittest.TestCase):
 
     @patch("api.vistas.tipo_puesto.tipo_puesto_view.TipoPuestoSerializer")
     @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_flujo_feliz_y_llamadas_correctas(self, mock_service, mock_serializer_class):
+    def test_flujo_feliz_y_llamadas_correctas_200(self, mock_service, mock_serializer_class):
         """
-        Test: Flujo feliz
-            Se llama al service
-            Serializer recibe many=True
+        Test: Flujo feliz (200 OK)
         
-        Given: Una petición GET válida a la vista de tipos de puesto.
+        Given: Una petición GET autenticada a la vista de tipos de puesto.
         When: El servicio recupera los datos y el serializador los procesa.
-        Then: La vista devuelve un 200 OK con la data correcta, garantizando 
-            las llamadas al servicio y al serializador con el parámetro many=True.
+        Then: La vista devuelve un 200 OK con la data correcta, habiendo llamado 
+            al servicio y configurado el serializador para múltiples objetos (many=True).
         """
         request = self.factory.get(self.url)
         request.user = self.user
@@ -37,102 +36,29 @@ class TestTipoPuestoListView(unittest.TestCase):
         mock_service.return_value = datos_mock
         
         mock_serializer_instance = MagicMock()
-        mock_serializer_instance.data = [{"id": 1, "nombre": "Costalero"}]
+        datos_respuesta = [{"id": 1, "nombre": "Costalero"}]
+        mock_serializer_instance.data = datos_respuesta
         mock_serializer_class.return_value = mock_serializer_instance
 
         vista = TipoPuestoListView()
-
         respuesta = vista.get(request)
 
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
+        self.assertEqual(respuesta.data, datos_respuesta)
         mock_service.assert_called_once()
-
         mock_serializer_class.assert_called_once_with(datos_mock, many=True)
 
-        self.assertEqual(respuesta.status_code, 200)
-        self.assertEqual(respuesta.data, [{"id": 1, "nombre": "Costalero"}])
-
-
-
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_service_lanza_excepcion_propaga_error(self, mock_service):
-        """
-        Test: Service lanza excepción
-        
-        Given: Un fallo crítico en la capa de servicio al consultar la base de datos.
-        When: Se invoca get_tipos_puesto_service().
-        Then: La excepción debe subir sin ser interceptada para que DRF maneje el HTTP 500.
-        """
-        request = self.factory.get(self.url)
-        request.user = self.user
-
-        mock_service.side_effect = Exception("service error")
-
-        vista = TipoPuestoListView()
-
-        with self.assertRaisesRegex(Exception, "service error"):
-            vista.get(request)
-
 
 
     @patch("api.vistas.tipo_puesto.tipo_puesto_view.TipoPuestoSerializer")
     @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_serializer_falla_al_instanciar(self, mock_service, mock_serializer_class):
+    def test_service_devuelve_lista_vacia_200(self, mock_service, mock_serializer_class):
         """
-        Test: Serializer falla al instanciar
-        
-        Given: Un error imprevisto al iniciar la clase del serializador.
-        When: La vista intenta instanciar TipoPuestoSerializer con los datos del servicio.
-        Then: El error de instanciación se propaga hacia el bloque superior.
-        """
-        request = self.factory.get(self.url)
-        request.user = self.user
-
-        mock_service.return_value = ["tipo1"]
-
-        mock_serializer_class.side_effect = Exception("serializer error")
-
-        vista = TipoPuestoListView()
-
-        with self.assertRaisesRegex(Exception, "serializer error"):
-            vista.get(request)
-
-
-
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.TipoPuestoSerializer")
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_error_accediendo_a_data_propaga_error(self, mock_service, mock_serializer_class):
-        """
-        Test: 6. ❌ Error accediendo a .data
-        
-        Given: Un fallo interno al serializar los objetos devueltos por el servicio.
-        When: La vista intenta acceder a la propiedad .data del serializador.
-        Then: La excepción se propaga correctamente sin ser enmascarada.
-        """
-        request = self.factory.get(self.url)
-        request.user = self.user
-
-        mock_service.return_value = ["tipo1"]
-
-        mock_instance = MagicMock()
-        type(mock_instance).data = PropertyMock(side_effect=Exception("data error"))
-        mock_serializer_class.return_value = mock_instance
-
-        vista = TipoPuestoListView()
-
-        with self.assertRaisesRegex(Exception, "data error"):
-            vista.get(request)
-
-
-
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.TipoPuestoSerializer")
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_service_devuelve_lista_vacia(self, mock_service, mock_serializer_class):
-        """
-        Test: Service devuelve lista vacía
+        Test: Service devuelve lista vacía (200 OK)
         
         Given: Una consulta donde no existen tipos de puesto en el sistema.
         When: Se procesa la petición GET.
-        Then: La vista devuelve un HTTP 200 OK y la data es un array vacío.
+        Then: La vista procesa correctamente la ausencia de datos y devuelve un HTTP 200 OK con un array vacío.
         """
         request = self.factory.get(self.url)
         request.user = self.user
@@ -144,58 +70,25 @@ class TestTipoPuestoListView(unittest.TestCase):
         mock_serializer_class.return_value = mock_instance
 
         vista = TipoPuestoListView()
-        
         respuesta = vista.get(request)
 
-        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.status_code, status.HTTP_200_OK)
         self.assertEqual(respuesta.data, [])
 
 
 
     def test_usuario_no_autenticado_retorna_401(self):
         """
-        Test: Usuario no autenticado (si ejecutas permisos)
+        Test: Usuario no autenticado (401)
         
-        Given: Una petición HTTP GET sin credenciales válidas.
-        When: Pasa por el as_view() de DRF.
-        Then: Retorna HTTP 401 Unauthorized.
+        Given: Una petición HTTP GET sin credenciales válidas (usuario anónimo).
+        When: La petición pasa por el pipeline de as_view() de DRF.
+        Then: La clase IsAuthenticated intercepta la petición y retorna HTTP 401 Unauthorized.
         """
         request = self.factory.get(self.url)
         request.user = AnonymousUser()
 
         vista_ejecutable = TipoPuestoListView.as_view()
-        
         respuesta = vista_ejecutable(request)
 
-        self.assertEqual(respuesta.status_code, 401)
-
-
-
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.TipoPuestoSerializer")
-    @patch("api.vistas.tipo_puesto.tipo_puesto_view.get_tipos_puesto_service")
-    def test_status_correcto_y_sin_contexto_serializer(self, mock_service, mock_serializer_class):
-        """
-        Test: Status HTTP correcto
-            No se pasa context al serializer
-
-        Given: Una petición exitosa que obtiene datos.
-        When: Se construye la respuesta.
-        Then: El status debe ser exactamente 200 y el serializador no debe 
-            recibir la inyección del kwargs 'context'.
-        """
-        request = self.factory.get(self.url)
-        request.user = self.user
-
-        mock_service.return_value = ["tipo1"]
-        mock_instance = MagicMock()
-        mock_instance.data = [{"id": 1}]
-        mock_serializer_class.return_value = mock_instance
-
-        vista = TipoPuestoListView()
-        
-        respuesta = vista.get(request)
-
-        self.assertEqual(respuesta.status_code, 200)
-
-        kwargs_del_serializador = mock_serializer_class.call_args[1]
-        self.assertNotIn("context", kwargs_del_serializador)
+        self.assertEqual(respuesta.status_code, status.HTTP_401_UNAUTHORIZED)

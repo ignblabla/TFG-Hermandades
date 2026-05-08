@@ -5,10 +5,10 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
-from django.contrib.auth.models import AnonymousUser
 from django.http import Http404
 
 from api.vistas.puesto.puesto_detalle_view import PuestoDetalleView
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 @pytest.mark.django_db
@@ -27,35 +27,35 @@ class TestPuestoDetalleViewPermisos(unittest.TestCase):
 
 
 
-    @patch('api.vistas.puesto.puesto_detalle_view.PuestoSerializer')
-    @patch('api.vistas.puesto.puesto_detalle_view.get_object_or_404')
-    def test_usuario_autenticado_acceso_permitido(self, mock_get_404, mock_serializer_class):
+    def test_usuario_no_autenticado_acceso_denegado_401(self):
         """
-        Test: Usuario autenticado -> acceso permitido
-        """
-        request = self.factory.get(self.url)
-        force_authenticate(request, user=self.user)
-
-        mock_puesto = MagicMock()
-        mock_get_404.return_value = mock_puesto
-        mock_serializer_class.return_value.data = {"id": self.pk, "nombre": "Puesto Prueba"}
-
-        response = self.vista_callable(request, pk=self.pk)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-
-    def test_usuario_no_autenticado_acceso_denegado(self):
-        """
-        Test: Usuario no autenticado -> acceso denegado
+        Test: Usuario anónimo -> 401
+        
+        Given: Una petición GET enviada por un usuario no autenticado (anónimo).
+        When: La vista procesa la solicitud y evalúa la clase de permiso IsAuthenticated.
+        Then: Se deniega el acceso devolviendo un status 401 Unauthorized.
         """
         request = self.factory.get(self.url)
-        request.user = AnonymousUser()
 
         response = self.vista_callable(request, pk=self.pk)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+
+    @patch.object(EsAdministrador, 'has_permission', return_value=False)
+    def test_usuario_autenticado_no_admin_prohibido_escritura_403(self, mock_permiso):
+        """
+        Test: Usuario autenticado pero NO admin intentando PUT/PATCH/DELETE -> 403
+        
+        Given: Un usuario autenticado que no posee el rol de administrador.
+        When: Se intenta realizar una operación de escritura (PUT, PATCH o DELETE).
+        Then: El permiso EsAdministrador deniega la acción devolviendo un status 403 Forbidden.
+        """
+        for metodo in ['put', 'patch', 'delete']:
+            request = getattr(self.factory, metodo)(self.url, data=self.data_update)
+            force_authenticate(request, user=self.user)
+            response = self.vista_callable(request, pk=self.pk)
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, f"Falló en {metodo}")
 
 
 
