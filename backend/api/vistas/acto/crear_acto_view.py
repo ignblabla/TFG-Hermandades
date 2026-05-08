@@ -7,9 +7,12 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 from api.servicios.acto.acto_service import crear_acto_service
 from api.serializadores.acto.acto_serializer import ActoCreateSerializer
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class ActoCreateView(APIView):
+    permission_classes = [EsAdministrador]
+    
     def post(self, request):
         serializer = ActoCreateSerializer(data=request.data)
 

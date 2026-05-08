@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch, ANY
 from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.request import Request
 from rest_framework.exceptions import ValidationError
 
 from api.vistas.comunicado.comunicados_general_view import ComunicadoListCreateView
@@ -16,14 +15,15 @@ class TestComunicadoListCreateView(unittest.TestCase):
         self.view = ComunicadoListCreateView.as_view()
         self.path = "/api/comunicados/"
 
-        self.mock_user = MagicMock(spec=['is_authenticated', 'areas_interes'])
-        self.mock_user.is_authenticated = True
+        self.mock_normal = MagicMock(spec=['is_authenticated', 'esAdmin', 'areas_interes'])
+        self.mock_normal.is_authenticated = True
+        self.mock_normal.esAdmin = False
+
+        self.mock_admin = MagicMock(spec=['is_authenticated', 'esAdmin', 'areas_interes'])
+        self.mock_admin.is_authenticated = True
+        self.mock_admin.esAdmin = True
 
 
-
-    # ---------------------------------------------------------------------------
-    # TESTS GET
-    # ---------------------------------------------------------------------------
 
     @patch("api.vistas.comunicado.comunicados_general_view.ComunicadoListSerializer")
     @patch("api.vistas.comunicado.comunicados_general_view.PaginacionDoceElementos")
@@ -32,14 +32,14 @@ class TestComunicadoListCreateView(unittest.TestCase):
         """
         Test: Flujo feliz CON paginación (Rama 1)
         
-        Given: Un usuario autenticado solicitando comunicados.
+        Given: Un usuario autenticado (normal) solicitando comunicados.
         When: El paginador segmenta exitosamente el queryset devuelto por el ORM.
         Then: Se instancia el serializador con la página de resultados y 
             se retorna get_paginated_response.
         """
         request = self.factory.get(self.path)
-        force_authenticate(request, user=self.mock_user)
-        request.user = self.mock_user
+        force_authenticate(request, user=self.mock_normal)
+        request.user = self.mock_normal
 
         mock_qs_final = MagicMock(name="QuerySetFinal")
         mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
@@ -68,13 +68,13 @@ class TestComunicadoListCreateView(unittest.TestCase):
         """
         Test: Flujo feliz SIN paginación (Rama 2)
         
-        Given: Un usuario autenticado solicitando comunicados.
+        Given: Un usuario autenticado (normal) solicitando comunicados.
         When: El paginador devuelve None (no aplica paginación).
         Then: La vista serializa el queryset completo y retorna status 200.
         """
         request = self.factory.get(self.path)
-        force_authenticate(request, user=self.mock_user)
-        request.user = self.mock_user
+        force_authenticate(request, user=self.mock_normal)
+        request.user = self.mock_normal
 
         mock_qs_final = MagicMock(name="QuerySetFinal")
         mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
@@ -111,10 +111,6 @@ class TestComunicadoListCreateView(unittest.TestCase):
 
 
 
-    # ---------------------------------------------------------------------------
-    # TESTS POST
-    # ---------------------------------------------------------------------------
-
     @patch("api.vistas.comunicado.comunicados_general_view.ComunicadoListSerializer")
     @patch("api.vistas.comunicado.comunicados_general_view.ComunicadoService")
     @patch("api.vistas.comunicado.comunicados_general_view.ComunicadoFormSerializer")
@@ -122,14 +118,14 @@ class TestComunicadoListCreateView(unittest.TestCase):
         """
         Test: Flujo feliz consolidado (CREACIÓN OK)
         
-        Given: Un usuario autenticado y datos de entrada válidos.
+        Given: Un usuario administrador autenticado y datos de entrada válidos.
         When: Se realiza una petición POST.
         Then: Se valida el formulario, se invoca al servicio con los datos correctos,
             se serializa el objeto creado y se retorna status 201.
         """
         datos_post = {"titulo": "Nuevo Comunicado"}
         request = self.factory.post(self.path, data=datos_post, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_form_instance = mock_form.return_value
         mock_form_instance.is_valid.return_value = True
@@ -147,7 +143,7 @@ class TestComunicadoListCreateView(unittest.TestCase):
 
         mock_form_instance.is_valid.assert_called_once_with(raise_exception=True)
         mock_service_instance.create_comunicado.assert_called_once_with(
-            usuario=self.mock_user,
+            usuario=self.mock_admin,
             data_validada=datos_validados
         )
         mock_list_serializer.assert_called_once_with(objeto_creado)
@@ -157,17 +153,34 @@ class TestComunicadoListCreateView(unittest.TestCase):
 
 
 
+    def test_post_usuario_no_admin_falla_403(self):
+        """
+        Test: Seguridad - Usuario sin permisos de administrador
+        
+        Given: Un usuario autenticado pero sin rol de administrador (esAdmin=False).
+        When: Se intenta realizar una petición POST para crear un comunicado.
+        Then: La permission_class EsAdministrador intercepta y bloquea la petición con 403.
+        """
+        request = self.factory.post(self.path, data={"titulo": "Test"}, format='json')
+        force_authenticate(request, user=self.mock_normal)
+
+        response = self.view(request)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+
     @patch("api.vistas.comunicado.comunicados_general_view.ComunicadoFormSerializer")
     def test_post_validacion_falla_retorna_400(self, mock_form):
         """
         Test: El serializador de entrada detecta datos inválidos
         
-        Given: Un payload que viola las reglas del serializador.
+        Given: Un payload que viola las reglas del serializador enviado por un admin.
         When: Se invoca is_valid(raise_exception=True).
         Then: DRF lanza ValidationError y la vista retorna status 400.
         """
         request = self.factory.post(self.path, data={}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_form.return_value.is_valid.side_effect = ValidationError({"titulo": "Requerido"})
 
@@ -183,12 +196,12 @@ class TestComunicadoListCreateView(unittest.TestCase):
         """
         Test: Captura de excepciones en el bloque try/except (Servicio o Serialización)
         
-        Given: Un formulario válido.
+        Given: Un formulario válido enviado por un administrador.
         When: Cualquier paso dentro del bloque try lanza una excepción genérica.
         Then: La vista captura el error y retorna status 400 con el detalle.
         """
         request = self.factory.post(self.path, data={"titulo": "test"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_form.return_value.is_valid.return_value = True
         
@@ -204,12 +217,11 @@ class TestComunicadoListCreateView(unittest.TestCase):
 
     def test_post_usuario_no_autenticado_bloqueado(self):
         """
-        # Comentario requerido por [2026-03-04]
         Test: Seguridad - Usuario no autenticado
         
         Given: Una petición POST sin credenciales.
         When: Se intenta acceder al endpoint.
-        Then: Las permission_classes (IsAuthenticated) bloquean el acceso (401/403).
+        Then: Las permission_classes bloquean el acceso (401/403).
         """
         request = self.factory.post(self.path, data={"titulo": "Hola"}, format='json')
 

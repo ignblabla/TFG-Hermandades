@@ -44,6 +44,7 @@ from api.vistas.solicitud_baja.listado_solicitudes_baja_admin_view import AdminL
 from api.vistas.cuota.cuotas_pendientes_view import MisCuotasPendientesView
 from api.vistas.cuota.numero_cuotas_pendientes_view import NumeroCuotasPendientesView
 from api.vistas.solicitud_baja.resolver_solicitud_baja_view import ResolverSolicitudBajaView
+from api.vistas.comunicado.comunicado_admin_list_view import ComunicadoAdminListView
 
 
 urlpatterns = [
@@ -91,6 +92,7 @@ urlpatterns = [
     path('comunicados/<int:exclude_id>/relacionados/', ComunicadosRelacionadosView.as_view(), name='comunicados-relacionados'),
     path("comunicados/mis-noticias/", MisComunicadosListView.as_view(), name="mis-noticias"),
     path('comunicados/ultimos-area-interes/', UltimosComunicadosAreaInteresView.as_view(), name='ultimos-comunicado-areas'),
+    path('admin/comunicados/listado-total/', ComunicadoAdminListView.as_view(), name='admin-comunicados-total'),
 
     # Cuotas
     path('mis-cuotas/', MisCuotasListView.as_view(), name='mis_cuotas_list'),

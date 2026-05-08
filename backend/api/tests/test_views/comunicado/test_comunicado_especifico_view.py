@@ -1,10 +1,8 @@
 import unittest
 from unittest.mock import ANY, MagicMock, patch
 from django.http import Http404
-from django.contrib.auth.models import AnonymousUser
 from rest_framework.test import APIRequestFactory, force_authenticate
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.exceptions import ValidationError
 
 from api.vistas.comunicado.comunicado_view import ComunicadoDetailView
@@ -19,13 +17,20 @@ class TestComunicadoDetailView(unittest.TestCase):
         self.pk = 1
         self.path = f"/api/comunicados/{self.pk}/"
 
-        self.mock_user = MagicMock(spec=['is_authenticated'])
-        self.mock_user.is_authenticated = True
+        # Mock de usuario normal (is_authenticated=True, pero esAdmin=False)
+        self.mock_normal = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_normal.is_authenticated = True
+        self.mock_normal.esAdmin = False
+
+        # Mock de usuario administrador (is_authenticated=True, esAdmin=True)
+        self.mock_admin = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_admin.is_authenticated = True
+        self.mock_admin.esAdmin = True
 
 
 
     # ---------------------------------------------------------------------------
-    # TESTS GET
+    # TESTS GET (Requiere IsAuthenticated)
     # ---------------------------------------------------------------------------
 
     @patch("api.vistas.comunicado.comunicado_view.ComunicadoListSerializer")
@@ -34,13 +39,14 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Flujo feliz consolidado (detalle correcto)
         
-        Given: Un ID de comunicado existente y un usuario autenticado.
+        Given: Un ID de comunicado existente y un usuario autenticado (normal o admin).
         When: Se solicita el detalle mediante GET.
         Then: Se obtiene el objeto de BD, se pasa el request en el contexto 
             del serializador y retorna status 200.
         """
         request = self.factory.get(self.path)
-        force_authenticate(request, user=self.mock_user)
+        # Probamos con un usuario normal, para asegurar que no exige esAdmin
+        force_authenticate(request, user=self.mock_normal)
 
         mock_comunicado = MagicMock(name="ComunicadoInstance")
         mock_get_object.return_value = mock_comunicado
@@ -70,7 +76,7 @@ class TestComunicadoDetailView(unittest.TestCase):
         Then: get_object_or_404 lanza Http404 y DRF retorna status 404 NOT FOUND.
         """
         request = self.factory.get(self.path)
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_normal)
 
         mock_get_object.side_effect = Http404()
 
@@ -97,7 +103,7 @@ class TestComunicadoDetailView(unittest.TestCase):
 
 
     # ---------------------------------------------------------------------------
-    # TESTS PUT
+    # TESTS PUT (Requiere EsAdministrador)
     # ---------------------------------------------------------------------------
 
     @patch("api.vistas.comunicado.comunicado_view.ComunicadoListSerializer")
@@ -108,14 +114,14 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Flujo feliz consolidado (actualización correcta)
         
-        Given: Un comunicado existente y datos de actualización válidos.
+        Given: Un comunicado existente y datos de actualización válidos enviados por un admin.
         When: Se realiza una petición PUT al endpoint.
         Then: Se valida el formulario, el servicio actualiza el objeto 
             y se devuelve el objeto serializado con status 200.
         """
         datos_input = {"titulo": "Nuevo Título"}
         request = self.factory.put(self.path, data=datos_input, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_comunicado_original = MagicMock()
         mock_get_object.return_value = mock_comunicado_original
@@ -138,13 +144,32 @@ class TestComunicadoDetailView(unittest.TestCase):
         mock_form_instance.is_valid.assert_called_once_with(raise_exception=True)
         
         mock_service.return_value.update_comunicado.assert_called_once_with(
-            usuario=self.mock_user,
+            usuario=self.mock_admin,
             comunicado_instance=mock_comunicado_original,
             data_validada=datos_input
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, datos_respuesta)
+
+
+
+    @patch("api.vistas.comunicado.comunicado_view.get_object_or_404")
+    def test_put_usuario_no_admin_falla_403(self, mock_get_object):
+        """
+        Test: Seguridad - Usuario sin permisos de administrador (PUT)
+        
+        Given: Un usuario autenticado pero que no tiene el atributo esAdmin a True.
+        When: Se intenta hacer una petición PUT.
+        Then: La permission_class EsAdministrador intercepta la petición y retorna 403 Forbidden.
+        """
+        request = self.factory.put(self.path, data={"titulo": "Test"}, format='json')
+        force_authenticate(request, user=self.mock_normal)
+
+        response = self.view(request, pk=self.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_get_object.assert_not_called()
 
 
 
@@ -159,7 +184,7 @@ class TestComunicadoDetailView(unittest.TestCase):
         Then: DRF lanza ValidationError y la vista retorna status 400.
         """
         request = self.factory.put(self.path, data={}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.return_value = MagicMock()
         mock_form_serializer.return_value.is_valid.side_effect = ValidationError({"error": "campo requerido"})
@@ -177,12 +202,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Excepción genérica capturada en bloque try/except
         
-        Given: Un flujo de validación correcto.
-        When: Cualquier elemento dentro del try (ej. el servicio) lanza una excepción genérica.
+        Given: Un flujo de validación correcto de un administrador.
+        When: Cualquier elemento dentro del try lanza una excepción genérica.
         Then: La vista captura la excepción y retorna 400 con el detalle del error.
         """
         request = self.factory.put(self.path, data={"titulo": "test"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.return_value = MagicMock()
         mock_form_serializer.return_value.is_valid.return_value = True
@@ -202,12 +227,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: pk inválido o no existente
         
-        Given: Un PK que no corresponde a ningún registro.
+        Given: Un PK que no corresponde a ningún registro consultado por un admin.
         When: La vista llama a get_object_or_404.
         Then: DRF maneja la excepción Http404 y retorna status 404.
         """
         request = self.factory.put(self.path, data={"titulo": "test"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_get_object.side_effect = Http404()
 
@@ -218,7 +243,7 @@ class TestComunicadoDetailView(unittest.TestCase):
 
 
     # ---------------------------------------------------------------------------
-    # TESTS PATCH
+    # TESTS PATCH (Requiere EsAdministrador)
     # ---------------------------------------------------------------------------
 
     @patch("api.vistas.comunicado.comunicado_view.ComunicadoListSerializer")
@@ -229,14 +254,14 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Flujo feliz consolidado (PATCH correcto)
         
-        Given: Un comunicado existente y datos parciales.
+        Given: Un comunicado existente y datos parciales enviados por un admin.
         When: Se realiza una petición PATCH al endpoint.
         Then: El serializador se instancia con partial=True, el servicio actualiza 
             el objeto y se retorna status 200 con los datos.
         """
         datos_parciales = {"titulo": "Título modificado"}
         request = self.factory.patch(self.path, data=datos_parciales, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_obj = MagicMock(name="ComunicadoOriginal")
         mock_get_object.return_value = mock_obj
@@ -264,7 +289,7 @@ class TestComunicadoDetailView(unittest.TestCase):
         mock_form_instance.is_valid.assert_called_once_with(raise_exception=True)
 
         mock_service.return_value.update_comunicado.assert_called_once_with(
-            usuario=self.mock_user,
+            usuario=self.mock_admin,
             comunicado_instance=mock_obj,
             data_validada=datos_parciales
         )
@@ -274,18 +299,37 @@ class TestComunicadoDetailView(unittest.TestCase):
 
 
 
+    @patch("api.vistas.comunicado.comunicado_view.get_object_or_404")
+    def test_patch_usuario_no_admin_falla_403(self, mock_get_object):
+        """
+        Test: Seguridad - Usuario sin permisos de administrador (PATCH)
+        
+        Given: Un usuario normal sin permisos de administrador.
+        When: Se intenta realizar una petición PATCH.
+        Then: DRF bloquea la petición con 403 Forbidden antes de entrar al método.
+        """
+        request = self.factory.patch(self.path, data={"titulo": "Test"}, format='json')
+        force_authenticate(request, user=self.mock_normal)
+
+        response = self.view(request, pk=self.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_get_object.assert_not_called()
+
+
+
     @patch("api.vistas.comunicado.comunicado_view.ComunicadoFormSerializer")
     @patch("api.vistas.comunicado.comunicado_view.get_object_or_404")
     def test_patch_validacion_falla_retorna_400(self, mock_get_object, mock_form_serializer):
         """
         Test: Validación del serializer falla
         
-        Given: Datos que no cumplen las reglas de negocio.
+        Given: Datos que no cumplen las reglas de negocio enviados por admin.
         When: Se llama a is_valid(raise_exception=True).
         Then: DRF lanza ValidationError y retorna status 400.
         """
         request = self.factory.patch(self.path, data={"campo_invalido": "valor"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.return_value = MagicMock()
         mock_form_serializer.return_value.is_valid.side_effect = ValidationError({"error": "dato invalido"})
@@ -303,12 +347,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Excepción genérica capturada en bloque try/except
         
-        Given: Un formulario válido y recuperado con éxito.
-        When: Cualquier elemento dentro del try (ej. el servicio o el serializador de salida) lanza una excepción genérica.
+        Given: Un formulario parcial válido y recuperado con éxito.
+        When: Cualquier elemento dentro del try lanza una excepción genérica.
         Then: La vista captura la excepción y retorna 400 con el detalle del error.
         """
         request = self.factory.patch(self.path, data={"titulo": "error"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.return_value = MagicMock()
         mock_form_serializer.return_value.is_valid.return_value = True
@@ -328,12 +372,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: pk inválido o no existente
         
-        Given: Un ID de comunicado que no figura en la base de datos.
+        Given: Un ID de comunicado que no figura en la base de datos consultado por admin.
         When: Se llama a get_object_or_404.
         Then: Se lanza Http404 y DRF responde con status 404.
         """
         request = self.factory.patch(self.path, data={"titulo": "cambio"}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_get_object.side_effect = Http404()
 
@@ -344,7 +388,7 @@ class TestComunicadoDetailView(unittest.TestCase):
 
 
     # ---------------------------------------------------------------------------
-    # TESTS DELETE
+    # TESTS DELETE (Requiere EsAdministrador)
     # ---------------------------------------------------------------------------
 
     @patch("api.vistas.comunicado.comunicado_view.ComunicadoService")
@@ -353,13 +397,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Flujo feliz (DELETE correcto)
         
-        Given: Un ID de comunicado válido y existente.
+        Given: Un ID de comunicado válido, existente, y un administrador.
         When: Se realiza una petición DELETE.
-        Then: Se obtiene el objeto, se pasa al servicio junto con el usuario,
-            y se retorna status 204 NO CONTENT sin cuerpo en la respuesta.
+        Then: Se obtiene el objeto, se pasa al servicio, y se retorna status 204.
         """
         request = self.factory.delete(self.path)
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_obj = MagicMock(name="ComunicadoAEliminar")
         mock_get_object.return_value = mock_obj
@@ -369,12 +412,31 @@ class TestComunicadoDetailView(unittest.TestCase):
         mock_get_object.assert_called_once_with(ANY, pk=self.pk)
         
         mock_service.return_value.delete_comunicado.assert_called_once_with(
-            usuario=self.mock_user,
+            usuario=self.mock_admin,
             comunicado_instance=mock_obj
         )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertIsNone(response.data)
+
+
+
+    @patch("api.vistas.comunicado.comunicado_view.get_object_or_404")
+    def test_delete_usuario_no_admin_falla_403(self, mock_get_object):
+        """
+        Test: Seguridad - Usuario sin permisos de administrador (DELETE)
+        
+        Given: Un usuario autenticado pero sin rol de administrador.
+        When: Se realiza una petición DELETE.
+        Then: EsAdministrador bloquea la operación retornando 403 Forbidden.
+        """
+        request = self.factory.delete(self.path)
+        force_authenticate(request, user=self.mock_normal)
+
+        response = self.view(request, pk=self.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_get_object.assert_not_called()
 
 
 
@@ -384,12 +446,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: Excepción capturada en bloque try/except
         
-        Given: Un comunicado existente.
+        Given: Un comunicado existente y una solicitud enviada por un administrador.
         When: El servicio delete_comunicado lanza una excepción.
         Then: La vista captura la excepción y retorna 400 con el detalle del error.
         """
         request = self.factory.delete(self.path)
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.return_value = MagicMock()
 
@@ -408,12 +470,12 @@ class TestComunicadoDetailView(unittest.TestCase):
         """
         Test: pk inválido o no existente
         
-        Given: Un ID de comunicado que no figura en la base de datos.
+        Given: Un ID de comunicado inexistente y una solicitud DELETE de un admin.
         When: La vista llama a get_object_or_404.
-        Then: Se lanza Http404 y DRF responde automáticamente con status 404.
+        Then: Se lanza Http404 y DRF responde con status 404.
         """
         request = self.factory.delete(self.path)
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_get_object.side_effect = Http404()
 

@@ -224,3 +224,18 @@ class ComunicadoService:
         return queryset_base.filter(
             areas_interes__in=areas_usuario
         ).distinct().order_by('-fecha_emision')[:3]
+    
+
+
+    @staticmethod
+    def obtener_todos_los_comunicados(usuario):
+        """
+        Valida que el usuario sea administrador y retorna todos los comunicados.
+        """
+        if not getattr(usuario, 'esAdmin', False):
+            raise PermissionDenied("No tienes permisos para consultar el listado total de comunicados.")
+
+        return Comunicado.objects.select_related('autor')\
+                                .prefetch_related('areas_interes')\
+                                .all()\
+                                .order_by('-fecha_emision')

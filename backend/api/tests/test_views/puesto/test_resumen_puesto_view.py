@@ -14,9 +14,24 @@ class TestResumenPuestosActoAPIView(unittest.TestCase):
         self.url = f'/actos/{self.acto_id}/puestos/resumen/'
 
         self.user = MagicMock()
-        self.user.is_authenticated = True 
-        
+
         self.vista_callable = ResumenPuestosActoAPIView.as_view()
+
+
+
+    def test_acceso_denegado_si_no_esta_autenticado(self):
+        """
+        Test: Acceso denegado si no está autenticado
+        
+        Given: Una solicitud GET de un usuario anónimo.
+        When: Se intenta acceder a la vista ResumenPuestosActoAPIView.
+        Then: La API devuelve un error 401 Unauthorized al faltar las credenciales.
+        """
+        request = self.factory.get(self.url)
+
+        response = self.vista_callable(request, acto_id=self.acto_id)
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 
@@ -24,10 +39,10 @@ class TestResumenPuestosActoAPIView(unittest.TestCase):
     def test_get_devuelve_resumen_correctamente_200(self, mock_obtener_resumen):
         """
         Test: Devuelve resumen correctamente (200)
-        
-        Given: Un identificador de acto válido en la URL y una petición GET.
+
+        Given: Un usuario autenticado y un identificador de acto válido.
         When: La vista invoca al servicio obtener_resumen_puestos_acto.
-        Then: Se pasan los parámetros correctos, y la vista devuelve el diccionario íntegro con status 200 OK.
+        Then: Se devuelve el diccionario con las métricas y un status 200 OK.
         """
         request = self.factory.get(self.url)
         force_authenticate(request, user=self.user)

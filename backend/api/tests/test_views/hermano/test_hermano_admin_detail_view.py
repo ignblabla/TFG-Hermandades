@@ -1,4 +1,4 @@
-from unittest.mock import PropertyMock, call, patch, MagicMock
+from unittest.mock import call, patch, MagicMock
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.http import Http404
@@ -21,11 +21,11 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         self.mock_admin.is_authenticated = True
         self.mock_admin.esAdmin = True
 
+        self.mock_user = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_user.is_authenticated = True
+        self.mock_user.esAdmin = False
 
 
-    # ---------------------------------------------------------------------------
-    # TESTS GET
-    # ---------------------------------------------------------------------------
 
     @patch('api.vistas.hermano.hermano_admin_detail_view.HermanoAdminUpdateSerializer')
     @patch('api.vistas.hermano.hermano_admin_detail_view.get_object_or_404')
@@ -39,11 +39,7 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         """
         pk_test = 1
         request = self.factory.get(self.path)
-
-        mock_admin = MagicMock()
-        mock_admin.esAdmin = True
-
-        force_authenticate(request, user=mock_admin)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_hermano = MagicMock()
         mock_get_object.return_value = mock_hermano
@@ -63,32 +59,6 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
 
 
     @patch('api.vistas.hermano.hermano_admin_detail_view.get_object_or_404')
-    def test_get_usuario_no_admin_retorna_403(self, mock_get_object):
-        """
-        Test: Usuario no admin → 403
-        
-        Given: Un usuario autenticado cuyo atributo 'esAdmin' es False.
-        When: Se realiza una petición GET al detalle de gestión.
-        Then: La vista retorna un status 403 con el mensaje "No autorizado" y no llega a llamar a get_object_or_404.
-        """
-        request = self.factory.get(self.path)
-
-        mock_user = MagicMock()
-        mock_user.esAdmin = False
-
-        force_authenticate(request, user=mock_user)
-
-        response = self.view(request, pk=1)
-
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        self.assertEqual(response.data['detail'], "No autorizado")
-
-        mock_get_object.assert_not_called()
-
-
-
-    @patch('api.vistas.hermano.hermano_admin_detail_view.get_object_or_404')
     def test_get_error_en_get_object_or_404_propaga_404(self, mock_get_object):
         """
         Test: Error en get_object_or_404 → propagación (404)
@@ -98,9 +68,7 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         Then: La excepción se propaga y DRF la convierte en una respuesta 404.
         """
         request = self.factory.get(self.path)
-        mock_admin = MagicMock()
-        mock_admin.esAdmin = True
-        force_authenticate(request, user=mock_admin)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.side_effect = Http404()
 
@@ -109,10 +77,6 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-
-    # ---------------------------------------------------------------------------
-    # TESTS PUT
-    # ---------------------------------------------------------------------------
 
     @patch('api.vistas.hermano.hermano_admin_detail_view.update_hermano_por_admin_service')
     @patch('api.vistas.hermano.hermano_admin_detail_view.HermanoAdminUpdateSerializer')
@@ -134,7 +98,7 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         mock_get_object.return_value = mock_hermano_original
 
         mock_serializer_validacion = MagicMock()
-        mock_serializer_validacion.validated_data = {'nombre': 'Nombre Actualizado', 'email': 'nuevo@test.com'}
+        mock_serializer_validacion.validated_data = payload
 
         mock_serializer_respuesta = MagicMock()
         mock_serializer_respuesta.data = {'id': pk_test, 'nombre': 'Nombre Actualizado', 'email': 'nuevo@test.com'}
@@ -158,7 +122,7 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         mock_service.assert_called_once_with(
             usuario_solicitante=request.user,
             hermano_id=pk_test,
-            data_validada=mock_serializer_validacion.validated_data
+            data_validada=payload
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -173,7 +137,7 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         """
         Test: Usuario sin permisos → servicio lanza PermissionDenied
         
-        Given: Un administrador que intenta una acción no permitida por el servicio.
+        Given: Un administrador que intenta una acción no permitida por la lógica de negocio del servicio.
         When: update_hermano_por_admin_service lanza una excepción PermissionDenied.
         Then: La vista captura la excepción y retorna un status 403 con el mensaje de error.
         """
@@ -219,7 +183,6 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         response = self.view(request, pk=1)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
         mock_service.assert_not_called()
 
 
@@ -244,10 +207,6 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         mock_get_object.assert_called_once()
 
 
-
-    # ---------------------------------------------------------------------------
-    # TESTS PATCH
-    # ---------------------------------------------------------------------------
 
     @patch('api.vistas.hermano.hermano_admin_detail_view.update_hermano_por_admin_service')
     @patch('api.vistas.hermano.hermano_admin_detail_view.HermanoAdminUpdateSerializer')
@@ -367,10 +326,6 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
 
 
 
-    # ---------------------------------------------------------------------------
-    # TESTS TRANSVERSALES
-    # ---------------------------------------------------------------------------
-
     @patch('api.vistas.hermano.hermano_admin_detail_view.get_object_or_404')
     def test_usuario_no_autenticado_bloqueado_en_todos_los_metodos(self, mock_get_object):
         """
@@ -383,9 +338,34 @@ class TestHermanoAdminDetailViewGetUnitario(TestCase):
         metodos = ['get', 'put', 'patch']
         
         for metodo in metodos:
-            request = getattr(self.factory, metodo)("/api/hermanos/1/gestion/")
+            request = getattr(self.factory, metodo)(self.path)
 
             response = self.view(request, pk=1)
 
             self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
-            mock_get_object.assert_not_called()
+        
+        mock_get_object.assert_not_called()
+
+
+
+    @patch('api.vistas.hermano.hermano_admin_detail_view.get_object_or_404')
+    def test_usuario_no_admin_bloqueado_en_todos_los_metodos(self, mock_get_object):
+        """
+        Test: Usuario no admin → 403 (aplicado por EsAdministrador)
+        
+        Given: Un usuario autenticado pero cuyo atributo 'esAdmin' es False.
+        When: Se realiza una petición GET, PUT o PATCH a la vista.
+        Then: La clase de permisos EsAdministrador bloquea la petición, retornando status 403 
+            sin llegar a ejecutar la lógica de la vista (get_object_or_404 no es llamado).
+        """
+        metodos = ['get', 'put', 'patch']
+
+        for metodo in metodos:
+            request = getattr(self.factory, metodo)(self.path)
+            force_authenticate(request, user=self.mock_user)
+
+            response = self.view(request, pk=1)
+
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        mock_get_object.assert_not_called()

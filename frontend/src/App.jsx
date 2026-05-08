@@ -13,7 +13,7 @@ import ValidarAcceso from "./pages/ValidarAcceso";
 import MisPapeletas from "./pages/HermanoMisPapeletasDeSitio/HermanoMisPapeletasDeSitio"
 import AdminEdicionActo from "./pages/AdminEdicionActo"
 import HermanoCrearSolicitudUnificada from "./pages/HermanoCrearSolicitudUnificada"
-import AdminListadoComunicados from "./pages/AdminListadoComunicados"
+import AdminListadoComunicados from "./pages/AdminListadoTotalComunicados/AdminListadoComunicados"
 import HermanoAreaInteres from "./pages/HermanoAreasInteres/HermanoAreasInteres"
 import AdminEditarHermano from "./pages/AdminEdicionHermano/AdminEdicionHermano"
 import EditarMiPerfil from "./pages/HermanoEdicionDatos/HermanoEdicionDatos"
@@ -209,6 +209,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/comunicados"
+          element={
+            <ProtectedRoute>
+              <AdminListadoComunicados />
+            </ProtectedRoute>
+          }
+        />
 
 
 
@@ -278,14 +286,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/admin/comunicados"
-          element={
-            <ProtectedRoute>
-              <AdminListadoComunicados />
-            </ProtectedRoute>
-          }
-        />
+        
         <Route
           path="/solicitar-unificada" 
           element={

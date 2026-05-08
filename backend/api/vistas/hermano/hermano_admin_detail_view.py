@@ -6,6 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from api.serializadores.hermano.hermano_serializer import HermanoAdminUpdateSerializer
 from api.servicios.hermano.hermano_service import update_hermano_por_admin_service
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
@@ -14,12 +15,9 @@ User = get_user_model()
 
 
 class HermanoAdminDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def get(self, request, pk):
-        if not getattr(request.user, 'esAdmin', False):
-            return Response({"detail": "No autorizado"}, status=status.HTTP_403_FORBIDDEN)
-        
         hermano = get_object_or_404(User, pk=pk)
         serializer = HermanoAdminUpdateSerializer(hermano)
         return Response(serializer.data, status=status.HTTP_200_OK)

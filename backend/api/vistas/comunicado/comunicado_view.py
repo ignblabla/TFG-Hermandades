@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 
 from api.serializadores.comunicado.comunicado_serializer import ComunicadoFormSerializer, ComunicadoListSerializer
 from api.servicios.comunicado.comunicado_service import ComunicadoService
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class ComunicadoDetailView(APIView):
@@ -46,7 +47,16 @@ class ComunicadoDetailView(APIView):
             Delega la validación de permisos y el borrado a `ComunicadoService.delete_comunicado()`.
             Códigos HTTP: 204 No Content (Éxito), 400 Bad Request (Error servicio), 404 Not Found.
     """
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        """
+        Instancia y devuelve la lista de permisos que requiere esta vista 
+        dependiendo del método HTTP utilizado.
+        """
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return [EsAdministrador()]
+
+
 
     def get(self, request, pk):
         comunicado = get_object_or_404(Comunicado, pk=pk)

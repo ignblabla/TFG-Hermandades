@@ -13,7 +13,15 @@ class TestActoCreateView(TestCase):
         self.factory = APIRequestFactory()
         self.view = ActoCreateView.as_view()
         self.path = "/api/actos/crear/"
-        self.mock_user = MagicMock()
+
+        self.mock_admin = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_admin.is_authenticated = True
+        self.mock_admin.esAdmin = True
+
+        self.mock_normal = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_normal.is_authenticated = True
+        self.mock_normal.esAdmin = False
+
 
 
     @patch('api.vistas.acto.crear_acto_view.crear_acto_service')
@@ -22,14 +30,14 @@ class TestActoCreateView(TestCase):
         """
         Test: Creación exitosa de acto
         
-        Given: Un usuario autenticado y datos válidos en la petición.
+        Given: Un usuario administrador autenticado y datos válidos en la petición.
         When: Se procesa el POST.
         Then: Se valida el serializador, se llama al servicio y se retorna 201 
             con los datos del nuevo acto serializados.
         """
         data = {'nombre': 'Evento Test'}
         request = self.factory.post(self.path, data)
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_ser_in = MagicMock()
         mock_ser_in.is_valid.return_value = True
@@ -47,7 +55,42 @@ class TestActoCreateView(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data, mock_ser_out.data)
-        mock_service.assert_called_once_with(self.mock_user, data)
+        mock_service.assert_called_once_with(self.mock_admin, data)
+
+
+
+    def test_usuario_no_admin_falla_403(self):
+        """
+        Test: Seguridad - Usuario sin permisos de administrador
+        
+        Given: Un usuario autenticado pero sin rol de administrador (esAdmin=False).
+        When: Se intenta realizar una petición POST para crear un acto.
+        Then: La permission_class EsAdministrador bloquea la petición con status 403.
+        """
+        data = {'nombre': 'Evento Test'}
+        request = self.factory.post(self.path, data)
+        force_authenticate(request, user=self.mock_normal)
+
+        response = self.view(request)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+
+    def test_usuario_no_autenticado_falla(self):
+        """
+        Test: Seguridad - Usuario no autenticado
+        
+        Given: Una petición POST sin credenciales.
+        When: Se intenta acceder al endpoint.
+        Then: Las permission_classes bloquean el acceso devolviendo 401/403.
+        """
+        data = {'nombre': 'Evento Test'}
+        request = self.factory.post(self.path, data)
+
+        response = self.view(request)
+
+        self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
 
 
 
@@ -57,13 +100,13 @@ class TestActoCreateView(TestCase):
         """
         Test: Serializer inválido → 400 con errores
         
-        Given: Una petición con datos que fallan la validación del serializador.
+        Given: Una petición de un admin con datos que fallan la validación del serializador.
         When: serializer.is_valid() devuelve False.
         Then: Se retorna status 400, se devuelven los errores del serializador 
             y se garantiza que el servicio no es invocado.
         """
         request = self.factory.post(self.path, {'nombre': ''}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_ser = MagicMock(name="SerializerInvalido")
         mock_ser.is_valid.return_value = False
@@ -89,7 +132,7 @@ class TestActoCreateView(TestCase):
         Then: La vista captura la excepción y retorna el message_dict con status 400.
         """
         request = self.factory.post(self.path, {'nombre': 'Test'}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_ser = MagicMock()
         mock_ser.is_valid.return_value = True
@@ -111,12 +154,12 @@ class TestActoCreateView(TestCase):
         """
         Test: DjangoValidationError sin message_dict → 400 con detail
         
-        Given: El servicio detecta un error general de validación.
+        Given: El servicio detecta un error general de validación procesando la petición.
         When: Se lanza DjangoValidationError con un mensaje simple (string).
         Then: La vista retorna un diccionario con la clave 'detail' y status 400.
         """
         request = self.factory.post(self.path, {'nombre': 'Test'}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_ser = MagicMock()
         mock_ser.is_valid.return_value = True
@@ -138,18 +181,18 @@ class TestActoCreateView(TestCase):
         """
         Test: PermissionDenied → 403
         
-        Given: Un usuario que no tiene permisos para realizar la acción.
+        Given: Un usuario admin que no supera las validaciones de permisos internos del servicio.
         When: El servicio lanza una excepción PermissionDenied.
         Then: Se retorna un status 403 y el mensaje de error en la clave 'detail'.
         """
         request = self.factory.post(self.path, {'nombre': 'Privado'}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_ser = MagicMock()
         mock_ser.is_valid.return_value = True
         mock_serializer_class.return_value = mock_ser
 
-        mensaje_error = "No tienes permisos para crear actos."
+        mensaje_error = "No tienes permisos de área para crear este acto."
         mock_service.side_effect = PermissionDenied(mensaje_error)
 
         response = self.view(request)
