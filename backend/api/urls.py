@@ -39,7 +39,7 @@ from api.vistas.puesto.crear_puesto_view import CrearPuestoView
 from api.vistas.puesto.puesto_detalle_view import PuestoDetalleView
 from api.vistas.puesto.listado_puesto_view import PuestosPorActoListView
 from api.vistas.puesto.resumen_puesto_view import ResumenPuestosActoAPIView
-from api.vistas.solicitud_baja.crear_solicitud_baja_view import SolicitudBajaAPIView
+from api.vistas.solicitud_baja.solicitud_baja_view import SolicitudBajaAPIView
 from api.vistas.solicitud_baja.listado_solicitudes_baja_admin_view import AdminListadoSolicitudesBajaAPIView
 from api.vistas.cuota.cuotas_pendientes_view import MisCuotasPendientesView
 from api.vistas.cuota.numero_cuotas_pendientes_view import NumeroCuotasPendientesView
