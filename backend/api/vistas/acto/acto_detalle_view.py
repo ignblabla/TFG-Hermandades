@@ -7,12 +7,22 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
 
 from api.models import Acto, PapeletaSitio
-from api.servicios.acto.acto_service import update_acto_service
+from api.servicios.acto.acto_service import delete_acto_service, update_acto_service
 from api.serializadores.acto.acto_serializer import ActoSerializer
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class ActoDetalleView(APIView):
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        """
+        Instancia y devuelve la lista de permisos requeridos dependiendo del método HTTP.
+        """
+        if self.request.method == 'GET':
+            return [IsAuthenticated()]
+        return [EsAdministrador()]
+
+
 
     def get(self, request, pk):
         """
@@ -67,3 +77,12 @@ class ActoDetalleView(APIView):
 
         response_serializer = ActoSerializer(acto_actualizado)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+
+
+    def delete(self, request, pk):
+        """
+        Eliminar un acto.
+        """
+        delete_acto_service(usuario=request.user, acto_id=pk)
+        return Response(status=status.HTTP_204_NO_CONTENT)

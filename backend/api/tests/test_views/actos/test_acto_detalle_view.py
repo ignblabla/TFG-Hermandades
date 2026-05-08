@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from api.vistas.acto.acto_detalle_view import ActoDetalleView
 
 
-class TestActoDetalleViewGetPositivos(TestCase):
+class TestActoDetalleView(TestCase):
 
     def setUp(self):
         self.factory = APIRequestFactory()
@@ -16,13 +16,18 @@ class TestActoDetalleViewGetPositivos(TestCase):
         self.pk_prueba = 1
         self.path = f"/api/actos/{self.pk_prueba}/"
 
-        self.mock_user = MagicMock(spec=['is_authenticated'])
+        self.mock_user = MagicMock(spec=['is_authenticated', 'esAdmin'])
         self.mock_user.is_authenticated = True
+        self.mock_user.esAdmin = False
+
+        self.mock_admin = MagicMock(spec=['is_authenticated', 'esAdmin'])
+        self.mock_admin.is_authenticated = True
+        self.mock_admin.esAdmin = True
 
 
 
     # ---------------------------------------------------------------------------
-    # TESTS GET
+    # TESTS GET (Requieren IsAuthenticated)
     # ---------------------------------------------------------------------------
 
     @patch('api.vistas.acto.acto_detalle_view.ActoSerializer')
@@ -31,7 +36,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
         """
         Test: Recupera acto correctamente y verifica contexto
         
-        Given: Un usuario autenticado y un ID (pk) de un acto existente.
+        Given: Un usuario autenticado (sin necesidad de ser admin) y un ID (pk) de un acto existente.
         When: Se realiza una petición GET a la vista de detalle de acto.
         Then: Se busca el acto, se instancia el serializador con el request en su 'context',
             y se retorna status 200 con los datos serializados.
@@ -81,7 +86,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
 
 
     # ---------------------------------------------------------------------------
-    # TESTS PUT
+    # TESTS PUT (Requieren EsAdministrador)
     # ---------------------------------------------------------------------------
 
     @patch('api.vistas.acto.acto_detalle_view.Acto')
@@ -92,14 +97,14 @@ class TestActoDetalleViewGetPositivos(TestCase):
         """
         Test: Actualización completa correcta
         
-        Given: Un usuario autenticado y un payload con datos para actualizar un acto.
+        Given: Un usuario administrador y un payload con datos para actualizar un acto.
         When: Se realiza una petición PUT.
         Then: Se valida la existencia del acto, se valida el serializador, 
             se invoca el servicio y se retorna status 200 con los datos nuevos.
         """
         payload = {'titulo': 'Acto Actualizado', 'descripcion': 'Nueva descripción'}
         request = self.factory.put(self.path, payload, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_acto_instancia = MagicMock()
         mock_get_object.return_value = mock_acto_instancia
@@ -123,7 +128,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
         mock_ser_entrada.is_valid.assert_called_once_with(raise_exception=True)
 
         mock_service.assert_called_once_with(
-            usuario=self.mock_user, 
+            usuario=self.mock_admin, 
             acto_id=self.pk_prueba, 
             data_validada=payload
         )
@@ -140,12 +145,12 @@ class TestActoDetalleViewGetPositivos(TestCase):
         """
         Test: Serializer inválido → excepción
         
-        Given: Un payload con datos incorrectos.
+        Given: Un usuario administrador y un payload con datos incorrectos.
         When: is_valid(raise_exception=True) detecta errores.
         Then: DRF captura la ValidationError, retorna 400 y NO se llega a llamar al servicio.
         """
         request = self.factory.put(self.path, {'titulo': ''}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_get_object.return_value = MagicMock()
 
@@ -163,15 +168,14 @@ class TestActoDetalleViewGetPositivos(TestCase):
     @patch('api.vistas.acto.acto_detalle_view.get_object_or_404')
     def test_put_error_en_get_object_or_404_propaga_404(self, mock_get_object):
         """
-        # Comentario requerido por [2026-03-04]
         Test: Error en get_object_or_404 → 404 Not Found
         
-        Given: Un ID de acto inexistente.
+        Given: Un usuario administrador y un ID de acto inexistente.
         When: get_object_or_404 lanza Http404.
         Then: DRF captura la excepción y retorna un 404 Not Found.
         """
         request = self.factory.put(self.path, {}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.side_effect = Http404()
 
@@ -182,7 +186,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
 
 
     # ---------------------------------------------------------------------------
-    # TESTS PATCH
+    # TESTS PATCH (Requieren EsAdministrador)
     # ---------------------------------------------------------------------------
 
     @patch('api.vistas.acto.acto_detalle_view.Acto')
@@ -193,14 +197,14 @@ class TestActoDetalleViewGetPositivos(TestCase):
         """
         Test: Actualización parcial correcta
         
-        Given: Un usuario autenticado y un ID de acto existente.
+        Given: Un usuario administrador y un ID de acto existente.
         When: Se realiza una petición PATCH con datos parciales.
         Then: El serializador se instancia con partial=True, el servicio se invoca correctamente 
             y se retorna status 200.
         """
         payload = {'titulo': 'Nuevo Titulo Parcial'}
         request = self.factory.patch(self.path, payload, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_acto_instancia = MagicMock()
         mock_get_object.return_value = mock_acto_instancia
@@ -220,7 +224,7 @@ class TestActoDetalleViewGetPositivos(TestCase):
         mock_serializer_class.assert_any_call(mock_acto_instancia, data=payload, partial=True)
 
         mock_service.assert_called_once_with(
-            usuario=self.mock_user,
+            usuario=self.mock_admin,
             acto_id=self.pk_prueba,
             data_validada=payload
         )
@@ -237,12 +241,12 @@ class TestActoDetalleViewGetPositivos(TestCase):
         """
         Test: Serializer inválido → respuesta 400
         
-        Given: Un payload con datos parciales inválidos.
+        Given: Un usuario administrador y un payload con datos parciales inválidos.
         When: is_valid(raise_exception=True) detecta el error.
         Then: DRF captura la ValidationError, retorna 400 y el servicio NO es invocado.
         """
         request = self.factory.patch(self.path, {'campo_invalido': 'error'}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
 
         mock_get_object.return_value = MagicMock()
         
@@ -260,14 +264,14 @@ class TestActoDetalleViewGetPositivos(TestCase):
     @patch('api.vistas.acto.acto_detalle_view.get_object_or_404')
     def test_patch_error_en_get_object_or_404_retorna_404(self, mock_get_object):
         """
-        Test: Error en get_object_or_404
+        Test: Error en get_object_or_404 (PATCH)
         
-        Given: Un ID de acto que no existe.
+        Given: Un usuario administrador y un ID de acto que no existe.
         When: Se intenta realizar un PATCH.
         Then: get_object_or_404 lanza Http404 y DRF retorna status 404.
         """
         request = self.factory.patch(self.path, {}, format='json')
-        force_authenticate(request, user=self.mock_user)
+        force_authenticate(request, user=self.mock_admin)
         
         mock_get_object.side_effect = Http404()
 
@@ -277,15 +281,42 @@ class TestActoDetalleViewGetPositivos(TestCase):
 
 
 
+    # ---------------------------------------------------------------------------
+    # TESTS DELETE (Requieren EsAdministrador)
+    # ---------------------------------------------------------------------------
+
+    @patch('api.vistas.acto.acto_detalle_view.delete_acto_service')
+    def test_delete_elimina_acto_correctamente(self, mock_delete_service):
+        """
+        Test: Eliminación de acto correcta
+        
+        Given: Un usuario administrador y un ID de acto.
+        When: Se realiza una petición DELETE.
+        Then: Se invoca el servicio de eliminación y se retorna status 204.
+        """
+        request = self.factory.delete(self.path)
+        force_authenticate(request, user=self.mock_admin)
+
+        response = self.view(request, pk=self.pk_prueba)
+
+        mock_delete_service.assert_called_once_with(usuario=self.mock_admin, acto_id=self.pk_prueba)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+
+    # ---------------------------------------------------------------------------
+    # TESTS DE PERMISOS (Transversales)
+    # ---------------------------------------------------------------------------
+
     def test_transversal_usuario_no_autenticado_bloqueado_en_todos_los_metodos(self):
         """
         Test: Usuario no autenticado bloqueado transversalmente
         
         Given: Peticiones HTTP sin credenciales de autenticación.
-        When: Se intenta acceder al detalle del acto mediante GET, PUT o PATCH.
-        Then: Las permission_classes (IsAuthenticated) bloquean el acceso con 401/403.
+        When: Se intenta acceder al detalle del acto mediante GET, PUT, PATCH o DELETE.
+        Then: Las policies de permisos bloquean el acceso con 401/403.
         """
-        metodos = ['get', 'put', 'patch']
+        metodos = ['get', 'put', 'patch', 'delete']
         
         for metodo in metodos:
             with self.subTest(metodo=metodo):
@@ -298,4 +329,31 @@ class TestActoDetalleViewGetPositivos(TestCase):
                     response.status_code, 
                     [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
                     msg=f"La seguridad falló para el método {metodo.upper()}"
+                )
+
+
+
+    def test_transversal_usuario_no_admin_bloqueado_en_escritura(self):
+        """
+        Test: Usuario autenticado sin rol admin bloqueado en escritura
+        
+        Given: Un usuario autenticado pero cuya propiedad esAdmin es False.
+        When: Se intenta modificar el recurso mediante PUT, PATCH o DELETE.
+        Then: El permiso EsAdministrador bloquea la petición devolviendo un código 403 Forbidden.
+        """
+        metodos = ['put', 'patch', 'delete']
+        
+        for metodo in metodos:
+            with self.subTest(metodo=metodo):
+                request_method = getattr(self.factory, metodo)
+                request = request_method(self.path, {}, format='json')
+
+                force_authenticate(request, user=self.mock_user)
+
+                response = self.view(request, pk=self.pk_prueba)
+
+                self.assertEqual(
+                    response.status_code, 
+                    status.HTTP_403_FORBIDDEN,
+                    msg=f"Un usuario no admin logró acceder al método {metodo.upper()}"
                 )

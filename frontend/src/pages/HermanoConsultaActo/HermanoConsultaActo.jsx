@@ -4,7 +4,7 @@ import api from '../../api';
 import '../AdminConsultaActo/AdminConsultaActo.css';
 import '../HermanoConsultaActo/HermanoConsultaActo.css'
 import '../HermanoConsultaNoticia/HermanoConsultaNoticia.css'
-import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, X } from "lucide-react";
+import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, X, Edit, Trash2 } from "lucide-react";
 
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -169,6 +169,21 @@ function HermanoConsultaActo() {
         }
     };
 
+    const handleEliminarActo = async () => {
+        const confirmar = window.confirm("¿Estás seguro de que deseas eliminar este acto? Esta acción no se puede deshacer.");
+        
+        if (confirmar) {
+            try {
+                await api.delete(`/api/actos/${id}/`);
+                alert("Acto eliminado correctamente.");
+                navigate("/listado-actos");
+            } catch (error) {
+                console.error("Error al eliminar el acto:", error);
+                alert("Hubo un error al intentar eliminar el acto.");
+            }
+        }
+    };
+
     const tileClassName = ({ date, view }) => {
         if (view === 'month' && acto && acto.fecha) {
             const fechaActo = new Date(acto.fecha);
@@ -306,6 +321,27 @@ function HermanoConsultaActo() {
                     <div className="dashboard-panel-evento">
                         <div className="historical-header-container-evento">
                             <h1 className="historical-header-title-evento">{acto.nombre}</h1>
+                            {currentUser?.esAdmin && (
+                                <div className="header-tags-container" style={{ display: 'flex', gap: '10px' }}>
+                                    <div 
+                                        className="header-tag-pill-editar" 
+                                        onClick={() => navigate(`/admin/editar-acto/${id}`)}
+                                        title="Editar este acto"
+                                    >
+                                        <Edit size={14} />
+                                        <span>Editar acto</span>
+                                    </div>
+
+                                    <div 
+                                        className="header-tag-pill-editar" 
+                                        onClick={handleEliminarActo}
+                                        title="Eliminar acto"
+                                    >
+                                        <Trash2 size={14} />
+                                        <span>Eliminar acto</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="plazos-separator-asignacion">

@@ -45,6 +45,27 @@ def update_acto_service(usuario, acto_id, data_validada):
     return acto
 
 # -----------------------------------------------------------------------------
+# SERVICES: ELIMINAR ACTO
+# -----------------------------------------------------------------------------
+@transaction.atomic
+def delete_acto_service(usuario, acto_id):
+    """
+    Elimina un acto del sistema.
+    """
+    if not getattr(usuario, 'esAdmin', False):
+        raise PermissionDenied("No tienes permisos para eliminar actos.")
+    
+    acto = get_object_or_404(Acto, pk=acto_id)
+
+    if acto.papeletas.exists():
+        raise ValidationError({
+            "acto": "No se puede eliminar un acto que ya tiene papeletas de sitio vinculadas. Considere anularlas o eliminarlas primero."
+        })
+
+    acto.delete()
+    return True
+
+# -----------------------------------------------------------------------------
 # SERVICES: LISTAR ACTOS
 # -----------------------------------------------------------------------------
 class ActoService:

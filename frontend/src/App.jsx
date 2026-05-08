@@ -269,7 +269,7 @@ function App() {
 
 
         <Route
-          path="editar-acto/:id"
+          path="admin/editar-acto/:id"
           element={
             <ProtectedRoute>
               <AdminEditarActo />
