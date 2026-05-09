@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminCreacionActo/AdminCrearActo.css';
-import { Save, FileText, Settings, ShieldAlert, CheckCircle, Clock, AlertCircle, Lock, ImageIcon, X } from "lucide-react";
-import ResumenActoCard from '../../components/ResumenActoCard';
+import { Save, CheckCircle, AlertCircle, Lock, ImageIcon, X } from "lucide-react";
 
 function AdminEditarActo() {
     const navigate = useNavigate();
@@ -12,17 +11,17 @@ function AdminEditarActo() {
     const currentYear = new Date().getFullYear();
     const minDate = `${currentYear}-01-01T00:00`;
     const maxDate = `${currentYear}-12-31T23:59`;
-    
+
     const [isOpen, setIsOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
-    
+
     const [currentUser, setCurrentUser] = useState(null);
     const [tiposActo, setTiposActo] = useState([]);
     const [requierePapeleta, setRequierePapeleta] = useState(false);
-    
+
     const [isDateLocked, setIsDateLocked] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -42,14 +41,13 @@ function AdminEditarActo() {
 
     const formatDateForInput = (isoString) => {
         if (!isoString) return '';
-        const date = new Date(isoString);
-        return isoString.slice(0, 16); 
+        return isoString.slice(0, 16);
     };
 
     // --- CARGA INICIAL ---
     useEffect(() => {
         let isMounted = true;
-        
+
         const fetchData = async () => {
             try {
                 const resUser = await api.get("api/me/");
@@ -62,7 +60,7 @@ function AdminEditarActo() {
                     return;
                 }
 
-                const resTipos = await api.get("api/tipos-acto/"); 
+                const resTipos = await api.get("api/tipos-acto/");
                 if (isMounted) setTiposActo(resTipos.data);
 
                 const resActo = await api.get(`api/actos/${id}/`);
@@ -83,20 +81,11 @@ function AdminEditarActo() {
                         imagen_portada: data.imagen_portada || null
                     });
 
-                    // ========================================================
-                    // SOLUCIÓN AL RECORTE/IMAGEN ROTA:
-                    // Construimos la URL absoluta hacia el servidor de Django
-                    // ========================================================
                     if (data.imagen_portada) {
                         if (data.imagen_portada.startsWith('http')) {
-                            // Si ya trae el http (por ejemplo, si usas AWS S3 en un futuro), la dejamos tal cual
                             setPreviewUrl(data.imagen_portada);
                         } else {
-                            // Sacamos la URL base de tu configuración de Axios. 
-                            // Si no está definida, ponemos por defecto la de Django local (8000).
                             const backendUrl = api.defaults.baseURL || 'http://localhost:8000';
-                            
-                            // Limpiamos la barra final por si acaso y concatenamos
                             const cleanBaseUrl = backendUrl.replace(/\/$/, '');
                             setPreviewUrl(`${cleanBaseUrl}${data.imagen_portada}`);
                         }
@@ -124,6 +113,13 @@ function AdminEditarActo() {
         fetchData();
         return () => { isMounted = false; };
     }, [id, navigate]);
+
+    useEffect(() => {
+        if (successMsg) {
+            const timer = setTimeout(() => setSuccessMsg(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMsg]);
 
     useEffect(() => {
         return () => {
@@ -160,12 +156,13 @@ function AdminEditarActo() {
             newData.inicio_solicitud_cirios = '';
             newData.fin_solicitud_cirios = '';
         }
+
         setFormData(newData);
     };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        
+
         if (file) {
             const objectUrl = URL.createObjectURL(file);
             const img = new Image();
@@ -180,7 +177,7 @@ function AdminEditarActo() {
                     setError("");
                 } else {
                     setError("La imagen debe ser horizontal (formato paisaje).");
-                    e.target.value = ""; 
+                    e.target.value = "";
                     URL.revokeObjectURL(objectUrl);
                 }
             };
@@ -198,6 +195,7 @@ function AdminEditarActo() {
         e.preventDefault();
         setSaving(true);
         setError("");
+        setSuccessMsg("");
 
         const payload = { ...formData };
 
@@ -224,26 +222,24 @@ function AdminEditarActo() {
             if (payload.imagen_portada instanceof File) {
                 dataToSend.append('imagen_portada', payload.imagen_portada);
             } else if (payload.imagen_portada === null && !previewUrl) {
-                dataToSend.append('imagen_portada', ''); 
+                dataToSend.append('imagen_portada', '');
             }
 
-            await api.put(`api/actos/${id}/editar/`, dataToSend, {
+            await api.put(`api/actos/${id}/`, dataToSend, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            
+
             setSuccessMsg("Acto actualizado correctamente.");
-            setTimeout(() => navigate("/home"), 1500);
+            setTimeout(() => navigate("/listado-actos"), 3000);
 
         } catch (err) {
+            console.error(err);
             if (err.response?.status === 500) {
                 setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
             } else {
                 const errorData = err.response?.data;
-
                 if (typeof errorData === 'object' && errorData !== null) {
-                    const mensajesLimpios = Object.values(errorData)
-                        .flat()
-                        .join(" | ");
+                    const mensajesLimpios = Object.values(errorData).flat().join(" | ");
                     setError(mensajesLimpios || "Error al validar los datos del acto.");
                 } else {
                     setError(typeof errorData === 'string' ? errorData : "Error al guardar el acto.");
@@ -260,15 +256,25 @@ function AdminEditarActo() {
         navigate("/login");
     };
 
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
+    };
+
     return (
         <div>
+            {/* ── SIDEBAR (idéntico al de Crear) ── */}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
                     <div className="logo_name-dashboard">San Gonzalo</div>
-                    <i 
-                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`} 
-                        id="btn" 
+                    <i
+                        className={`bx ${isOpen ? 'bx-menu-alt-right' : 'bx-menu'}`}
+                        id="btn"
                         onClick={toggleSidebar}
                     ></i>
                 </div>
@@ -286,366 +292,447 @@ function AdminEditarActo() {
                         <span className="tooltip-dashboard">Dashboard</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/editar-mi-perfil">
                             <i className="bx bx-user"></i>
-                            <span className="link_name-dashboard">User</span>
+                            <span className="link_name-dashboard">Mi perfil</span>
                         </a>
-                        <span className="tooltip-dashboard">User</span>
+                        <span className="tooltip-dashboard">Mi perfil</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-chat"></i>
-                            <span className="link_name-dashboard">Message</span>
+                        <a href="/noticias">
+                            <i className="bx bx-news"></i>
+                            <span className="link_name-dashboard">Mis noticias</span>
                         </a>
-                        <span className="tooltip-dashboard">Message</span>
+                        <span className="tooltip-dashboard">Mis noticias</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-pie-chart-alt-2"></i>
-                            <span className="link_name-dashboard">Analytics</span>
+                        <a href="/listado-cuotas">
+                            <i className="bx bx-wallet"></i>
+                            <span className="link_name-dashboard">Mis cuotas</span>
                         </a>
-                        <span className="tooltip-dashboard">Analytics</span>
+                        <span className="tooltip-dashboard">Mis cuotas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-folder"></i>
-                            <span className="link_name-dashboard">File Manager</span>
+                        <a href="/mis-papeletas-de-sitio">
+                            <i className="bx bx-file"></i>
+                            <span className="link_name-dashboard">Mis papeletas</span>
                         </a>
-                        <span className="tooltip-dashboard">File Manager</span>
+                        <span className="tooltip-dashboard">Mis papeletas</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cart-alt"></i>
-                            <span className="link_name-dashboard">Order</span>
+                        <a href="/listado-actos">
+                            <i className="bx bx-calendar-event"></i>
+                            <span className="link_name-dashboard">Actos</span>
                         </a>
-                        <span className="tooltip-dashboard">Order</span>
+                        <span className="tooltip-dashboard">Actos</span>
                     </li>
                     <li>
-                        <a href="#">
-                            <i className="bx bx-cog"></i>
-                            <span className="link_name-dashboard">Settings</span>
+                        <a href="/areas-de-interes">
+                            <i className="bx bx-list-ul"></i>
+                            <span className="link_name-dashboard">Áreas de Interés</span>
                         </a>
-                        <span className="tooltip-dashboard">Settings</span>
+                        <span className="tooltip-dashboard">Áreas de Interés</span>
                     </li>
-                    
+                    <li>
+                        <a
+                            href="#"
+                            onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                            style={{
+                                cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                            }}
+                        >
+                            <i className="bx bxl-telegram"></i>
+                            <span className="link_name-dashboard">
+                                {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                            </span>
+                        </a>
+                        <span className="tooltip-dashboard">
+                            {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                        </span>
+                    </li>
+                    {currentUser?.esAdmin && (
+                        <li>
+                            <a href="/censo-hermanos">
+                                <i className="bx bx-group"></i>
+                                <span className="link_name-dashboard">Censo</span>
+                            </a>
+                            <span className="tooltip-dashboard">Censo</span>
+                        </li>
+                    )}
+
                     <li className="profile-dashboard">
                         <div className="profile_details-dashboard">
                             <img src="profile.jpeg" alt="profile image" />
                             <div className="profile_content-dashboard">
-                                <div className="name-dashboard">{currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}</div>
+                                <div className="name-dashboard">
+                                    {currentUser ? `${currentUser.nombre} ${currentUser.primer_apellido}` : "Usuario"}
+                                </div>
                                 <div className="designation-dashboard">Administrador</div>
                             </div>
                         </div>
-                        <i 
-                            className="bx bx-log-out" 
-                            id="log_out" 
+                        <i
+                            className="bx bx-log-out"
+                            id="log_out"
                             onClick={handleLogout}
-                            style={{cursor: 'pointer'}} 
+                            style={{ cursor: 'pointer' }}
                         ></i>
                     </li>
                 </ul>
             </div>
 
-            <section className="home-section-dashboard">
-                <div className="text-dashboard">Editar acto</div>
-                <div style={{ padding: '0 20px 40px 20px' }}>
-                    <div className="dashboard-layout-wrapper">
-                        <form className="container-crear-acto" onSubmit={handleSubmit}>
+            {/* ── CONTENIDO PRINCIPAL ── */}
+            <section className={`home-section-dashboard-solicitud ${isOpen ? 'sidebar-open' : ''}`}>
+                <div className="dashboard-split-layout-solicitud">
+                    <div className="dashboard-panel-crear-acto">
 
-                            {error && (
-                                <div className="alert-error-crear-acto" style={{ 
-                                    backgroundColor: '#fee2e2', 
-                                    color: '#dc2626', 
-                                    padding: '15px', 
-                                    borderRadius: '8px', 
-                                    marginBottom: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px'
-                                }}>
-                                    <AlertCircle size={20} />
-                                    <div>{error}</div>
-                                </div>
-                            )}
+                        {/* Cabecera */}
+                        <div className="historical-header-container-crear-acto">
+                            <h1 className="historical-header-title-crear-acto">EDITAR ACTO: {formData.nombre}</h1>
 
-                            {successMsg && (
-                                <div className="alert-success-crear-acto" style={{ 
-                                    backgroundColor: '#dcfce3', 
-                                    color: '#16a34a', 
-                                    padding: '15px', 
-                                    borderRadius: '8px', 
-                                    marginBottom: '20px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px'
-                                }}>
-                                    <CheckCircle size={20} />
-                                    <div>{successMsg}</div>
-                                </div>
-                            )}
+                        </div>
 
-                            <h3 className="section-title-crear-acto">
-                                <FileText size={18} /> Información general
-                            </h3>
+                        {/* Separador sección */}
+                        <div className="plazos-separator-asignacion">
+                            <div className="plazos-line"></div>
+                            <span className="plazos-text">Información general del acto</span>
+                            <div className="plazos-line"></div>
+                        </div>
 
-                            <div className="form-group-crear-acto">
-                                <label htmlFor="nombre">Nombre del acto</label>
-                                <input
-                                    type="text"
-                                    id="nombre"
-                                    name="nombre"
-                                    value={formData.nombre}
-                                    onChange={handleChange}
-                                    className="form-input-crear-acto"
-                                    required
-                                />
+                        {/* Alertas */}
+                        {error && (
+                            <div className="alert-error-crear-acto" style={{
+                                backgroundColor: '#fee2e2',
+                                color: '#dc2626',
+                                padding: '15px',
+                                borderRadius: '8px',
+                                marginBottom: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px'
+                            }}>
+                                <AlertCircle size={20} />
+                                <div>{error}</div>
                             </div>
+                        )}
 
-                            <div className="form-group-crear-acto">
-                                <label htmlFor="lugar">Lugar de celebración</label>
-                                <input
-                                    type="text"
-                                    id="lugar"
-                                    name="lugar"
-                                    value={formData.lugar}
-                                    onChange={handleChange}
-                                    className="form-input-crear-acto"
-                                    required
-                                />
+                        {successMsg && (
+                            <div className="alert-success-crear-acto" style={{
+                                backgroundColor: '#dcfce3',
+                                color: '#16a34a',
+                                padding: '15px',
+                                borderRadius: '8px',
+                                marginBottom: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px'
+                            }}>
+                                <CheckCircle size={20} />
+                                <div>{successMsg}</div>
                             </div>
+                        )}
 
-                            <div className="form-row-2-cols-crear-acto">
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="tipo_acto">Tipo de acto</label>
-                                    <select
-                                        id="tipo_acto"
-                                        name="tipo_acto"
-                                        value={formData.tipo_acto}
-                                        onChange={handleChange}
-                                        className="form-input-crear-acto"
-                                        required
-                                    >
-                                        <option value="" disabled>Selecciona un tipo</option>
-                                        {tiposActo.map((tipo, index) => (
-                                            <option key={index} value={tipo.tipo}>
-                                                {tipo.tipo.replace(/_/g, ' ')}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-container-crear-acto">
 
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="fecha">Fecha y hora</label>
-                                    <input
-                                        type="datetime-local"
-                                        id="fecha"
-                                        name="fecha"
-                                        value={formData.fecha}
-                                        onChange={handleChange}
-                                        min={minDate}
-                                        max={maxDate}
-                                        className="form-input-crear-acto"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="form-group-crear-acto">
-                                <label htmlFor="descripcion">Descripción</label>
-                                <textarea
-                                    id="descripcion"
-                                    name="descripcion"
-                                    value={formData.descripcion}
-                                    onChange={handleChange}
-                                    placeholder="Añade detalles adicionales sobre el acto..."
-                                    className="form-input-crear-acto textarea-crear-acto"
-                                    rows="4"
-                                />
-                            </div>
-
-                            {/* SECCIÓN DE IMAGEN DE PORTADA */}
-                            <div className="form-group-crear-acto" style={{ marginTop: '1rem' }}>
-                                <label>Imagen de Portada (Opcional)</label>
-                                {!previewUrl ? (
-                                    <div 
-                                        className="image-upload-area-crear-acto"
-                                        onClick={() => document.getElementById('imagen_portada').click()}
-                                    >
-                                        <input 
-                                            type="file" 
-                                            id="imagen_portada"
-                                            name="imagen_portada"
-                                            accept="image/*"
-                                            onChange={handleImageChange}
+                                <div className="form-group-solicitud-crear-acto">
+                                    <label htmlFor="nombre" className="form-label-crear-acto">
+                                        Nombre del acto <span className="required">*</span>
+                                    </label>
+                                    <div className="input-wrapper-crear-acto">
+                                        <input
+                                            type="text"
+                                            id="nombre"
+                                            name="nombre"
+                                            value={formData.nombre}
+                                            onChange={handleChange}
+                                            placeholder={`Ej: Estación de Penitencia ${currentYear}`}
+                                            className="form-control-crear-acto"
+                                            required
                                         />
-                                        <ImageIcon size={32} style={{ margin: '0 auto 10px' }}/>
-                                        <p>Haz clic para subir una imagen de portada</p>
-                                        <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
                                     </div>
-                                ) : (
-                                    <div className="image-preview-container-crear-acto">
-                                        <img 
-                                            src={previewUrl} 
-                                            alt="Vista previa" 
-                                            className="image-preview-img-crear-acto"
+                                </div>
+
+                                {/* Lugar */}
+                                <div className="form-group-solicitud-crear-acto">
+                                    <label htmlFor="lugar" className="form-label-crear-acto">
+                                        Lugar de celebración <span className="required">*</span>
+                                    </label>
+                                    <div className="input-wrapper-crear-acto">
+                                        <input
+                                            type="text"
+                                            id="lugar"
+                                            name="lugar"
+                                            value={formData.lugar}
+                                            onChange={handleChange}
+                                            placeholder="Ej: Parroquia de San Sebastián"
+                                            className="form-control-crear-acto"
+                                            required
                                         />
+                                    </div>
+                                </div>
+
+                                {/* Tipo + Fecha */}
+                                <div className="form-row-crear-acto">
+                                    <div className="form-group-solicitud-crear-acto">
+                                        <label htmlFor="tipo_acto" className="form-label-crear-acto">
+                                            Tipo de acto <span className="required">*</span>
+                                        </label>
+                                        <div className="input-wrapper-crear-acto">
+                                            <select
+                                                id="tipo_acto"
+                                                name="tipo_acto"
+                                                value={formData.tipo_acto}
+                                                onChange={handleChange}
+                                                className="form-control-crear-acto"
+                                                required
+                                            >
+                                                <option value="" disabled>Selecciona un tipo</option>
+                                                {tiposActo.map((tipo, index) => (
+                                                    <option key={index} value={tipo.tipo}>
+                                                        {tipo.tipo.replace(/_/g, ' ')}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="form-group-solicitud-crear-acto">
+                                        <label htmlFor="fecha" className="form-label-crear-acto">
+                                            Fecha y hora <span className="required">*</span>
+                                        </label>
+                                        <div className="input-wrapper-crear-acto">
+                                            <input
+                                                type="datetime-local"
+                                                id="fecha"
+                                                name="fecha"
+                                                value={formData.fecha}
+                                                onChange={handleChange}
+                                                className="form-control-crear-acto"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Descripción */}
+                                <div className="form-group-solicitud-crear-acto">
+                                    <label htmlFor="descripcion" className="form-label-crear-acto">
+                                        Descripción
+                                    </label>
+                                    <div className="input-wrapper-crear-acto">
+                                        <textarea
+                                            id="descripcion"
+                                            name="descripcion"
+                                            value={formData.descripcion}
+                                            onChange={handleChange}
+                                            placeholder="Añade detalles adicionales sobre el acto..."
+                                            className="form-control-crear-acto textarea-crear-acto"
+                                            rows="4"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Imagen de portada */}
+                                <div className="form-group-solicitud-crear-acto">
+                                    <label className="form-label-crear-acto">
+                                        Imagen de portada
+                                    </label>
+
+                                    {!previewUrl ? (
+                                        <div
+                                            className="image-upload-area-crear-acto"
+                                            onClick={() => document.getElementById('imagen_portada').click()}
+                                        >
+                                            <input
+                                                type="file"
+                                                id="imagen_portada"
+                                                name="imagen_portada"
+                                                accept="image/*"
+                                                onChange={handleImageChange}
+                                            />
+                                            <ImageIcon size={32} style={{ margin: '0 auto 10px' }} />
+                                            <p>Haz clic para subir una imagen de portada</p>
+                                            <small>JPG, PNG (Max. 5MB) - <strong>Formato Horizontal obligatorio</strong></small>
+                                        </div>
+                                    ) : (
+                                        <div className="image-preview-container-crear-acto">
+                                            <img
+                                                src={previewUrl}
+                                                alt="Vista previa"
+                                                className="image-preview-img-crear-acto"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removeImage}
+                                                className="btn-delete-image-crear-acto"
+                                                title="Eliminar imagen"
+                                            >
+                                                <X size={18} color="#ef4444" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Separador configuración papeletas */}
+                                <div className="plazos-separator-asignacion">
+                                    <div className="plazos-line"></div>
+                                    <span className="plazos-text">Configuración de reparto de papeletas de sitio</span>
+                                    <div className="plazos-line"></div>
+                                </div>
+
+                                {/* Modalidad */}
+                                <div className="form-container-crear-acto-espacio">
+                                    <div className="form-group-solicitud-crear-acto">
+                                        <label htmlFor="modalidad" className="form-label-crear-acto">
+                                            Modalidad de reparto {requierePapeleta && <span className="required">*</span>}
+                                        </label>
+                                        <div className="input-wrapper-crear-acto">
+                                            <select
+                                                id="modalidad"
+                                                name="modalidad"
+                                                value={formData.modalidad}
+                                                onChange={handleChange}
+                                                className="form-control-crear-acto"
+                                                disabled={!requierePapeleta}
+                                                required={requierePapeleta}
+                                            >
+                                                <option value="" disabled>Seleccione una opción</option>
+                                                <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
+                                                <option value="UNIFICADO">Unificado (Insignias y cirios a la vez)</option>
+                                            </select>
+                                        </div>
+                                        <small className="form-help-text-crear-acto">
+                                            {!requierePapeleta
+                                                ? 'Este tipo de acto no requiere reparto de papeletas.'
+                                                : formData.modalidad === 'TRADICIONAL'
+                                                    ? 'Primero se asignan insignias, luego cirios.'
+                                                    : formData.modalidad === 'UNIFICADO'
+                                                        ? 'Todos los puestos se asignan en un mismo plazo.'
+                                                        : 'Seleccione una modalidad para continuar.'}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                {/* Separador plazos */}
+                                <div className="plazos-separator-asignacion">
+                                    <div className="plazos-line"></div>
+                                    <span className="plazos-text">Plazos de solicitud online</span>
+                                    <div className="plazos-line"></div>
+                                </div>
+
+                                <div className="form-container-crear-acto-espacio">
+                                    {/* Fila insignias */}
+                                    <div className="form-row-crear-acto">
+                                        <div className="form-group-solicitud-crear-acto">
+                                            <label htmlFor="inicio_solicitud" className="form-label-crear-acto">
+                                                {formData.modalidad === 'UNIFICADO'
+                                                    ? 'Inicio solicitud insignias y cirios'
+                                                    : 'Inicio solicitud insignias'}
+                                            </label>
+                                            <div className="input-wrapper-crear-acto">
+                                                <input
+                                                    type="datetime-local"
+                                                    id="inicio_solicitud"
+                                                    name="inicio_solicitud"
+                                                    value={formData.inicio_solicitud || ''}
+                                                    onChange={handleChange}
+                                                    min={minDate} max={maxDate}
+                                                    className={`form-control-crear-acto ${!requierePapeleta ? 'has-icon' : ''}`}
+                                                    disabled={!requierePapeleta}
+                                                />
+                                                {!requierePapeleta && <Lock className="input-lock-icon" size={16} />}
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group-solicitud-crear-acto">
+                                            <label htmlFor="fin_solicitud" className="form-label-crear-acto">
+                                                {formData.modalidad === 'UNIFICADO'
+                                                    ? 'Fin solicitud insignias y cirios'
+                                                    : 'Fin solicitud insignias'}
+                                            </label>
+                                            <div className="input-wrapper-crear-acto">
+                                                <input
+                                                    type="datetime-local"
+                                                    id="fin_solicitud"
+                                                    name="fin_solicitud"
+                                                    value={formData.fin_solicitud || ''}
+                                                    onChange={handleChange}
+                                                    min={minDate} max={maxDate}
+                                                    className={`form-control-crear-acto ${!requierePapeleta ? 'has-icon' : ''}`}
+                                                    disabled={!requierePapeleta}
+                                                />
+                                                {!requierePapeleta && <Lock className="input-lock-icon" size={16} />}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Fila cirios (oculta en UNIFICADO) */}
+                                    {formData.modalidad !== 'UNIFICADO' && (
+                                        <div className="form-row-crear-acto">
+                                            <div className="form-group-solicitud-crear-acto">
+                                                <label htmlFor="inicio_solicitud_cirios" className="form-label-crear-acto">
+                                                    Inicio solicitud cirios
+                                                </label>
+                                                <div className="input-wrapper-crear-acto">
+                                                    <input
+                                                        type="datetime-local"
+                                                        id="inicio_solicitud_cirios"
+                                                        name="inicio_solicitud_cirios"
+                                                        value={formData.inicio_solicitud_cirios || ''}
+                                                        onChange={handleChange}
+                                                        min={minDate} max={maxDate}
+                                                        className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
+                                                        disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
+                                                    />
+                                                    {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
+                                                </div>
+                                            </div>
+
+                                            <div className="form-group-solicitud-crear-acto">
+                                                <label htmlFor="fin_solicitud_cirios" className="form-label-crear-acto">
+                                                    Fin solicitud cirios
+                                                </label>
+                                                <div className="input-wrapper-crear-acto">
+                                                    <input
+                                                        type="datetime-local"
+                                                        id="fin_solicitud_cirios"
+                                                        name="fin_solicitud_cirios"
+                                                        value={formData.fin_solicitud_cirios || ''}
+                                                        onChange={handleChange}
+                                                        min={minDate} max={maxDate}
+                                                        className={`form-control-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
+                                                        disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
+                                                    />
+                                                    {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Botones */}
+                                    <div className="form-actions-crear-acto">
                                         <button
                                             type="button"
-                                            onClick={removeImage}
-                                            className="btn-delete-image-crear-acto"
-                                            title="Eliminar imagen"
+                                            className="btn-cancel-crear-acto"
+                                            onClick={() => navigate("/listado-actos")}
                                         >
-                                            <X size={18} color="#ef4444" />
+                                            Cancelar
+                                        </button>
+
+                                        <button
+                                            type="submit"
+                                            className="btn-save-crear-acto"
+                                            disabled={saving}
+                                        >
+                                            <Save size={18} />
+                                            {saving ? "Actualizando acto..." : "Actualizar Acto"}
                                         </button>
                                     </div>
-                                )}
-                            </div>
-
-                            <h3 className="section-title-crear-acto mt-section">
-                                <Settings size={18}/> Configuración de Reparto
-                            </h3>
-
-                            <div className="form-group-crear-acto">
-                                <label htmlFor="modalidad">Modalidad de Reparto</label>
-                                <select 
-                                    id="modalidad"
-                                    name="modalidad" 
-                                    value={formData.modalidad} 
-                                    onChange={handleChange}
-                                    className="form-input-crear-acto"
-                                    disabled={!requierePapeleta}
-                                    required={requierePapeleta}
-                                >
-                                    <option value="" disabled>Seleccione una opción</option>
-                                    
-                                    <option value="TRADICIONAL">Tradicional (Fases separadas)</option>
-                                    <option value="UNIFICADO">Unificado / Express (Todo a la vez)</option>
-                                </select>
-                                <small className="form-help-text-crear-acto">
-                                    {!requierePapeleta 
-                                        ? 'Este tipo de acto no requiere reparto de papeletas.'
-                                        : formData.modalidad === 'TRADICIONAL' 
-                                            ? 'Primero se asignan insignias, luego cirios.' 
-                                            : formData.modalidad === 'UNIFICADO' 
-                                                ? 'Todos los puestos se asignan en un mismo plazo.' 
-                                                : 'Seleccione una modalidad para continuar.'}
-                                </small>
-                            </div>
-
-                            <h3 className="section-title-crear-acto mt-section">
-                                <Clock size={18}/> Plazos de Solicitud Online
-                            </h3>
-
-                            <h4 className="subtitle-crear-acto">
-                                {formData.modalidad === 'TRADICIONAL' && requierePapeleta
-                                    ? '1. Solicitud de Insignias / Varas' 
-                                    : 'Plazo Único de Solicitud (General)'}
-                            </h4>
-
-                            <div className="form-row-2-cols-crear-acto">
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="inicio_solicitud">Inicio Solicitud</label>
-                                    <div className="input-wrapper-crear-acto">
-                                        <input 
-                                            type="datetime-local" 
-                                            id="inicio_solicitud"
-                                            name="inicio_solicitud" 
-                                            value={formData.inicio_solicitud || ''} 
-                                            onChange={handleChange} 
-                                            min={minDate} max={maxDate}
-                                            className={`form-input-crear-acto ${!requierePapeleta ? 'has-icon' : ''}`}
-                                            disabled={!requierePapeleta}
-                                        />
-                                        {!requierePapeleta && <Lock className="input-lock-icon" size={16} />}
-                                    </div>
                                 </div>
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="fin_solicitud">Fin Solicitud</label>
-                                    <div className="input-wrapper-crear-acto">
-                                        <input 
-                                            type="datetime-local" 
-                                            id="fin_solicitud"
-                                            name="fin_solicitud" 
-                                            value={formData.fin_solicitud || ''} 
-                                            onChange={handleChange}
-                                            min={minDate} max={maxDate}
-                                            className={`form-input-crear-acto ${!requierePapeleta ? 'has-icon' : ''}`}
-                                            disabled={!requierePapeleta}
-                                        />
-                                        {!requierePapeleta && <Lock className="input-lock-icon" size={16} />}
-                                    </div>
-                                </div>
-                            </div>
 
-                            <h4 className="subtitle-crear-acto mt-subtitle">
-                                2. Solicitud de Cirios / General
-                            </h4>
-
-                            <div className="form-row-2-cols-crear-acto">
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="inicio_solicitud_cirios">Inicio Solicitud</label>
-                                    <div className="input-wrapper-crear-acto">
-                                        <input 
-                                            type="datetime-local" 
-                                            id="inicio_solicitud_cirios"
-                                            name="inicio_solicitud_cirios" 
-                                            value={formData.inicio_solicitud_cirios || ''} 
-                                            onChange={handleChange} 
-                                            min={minDate} max={maxDate}
-                                            className={`form-input-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
-                                            disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
-                                        />
-                                        {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
-                                    </div>
-                                </div>
-                                <div className="form-group-crear-acto">
-                                    <label htmlFor="fin_solicitud_cirios">Fin Solicitud</label>
-                                    <div className="input-wrapper-crear-acto">
-                                        <input 
-                                            type="datetime-local" 
-                                            id="fin_solicitud_cirios"
-                                            name="fin_solicitud_cirios" 
-                                            value={formData.fin_solicitud_cirios || ''} 
-                                            onChange={handleChange}
-                                            min={minDate} max={maxDate}
-                                            className={`form-input-crear-acto ${(!requierePapeleta || formData.modalidad === 'UNIFICADO') ? 'has-icon' : ''}`}
-                                            disabled={!requierePapeleta || formData.modalidad === 'UNIFICADO'}
-                                        />
-                                        {(!requierePapeleta || formData.modalidad === 'UNIFICADO') && <Lock className="input-lock-icon" size={16} />}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {requierePapeleta && formData.modalidad === 'TRADICIONAL' && (
-                                <div className="alert-info-crear-acto">
-                                    <ShieldAlert size={18} />
-                                    <span>Recuerda: En modalidad tradicional, la solicitud de cirios no puede comenzar antes de que termine la de insignias.</span>
-                                </div>
-                            )}
-
-                            <div className="form-actions-crear-acto">
-                                <button 
-                                    type="button" 
-                                    className="btn-cancel-crear-acto" 
-                                    onClick={() => navigate("/home")}
-                                >
-                                    Cancelar
-                                </button>
-                                
-                                <button 
-                                    type="submit" 
-                                    className="btn-save-crear-acto" 
-                                    disabled={saving}
-                                >
-                                    <Save size={18} />
-                                    {saving ? "Actualizando acto..." : "Actualizar Acto"}
-                                </button>
                             </div>
                         </form>
-
-                        <div className="container-cultos-card">
-                            <ResumenActoCard formData={{...formData, previewUrl, requiere_papeleta: requierePapeleta}} />
-                        </div>
                     </div>
                 </div>
             </section>
