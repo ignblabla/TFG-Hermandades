@@ -5,10 +5,11 @@ from rest_framework import status
 
 from api.serializadores.papeleta_sitio.papeleta_sitio_serializer import PapeletaSitioSerializer
 from api.servicios.papeleta_sitio.papeleta_sitio_service import validar_acceso_papeleta
+from api.vistas.solicitud_baja.resolver_solicitud_baja_view import EsAdministrador
 
 
 class ValidarAccesoQRView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [EsAdministrador]
 
     def post(self, request):
         papeleta_id = request.data.get('id')

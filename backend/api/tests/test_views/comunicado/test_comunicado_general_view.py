@@ -42,7 +42,8 @@ class TestComunicadoListCreateView(unittest.TestCase):
         request.user = self.mock_normal
 
         mock_qs_final = MagicMock(name="QuerySetFinal")
-        mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
+        mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.\
+            filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
 
         mock_paginator_instance = mock_paginacion.return_value
         mock_page = ["comunicado_1", "comunicado_2"]
@@ -77,7 +78,8 @@ class TestComunicadoListCreateView(unittest.TestCase):
         request.user = self.mock_normal
 
         mock_qs_final = MagicMock(name="QuerySetFinal")
-        mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
+        mock_comunicado.objects.select_related.return_value.prefetch_related.return_value.\
+            filter.return_value.distinct.return_value.order_by.return_value = mock_qs_final
 
         mock_paginator_instance = mock_paginacion.return_value
         mock_paginator_instance.paginate_queryset.return_value = None

@@ -17,12 +17,10 @@ class TestComunicadoDetailView(unittest.TestCase):
         self.pk = 1
         self.path = f"/api/comunicados/{self.pk}/"
 
-        # Mock de usuario normal (is_authenticated=True, pero esAdmin=False)
         self.mock_normal = MagicMock(spec=['is_authenticated', 'esAdmin'])
         self.mock_normal.is_authenticated = True
         self.mock_normal.esAdmin = False
 
-        # Mock de usuario administrador (is_authenticated=True, esAdmin=True)
         self.mock_admin = MagicMock(spec=['is_authenticated', 'esAdmin'])
         self.mock_admin.is_authenticated = True
         self.mock_admin.esAdmin = True
@@ -45,7 +43,7 @@ class TestComunicadoDetailView(unittest.TestCase):
             del serializador y retorna status 200.
         """
         request = self.factory.get(self.path)
-        # Probamos con un usuario normal, para asegurar que no exige esAdmin
+
         force_authenticate(request, user=self.mock_normal)
 
         mock_comunicado = MagicMock(name="ComunicadoInstance")

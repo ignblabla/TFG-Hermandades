@@ -1,4 +1,4 @@
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
@@ -14,7 +14,7 @@ class DescargarPapeletaPDFView(APIView):
         papeleta = get_object_or_404(PapeletaSitio, pk=pk, hermano=request.user)
 
         if papeleta.estado_papeleta not in ['EMITIDA', 'RECOGIDA', 'LEIDA']:
-            return FileResponse(b"La papeleta aun no esta disponible para descarga", status=403)
+            return HttpResponse(b"La papeleta aun no esta disponible para descarga", status=403)
 
         pdf_buffer = generar_pdf_papeleta(papeleta)
 

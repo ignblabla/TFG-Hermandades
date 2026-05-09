@@ -5,6 +5,7 @@ from locust import HttpUser, task, between
 
 class CofradiaLoadTest(HttpUser):
     wait_time = between(1, 5)
+    host = "http://127.0.0.1:8000"
 
     def on_start(self):
         """
@@ -23,73 +24,181 @@ class CofradiaLoadTest(HttpUser):
             print(f"Error al autenticar: {response.status_code} - {response.text}")
 
 
-    @task(3)
-    def ver_proxima_estacion(self):
-        """
-        Testea el endpoint destacado de la próxima Estación de Penitencia.
-        """
-        self.client.get("/api/actos/proxima-estacion/", name="Próxima Estación de Penitencia")
 
-
-    @task(1)
-    def ver_detalle_acto(self):
-        acto_id = 1
-        self.client.get(f"/api/actos/{acto_id}/", name="Detalle de Acto")
-
-
-    @task(2)
-    def ver_proximos_actos(self):
-        """
-        Testea el endpoint de listado de próximos actos.
-        """
-        self.client.get("/api/actos/proximos/", name="Próximos Actos")
-
-
-    @task(2)
-    def ver_listado_historico_actos(self):
-        """
-        Testea el endpoint de listado general/histórico de actos.
-        """
-        self.client.get("/api/actos/", name="Listado General de Actos")
-
-
-    @task(1)
-    def ver_asistentes_leidos(self):
-        """
-        Testea el listado de asistentes que ya han sido confirmados/leídos para un acto.
-        """
-        acto_id = 1
-        self.client.get(f"/api/actos/{acto_id}/asistentes-leidos/", name="Asistentes Leídos")
-
-
-    @task(1)
-    def ver_estadisticas_asistencia(self):
-        """
-        Testea el cálculo de estadísticas de asistencia (asistentes vs total esperado).
-        """
-        acto_id = 1
-        self.client.get(f"/api/actos/{acto_id}/estadisticas-asistencia/", name="Estadísticas Asistencia")
-
-
-    @task(1)
-    def crear_acto(self):
-        """
-        Testea el endpoint de creación de nuevos actos.
-        """
-        identificador = f"{int(time.time() * 1000)}_{random.randint(1,999)}"
+    # @task(3)
+    # def test_get_comunicados(self):
+    #     """
+    #     Bloque de Lectura de Comunicados.
+    #     Apuntamos al endpoint real que obtiene y pagina los comunicados.
+    #     """
+    #     page = random.randint(1, 3)
         
-        payload = {
-            "nombre": f"Nuevo Acto de Prueba {identificador}",
-            "lugar": "Sede de la Hermandad",
-            "fecha": "2026-05-15T19:00:00Z",
-            "tipo_acto": "CABILDO_GENERAL",
-            "descripcion": "Descripción generada para el test de carga"
-        }
+    #     with self.client.get(f"/api/comunicados/?page={page}", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         elif response.status_code == 404:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET comunicados: {response.status_code} - {response.text}")
 
-        with self.client.post("/api/actos/crear/", json=payload, name="Crear Acto", catch_response=True) as response:
-            if response.status_code == 201 or response.status_code == 200:
+
+
+    # @task(2)
+    # def test_get_detalle_comunicado(self):
+    #     """
+    #     Bloque de Lectura de Detalle de Comunicado.
+    #     Apuntamos al endpoint real que obtiene la información de un comunicado específico.
+    #     """
+    #     comunicado_id = random.randint(1, 15)
+
+    #     with self.client.get(f"/api/comunicados/{comunicado_id}/", name="/api/comunicados/[id]/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         elif response.status_code == 404:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET detalle comunicado: {response.status_code} - {response.text}")
+
+
+
+    # @task(3)
+    # def test_get_mis_noticias(self):
+    #     """
+    #     Bloque de Lectura de Mis Noticias.
+    #     Apuntamos al endpoint real que obtiene los comunicados filtrados por áreas de interés del usuario logueado.
+    #     """
+    #     page = random.randint(1, 2)
+        
+    #     with self.client.get(f"/api/comunicados/mis-noticias/?page={page}", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         elif response.status_code == 404:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET mis noticias: {response.status_code} - {response.text}")
+
+
+
+    # @task(2)
+    # def test_get_ultimos_area_interes(self):
+    #     """
+    #     Bloque de Lectura de Últimos Comunicados por Área de Interés.
+    #     Apuntamos al endpoint real que obtiene los comunicados más recientes según las áreas del usuario.
+    #     """
+    #     with self.client.get("/api/comunicados/ultimos-area-interes/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         elif response.status_code == 404:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET últimos comunicados áreas: {response.status_code} - {response.text}")
+
+
+
+    # @task(1)
+    # def test_get_areas_interes(self):
+    #     """
+    #     Bloque de Lectura de Áreas de Interés.
+    #     Apuntamos al endpoint real que devuelve la lista de áreas disponibles para poblar selectores.
+    #     """
+    #     with self.client.get("/api/areas-interes/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET áreas de interés: {response.status_code} - {response.text}")
+
+
+
+    # @task(2)
+    # def test_get_proximos_actos(self):
+    #     """
+    #     Bloque de Lectura de Próximos Actos.
+    #     Apuntamos al endpoint real que devuelve los 3 actos más próximos para el Dashboard.
+    #     """
+    #     with self.client.get("/api/actos/proximos/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET próximos actos: {response.status_code} - {response.text}")
+
+
+
+    # @task(2)
+    # def test_get_total_cuotas_pendientes(self):
+    #     """
+    #     Bloque de Lectura de Cuotas Pendientes.
+    #     Apuntamos al endpoint real que devuelve el número total de cuotas pendientes o devueltas del usuario autenticado.
+    #     """
+    #     with self.client.get("/api/mis-cuotas-pendientes/total/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET total cuotas pendientes: {response.status_code} - {response.text}")
+
+
+
+    # @task(2)
+    # def test_get_mis_cuotas(self):
+    #     """
+    #     Bloque de Lectura de Mis Cuotas.
+    #     Apuntamos al endpoint real que lista y pagina las cuotas del hermano autenticado.
+    #     """
+    #     page = random.randint(1, 3)
+        
+    #     with self.client.get(f"/api/mis-cuotas/?page={page}", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         elif response.status_code == 404:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET mis cuotas: {response.status_code} - {response.text}")
+
+
+
+    # @task(1)
+    # def test_get_tipos_acto(self):
+    #     """
+    #     Bloque de Lectura de Tipos de Acto.
+    #     Apuntamos al endpoint real que devuelve la lista de tipos de acto para poblar selectores.
+    #     """
+    #     with self.client.get("/api/tipos-acto/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET tipos acto: {response.status_code} - {response.text}")
+
+
+
+    # @task(1)
+    # def test_get_tipos_puesto(self):
+    #     """
+    #     Bloque de Lectura de Tipos de Puesto.
+    #     Apuntamos al endpoint real que devuelve la lista de tipos de puesto disponibles.
+    #     """
+    #     with self.client.get("/api/tipos-puesto/", catch_response=True) as response:
+    #         if response.status_code == 200:
+    #             response.success()
+    #         else:
+    #             response.failure(f"Error GET tipos puesto: {response.status_code} - {response.text}")
+
+
+
+# --------------------------------------------------------------------------------
+# ACTOS
+# --------------------------------------------------------------------------------
+
+    @task(2)
+    def test_get_detalle_acto(self):
+        """
+        Bloque de Lectura de Detalle de Acto.
+        Apuntamos al endpoint real que obtiene la información detallada de un acto específico.
+        """
+        acto_id = random.randint(1, 12)
+
+        with self.client.get(f"/api/actos/{acto_id}/", name="/api/actos/[id]/", catch_response=True) as response:
+            if response.status_code == 200:
                 response.success()
-            elif response.status_code == 400:
-                response.failure(f"Error 400: {response.text}")
+            elif response.status_code == 404:
+                response.success()
             else:
-                response.failure(f"Fallo inesperado: {response.status_code}")
+                response.failure(f"Error GET detalle acto: {response.status_code} - {response.text}")

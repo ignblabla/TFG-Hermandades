@@ -54,21 +54,6 @@ urlpatterns = [
     path("hermanos/<int:pk>/aprobar-alta/", AprobarAltaHermanoView.as_view(), name="aprobar-alta-hermano"),
     path("papeletas/solicitar-unificada/", CrearSolicitudUnificadaView.as_view(), name="solicitar-unificada"),
 
-    path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
-    path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
-
-    path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
-
-    path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
-
-
-
-    path('solicitudes-baja/', SolicitudBajaAPIView.as_view(), name='crear-solicitud-baja'),
-    path('admin/solicitudes-baja/', AdminListadoSolicitudesBajaAPIView.as_view(), name='admin-listado-bajas'),
-    path('solicitudes-baja/<int:pk>/resolver/', ResolverSolicitudBajaView.as_view(), name='resolver-solicitud-baja'),
-
-    path('mis-cuotas-pendientes/', MisCuotasPendientesView.as_view(), name='mis-cuotas-pendientes'),
-    path('mis-cuotas-pendientes/total/', NumeroCuotasPendientesView.as_view(), name='total-cuotas-pendientes'),
 
 
 
@@ -98,6 +83,8 @@ urlpatterns = [
 
     # Cuotas
     path('mis-cuotas/', MisCuotasListView.as_view(), name='mis_cuotas_list'),
+    path('mis-cuotas-pendientes/', MisCuotasPendientesView.as_view(), name='mis-cuotas-pendientes'),
+    path('mis-cuotas-pendientes/total/', NumeroCuotasPendientesView.as_view(), name='total-cuotas-pendientes'),
 
     # Hermanos
     path("hermanos/estadisticas/", EstadisticasHermanosView.as_view(), name="estadisticas-hermanos"),
@@ -110,6 +97,13 @@ urlpatterns = [
     path("papeletas/mis-papeletas/", MisPapeletasListView.as_view(), name="mis-papeletas"),
     path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram-webhook"),
     path("papeletas/ultima/", UltimaPapeletaView.as_view(), name="ultima-papeleta"),
+    path("papeletas/<int:pk>/descargar/", DescargarPapeletaPDFView.as_view(), name="descargar-papeleta"),
+    path("control-acceso/validar/", ValidarAccesoQRView.as_view(), name="validar-qr"),
+
+    # Solicitud de baja
+    path('solicitudes-baja/', SolicitudBajaAPIView.as_view(), name='crear-solicitud-baja'),
+    path('admin/solicitudes-baja/', AdminListadoSolicitudesBajaAPIView.as_view(), name='admin-listado-bajas'),
+    path('solicitudes-baja/<int:pk>/resolver/', ResolverSolicitudBajaView.as_view(), name='resolver-solicitud-baja'),
 
     # Solicitud de cirio
     path('actos/<int:pk>/descargar-listado-cirios/', DescargarListadoCiriosView.as_view(), name='descargar-listado-cirios'),
@@ -122,6 +116,10 @@ urlpatterns = [
     path('actos/<int:pk>/descargar-todas-insignias/', DescargarListadoTodasInsigniasView.as_view(), name='descargar-listado-total-insignias'),
     path('actos/<int:pk>/reparto-automatico/', EjecutarRepartoView.as_view(), name='reparto-automatico'),
     path("papeletas/solicitar-insignia/", SolicitarInsigniaView.as_view(), name="solicitar-insignia"),
+
+    # Puesto
+    path("puestos/", CrearPuestoView.as_view(), name="crear-puesto"),
+    path("puestos/<int:pk>/", PuestoDetalleView.as_view(), name="detalle-puesto"),
 
     # Tipos de acto
     path("tipos-acto/", TipoActoListView.as_view(), name="lista-tipos-acto"),
