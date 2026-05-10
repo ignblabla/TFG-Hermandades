@@ -2,7 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from api.serializadores.solicitud_baja.solicitud_baja_serializer import SolicitudBajaSerializer
 from api.models import SolicitudBaja
@@ -54,7 +55,8 @@ class SolicitudBajaAPIView(APIView):
             serializer = SolicitudBajaSerializer(nueva_solicitud)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        except ValidationError as e:
-            return Response({"error": list(e.messages) if hasattr(e, 'messages') else str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except (DRFValidationError, DjangoValidationError) as e:
+            mensaje = e.detail if hasattr(e, 'detail') else (list(e.messages) if hasattr(e, 'messages') else str(e))
+            return Response({"error": mensaje}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": "Ocurrió un error inesperado al procesar la solicitud."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

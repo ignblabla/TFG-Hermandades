@@ -87,7 +87,7 @@ class PapeletaSitioSerializer(serializers.ModelSerializer):
             'vinculado_a', 'nombre_vinculado',
             'orden_en_tramo', 
             'lado', 
-            'lado_display'
+            'lado_display', 'codigo_verificacion'
         ]
         read_only_fields = ['fecha_emision', 'codigo_verificacion', 'anio', 'tramo_display', 'nombre_vinculado', 'orden_en_tramo', 'lado', 'lado_display']
 

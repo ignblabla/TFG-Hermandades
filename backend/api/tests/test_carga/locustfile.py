@@ -55,15 +55,18 @@ class CofradiaLoadTest(HttpUser):
             mis_papeletas = self.client.get("/api/papeletas/mis-papeletas/")
             if mis_papeletas.status_code == 200:
                 data = mis_papeletas.json().get("results", [])
+
                 self._papeletas_descargables = [
                     p["id"] for p in data
                     if p.get("estado_papeleta") in ("EMITIDA", "RECOGIDA", "LEIDA")
                 ]
+                
                 self._papeletas_qr = [
-                    {"id": p["id"], "codigo": p["codigo_verificacion"]}
+                    {"id": p["id"], "codigo": p.get("codigo_verificacion", f"codigo-falso-{p['id']}")}
                     for p in data
-                    if p.get("codigo_verificacion")
+                    if p.get("estado_papeleta") in ("EMITIDA", "RECOGIDA", "LEIDA")
                 ]
+
             else:
                 self._papeletas_descargables = []
                 self._papeletas_qr = []
@@ -144,7 +147,7 @@ class CofradiaLoadTest(HttpUser):
 
 
     # -------------------------------------------------------------------------
-    # Solicitud de insignia
+    # Solicitud de cirio
     # -------------------------------------------------------------------------
 
     @task(4)
@@ -360,7 +363,7 @@ class CofradiaLoadTest(HttpUser):
                 else:
                     response.failure(f"400 inesperado: {error}")
             else:
-                response.failure(f"Error inesperado: {response.status_code}")
+                response.failure(f"Error inesperado {response.status_code}: {response.text}")
 
 
 
@@ -370,6 +373,20 @@ class CofradiaLoadTest(HttpUser):
 
     @task(3)
     def validar_acceso_qr(self):
+        """
+        POST /api/control-acceso/validar/
+        
+        Intento de validación de código QR por un usuario estándar.
+        
+        Reglas de negocio (Backend):
+        - El endpoint está protegido por la clase de permisos `EsAdministrador`.
+        - Solo usuarios con `is_staff` o `esAdmin` pueden ejecutar esta acción.
+        
+        Respuestas esperadas:
+        - 403 Forbidden: El servidor bloquea la petición por falta de permisos. 
+            Este es el comportamiento CORRECTO y esperado para los usuarios de prueba.
+        - Otros códigos: Se registrarán como fallos inesperados.
+        """
         if not getattr(self, "_papeletas_qr", []):
             return
 
@@ -383,18 +400,15 @@ class CofradiaLoadTest(HttpUser):
             name="/control-acceso/validar/",
             catch_response=True,
         ) as response:
-            if response.status_code == 200:
+            if response.status_code == 403:
+                # Éxito: El backend bloquea correctamente al usuario sin permisos
                 response.success()
+            elif response.status_code == 200:
+                 # Si un usuario normal recibe un 200, hay una brecha de seguridad
+                response.failure("Brecha de seguridad: Usuario sin permisos validó un QR.")
             elif response.status_code == 400:
-                error = str(response.json().get("error", ""))
-                EXPECTED_ERRORS = (
-                    "ya ha sido leída",
-                    "no válida",
-                    "expirada",
-                )
-                if any(msg in error.lower() for msg in EXPECTED_ERRORS):
-                    response.success()
-                else:
-                    response.failure(f"400 inesperado: {error}")
+                # Si recibimos 400, significa que pasó la capa de permisos y falló la lógica de validación, 
+                # lo cual también es un error si el usuario no debería tener acceso.
+                response.failure(f"Error de permisos: El usuario llegó a la lógica de validación. Error: {response.text}")
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
