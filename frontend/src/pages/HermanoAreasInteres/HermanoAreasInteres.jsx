@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../../api";
 import "../HermanoAreasInteres/HermanoAreaInteres.css"
 import AreaCard from "../../components/AreaCard"
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell, Dock, List } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Save, Crown, Landmark, Bell, Dock, List, CheckCircle } from "lucide-react";
 
 function HermanoAreaInteres() {
 
@@ -12,6 +12,8 @@ function HermanoAreaInteres() {
     const [selectedAreas, setSelectedAreas] = useState([]);
     const [areasDB, setAreasDB] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     const areaInfoEstatica = {
@@ -92,6 +94,8 @@ function HermanoAreaInteres() {
 
     const handleSave = async () => {
         setLoading(true);
+        setSuccess(false);
+        setError(null);
         try {
             const areasToSave = selectedAreas.includes('TODOS_HERMANOS') 
                 ? selectedAreas 
@@ -104,10 +108,13 @@ function HermanoAreaInteres() {
             const updatedUser = { ...user, ...data };
             setUser(updatedUser);
             localStorage.setItem("user_data", JSON.stringify(updatedUser));
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 4000);
 
         } catch (error) {
             console.error("Error al guardar:", error);
-
+            setError("Ha ocurrido un error al guardar las áreas de interés. Inténtalo de nuevo.");
+            setTimeout(() => setError(null), 4000);
         } finally {
             setLoading(false);
         }
@@ -132,6 +139,22 @@ function HermanoAreaInteres() {
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {success && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>Áreas de interés actualizadas correctamente.</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>

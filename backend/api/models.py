@@ -89,7 +89,7 @@ class DatosBancarios(models.Model):
 
     hermano = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='datos_bancarios', verbose_name="Hermano titular")
 
-    iban = models.CharField(max_length=34, validators=[iban_validator], verbose_name="IBAN")
+    iban = models.CharField(max_length=34, validators=[iban_validator], verbose_name="IBAN", default="ES0000000000000000000000")
     es_titular = models.BooleanField(default=True, verbose_name="¿Es titular?")
     titular_cuenta = models.CharField(max_length=150, verbose_name="Nombre del titular", blank=True, null=True, help_text="Rellenar solo si el hermano no es el titular")
 

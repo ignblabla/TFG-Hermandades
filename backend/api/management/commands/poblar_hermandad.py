@@ -178,8 +178,14 @@ class Command(BaseCommand):
             # =========================================================================
             self.stdout.write("Iniciando el poblado de Hermanos...")
 
+            def generar_iban_espanol():
+                """Genera un IBAN español válido simulado (ES + 2 dígitos de control + 20 dígitos de cuenta)"""
+                control = f"{random.randint(0, 99):02d}"
+                cuenta = ''.join([str(random.randint(0, 9)) for _ in range(20)])
+                return f"ES{control}{cuenta}"
+
             if not Hermano.objects.filter(dni="11111111A").exists():
-                Hermano.objects.create_user(id=1, nombre="Rafael", primer_apellido="Blanquero", segundo_apellido="Bravo",
+                h1 = Hermano.objects.create_user(id=1, nombre="Rafael", primer_apellido="Blanquero", segundo_apellido="Bravo",
                     dni="11111111A", username="11111111A", password="1234", is_superuser=False, is_staff=True, is_active=True,
                     esAdmin=False, email="rblanquero@us.es", telefono="646172201", estado_civil="CASADO",
                     fecha_nacimiento="1966-01-06",genero="MASCULINO",
@@ -187,9 +193,11 @@ class Command(BaseCommand):
                     provincia="Sevilla",comunidad_autonoma="Andalucía",
                     fecha_bautismo="1966-01-30", lugar_bautismo="Sevilla", parroquia_bautismo="Parroquia de San Gonzalo",
                     estado_hermano = "ALTA", numero_registro="1", fecha_ingreso_corporacion="1973-03-01")
+                
+                DatosBancarios.objects.create(hermano=h1, iban=generar_iban_espanol(), es_titular=True, periodicidad='ANUAL')
 
             if not Hermano.objects.filter(dni="11111111B").exists():
-                Hermano.objects.create_user(id=2, nombre="Francisco", primer_apellido="Barrio", segundo_apellido="Muñoz",
+                h2 = Hermano.objects.create_user(id=2, nombre="Francisco", primer_apellido="Barrio", segundo_apellido="Muñoz",
                     dni="11111111B", username="11111111B", password="1234", is_superuser=False, is_staff=True, is_active=True,
                     esAdmin=False, email="pacobarrio@gmail.com", telefono="649146786", estado_civil="CASADO",
                     fecha_nacimiento="1968-05-07",genero="MASCULINO",
@@ -197,6 +205,8 @@ class Command(BaseCommand):
                     provincia="Sevilla",comunidad_autonoma="Andalucía",
                     fecha_bautismo="1968-10-25", lugar_bautismo="Sevilla", parroquia_bautismo="Parroquia de San Gonzalo",
                     estado_hermano = "ALTA", numero_registro="2", fecha_ingreso_corporacion="1973-03-02")
+                
+                DatosBancarios.objects.create(hermano=h2, iban=generar_iban_espanol(), es_titular=True, periodicidad='ANUAL')
 
 
             def generar_dni():
@@ -251,9 +261,7 @@ class Command(BaseCommand):
                     apellido2 = random.choice(apellidos)
 
                     fecha_ingreso = generar_fecha_aleatoria(fecha_ingreso_inicio, fecha_ingreso_fin)
-
                     fecha_bautismo_fin_posible = fecha_ingreso - timedelta(days=30)
-
                     fecha_nacimiento_fin_posible = fecha_bautismo_fin_posible - timedelta(days=30)
 
                     if fecha_nacimiento_fin_posible < fecha_nacimiento_inicio:
@@ -262,7 +270,6 @@ class Command(BaseCommand):
                         fecha_nac_inicio_ajustada = fecha_nacimiento_inicio
 
                     fecha_nac = generar_fecha_aleatoria(fecha_nac_inicio_ajustada, fecha_nacimiento_fin_posible)
-
                     fecha_bau = generar_fecha_aleatoria(fecha_nac + timedelta(days=1), fecha_ingreso - timedelta(days=1))
                     
                     email = f"{nombre[:1].lower()}{apellido1.lower()}{random.randint(100,999)}@ejemplo.com"
@@ -308,7 +315,21 @@ class Command(BaseCommand):
                     numero_registro_actual += 1
 
                 Hermano.objects.bulk_create(hermanos_a_crear)
-                print(f"Se han creado {len(hermanos_a_crear)} hermanos en Sevilla/Triana correctamente, ordenados por fecha de ingreso.")
+
+                dnis_generados = [h.dni for h in hermanos_a_crear]
+                hermanos_guardados = Hermano.objects.filter(dni__in=dnis_generados)
+
+                datos_bancarios_a_crear = [
+                    DatosBancarios(
+                        hermano=h_guardado,
+                        iban=generar_iban_espanol(),
+                        es_titular=True,
+                        periodicidad='ANUAL'
+                    ) for h_guardado in hermanos_guardados
+                ]
+                DatosBancarios.objects.bulk_create(datos_bancarios_a_crear)
+
+                print(f"Se han creado {len(hermanos_a_crear)} hermanos (y sus datos bancarios) en Sevilla/Triana correctamente.")
                 return numero_registro_actual
 
             sig_registro = crear_hermanos_ordenados_bulk(
@@ -333,7 +354,7 @@ class Command(BaseCommand):
             )
 
             if not Hermano.objects.filter(dni="53962686V").exists():
-                Hermano.objects.create_user(id=1353, nombre="Ignacio", primer_apellido="Blanquero", segundo_apellido="Blanco",
+                h3 = Hermano.objects.create_user(id=1353, nombre="Ignacio", primer_apellido="Blanquero", segundo_apellido="Blanco",
                     dni="53962686V", username="53962686V", password="1234", is_superuser=True, is_staff=True, is_active=True,
                     esAdmin=True, email="ignblabla@us.es", telefono="644169492", estado_civil="SOLTERO",
                     fecha_nacimiento="2003-01-24",genero="MASCULINO",
@@ -341,6 +362,8 @@ class Command(BaseCommand):
                     provincia="Sevilla",comunidad_autonoma="Andalucía",
                     fecha_bautismo="2003-04-26", lugar_bautismo="Sevilla", parroquia_bautismo="Parroquia de San Gonzalo",
                     estado_hermano = "ALTA", numero_registro="1353", fecha_ingreso_corporacion="2006-03-01")
+                
+                DatosBancarios.objects.create(hermano=h3, iban=generar_iban_espanol(), es_titular=True, periodicidad='ANUAL')
                 
             sig_registro += 1
 
@@ -351,7 +374,7 @@ class Command(BaseCommand):
                 fecha_ingreso_fin=date(2025, 12, 27)
             )
 
-            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Todos los lotes de hermanos creados correctamente.'))
+            self.stdout.write(self.style.SUCCESS(f'¡Éxito! Todos los lotes de hermanos y sus datos bancarios han sido creados correctamente.'))
 
 
         # =========================================================================

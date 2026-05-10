@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminGestionRepartoInsignias/AdminGestionRepartoInsignias.css';
-import { CalendarX, User, Users, AlertCircle, CheckCircle, Download, Settings } from "lucide-react";
+import { CalendarX, User, Users, AlertCircle, CheckCircle, Download, Settings, AlertTriangle } from "lucide-react";
 
 import 'react-calendar/dist/Calendar.css';
 
 function GestionRepartoInsignias() {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
+
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     
     const [currentUser, setCurrentUser] = useState(null);
     const [acto, setActo] = useState(null);
@@ -29,10 +31,19 @@ function GestionRepartoInsignias() {
     const formatearFechaHora = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
-        return date.toLocaleString('es-ES', { 
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+
+        const fecha = date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+
+        const hora = date.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
         });
+
+        return `${fecha} a las ${hora}`;
     };
 
     useEffect(() => {
@@ -110,11 +121,12 @@ function GestionRepartoInsignias() {
         return ahora > finSolicitud;
     };
 
-    const handleReparto = async () => {
-        if (!window.confirm(`¿Estás seguro de generar el reparto para "${acto.nombre}"?\n\nEsta acción asignará los puestos disponibles a los hermanos según su antigüedad y descargará el listado resultante.`)) {
-            return;
-        }
+    const handleReparto = () => {
+        setShowConfirmModal(true);
+    };
 
+    const handleConfirmReparto = async () => {
+        setShowConfirmModal(false);
         setProcessing(true);
         setError("");
         setSuccessData(null);
@@ -131,17 +143,14 @@ function GestionRepartoInsignias() {
 
             if (pdf_base64) {
                 const dataUrl = `data:application/pdf;base64,${pdf_base64}`;
-
                 const fetchResponse = await fetch(dataUrl);
                 const blob = await fetchResponse.blob();
-
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = filename || `asignacion_insignias_${id}.pdf`;
                 document.body.appendChild(link);
                 link.click();
-
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             } else {
@@ -151,7 +160,6 @@ function GestionRepartoInsignias() {
             setSuccess(true);
         } catch (err) {
             console.error("Error capturado:", err);
-            
             if (err.response && err.response.data) {
                 setError(err.response.data.error || err.response.data.detail || "Error al procesar el reparto.");
             } else {
@@ -299,6 +307,55 @@ function GestionRepartoInsignias() {
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {success && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>Asignación de insignias realizada correctamente. Descargando PDF...</span>
+                    </div>
+                )}
+                
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmModal && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>Confirmar asignación</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de ejecutar el algoritmo de asignación para <strong>"{acto?.nombre}"</strong>?
+                                <br /><br />
+                                Esta acción <strong>borrará las asignaciones de insignias previas</strong> y recalculará la asignación basándose en la antigüedad de los Hermanos.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmReparto}
+                                >
+                                    Confirmar y ejecutar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -479,20 +536,6 @@ function GestionRepartoInsignias() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        {error && (
-                            <div className="form-alert form-alert-error" style={{ marginBottom: '20px' }}>
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        
-                        {success && (
-                            <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
-                                <CheckCircle size={20} />
-                                <span>Asignación de insignias realizada correctamente. Descargando PDF...</span>
-                            </div>
-                        )}
-
                         <div className="algorithm-execution-container">
                             <div className="algorithm-card">
                                 <div className="algorithm-content">
@@ -507,7 +550,7 @@ function GestionRepartoInsignias() {
                                             disabled={!fechaValida || processing}
                                         >
                                             <Settings size={20} />
-                                            {processing ? "Procesando algoritmo..." : "Ejecutar algoritmo de asignación"}
+                                            {processing ? "Procesando algoritmo..." : "Ejecutar algoritmo de asignación de insignias"}
                                         </button>
                                         {!fechaValida && (
                                             <span className="algorithm-warning">

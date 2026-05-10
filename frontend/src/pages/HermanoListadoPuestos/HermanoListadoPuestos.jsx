@@ -270,7 +270,7 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL PUESTOS DISPONIBLES</h3>
+                                    <h3 className="puestos-card-title">PUESTOS DISPONIBLES</h3>
                                     <p className="puestos-card-description">
                                         Número total de puestos distintos disponibles para este acto.
                                     </p>
@@ -285,7 +285,7 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL PUESTOS CORTEJO CRISTO</h3>
+                                    <h3 className="puestos-card-title">PUESTOS CORTEJO CRISTO</h3>
                                     <p className="puestos-card-description">
                                         Número total de puestos que acompañan al paso de Cristo.
                                     </p>
@@ -300,7 +300,7 @@ function HermanoListadoPuestos() {
                                     <div className="puestos-card-icon">
                                         <CheckCircle size={32} strokeWidth={2.5} />
                                     </div>
-                                    <h3 className="puestos-card-title">TOTAL PUESTOS CORTEJO CRISTO</h3>
+                                    <h3 className="puestos-card-title">PUESTOS CORTEJO CRISTO</h3>
                                     <p className="puestos-card-description">
                                         Número total de puestos que acompañan al paso de Virgen.
                                     </p>

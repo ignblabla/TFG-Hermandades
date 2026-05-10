@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api";
 import '../AdminGestionRepartoCirios/AdminGestionRepartoCirios.css';
-import { Settings, CheckCircle, Flame, CalendarCheck, CalendarX, CalendarDays, AlertCircle, Download } from "lucide-react";
+import { Settings, CheckCircle, Flame, CalendarCheck, CalendarX, CalendarDays, AlertCircle, Download, AlertTriangle } from "lucide-react";
 
 function GestionRepartoCirio() {
     const { id } = useParams();
     const [isOpen, setIsOpen] = useState(false);
+
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [accesoDenegado, setAccesoDenegado] = useState(false);
 
     const [currentUser, setCurrentUser] = useState(null);
     const [acto, setActo] = useState(null);
@@ -157,10 +160,19 @@ function GestionRepartoCirio() {
     const formatearFechaHora = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
-        return date.toLocaleString('es-ES', { 
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
+
+        const fecha = date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+
+        const hora = date.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
         });
+
+        return `${fecha} a las ${hora}`;
     };
 
     const verificarDisponibilidad = () => {
@@ -173,11 +185,12 @@ function GestionRepartoCirio() {
     const fechaValida = verificarDisponibilidad();
 
 
-    const handleReparto = async () => {
-        if (!window.confirm(`⚠️ CONFIRMACIÓN REQUERIDA\n\n¿Estás seguro de ejecutar el algoritmo de asignación para "${acto.nombre}"?\n\nEsto borrará asignaciones de cirios previas y recalculará los tramos basándose en la antigüedad.`)) {
-            return;
-        }
+    const handleReparto = () => {
+        setShowConfirmModal(true);
+    };
 
+    const handleConfirmReparto = async () => {
+        setShowConfirmModal(false);
         setProcessing(true);
         setError("");
         setSuccessData(null);
@@ -185,24 +198,20 @@ function GestionRepartoCirio() {
 
         try {
             const response = await api.post(`api/actos/${id}/reparto-cirios/`);
+            const { pdf_base64, filename } = response.data;
 
-            const { pdf_base64, filename, asignadas } = response.data;
-            
             setSuccessData(response.data);
 
             if (pdf_base64) {
                 const dataUrl = `data:application/pdf;base64,${pdf_base64}`;
-
                 const fetchResponse = await fetch(dataUrl);
                 const blob = await fetchResponse.blob();
-
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
                 link.download = filename || `asignacion_cirios_tramos_${id}.pdf`;
                 document.body.appendChild(link);
                 link.click();
-
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             } else {
@@ -210,7 +219,6 @@ function GestionRepartoCirio() {
             }
 
             setSuccess(true);
-
         } catch (err) {
             console.error("Error capturado:", err);
             if (err.response && err.response.data) {
@@ -234,8 +242,65 @@ function GestionRepartoCirio() {
         }
     };
 
+    if (accesoDenegado) {
+        return (
+            <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
+                <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
+                <p>Esta sección es exclusiva para la Secretaría.</p>
+                <button onClick={() => navigate("/new-home")} className="btn-purple">Volver al inicio</button>
+            </div>
+        );
+    }
+
     return (
         <div>
+            <div className="toast-container-crear-comunicado">
+                {success && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>Asignación de cirios realizada correctamente. Descargando PDF...</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmModal && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>Confirmar asignación</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de ejecutar el algoritmo de asignación para <strong>"{acto?.nombre}"</strong>?
+                                <br /><br />
+                                Esta acción <strong>borrará las asignaciones de cirios previas</strong> y recalculará los tramos basándose en la antigüedad de los Hermanos.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmReparto}
+                                >
+                                    Confirmar y ejecutar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -416,20 +481,6 @@ function GestionRepartoCirio() {
                             <div className="plazos-line"></div>
                         </div>
 
-                        {error && (
-                            <div className="form-alert form-alert-error" style={{ marginBottom: '20px' }}>
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        
-                        {success && (
-                            <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
-                                <CheckCircle size={20} />
-                                <span>Asignación de cirios realizada correctamente. Descargando PDF...</span>
-                            </div>
-                        )}
-
                         <div className="algorithm-execution-container">
                             <div className="algorithm-card">
                                 <div className="algorithm-content">
@@ -517,7 +568,7 @@ function GestionRepartoCirio() {
                                     disabled={downloading}
                                 >
                                     <Download size={20} />
-                                    {downloading ? "Generando..." : "Descargar Listado Completo"}
+                                    {downloading ? "Generando..." : "Descargar listado completo"}
                                 </button>
 
                                 <button 

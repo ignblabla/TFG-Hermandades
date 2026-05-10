@@ -81,37 +81,6 @@ class CofradiaLoadTest(HttpUser):
         else:
             print(f"Error al autenticar: {response.status_code} - {response.text}")
 
-
-
-    # -------------------------------------------------------------------------
-    # Consulta de papeletas propias
-    # -------------------------------------------------------------------------
-
-    @task(5)
-    def mis_papeletas(self):
-        """GET /papeletas/mis-papeletas/ — el endpoint más consultado por usuarios."""
-        self.client.get("/api/papeletas/mis-papeletas/", name="/papeletas/mis-papeletas/")
-
-
-
-    @task(3)
-    def ultima_papeleta(self):
-        with self.client.get(
-            "/api/papeletas/ultima/",
-            name="/papeletas/ultima/",
-            catch_response=True
-        ) as response:
-            if response.status_code in (200, 404):
-                response.success()
-            else:
-                response.failure(f"Error inesperado: {response.status_code}")
-
-
-
-    # -------------------------------------------------------------------------
-    # Solicitud de insignia
-    # -------------------------------------------------------------------------
-
     @task(4)
     def solicitar_insignia(self):
         if getattr(self, "_ya_solicito_insignia", False):
@@ -144,11 +113,22 @@ class CofradiaLoadTest(HttpUser):
                 else:
                     response.failure(f"400 inesperado: {detail}")
 
+    @task(5)
+    def mis_papeletas(self):
+        """GET /papeletas/mis-papeletas/ — el endpoint más consultado por usuarios."""
+        self.client.get("/api/papeletas/mis-papeletas/", name="/papeletas/mis-papeletas/")
 
-
-    # -------------------------------------------------------------------------
-    # Solicitud de cirio
-    # -------------------------------------------------------------------------
+    @task(3)
+    def ultima_papeleta(self):
+        with self.client.get(
+            "/api/papeletas/ultima/",
+            name="/papeletas/ultima/",
+            catch_response=True
+        ) as response:
+            if response.status_code in (200, 404):
+                response.success()
+            else:
+                response.failure(f"Error inesperado: {response.status_code}")
 
     @task(4)
     def solicitar_cirio(self):
@@ -185,8 +165,6 @@ class CofradiaLoadTest(HttpUser):
                 else:
                     response.failure(f"400 inesperado: {detail}")
 
-
-
     # -------------------------------------------------------------------------
     # Descargar papeleta de sitio
     # -------------------------------------------------------------------------
@@ -207,8 +185,6 @@ class CofradiaLoadTest(HttpUser):
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
 
-
-
     # -------------------------------------------------------------------------
     # Endpoint /me
     # -------------------------------------------------------------------------
@@ -224,8 +200,6 @@ class CofradiaLoadTest(HttpUser):
                 response.success()
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
-
-
 
     # -------------------------------------------------------------------------
     # Listado de cuotas
@@ -243,8 +217,6 @@ class CofradiaLoadTest(HttpUser):
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
 
-
-
     # -------------------------------------------------------------------------
     # Listado de comunicados
     # -------------------------------------------------------------------------
@@ -260,8 +232,6 @@ class CofradiaLoadTest(HttpUser):
                 response.success()
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
-
-
 
     # -------------------------------------------------------------------------
     # Consulta comunicado concreto
@@ -283,10 +253,8 @@ class CofradiaLoadTest(HttpUser):
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
 
-
-
     # -------------------------------------------------------------------------
-    # Consulta comunicado concreto
+    # Chat comunicados
     # -------------------------------------------------------------------------
 
     @task(2)
@@ -312,8 +280,6 @@ class CofradiaLoadTest(HttpUser):
             else:
                 response.failure(f"Error inesperado {response.status_code}: {response.text}")
 
-
-
     # -------------------------------------------------------------------------
     # Áreas de interés
     # -------------------------------------------------------------------------
@@ -329,8 +295,6 @@ class CofradiaLoadTest(HttpUser):
                 response.success()
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
-
-
 
     # -------------------------------------------------------------------------
     # Solicitud de baja
@@ -365,28 +329,12 @@ class CofradiaLoadTest(HttpUser):
             else:
                 response.failure(f"Error inesperado {response.status_code}: {response.text}")
 
-
-
     # -------------------------------------------------------------------------
     # Validar acceso QR
     # -------------------------------------------------------------------------
 
-    @task(3)
+    @task(1)
     def validar_acceso_qr(self):
-        """
-        POST /api/control-acceso/validar/
-        
-        Intento de validación de código QR por un usuario estándar.
-        
-        Reglas de negocio (Backend):
-        - El endpoint está protegido por la clase de permisos `EsAdministrador`.
-        - Solo usuarios con `is_staff` o `esAdmin` pueden ejecutar esta acción.
-        
-        Respuestas esperadas:
-        - 403 Forbidden: El servidor bloquea la petición por falta de permisos. 
-            Este es el comportamiento CORRECTO y esperado para los usuarios de prueba.
-        - Otros códigos: Se registrarán como fallos inesperados.
-        """
         if not getattr(self, "_papeletas_qr", []):
             return
 
@@ -401,14 +349,41 @@ class CofradiaLoadTest(HttpUser):
             catch_response=True,
         ) as response:
             if response.status_code == 403:
-                # Éxito: El backend bloquea correctamente al usuario sin permisos
                 response.success()
             elif response.status_code == 200:
-                 # Si un usuario normal recibe un 200, hay una brecha de seguridad
                 response.failure("Brecha de seguridad: Usuario sin permisos validó un QR.")
             elif response.status_code == 400:
-                # Si recibimos 400, significa que pasó la capa de permisos y falló la lógica de validación, 
-                # lo cual también es un error si el usuario no debería tener acceso.
                 response.failure(f"Error de permisos: El usuario llegó a la lógica de validación. Error: {response.text}")
             else:
                 response.failure(f"Error inesperado: {response.status_code}")
+
+    @task(3)
+    def lista_actos(self):
+        """GET /api/actos/ — listado general de actos y eventos de la cofradía (paginado de 12 en 12)."""
+        with self.client.get(
+            "/api/actos/",
+            name="/actos/",
+            catch_response=True,
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"Error inesperado al cargar actos: {response.status_code}")
+
+    @task(2)
+    def detalle_acto(self):
+        """GET /api/actos/{id}/ — consulta detallada de un acto, incluyendo cálculos de ocupación y plazos."""
+        if not getattr(self, "ACTO_IDS", []):
+            return
+
+        acto_id = random.choice(self.ACTO_IDS)
+        
+        with self.client.get(
+            f"/api/actos/{acto_id}/",
+            name="/actos/[id]/",
+            catch_response=True,
+        ) as response:
+            if response.status_code in (200, 404):
+                response.success()
+            else:
+                response.failure(f"Error inesperado al cargar detalle del acto {acto_id}: {response.status_code}")

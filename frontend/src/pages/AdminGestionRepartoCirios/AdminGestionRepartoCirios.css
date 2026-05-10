@@ -37,6 +37,97 @@
     transform: none;
 }
 
+.modal-overlay-confirmacion {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content-confirmacion {
+    background: var(--white);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    padding: 28px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: popIn 0.2s ease-out;
+    border: 1px solid var(--burgundy-primary);
+}
+
+.modal-header-confirmacion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.modal-header-confirmacion h3 {
+    margin: 0;
+    color: var(--burgundy-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-icon-warning {
+    color: var(--burgundy-primary);
+    flex-shrink: 0;
+}
+
+.modal-body-confirmacion p {
+    margin: 0 0 20px 0;
+    color: var(--text-main);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.modal-actions-confirmacion {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-cancelar-modal {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-cancelar-modal:hover {
+    background: var(--border-color);
+}
+
+.btn-confirmar-modal {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--burgundy-primary);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.btn-confirmar-modal:hover {
+    opacity: 0.85;
+}
+
 @media (max-width: 992px) {
     .download-buttons-container-cirios {
         grid-template-columns: 1fr;

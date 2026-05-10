@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from '../../api';
 import '../HermanoSolicitudBaja/HermanoSolicitudBaja.css'
-import { Save, AlertCircle, CheckCircle, FileText } from "lucide-react";
+import { Save, AlertCircle, CheckCircle, FileText, Timer, ClipboardList, CreditCard } from "lucide-react";
 
 function HermanoSolicitudBaja() {
     const [user, setUser] = useState(null);
@@ -118,6 +118,9 @@ function HermanoSolicitudBaja() {
             } else {
                 setError("Error de conexión con el servidor. Inténtelo más tarde.");
             }
+
+            setTimeout(() => setError(""), 3000);
+
         } finally {
             setSaving(false);
         }
@@ -261,7 +264,7 @@ function HermanoSolicitudBaja() {
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-baja">
                         <div className="historical-header-container-baja">
-                            <h1 className="historical-header-title-baja">SOLICITAR BAJA DE HERMANO</h1>
+                            <h1 className="historical-header-title-baja">SOLICITUD DE BAJA DE HERMANO</h1>
                         </div>
 
                         <div className="plazos-separator-asignacion">
@@ -274,7 +277,7 @@ function HermanoSolicitudBaja() {
                             <div className="baja-card-wrapper">
                                 <div className="baja-card-content">
                                     <div className="baja-card-icon">
-                                        <CheckCircle size={32} strokeWidth={2.5} />
+                                        <Timer size={32} strokeWidth={2.5} />
                                     </div>
                                     <h3 className="baja-card-title">AÑOS DE ANTIGÜEDAD</h3>
                                     <p className="baja-card-description">
@@ -289,7 +292,7 @@ function HermanoSolicitudBaja() {
                             <div className="baja-card-wrapper">
                                 <div className="baja-card-content">
                                     <div className="baja-card-icon">
-                                        <CheckCircle size={32} strokeWidth={2.5} />
+                                        <ClipboardList size={32} strokeWidth={2.5} />
                                     </div>
                                     <h3 className="baja-card-title">NÚMERO DE REGISTRO</h3>
                                     <p className="baja-card-description">
@@ -304,7 +307,7 @@ function HermanoSolicitudBaja() {
                             <div className="baja-card-wrapper">
                                 <div className="baja-card-content">
                                     <div className="baja-card-icon">
-                                        <CheckCircle size={32} strokeWidth={2.5} />
+                                        <CreditCard size={32} strokeWidth={2.5} />
                                     </div>
                                     <h3 className="baja-card-title">CUOTAS PENDIENTES</h3>
                                     <p className="baja-card-description">
@@ -324,39 +327,57 @@ function HermanoSolicitudBaja() {
                         </div>
 
                         <form onSubmit={handleSubmit}>
-                            <div className="form-group-crear-baja span-full-crear-baja">
-                                <label htmlFor="motivo" className="form-label-crear-baja">
-                                    Motivo de la baja (Opcional)
-                                </label>
-                                <div className="input-wrapper-crear-baja">
-                                    <textarea 
-                                        id="motivo"
-                                        name="motivo" 
-                                        value={formData.motivo} 
-                                        onChange={handleChange} 
-                                        placeholder="Si lo desea, puede indicarnos el motivo por el cual solicita la baja."
-                                        rows="5"
-                                        className="form-control-crear-baja"
-                                    />
+                            <div className="solicitud-form-container">
+                                <div className="form-group-crear-baja span-full-crear-baja">
+                                    <label htmlFor="motivo" className="form-label-crear-baja">
+                                        Motivo de la baja (Opcional)
+                                    </label>
+                                    <div className="input-wrapper-crear-baja">
+                                        <textarea 
+                                            id="motivo"
+                                            name="motivo" 
+                                            value={formData.motivo} 
+                                            onChange={handleChange} 
+                                            placeholder="Si lo desea, puede indicarnos el motivo por el cual solicita la baja."
+                                            rows="5"
+                                            className="form-control-crear-baja"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="form-actions-crear-baja">
-                                <button 
-                                    type="button" 
-                                    className="btn-cancel-crear-baja" 
-                                    onClick={() => navigate("/new-home")}
-                                >
-                                    Cancelar
-                                </button>
-                                
-                                <button 
-                                    type="submit" 
-                                    className="btn-save-crear-baja" 
-                                    disabled={saving}
-                                >
-                                    <Save size={18} />
-                                    {saving ? "Creando..." : "Crear solicitud de baja"}
-                                </button>
+
+                                <div className="toast-container-crear-comunicado">
+                                    {successMsg && (
+                                        <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                                            <CheckCircle size={24} />
+                                            <span>{successMsg}</span>
+                                        </div>
+                                    )}
+                                    {error && (
+                                        <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                                            <AlertCircle size={24} />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="form-actions-crear-baja">
+                                    <button 
+                                        type="button" 
+                                        className="btn-cancel-crear-baja" 
+                                        onClick={() => navigate("/editar-mi-perfil")}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    
+                                    <button 
+                                        type="submit" 
+                                        className="btn-save-crear-baja" 
+                                        disabled={saving}
+                                    >
+                                        <Save size={18} />
+                                        {saving ? "Creando..." : "Crear solicitud de baja"}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>

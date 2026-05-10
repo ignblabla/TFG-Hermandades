@@ -212,10 +212,18 @@ function HermanoSolicitudInsignia() {
         if (!dateString) return "-";
         const date = new Date(dateString);
 
-        return date.toLocaleString('es-ES', { 
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        }).replaceAll('/', '-');
+        const fecha = date.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).replace(/\//g, '-');
+
+        const hora = date.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        return `${fecha} a las ${hora}`;
     };
 
     const insigniasDisponibles = actoActivo?.puestos_disponibles?.filter(
@@ -250,6 +258,17 @@ function HermanoSolicitudInsignia() {
                 ))}
             </div>
         );
+    };
+
+    const handleVincularTelegram = (e) => {
+        e.preventDefault();
+
+        if (currentUser && currentUser.enlace_vinculacion_telegram) {
+            window.open(currentUser.enlace_vinculacion_telegram, '_blank');
+        } else {
+            console.error("El enlace de Telegram no está disponible.");
+            alert("Hubo un problema al cargar tu enlace personal de Telegram.");
+        }
     };
 
     if (loading) {
@@ -377,47 +396,74 @@ function HermanoSolicitudInsignia() {
                                 <span className="tooltip-dashboard">Dashboard</span>
                             </li>
                             <li>
-                                <a href="#">
+                                <a href="/editar-mi-perfil">
                                     <i className="bx bx-user"></i>
-                                    <span className="link_name-dashboard">User</span>
+                                    <span className="link_name-dashboard">Mi perfil</span>
                                 </a>
-                                <span className="tooltip-dashboard">User</span>
+                                <span className="tooltip-dashboard">Mi perfil</span>
                             </li>
                             <li>
-                                <a href="#">
-                                    <i className="bx bx-chat"></i>
-                                    <span className="link_name-dashboard">Message</span>
+                                <a href="/noticias">
+                                    <i className="bx bx-news"></i>
+                                    <span className="link_name-dashboard">Mis noticias</span>
                                 </a>
-                                <span className="tooltip-dashboard">Message</span>
+                                <span className="tooltip-dashboard">Mis noticias</span>
                             </li>
                             <li>
-                                <a href="#">
-                                    <i className="bx bx-pie-chart-alt-2"></i>
-                                    <span className="link_name-dashboard">Analytics</span>
+                                <a href="/listado-cuotas">
+                                    <i className="bx bx-wallet"></i>
+                                    <span className="link_name-dashboard">Mis cuotas</span>
                                 </a>
-                                <span className="tooltip-dashboard">Analytics</span>
+                                <span className="tooltip-dashboard">Mis cuotas</span>
                             </li>
                             <li>
-                                <a href="#">
-                                    <i className="bx bx-folder"></i>
-                                    <span className="link_name-dashboard">File Manager</span>
+                                <a href="/mis-papeletas-de-sitio">
+                                    <i className="bx bx-file"></i>
+                                    <span className="link_name-dashboard">Mis papeletas</span>
                                 </a>
-                                <span className="tooltip-dashboard">File Manager</span>
+                                <span className="tooltip-dashboard">Mis papeletas</span>
                             </li>
                             <li>
-                                <a href="#">
-                                    <i className="bx bx-cart-alt"></i>
-                                    <span className="link_name-dashboard">Order</span>
+                                <a href="/listado-actos">
+                                    <i className="bx bx-calendar-event"></i>
+                                    <span className="link_name-dashboard">Actos</span>
                                 </a>
-                                <span className="tooltip-dashboard">Order</span>
+                                <span className="tooltip-dashboard">Actos</span>
                             </li>
                             <li>
-                                <a href="#">
-                                    <i className="bx bx-cog"></i>
-                                    <span className="link_name-dashboard">Settings</span>
+                                <a href="/areas-de-interes">
+                                    <i className="bx bx-list-ul"></i>
+                                    <span className="link_name-dashboard">Áreas de Interés</span>
                                 </a>
-                                <span className="tooltip-dashboard">Settings</span>
+                                <span className="tooltip-dashboard">Áreas de Interés</span>
                             </li>
+                            <li>
+                                <a 
+                                    href="#" 
+                                    onClick={!currentUser?.telegram_chat_id ? handleVincularTelegram : (e) => e.preventDefault()}
+                                    style={{ 
+                                        cursor: currentUser?.telegram_chat_id ? 'default' : 'pointer',
+                                        opacity: currentUser?.telegram_chat_id ? 0.6 : 1
+                                    }}
+                                >
+                                    <i className="bx bxl-telegram"></i>
+                                    <span className="link_name-dashboard">
+                                        {currentUser?.telegram_chat_id ? "Telegram Vinculado ✅" : "Vincular Telegram"}
+                                    </span>
+                                </a>
+                                <span className="tooltip-dashboard">
+                                    {currentUser?.telegram_chat_id ? "Ya vinculado" : "Vincular Telegram"}
+                                </span>
+                            </li>
+                            {currentUser?.esAdmin && (
+                                <li>
+                                    <a href="/censo-hermanos">
+                                        <i className="bx bx-group"></i>
+                                        <span className="link_name-dashboard">Censo</span>
+                                    </a>
+                                    <span className="tooltip-dashboard">Censo</span>
+                                </li>
+                            )}
                             
                             <li className="profile-dashboard">
                                 <div className="profile_details-dashboard">
@@ -506,19 +552,20 @@ function HermanoSolicitudInsignia() {
                                     <div className="plazos-line"></div>
                                 </div>
 
-                                {error && (
-                                    <div className="form-alert form-alert-error" style={{ marginBottom: '20px' }}>
-                                        <AlertCircle size={20} />
-                                        <span>{error}</span>
-                                    </div>
-                                )}
-                                
-                                {success && (
-                                    <div className="form-alert form-alert-success" style={{ marginBottom: '20px' }}>
-                                        <CheckCircle size={20} />
-                                        <span>Solicitud procesada correctamente. Redirigiendo a sus papeletas...</span>
-                                    </div>
-                                )}
+                                <div className="toast-container-crear-comunicado">
+                                    {success && (
+                                        <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                                            <CheckCircle size={24} />
+                                            <span>Solicitud de insignias procesada correctamente. Redirigiendo a sus papeletas...</span>
+                                        </div>
+                                    )}
+                                    {error && (
+                                        <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                                            <AlertCircle size={24} />
+                                            <span>{error}</span>
+                                        </div>
+                                    )}
+                                </div>
 
                                 <div className="dashboard-layout-wrapper">
                                     {actoActivo ? (

@@ -43,7 +43,7 @@ function HermanoListadoActos() {
                 
                 if (isMounted) {
                     setActos(actosRes.data.results);
-                    setTotalPages(Math.ceil(actosRes.data.count / 10));
+                    setTotalPages(Math.ceil(actosRes.data.count / 12));
                 }
             } catch (err) {
                 console.error(err);

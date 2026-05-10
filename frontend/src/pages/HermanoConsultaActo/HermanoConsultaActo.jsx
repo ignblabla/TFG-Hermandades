@@ -450,6 +450,14 @@ function HermanoConsultaActo() {
                                 </div>
 
                                 <div className="action-cards-container">
+                                    <button className="action-card-button" onClick={() => navigate(`/actos/${id}/puestos`)}>
+                                        <ListOrdered size={45} color="#800020" className="action-card-icon" />
+                                        <div className="action-card-text-content">
+                                            <h3 className="action-card-title">LISTADO DE PUESTOS</h3>
+                                            <p className="action-card-description">Consulta el listado de puestos para este acto.</p>
+                                        </div>
+                                    </button>
+
                                     <button className="action-card-button" onClick={handleSolicitarInsignias}>
                                         <ClipboardList size={45} color="#800020" className="action-card-icon" />
                                         <div className="action-card-text-content">
@@ -461,7 +469,7 @@ function HermanoConsultaActo() {
                                     <button className="action-card-button" onClick={handleSolicitarCirios}>
                                         <Flame size={45} color="#800020" className="action-card-icon" />
                                         <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR CIRIOS</h3>
+                                            <h3 className="action-card-title">SOLICITAR CIRIO</h3>
                                             <p className="action-card-description">Realiza tu solicitud para participar portando un cirio.</p>
                                         </div>
                                     </button>
@@ -481,7 +489,7 @@ function HermanoConsultaActo() {
                                             <button className="action-card-button action-card-button-admin" onClick={() => navigate(`/admin/gestion-reparto-cirios/${id}`)}>
                                                 <ListOrdered size={45} color="#ffffff" className="action-card-icon" />
                                                 <div className="action-card-text-content">
-                                                    <h3 className="action-card-title action-card-title-admin">ASIGNAR CIRIOS</h3>
+                                                    <h3 className="action-card-title action-card-title-admin">ASIGNAR TRAMOS</h3>
                                                     <p className="action-card-description action-card-description-admin">Accede a la gestión y adjudicación de cirios.</p>
                                                 </div>
                                             </button>
@@ -520,129 +528,6 @@ function HermanoConsultaActo() {
                     </div>
                 </div>
             </section>
-
-            {/* <section className="home-section-dashboard">
-                <div className="text-dashboard">Detalles del acto</div>
-
-                <div className="dashboard-content-layout">
-
-                    <div className="dashboard-main-info">
-                        {error && (
-                            <div className="error-message" style={{ color: 'red', marginBottom: '15px' }}>
-                                <AlertCircle size={16} /> {error}
-                            </div>
-                        )}
-
-                        <div className="info-card">
-                            <h3 className="info-card-title">{acto.nombre}</h3>
-
-                            {acto && (() => {
-                                let imgSrc = '/portada-comunicado.png';
-
-                                if (acto.imagen_portada) {
-                                    const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-                                    const imagePath = acto.imagen_portada;
-                                    imgSrc = imagePath.startsWith('http') 
-                                        ? imagePath 
-                                        : `${baseUrl}${imagePath.startsWith('/') ? imagePath : `/${imagePath}`}`;
-                                }
-
-                                return (
-                                    <div className="acto-cover-image-container">
-                                        <img 
-                                            src={imgSrc} 
-                                            alt={`Portada de ${acto.nombre}`} 
-                                            className="acto-cover-image"
-                                        />
-                                    </div>
-                                );
-                            })()}
-
-                            {acto?.requiere_papeleta && (
-                                <div className="info-item">
-                                    <Clock size={22} className="info-icon" />
-                                    <div style={{ width: '100%' }}>
-                                        <span className="info-label">
-                                            {acto.modalidad === 'TRADICIONAL' ? 'Plazo Insignias' : 'Plazo Solicitudes'}
-                                        </span>
-                                        <div className="plazos-fechas-wrapper">
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Inicio:</strong> {formatearFechaHora(acto.inicio_solicitud)}
-                                            </span>
-                                            <span className="info-value plazo-fecha">
-                                                <strong>Fin:</strong> {formatearFechaHora(acto.fin_solicitud)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            
-                        </div>
-
-                    </div>
-
-                    <div className="dashboard-calendar-sidebar">
-                        
-                        <div className="calendar-container" ref={calendarRef}>
-                            <ReactCalendar 
-                                onChange={setFechaSeleccionada} 
-                                value={fechaSeleccionada}
-                                className="custom-calendar"
-                                tileClassName={tileClassName}
-                            />
-                        </div>
-
-                        {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
-                            <>
-                                <div 
-                                    className="action-card" 
-                                    onClick={handleSolicitarInsignias}
-                                >
-                                    <div className="action-card-content-wrapper">
-                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR INSIGNIAS</h3>
-                                            <p className="action-card-description">Realiza tu solicitud para portar una insignia en el cortejo.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div 
-                                    className="action-card" 
-                                    onClick={handleSolicitarCirios}
-                                >
-                                    <div className="action-card-content-wrapper">
-                                        <Flame size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR CIRIOS</h3>
-                                            <p className="action-card-description">Realiza tu solicitud para participar portando un cirio.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                        {acto?.requiere_papeleta && acto?.modalidad === 'UNIFICADO' && (
-                            <>
-                                <div 
-                                    className="action-card"
-                                    onClick={() => navigate(`/hermano/solicitar-papeleta/${id}`)}
-                                >
-                                    <div className="action-card-content-wrapper">
-                                        <Ticket size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR PAPELETA DE SITIO</h3>
-                                            <p className="action-card-description">Realiza tu solicitud para participar y asignar tu puesto.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                    </div>
-                </div>
-            </section> */}
 
             {modalPlazo.isOpen && (
                 <div className="modal-overlay-observacion" onClick={() => setModalPlazo({ isOpen: false, titulo: '', mensaje: '' })}>
