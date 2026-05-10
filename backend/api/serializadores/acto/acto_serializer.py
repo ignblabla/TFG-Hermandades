@@ -22,39 +22,35 @@ class ActoCultoCardSerializer(serializers.ModelSerializer):
 
 
 class ActoSerializer(serializers.ModelSerializer):
-    total_insignias = serializers.SerializerMethodField()
-    total_asignados = serializers.SerializerMethodField()
-    total_no_asignados = serializers.SerializerMethodField()
-
-    total_solicitantes_cirio = serializers.SerializerMethodField()
-    total_cirios_cristo = serializers.SerializerMethodField()
-    total_cirios_virgen = serializers.SerializerMethodField()
-
-    total_puestos_cirios = serializers.SerializerMethodField()
+    total_insignias = serializers.ReadOnlyField(source='db_total_insignias')
+    total_asignados = serializers.ReadOnlyField(source='db_total_asignados')
+    total_no_asignados = serializers.ReadOnlyField(source='db_total_no_asignados')
+    
+    total_solicitantes_cirio = serializers.ReadOnlyField(source='db_total_solicitantes_cirio')
+    total_cirios_cristo = serializers.ReadOnlyField(source='db_total_cirios_cristo')
+    total_cirios_virgen = serializers.ReadOnlyField(source='db_total_cirios_virgen')
+    total_puestos_cirios = serializers.ReadOnlyField(source='db_total_puestos_cirios')
+    
+    total_solicitantes_insignia = serializers.ReadOnlyField(source='db_total_solicitantes_insignia')
+    total_solicitudes_insignias = serializers.ReadOnlyField(source='db_total_solicitudes_insignias')
 
     tipo_acto = serializers.SlugRelatedField(
         slug_field='tipo',
         queryset=TipoActo.objects.all()
     )
     puestos_disponibles = PuestoSerializer(many=True, read_only=True)
-
     tramos = TramoSerializer(many=True, read_only=True)
-
     requiere_papeleta = serializers.BooleanField(source='tipo_acto.requiere_papeleta', read_only=True)
 
+    # Estos los dejamos como MethodField porque hacer cuentas con fechas es rápido y no gasta SQL
     en_plazo_insignias = serializers.SerializerMethodField()
     en_plazo_cirios = serializers.SerializerMethodField()
-
     reparto_ejecutado = serializers.SerializerMethodField()
-
-    total_solicitantes_insignia = serializers.SerializerMethodField()
-    total_solicitudes_insignias = serializers.SerializerMethodField()
 
     class Meta:
         model = Acto
         fields = ['id', 'nombre', 'lugar', 'descripcion', 'fecha', 'tipo_acto', 'modalidad', 'inicio_solicitud', 'fin_solicitud', 'en_plazo_insignias', 'puestos_disponibles', 'tramos', 'inicio_solicitud_cirios', 'fin_solicitud_cirios', 'en_plazo_cirios', 'requiere_papeleta', 'fecha_ejecucion_reparto', 'reparto_ejecutado', 'imagen_portada', 'total_solicitantes_insignia', 'total_solicitudes_insignias', 'total_insignias', 'total_asignados', 'total_no_asignados', 'fecha_ejecucion_cirios', 'total_solicitantes_cirio', 'total_cirios_cristo', 'total_cirios_virgen', 'total_puestos_cirios']
-
-    read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
+        read_only_fields = ['fecha_ejecucion_reparto', 'reparto_ejecutado']
 
     def get_en_plazo_insignias(self, obj):
         ahora = timezone.now()
@@ -70,85 +66,6 @@ class ActoSerializer(serializers.ModelSerializer):
     
     def get_reparto_ejecutado(self, obj):
         return obj.fecha_ejecucion_reparto is not None
-    
-    def get_total_solicitantes_insignia(self, obj):
-        estados_inactivos = ['ANULADA']
-        return sum(
-            1 for p in obj.papeletas.all() 
-            if p.es_solicitud_insignia and p.estado_papeleta not in estados_inactivos
-        )
-    
-    def get_total_solicitudes_insignias(self, obj):
-        estados_validos = ['SOLICITADA', 'EMITIDA', 'RECOGIDA', 'LEIDA', 'NO_ASIGNADA']
-
-        total = PreferenciaSolicitud.objects.filter(
-            papeleta__acto_id=obj.id,
-            papeleta__estado_papeleta__in=estados_validos,
-            papeleta__es_solicitud_insignia=True
-        ).count()
-
-        return total
-
-    def get_total_insignias(self, obj):
-        return sum(
-            p.numero_maximo_asignaciones 
-            for p in obj.puestos_disponibles.all() 
-            if p.tipo_puesto.es_insignia
-        )
-
-    def get_total_asignados(self, obj):
-        if not obj.fecha_ejecucion_reparto:
-            return None
-            
-        estados_inactivos = ['ANULADA', 'NO_ASIGNADA']
-        return sum(
-            1 for p in obj.papeletas.all() 
-            if p.es_solicitud_insignia and p.puesto_id is not None and p.estado_papeleta not in estados_inactivos
-        )
-
-    def get_total_no_asignados(self, obj):
-        if not obj.fecha_ejecucion_reparto:
-            return None
-            
-        total = self.get_total_insignias(obj)
-        asignados = self.get_total_asignados(obj)
-        return max(0, total - asignados)
-    
-    def get_total_solicitantes_cirio(self, obj):
-        estados_inactivos = ['ANULADA']
-        return obj.papeletas.filter(
-            Q(es_solicitud_insignia=False) | Q(es_solicitud_insignia__isnull=True)
-        ).exclude(
-            estado_papeleta__in=estados_inactivos
-        ).count()
-
-    def get_total_cirios_cristo(self, obj):
-        estados_inactivos = ['ANULADA']
-        return sum(
-            1 for p in obj.papeletas.all() 
-            if (p.es_solicitud_insignia is False or p.es_solicitud_insignia is None)
-            and p.puesto_id is not None
-            and p.puesto.cortejo_cristo is True
-            and p.puesto.tipo_puesto.es_insignia is False
-            and p.estado_papeleta not in estados_inactivos
-        )
-
-    def get_total_cirios_virgen(self, obj):
-        estados_inactivos = ['ANULADA']
-        return sum(
-            1 for p in obj.papeletas.all() 
-            if (p.es_solicitud_insignia is False or p.es_solicitud_insignia is None)
-            and p.puesto_id is not None
-            and p.puesto.cortejo_cristo is False
-            and p.puesto.tipo_puesto.es_insignia is False
-            and p.estado_papeleta not in estados_inactivos
-        )
-
-    def get_total_puestos_cirios(self, obj):
-        return sum(
-            1 for p in obj.puestos_disponibles.all() 
-            if not p.tipo_puesto.es_insignia
-        )
 
 
 

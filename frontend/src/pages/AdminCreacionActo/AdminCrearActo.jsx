@@ -81,6 +81,16 @@ function AdminCrearActo() {
         };
     }, [previewUrl]);
 
+    useEffect(() => {
+        if (successMsg || error) {
+            const timer = setTimeout(() => {
+                setSuccessMsg("");
+                setError("");
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMsg, error]);
+
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     const handleChange = (e) => {
@@ -199,7 +209,6 @@ function AdminCrearActo() {
                     setError(typeof errorData === 'string' ? errorData : "Error al crear el acto.");
                 }
             }
-            window.scrollTo(0, 0);
         } finally {
             setSaving(false);
         }
@@ -223,6 +232,20 @@ function AdminCrearActo() {
 
     return (
         <div>
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -346,38 +369,6 @@ function AdminCrearActo() {
                                 <span className="plazos-text">Información general del acto</span>
                             <div className="plazos-line"></div>
                         </div>
-
-                        {error && (
-                            <div className="alert-error-crear-acto" style={{ 
-                                backgroundColor: '#fee2e2', 
-                                color: '#dc2626', 
-                                padding: '15px', 
-                                borderRadius: '8px', 
-                                marginBottom: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px'
-                            }}>
-                                <AlertCircle size={20} />
-                                <div>{error}</div>
-                            </div>
-                        )}
-
-                        {successMsg && (
-                            <div className="alert-success-crear-acto" style={{ 
-                                backgroundColor: '#dcfce3', 
-                                color: '#16a34a', 
-                                padding: '15px', 
-                                borderRadius: '8px', 
-                                marginBottom: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px'
-                            }}>
-                                <CheckCircle size={20} />
-                                <div>{successMsg}</div>
-                            </div>
-                        )}
 
                         <form onSubmit={handleSubmit}>
 
@@ -656,7 +647,7 @@ function AdminCrearActo() {
                                         <button 
                                             type="button" 
                                             className="btn-cancel-crear-acto" 
-                                            onClick={() => navigate("/home")}
+                                            onClick={() => navigate("/listado-actos")}
                                         >
                                             Cancelar
                                         </button>

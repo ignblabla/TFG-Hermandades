@@ -557,7 +557,7 @@ function AdminCreacionComunicado() {
                                 <button 
                                     type="button" 
                                     className="btn-cancel-crear-comunicado" 
-                                    onClick={() => navigate("/home")}
+                                    onClick={() => navigate("/noticias")}
                                 >
                                     Cancelar
                                 </button>
