@@ -13,6 +13,8 @@ function AdminCrearPuesto() {
     const [listaActos, setListaActos] = useState([]);
     const [listaTiposPuesto, setListaTiposPuesto] = useState([]);
 
+    const [accesoDenegado, setAccesoDenegado] = useState(false);
+
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const [successMsg, setSuccessMsg] = useState("");
@@ -56,8 +58,10 @@ function AdminCrearPuesto() {
                 const userData = userRes.data;
                 
                 if (!userData.esAdmin) {
-                    alert("No tienes permisos de administrador para gestionar puestos.");
-                    navigate("/");
+                    if (isMounted) {
+                        setAccesoDenegado(true);
+                        setLoading(false);
+                    }
                     return;
                 }
 
@@ -141,7 +145,7 @@ function AdminCrearPuesto() {
             const response = await api.post("/api/puestos/", payload);
 
             setSuccessMsg("Puesto creado con éxito");
-            setTimeout(() => navigate("/new-home"), 2000);
+            setTimeout(() => navigate(`/actos/${formData.acto}/puestos`), 2000);
 
         } catch (err) {
             console.error(err);
@@ -151,11 +155,11 @@ function AdminCrearPuesto() {
 
                 if (data.acto) {
                     const msg = Array.isArray(data.acto) ? data.acto[0] : data.acto;
-                    setError(`⚠️ ${msg}`); 
+                    setError(`${msg}`); 
                 } 
                 else if (data.hora_citacion) {
                     const msg = Array.isArray(data.hora_citacion) ? data.hora_citacion[0] : data.hora_citacion;
-                    setError(`⚠️ ${msg}`);
+                    setError(`${msg}`);
                 }
                 else if (data.detail) {
                     setError(data.detail);
@@ -195,11 +199,37 @@ function AdminCrearPuesto() {
         }
     };
 
+    if (accesoDenegado) {
+        return (
+            <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
+                <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
+                <p>Esta sección es exclusiva para Administradores.</p>
+                <button onClick={() => navigate("/new-home")} className="btn-purple">Volver al inicio</button>
+            </div>
+        );
+    }
+
     if (loading) return <div className="site-wrapper">Cargando...</div>;
     if (!user) return null;
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -329,15 +359,15 @@ function AdminCrearPuesto() {
 
                                 <div className="form-grid-4-crear-puesto">
                                     <div className="form-group-crear-puesto span-3-crear-puesto">
-                                        <label htmlFor="nombre_puesto" className="form-label-crear-puesto">
+                                        <label htmlFor="nombre" className="form-label-crear-puesto">
                                             Nombre del puesto *
                                         </label>
                                         <div className="input-wrapper-crear-puesto">
                                             <input 
                                                 type="text" 
-                                                id="nombre_puesto"
-                                                name="nombre_puesto" 
-                                                value={formData.nombre_puesto} 
+                                                id="nombre"
+                                                name="nombre" 
+                                                value={formData.nombre} 
                                                 onChange={handleChange} 
                                                 placeholder="Ej: Diputado Mayor de Gobierno"
                                                 required 
@@ -347,15 +377,15 @@ function AdminCrearPuesto() {
                                     </div>
 
                                     <div className="form-group-crear-puesto">
-                                        <label htmlFor="cantidad" className="form-label-crear-puesto">
+                                        <label htmlFor="numero_maximo_asignaciones" className="form-label-crear-puesto">
                                             Cantidad *
                                         </label>
                                         <div className="input-wrapper-crear-puesto">
                                             <input 
                                                 type="number" 
-                                                id="cantidad"
-                                                name="cantidad" 
-                                                value={formData.cantidad} 
+                                                id="numero_maximo_asignaciones"
+                                                name="numero_maximo_asignaciones" 
+                                                value={formData.numero_maximo_asignaciones} 
                                                 onChange={handleChange}
                                                 placeholder="Ej: 1"
                                                 min="1"
@@ -475,6 +505,7 @@ function AdminCrearPuesto() {
                                                 name="lugar_citacion"
                                                 value={formData.lugar_citacion}
                                                 onChange={handleChange}
+                                                required
                                                 placeholder="Ej: Parroquia de San Gonzalo"
                                                 className="form-control-crear-puesto"
                                             />
@@ -490,6 +521,7 @@ function AdminCrearPuesto() {
                                                 type="time"
                                                 id="hora_citacion"
                                                 name="hora_citacion"
+                                                required
                                                 value={formData.hora_citacion}
                                                 onChange={handleChange}
                                                 className="form-control-crear-puesto"

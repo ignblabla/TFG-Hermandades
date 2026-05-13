@@ -171,7 +171,7 @@ function HermanoNewHome() {
                         <span className="tooltip-dashboard">Search</span>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/new-home">
                             <i className="bx bx-grid-alt"></i>
                             <span className="link_name-dashboard">Dashboard</span>
                         </a>
@@ -238,13 +238,31 @@ function HermanoNewHome() {
                         </span>
                     </li>
                     {currentUser?.esAdmin && (
-                        <li>
-                            <a href="/censo-hermanos">
-                                <i className="bx bx-group"></i>
-                                <span className="link_name-dashboard">Censo</span>
-                            </a>
-                            <span className="tooltip-dashboard">Censo</span>
-                        </li>
+                        <>
+                            <li>
+                                <a href="/censo-hermanos">
+                                    <i className="bx bx-group"></i>
+                                    <span className="link_name-dashboard">Censo</span>
+                                </a>
+                                <span className="tooltip-dashboard">Censo</span>
+                            </li>
+
+                            <li>
+                                <a href="/admin/comunicados">
+                                    <i className="bx bx-detail"></i>
+                                    <span className="link_name-dashboard">Todas las noticias</span>
+                                </a>
+                                <span className="tooltip-dashboard">Todas las noticias</span>
+                            </li>
+
+                            <li>
+                                <a href="/admin/listado-solicitudes-baja">
+                                    <i className="bx bx-user-x"></i>
+                                    <span className="link_name-dashboard">Solicitudes de baja</span>
+                                </a>
+                                <span className="tooltip-dashboard">Solicitudes de baja</span>
+                            </li>
+                        </>
                     )}
                     
                     <li className="profile-dashboard">

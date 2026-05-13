@@ -356,7 +356,7 @@ function HermanoAreaInteres() {
                         {/* Pie de página con el botón de guardar */}
                         <footer className="card-footer-area-interes">
                             <button className="btn-save-area-interes" onClick={handleSave} disabled={loading}>
-                                <Save size={18} /> {loading ? "Guardando..." : "Guardar Preferencias"}
+                                <Save size={18} /> {loading ? "Guardando..." : "Guardar preferencias"}
                             </button>
                         </footer>
                     </div>

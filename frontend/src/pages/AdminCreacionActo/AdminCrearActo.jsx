@@ -13,7 +13,9 @@ function AdminCrearActo() {
     const maxDate = `${currentYear}-12-31T23:59`;
     
     const [isOpen, setIsOpen] = useState(false);
+
     const [saving, setSaving] = useState(false);
+
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [successMsg, setSuccessMsg] = useState("");
@@ -557,10 +559,10 @@ function AdminCrearActo() {
                                         <div className="form-group-solicitud-crear-acto">
                                             <label htmlFor="inicio_solicitud" className="form-label-crear-acto">
                                                 {formData.modalidad === 'UNIFICADO' 
-                                                    ? 'Inicio solicitud insignias y cirios' 
+                                                    ? 'Comienzo del periodo de solicitud de insignias y cirios' 
                                                     : (formData.modalidad === 'TRADICIONAL' && requierePapeleta) 
-                                                        ? 'Inicio solicitud insignias' 
-                                                        : 'Inicio solicitud insignias'}
+                                                        ? 'Comienzo del periodo de solicitud de insignias' 
+                                                        : 'Comienzo del periodo de solicitud de insignias'}
                                             </label>
                                             <div className="input-wrapper-crear-acto">
                                                 <input 
@@ -580,10 +582,10 @@ function AdminCrearActo() {
                                         <div className="form-group-solicitud-crear-acto">
                                             <label htmlFor="fin_solicitud" className="form-label-crear-acto">
                                                 {formData.modalidad === 'UNIFICADO' 
-                                                    ? 'Fin solicitud insignias y cirios' 
+                                                    ? 'Finalización del periodo de solicitud insignias y cirios' 
                                                     : (formData.modalidad === 'TRADICIONAL' && requierePapeleta) 
-                                                        ? 'Fin solicitud insignias' 
-                                                        : 'Fin solicitud insignias'}
+                                                        ? 'Finalización del periodo de solicitud insignias' 
+                                                        : 'Finalización del periodo de solicitud insignias'}
                                             </label>
                                             <div className="input-wrapper-crear-acto">
                                                 <input 
@@ -605,7 +607,7 @@ function AdminCrearActo() {
                                         <div className="form-row-crear-acto">
                                             <div className="form-group-solicitud-crear-acto">
                                                 <label htmlFor="inicio_solicitud_cirios" className="form-label-crear-acto">
-                                                    {formData.modalidad === 'TRADICIONAL' ? 'Inicio solicitud cirios' : 'Inicio solicitud cirios'}
+                                                    {formData.modalidad === 'TRADICIONAL' ? 'Comienzo del periodo de solicitud de cirios' : 'Comienzo del periodo de solicitud de cirios'}
                                                 </label>
                                                 <div className="input-wrapper-crear-acto">
                                                     <input 
@@ -624,7 +626,7 @@ function AdminCrearActo() {
                                             
                                             <div className="form-group-solicitud-crear-acto">
                                                 <label htmlFor="fin_solicitud_cirios" className="form-label-crear-acto">
-                                                    {formData.modalidad === 'TRADICIONAL' ? 'Fin solicitud cirios' : 'Fin solicitud cirios'}
+                                                    {formData.modalidad === 'TRADICIONAL' ? 'Finalizacion del periodo de solicitud cirios' : 'Finalizacion del periodo de solicitud cirios'}
                                                 </label>
                                                 <div className="input-wrapper-crear-acto">
                                                     <input 

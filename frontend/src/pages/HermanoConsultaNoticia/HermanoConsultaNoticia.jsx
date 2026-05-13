@@ -5,7 +5,7 @@ import '../HermanoConsultaNoticia/HermanoConsultaNoticia.css';
 import NewsCard from '../../components/NewsCard';
 import AreasAsociadas from '../../components/areas_asociadas/AreasAsociadas';
 
-import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell, Tag, Headphones, Play, Pause, Edit } from "lucide-react";
+import { Users, Heart, Hammer, Church, Sun, BookOpen, Crown, Landmark, Bell, Tag, Headphones, Play, Pause, Edit, Trash2, AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
 
 function HermanoConsultaNoticia() {
     const { id } = useParams();
@@ -15,7 +15,10 @@ function HermanoConsultaNoticia() {
     const [noticia, setNoticia] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
     const [ultimasNoticias, setUltimasNoticias] = useState([]);
+
+    const [showConfirmEliminarModal, setShowConfirmEliminarModal] = useState(false);
 
     const audioRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -32,6 +35,20 @@ function HermanoConsultaNoticia() {
         }
         setIsPlaying(!isPlaying);
     };
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => setSuccess(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [success]);
 
     const playAnimationRef = useRef(null);
 
@@ -175,8 +192,72 @@ function HermanoConsultaNoticia() {
         }
     };
 
+    const handleEliminarComunicado = () => {
+        setShowConfirmEliminarModal(true);
+    };
+
+    const handleConfirmEliminar = async () => {
+        setShowConfirmEliminarModal(false);
+        try {
+            await api.delete(`api/comunicados/${id}/`);
+            setSuccess(true);
+            setTimeout(() => navigate('/admin/comunicados'), 2000);
+        } catch (err) {
+            console.error("Error al eliminar el comunicado:", err);
+            setError(err.response?.data?.error || err.response?.data?.detail || "Error al eliminar el comunicado.");
+        }
+    };
+
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {success && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>Comunicado eliminado correctamente. Redirigiendo...</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmEliminarModal && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>Eliminar comunicado</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de que deseas eliminar el comunicado <strong>"{noticia?.titulo}"</strong>?
+                                <br /><br />
+                                Esta acción es <strong>irreversible</strong> y no podrá deshacerse.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmEliminarModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmEliminar}
+                                >
+                                    Sí, eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -314,7 +395,15 @@ function HermanoConsultaNoticia() {
                                             title="Editar comunicado"
                                         >
                                             <Edit size={14} />
-                                            <span>Editar comunicado</span>
+                                            <span>Editar noticia</span>
+                                        </div>
+                                        <div 
+                                            className="header-tag-pill-editar" 
+                                            onClick={() => handleEliminarComunicado(id)}
+                                            title="Eliminar comunicado"
+                                        >
+                                            <Trash2 size={14} />
+                                            <span>Eliminar noticia</span>
                                         </div>
                                     </div>
                                 )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../../api';
 import '../AdminEdicionHermano/AdminEdicionHermano.css';
-import { Save, User, MapPin, Calendar, ShieldAlert, CheckCircle } from "lucide-react";
+import { Save, User, MapPin, Calendar, ShieldAlert, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
 
 function AdminEditarHermano() {
     const { id } = useParams();
@@ -13,6 +13,8 @@ function AdminEditarHermano() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+
+    const [accesoDenegado, setAccesoDenegado] = useState(false);
 
     const [showConfirmBaja, setShowConfirmBaja] = useState(false);
     const [givingBaja, setGivingBaja] = useState(false);
@@ -41,8 +43,10 @@ function AdminEditarHermano() {
                 }
 
                 if (!user.esAdmin) {
-                    alert("No tienes permisos para estar aquí.");
-                    navigate("/home");
+                    if (isMounted) {
+                        setAccesoDenegado(true);
+                        setLoading(false);
+                    }
                     return;
                 }
 
@@ -105,13 +109,9 @@ function AdminEditarHermano() {
             await api.post(`api/hermanos/${id}/dar-de-baja/`);
             setShowConfirmBaja(false);
             setSuccessMsg(`El hermano ha sido dado de baja correctamente.`);
-            setFormData(prev => ({
-                ...prev,
-                estado_hermano: 'BAJA',
-                fecha_baja_corporacion: new Date().toISOString().split('T')[0],
-                is_active: false
-            }));
-            window.scrollTo(0, 0);
+            setTimeout(() => {
+                navigate("/censo-hermanos");
+            }, 3000);
         } catch (err) {
             setShowConfirmBaja(false);
             if (err.response?.status === 403) {
@@ -119,7 +119,6 @@ function AdminEditarHermano() {
             } else {
                 setError("Error al dar de baja al hermano.");
             }
-            window.scrollTo(0, 0);
         } finally {
             setGivingBaja(false);
         }
@@ -153,11 +152,11 @@ function AdminEditarHermano() {
         try {
             await api.put(`api/hermanos/${id}/gestion/`, payload);
             setSuccessMsg("Datos actualizados correctamente.");
-
             setFormData(prev => ({ ...prev, password: '' }));
-            
-            window.scrollTo(0, 0);
-            
+            setTimeout(() => {
+                navigate("/censo-hermanos");
+            }, 3000);
+
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data) {
@@ -190,35 +189,67 @@ function AdminEditarHermano() {
         }
     };
 
+    if (accesoDenegado) {
+        return (
+            <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
+                <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
+                <p>Esta sección es exclusiva para Administradores.</p>
+                <button onClick={() => navigate("/new-home")} className="btn-purple">Volver al inicio</button>
+            </div>
+        );
+    }
+
     if (loading) return <div className="loading-screen">Cargando ficha...</div>;
+
+    const estaEnBaja = formData.estado_hermano === 'BAJA' || Boolean(formData.fecha_baja_corporacion);
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
             {showConfirmBaja && (
-                <div className="modal-overlay-editar-perfil" onClick={() => setShowConfirmBaja(false)}>
-                    <div className="modal-content-editar-perfil" onClick={e => e.stopPropagation()}>
-                        <ShieldAlert size={40} color="#c0392b" />
-                        <h3>¿Dar de baja a este hermano?</h3>
-                        <p>
-                            Esta acción cambiará su estado a <strong>BAJA</strong>, registrará la fecha de hoy 
-                            y desactivará su acceso al sistema. 
-                        </p>
-                        <div className="modal-actions-editar-perfil">
-                            <button 
-                                className="btn-cancel-editar-perfil" 
-                                onClick={() => setShowConfirmBaja(false)}
-                                disabled={givingBaja}
-                            >
-                                Cancelar
-                            </button>
-                            <button 
-                                className="btn-danger-editar-perfil" 
-                                onClick={handleDarDeBaja}
-                                disabled={givingBaja}
-                            >
-                                <ShieldAlert size={18} />
-                                {givingBaja ? "Procesando..." : "Confirmar baja"}
-                            </button>
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>Confirmar baja</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de dar de baja a <strong>"{formData.nombre} {formData.primer_apellido}"</strong>?
+                                <br /><br />
+                                Esta acción cambiará su estado a <strong>BAJA</strong>, registrará la fecha de hoy y <strong>desactivará su acceso al sistema</strong>.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmBaja(false)}
+                                    disabled={givingBaja}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleDarDeBaja}
+                                    disabled={givingBaja}
+                                >
+                                    {givingBaja ? "Procesando..." : "Confirmar y dar de baja"}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -365,6 +396,7 @@ function AdminEditarHermano() {
                                                 value={formData.nombre}
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -381,6 +413,7 @@ function AdminEditarHermano() {
                                                 value={formData.primer_apellido} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -397,6 +430,7 @@ function AdminEditarHermano() {
                                                 value={formData.segundo_apellido} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -413,6 +447,7 @@ function AdminEditarHermano() {
                                                 value={formData.dni} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -431,6 +466,7 @@ function AdminEditarHermano() {
                                                 value={formData.fecha_nacimiento || ''} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -446,6 +482,7 @@ function AdminEditarHermano() {
                                                 value={formData.genero} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             >
                                                 <option value="MASCULINO">Masculino</option>
                                                 <option value="FEMENINO">Femenino</option>
@@ -464,6 +501,7 @@ function AdminEditarHermano() {
                                                 value={formData.estado_civil} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             >
                                                 <option value="SOLTERO">Soltero/a</option>
                                                 <option value="CASADO">Casado/a</option>
@@ -487,6 +525,7 @@ function AdminEditarHermano() {
                                                 placeholder="Opcional" 
                                                 autoComplete="new-password"
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -503,45 +542,45 @@ function AdminEditarHermano() {
                                 <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
                                     <label htmlFor="direccion" className="form-label-editar-perfil">Dirección Postal</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} className="form-control-editar-perfil" />
+                                        <input type="text" id="direccion" name="direccion" value={formData.direccion} onChange={handleChange} className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
                                 <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
                                     <label htmlFor="localidad" className="form-label-editar-perfil">Localidad</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="localidad" name="localidad" value={formData.localidad} onChange={handleChange} className="form-control-editar-perfil" />
+                                        <input type="text" id="localidad" name="localidad" value={formData.localidad} onChange={handleChange} className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
 
                                 <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
                                     <label htmlFor="codigo_postal" className="form-label-editar-perfil">C. Postal</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="codigo_postal" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} className="form-control-editar-perfil" />
+                                        <input type="text" id="codigo_postal" name="codigo_postal" value={formData.codigo_postal} onChange={handleChange} className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
                                 <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
                                     <label htmlFor="provincia" className="form-label-editar-perfil">Provincia</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="provincia" name="provincia" value={formData.provincia} onChange={handleChange} className="form-control-editar-perfil" />
+                                        <input type="text" id="provincia" name="provincia" value={formData.provincia} onChange={handleChange} className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
                                 <div className="form-group-solicitud-editar-perfil span-2-editar-perfil">
                                     <label htmlFor="comunidad_autonoma" className="form-label-editar-perfil">Comunidad Autónoma</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="comunidad_autonoma" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} className="form-control-editar-perfil" />
+                                        <input type="text" id="comunidad_autonoma" name="comunidad_autonoma" value={formData.comunidad_autonoma} onChange={handleChange} className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
 
                                 <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
                                     <label htmlFor="telefono" className="form-label-editar-perfil">Teléfono</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} required className="form-control-editar-perfil" />
+                                        <input type="text" id="telefono" name="telefono" value={formData.telefono} onChange={handleChange} required className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
                                 <div className="form-group-solicitud-editar-perfil span-3-editar-perfil">
                                     <label htmlFor="email" className="form-label-editar-perfil">Email</label>
                                     <div className="input-wrapper-editar-perfil">
-                                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="form-control-editar-perfil" />
+                                        <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required className="form-control-editar-perfil" disabled={estaEnBaja} />
                                     </div>
                                 </div>
                             </div>
@@ -563,6 +602,7 @@ function AdminEditarHermano() {
                                             value={formData.fecha_bautismo || ''} 
                                             onChange={handleChange}
                                             className="form-control-editar-perfil"
+                                            disabled={estaEnBaja}
                                         />
                                     </div>
                                 </div>
@@ -577,6 +617,7 @@ function AdminEditarHermano() {
                                             value={formData.lugar_bautismo || ''} 
                                             onChange={handleChange}
                                             className="form-control-editar-perfil"
+                                            disabled={estaEnBaja}
                                         />
                                     </div>
                                 </div>
@@ -591,6 +632,7 @@ function AdminEditarHermano() {
                                             value={formData.parroquia_bautismo || ''} 
                                             onChange={handleChange}
                                             className="form-control-editar-perfil"
+                                            disabled={estaEnBaja}
                                         />
                                     </div>
                                 </div>
@@ -614,6 +656,7 @@ function AdminEditarHermano() {
                                                 value={formData.numero_registro || ''} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -628,6 +671,7 @@ function AdminEditarHermano() {
                                                 value={formData.estado_hermano || ''} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -642,6 +686,7 @@ function AdminEditarHermano() {
                                                 value={formData.fecha_ingreso_corporacion || ''} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -656,6 +701,7 @@ function AdminEditarHermano() {
                                                 value={formData.fecha_baja_corporacion || ''} 
                                                 onChange={handleChange}
                                                 className="form-control-editar-perfil"
+                                                disabled={estaEnBaja}
                                             />
                                         </div>
                                     </div>
@@ -664,9 +710,9 @@ function AdminEditarHermano() {
 
                             <div 
                                 className="form-actions-editar-perfil" 
-                                style={{ justifyContent: formData.estado_hermano !== 'BAJA' && !formData.fecha_baja_corporacion ? 'space-between' : 'flex-end' }}
+                                style={{ justifyContent: !estaEnBaja ? 'space-between' : 'flex-end' }}
                             >
-                                {formData.estado_hermano !== 'BAJA' && !formData.fecha_baja_corporacion && (
+                                {!estaEnBaja && (
                                     <button 
                                         type="button" 
                                         className="btn-danger-editar-perfil" 
@@ -683,17 +729,19 @@ function AdminEditarHermano() {
                                         className="btn-cancel-editar-perfil" 
                                         onClick={() => navigate("/censo-hermanos")}
                                     >
-                                        Cancelar
+                                        {estaEnBaja ? "Volver" : "Cancelar"}
                                     </button>
                                     
-                                    <button 
-                                        type="submit" 
-                                        className="btn-save-editar-perfil" 
-                                        disabled={saving}
-                                    >
-                                        <Save size={18} />
-                                        {saving ? "Guardando..." : "Guardar cambios"}
-                                    </button>
+                                    {!estaEnBaja && (
+                                        <button 
+                                            type="submit" 
+                                            className="btn-save-editar-perfil" 
+                                            disabled={saving}
+                                        >
+                                            <Save size={18} />
+                                            {saving ? "Guardando..." : "Guardar cambios"}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </form>

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from '../../api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../constants";
 import '../AdminCreacionPuesto/AdminCreacionPuesto.css'
-import { ArrowLeft, FileText, MapPin, FolderDot, Save, AlertCircle, CheckCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, MapPin, FolderDot, Save, AlertCircle, CheckCircle, Trash2, AlertTriangle } from "lucide-react";
 
 
 function AdminEdicionPuesto() {
@@ -12,8 +12,12 @@ function AdminEdicionPuesto() {
     const [loading, setLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
 
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+
     const { id } = useParams(); 
     const isEditing = Boolean(id);
+
+    const [accesoDenegado, setAccesoDenegado] = useState(false);
 
     const [listaActos, setListaActos] = useState([]);
     const [listaTiposPuesto, setListaTiposPuesto] = useState([]);
@@ -49,6 +53,13 @@ function AdminEdicionPuesto() {
     const toggleSidebar = () => setIsOpen(!isOpen);
 
     useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
         const token = localStorage.getItem(ACCESS_TOKEN || "access");
 
         if (!token) {
@@ -63,10 +74,11 @@ function AdminEdicionPuesto() {
                 const userData = userRes.data;
                 
                 if (!userData.esAdmin) {
-                    alert("No tienes permisos de administrador para gestionar puestos.");
-                    navigate("/");
+                    setAccesoDenegado(true);
+                    setLoading(false);
                     return;
                 }
+
                 setUser(userData);
 
                 const [actosRes, tiposRes] = await Promise.all([
@@ -184,10 +196,10 @@ function AdminEdicionPuesto() {
             }
 
             setSuccessMsg(isEditing ? "Puesto actualizado correctamente." : "Puesto creado correctamente.");
-            
+
             setTimeout(() => {
-                navigate("/new-home"); 
-            }, 2000);
+                navigate(`/actos/${formData.acto}/puestos`);
+            }, 3000);
 
         } catch (err) {
             console.error(err);
@@ -227,20 +239,23 @@ function AdminEdicionPuesto() {
         }
     };
 
-    const handleDelete = async () => {
-        if (!window.confirm("¿Estás seguro de que deseas eliminar este puesto? Esta acción no se puede deshacer.")) {
-            return;
-        }
+    const handleDelete = () => {
+        setShowConfirmModal(true);
+    };
 
+    const handleConfirmDelete = async () => {
+        setShowConfirmModal(false);
         setDeleting(true);
         setError("");
         
         try {
             await api.delete(`/api/puestos/${id}/`);
             setSuccessMsg("Puesto eliminado correctamente.");
+
             setTimeout(() => {
-                navigate("/new-home"); 
-            }, 2500);
+                navigate(`/actos/${formData.acto}/puestos`);
+            }, 3000);
+
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data && err.response.data.acto) {
@@ -272,11 +287,70 @@ function AdminEdicionPuesto() {
         window.location.href = "/";
     };
 
+    if (accesoDenegado) {
+        return (
+            <div className="site-wrapper" style={{textAlign: 'center', marginTop: '50px'}}>
+                <h2 style={{color: 'red'}}>🚫 Acceso Restringido</h2>
+                <p>Esta sección es exclusiva para Administradores.</p>
+                <button onClick={() => navigate("/new-home")} className="btn-purple">Volver al inicio</button>
+            </div>
+        );
+    }
+
     if (loading) return <div className="site-wrapper">Cargando...</div>;
     if (!user) return null;
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmModal && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>Confirmar eliminación</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de que deseas eliminar el puesto <strong>"{formData.nombre}"</strong>?
+                                <br /><br />
+                                Esta acción <strong>no se puede deshacer</strong>.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmDelete}
+                                    disabled={deleting}
+                                >
+                                    {deleting ? "Eliminando..." : "Confirmar y eliminar"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -392,21 +466,8 @@ function AdminEdicionPuesto() {
                 <div className="dashboard-split-layout-solicitud">
                     <div className="dashboard-panel-crear-puesto">
                         <div className="historical-header-container-crear-puesto">
-                            <h1 className="historical-header-title-crear-puesto">EDITAR PUESTO: {formData.nombre ? formData.nombre.toUpperCase() : ''}</h1>
+                            <h1 className="historical-header-title-crear-puesto">{formData.nombre ? formData.nombre.toUpperCase() : ''}</h1>
                         </div>
-
-                        {error && (
-                            <div className="alert-banner-creacion-puesto error-creacion-puesto" style={{marginBottom: '20px'}}>
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        {successMsg && (
-                            <div className="alert-banner-creacion-puesto success-creacion-puesto" style={{marginBottom: '20px'}}>
-                                <CheckCircle size={20} />
-                                <span>{successMsg}</span>
-                            </div>
-                        )}
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
@@ -617,7 +678,7 @@ function AdminEdicionPuesto() {
                                             disabled={saving || deleting}
                                         >
                                             <Save size={18} />
-                                            {saving ? "Guardando..." : "Guardar cambios"}
+                                            {saving ? "Guardando..." : "Actualizar puesto"}
                                         </button>
                                     </div>
                                 </div>

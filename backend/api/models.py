@@ -496,8 +496,8 @@ class Puesto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del puesto")
     numero_maximo_asignaciones = models.PositiveIntegerField(verbose_name="Número máximo de asignaciones (Cupo total)", default=1)
     disponible = models.BooleanField(default=True, verbose_name="¿Está disponible?")
-    lugar_citacion = models.CharField(max_length=150, verbose_name="Lugar de citación", blank=True, null=True)
-    hora_citacion = models.TimeField(verbose_name="Hora de citación", blank=True, null=True)
+    lugar_citacion = models.CharField(max_length=150, verbose_name="Lugar de citación", default="Parroquia de San Gonzalo")
+    hora_citacion = models.TimeField(verbose_name="Hora de citación", default=timezone.now)
     cortejo_cristo = models.BooleanField(default=True, verbose_name="¿Es cortejo de Cristo?", help_text="Marcar si este puesto pertenece al cortejo del Cristo. Desmarcar para Virgen/Palio.")
 
     acto = models.ForeignKey(Acto, on_delete=models.CASCADE, related_name='puestos_disponibles', verbose_name="Acto al que pertenece")

@@ -13,7 +13,6 @@ function AdminEdicionComunicado() {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
@@ -208,21 +207,6 @@ function AdminEdicionComunicado() {
         }
     };
 
-    const handleDelete = async () => {
-        if (!window.confirm("¿Estás seguro de que deseas eliminar este comunicado? Esta acción es irreversible.")) {
-            return;
-        }
-        setDeleting(true);
-        try {
-            await api.delete(`api/comunicados/${id}/`);
-            navigate("/home");
-        } catch (err) {
-            console.error(err);
-            setError("Error al eliminar el comunicado. Verifica tus permisos.");
-            setDeleting(false);
-        }
-    };
-
     const handleLogout = () => {
         localStorage.clear();
         navigate("/login");
@@ -243,6 +227,22 @@ function AdminEdicionComunicado() {
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -360,21 +360,9 @@ function AdminEdicionComunicado() {
                         
                         <div className="historical-header-container-crear-comunicado">
                             <h1 className="historical-header-title-crear-comunicado">
-                                EDITAR COMUNICADO: {formData.titulo ? formData.titulo.toUpperCase() : ''}
+                                {formData.titulo ? formData.titulo.toUpperCase() : ''}
                             </h1>
                         </div>
-
-                        {error && (
-                            <div className="alert-banner-edicion error-edicion" style={{ margin: '0 30px 20px' }}>
-                                <AlertCircle size={20} /> <span>{error}</span>
-                            </div>
-                        )}
-                        
-                        {successMsg && (
-                            <div className="alert-banner-edicion success-edicion" style={{ margin: '0 30px 20px' }}>
-                                <CheckCircle size={20} /> <span>{successMsg}</span>
-                            </div>
-                        )}
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>
@@ -552,19 +540,9 @@ function AdminEdicionComunicado() {
                                 </div>
                             </div>
 
-                            <div className="form-actions-crear-comunicado" style={{ justifyContent: 'space-between' }}>
-                                
-                                <button 
-                                    type="button" 
-                                    onClick={handleDelete} 
-                                    disabled={deleting}
-                                    className="btn-delete-puesto"
-                                >
-                                    <Trash2 size={18} />
-                                    {deleting ? "Eliminando..." : "Eliminar comunicado"}
-                                </button>
+                            <div className="form-actions-crear-comunicado">
 
-                                <div style={{ display: 'flex', gap: '10px' }}>
+                                <div style={{ display: 'flex', gap: '16px' }}>
                                     <button 
                                         type="button" 
                                         className="btn-cancel-crear-comunicado" 
@@ -579,7 +557,7 @@ function AdminEdicionComunicado() {
                                         disabled={saving}
                                     >
                                         <Save size={18} />
-                                        {saving ? "Guardando..." : "Guardar cambios"}
+                                        {saving ? "Guardando..." : "Actualizar comunicado"}
                                     </button>
                                 </div>
                             </div>

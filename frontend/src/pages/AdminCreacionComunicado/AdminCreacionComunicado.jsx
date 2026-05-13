@@ -568,7 +568,7 @@ function AdminCreacionComunicado() {
                                     disabled={saving}
                                 >
                                     <Save size={18} />
-                                    {saving ? "Emitiendo..." : "Emitir Comunicado"}
+                                    {saving ? "Emitiendo..." : "Emitir noticia"}
                                 </button>
                             </div>
                         </form>

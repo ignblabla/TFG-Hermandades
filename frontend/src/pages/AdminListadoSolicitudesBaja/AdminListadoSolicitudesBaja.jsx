@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api';
-import { AlertCircle, CheckCircle, MessageCircle, X, Clock, FileText, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, MessageCircle, X, Clock, FileText, XCircle, AlertTriangle } from "lucide-react";
 
 function AdminListadoSolicitudesBaja() {
     const navigate = useNavigate();
@@ -17,9 +17,14 @@ function AdminListadoSolicitudesBaja() {
     });
 
     const [loading, setLoading] = useState(true);
+
+    const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
+
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, accion: null });
 
     const [refresh, setRefresh] = useState(0); 
 
@@ -130,23 +135,88 @@ function AdminListadoSolicitudesBaja() {
         setTextoModal({ isOpen: true, titulo, texto });
     };
 
-    const handleResolverSolicitud = async (id, accion) => {
-        const confirmar = window.confirm(`¿Estás seguro de que deseas ${accion} esta solicitud de baja?`);
-        if (!confirmar) return;
+    const handleResolverSolicitud = (id, accion) => {
+        setConfirmModal({ isOpen: true, id, accion });
+    };
+
+    const handleConfirmResolver = async () => {
+        const { id, accion } = confirmModal;
+        setConfirmModal({ isOpen: false, id: null, accion: null });
 
         try {
             await api.post(`api/solicitudes-baja/${id}/resolver/`, { accion: accion });
-            alert(`Solicitud ${accion.toLowerCase()}a correctamente.`);
+
+            const mensaje = accion === 'ACEPTAR'
+                ? 'Solicitud aceptada correctamente. La baja ha sido tramitada.'
+                : 'Solicitud denegada correctamente.';
+            setSuccess(mensaje);
+            setTimeout(() => setSuccess(""), 3000);
+
             setRefresh(prev => prev + 1);
         } catch (err) {
             console.error(err);
             const msg = err.response?.data?.error || err.response?.data?.detail || "Ocurrió un error al procesar la resolución.";
-            alert(`Error: ${msg}`);
+            setError(`Error: ${msg}`);
+            setTimeout(() => setError(""), 3000);
         }
     };
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {success && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{success}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {confirmModal.isOpen && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <AlertTriangle className="modal-icon-warning" size={28} />
+                            <h3>
+                                {confirmModal.accion === 'ACEPTAR' ? 'Aceptar solicitud de baja' : 'Denegar solicitud de baja'}
+                            </h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de que deseas <strong>{confirmModal.accion === 'ACEPTAR' ? 'aceptar' : 'denegar'}</strong> esta solicitud de baja?
+                                {confirmModal.accion === 'ACEPTAR' && (
+                                    <><br /><br />Esta acción <strong>tramitará la baja</strong> del hermano en el censo.</>
+                                )}
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setConfirmModal({ isOpen: false, id: null, accion: null })}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmResolver}
+                                    style={{
+                                        background: confirmModal.accion === 'ACEPTAR' ? '#28a745' : '#dc3545'
+                                    }}
+                                >
+                                    {confirmModal.accion === 'ACEPTAR' ? 'Sí, aceptar' : 'Sí, denegar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -265,13 +335,6 @@ function AdminListadoSolicitudesBaja() {
                         <div className="historical-header-container-cuotas">
                             <h1 className="historical-header-title-cuotas">SOLICITUDES DE BAJA</h1>
                         </div>
-
-                        {error && (
-                            <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#721c24', backgroundColor: '#f8d7da', padding: '15px', borderRadius: '5px', marginBottom: '20px' }}>
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
-                            </div>
-                        )}
 
                         <div className="plazos-separator-asignacion">
                             <div className="plazos-line"></div>

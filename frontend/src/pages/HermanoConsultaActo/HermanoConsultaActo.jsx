@@ -4,7 +4,7 @@ import api from '../../api';
 import '../AdminConsultaActo/AdminConsultaActo.css';
 import '../HermanoConsultaActo/HermanoConsultaActo.css'
 import '../HermanoConsultaNoticia/HermanoConsultaNoticia.css'
-import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, X, Edit, Trash2 } from "lucide-react";
+import { AlertCircle, Calendar, MapPin, Info, Ticket, ClipboardList, Award, Flame, ListOrdered, Clock, X, Edit, Trash2, Users, Plus, CheckCircle  } from "lucide-react";
 
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -16,8 +16,13 @@ function HermanoConsultaActo() {
     const [currentUser, setCurrentUser] = useState(null);
     const [acto, setActo] = useState(null);
     const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
+
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
+
+    const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
 
     const [modalPlazo, setModalPlazo] = useState({ isOpen: false, titulo: '', mensaje: '' });
 
@@ -43,6 +48,20 @@ function HermanoConsultaActo() {
 
         return `${fecha} a las ${hora}`;
     };
+
+    useEffect(() => {
+        if (successMsg) {
+            const timer = setTimeout(() => setSuccessMsg(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [successMsg]);
+
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     useEffect(() => {
         let isMounted = true; 
@@ -169,17 +188,28 @@ function HermanoConsultaActo() {
         }
     };
 
-    const handleEliminarActo = async () => {
-        const confirmar = window.confirm("¿Estás seguro de que deseas eliminar este acto? Esta acción no se puede deshacer.");
-        
-        if (confirmar) {
-            try {
-                await api.delete(`/api/actos/${id}/`);
-                alert("Acto eliminado correctamente.");
+    const handleEliminarActo = () => {
+        setShowConfirmDeleteModal(true);
+    };
+
+    const handleConfirmEliminar = async () => {
+        setShowConfirmDeleteModal(false);
+        try {
+            await api.delete(`/api/actos/${id}/`);
+            setSuccessMsg("Acto eliminado correctamente.");
+            setTimeout(() => {
+                setSuccessMsg("");
                 navigate("/listado-actos");
-            } catch (error) {
-                console.error("Error al eliminar el acto:", error);
-                alert("Hubo un error al intentar eliminar el acto.");
+            }, 3000);
+        } catch (err) {
+            const errorData = err.response?.data;
+            if (typeof errorData === 'object' && errorData !== null && !Array.isArray(errorData)) {
+                const mensajes = Object.entries(errorData)
+                    .map(([_, errores]) => Array.isArray(errores) ? errores.join(', ') : String(errores))
+                    .join(' | ');
+                setError(mensajes || "Error al eliminar el acto.");
+            } else {
+                setError("Hubo un error al intentar eliminar el acto.");
             }
         }
     };
@@ -205,6 +235,53 @@ function HermanoConsultaActo() {
 
     return (
         <div>
+
+            <div className="toast-container-crear-comunicado">
+                {successMsg && (
+                    <div className="toast-message-crear-comunicado toast-success-crear-comunicado">
+                        <CheckCircle size={24} />
+                        <span>{successMsg}</span>
+                    </div>
+                )}
+                {error && (
+                    <div className="toast-message-crear-comunicado toast-error-crear-comunicado">
+                        <AlertCircle size={24} />
+                        <span>{error}</span>
+                    </div>
+                )}
+            </div>
+
+            {showConfirmDeleteModal && (
+                <div className="modal-overlay-confirmacion">
+                    <div className="modal-content-confirmacion">
+                        <div className="modal-header-confirmacion">
+                            <Trash2 className="modal-icon-warning" size={28} />
+                            <h3>Confirmar eliminación</h3>
+                        </div>
+                        <div className="modal-body-confirmacion">
+                            <p>
+                                ¿Estás seguro de que deseas eliminar el acto <strong>"{acto?.nombre}"</strong>?
+                                <br /><br />
+                                Esta acción <strong>no se puede deshacer</strong>.
+                            </p>
+                            <div className="modal-actions-confirmacion">
+                                <button
+                                    className="btn-cancelar-modal"
+                                    onClick={() => setShowConfirmDeleteModal(false)}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    className="btn-confirmar-modal"
+                                    onClick={handleConfirmEliminar}
+                                >
+                                    Sí, eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className={`sidebar-dashboard ${isOpen ? 'open' : ''}`}>
                 <div className="logo_details-dashboard">
                     <i className="bx bxl-audible icon-dashboard"></i>
@@ -321,27 +398,91 @@ function HermanoConsultaActo() {
                     <div className="dashboard-panel-evento">
                         <div className="historical-header-container-evento">
                             <h1 className="historical-header-title-evento">{acto.nombre}</h1>
-                            {currentUser?.esAdmin && (
-                                <div className="header-tags-container" style={{ display: 'flex', gap: '10px' }}>
-                                    <div 
-                                        className="header-tag-pill-editar" 
-                                        onClick={() => navigate(`/admin/editar-acto/${id}`)}
-                                        title="Editar este acto"
-                                    >
-                                        <Edit size={14} />
-                                        <span>Editar acto</span>
-                                    </div>
+                                    {currentUser?.esAdmin && (
+                                        <div className="header-tags-container" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                            <div 
+                                                className="header-tag-pill-editar" 
+                                                onClick={() => navigate(`/admin/editar-acto/${id}`)}
+                                                title="Editar este acto"
+                                            >
+                                                <Edit size={14} />
+                                                <span>Editar acto</span>
+                                            </div>
 
-                                    <div 
-                                        className="header-tag-pill-editar" 
-                                        onClick={handleEliminarActo}
-                                        title="Eliminar acto"
-                                    >
-                                        <Trash2 size={14} />
-                                        <span>Eliminar acto</span>
-                                    </div>
-                                </div>
-                            )}
+                                            <div 
+                                                className="header-tag-pill-editar" 
+                                                onClick={handleEliminarActo}
+                                                title="Eliminar acto"
+                                            >
+                                                <Trash2 size={14} />
+                                                <span>Eliminar acto</span>
+                                            </div>
+
+                                            {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
+                                                <>
+                                                    <div 
+                                                        className="header-tag-pill-editar" 
+                                                        onClick={() => navigate(`/admin/crear-puesto`)}
+                                                        title="Crear puesto"
+                                                    >
+                                                        <Plus size={14} />
+                                                        <span>Crear puesto</span>
+                                                    </div>
+
+                                                    <div className="header-tag-pill-editar" onClick={() => navigate(`/admin/gestion-reparto-insignias/${id}`)} title="Gestión de asignación de insignias">
+                                                        <ListOrdered size={14} />
+                                                        <span>Asignar insignias</span>
+                                                    </div>
+
+                                                    <div className="header-tag-pill-editar" onClick={() => navigate(`/admin/gestion-reparto-cirios/${id}`)} title="Gestión de asignación de cirios y tramos">
+                                                        <ListOrdered size={14} />
+                                                        <span>Asignar tramos</span>
+                                                    </div>
+
+                                                    <div 
+                                                        className="header-tag-pill-editar" 
+                                                        onClick={() => navigate(`/actos/${id}/asistentes`)}
+                                                        title="Ver listado de asistentes"
+                                                    >
+                                                        <Users size={14} />
+                                                        <span>Listado de asistentes</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Fila 2: acciones de hermano */}
+                                    {acto?.requiere_papeleta && acto?.modalidad === 'TRADICIONAL' && (
+                                        <div className="header-tags-container" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                            <div 
+                                                className="header-tag-pill-editar" 
+                                                onClick={() => navigate(`/actos/${id}/puestos`)}
+                                                title="Listado de puestos"
+                                            >
+                                                <ListOrdered size={14} />
+                                                <span>Listado de puestos</span>
+                                            </div>
+
+                                            <div 
+                                                className="header-tag-pill-editar" 
+                                                onClick={handleSolicitarInsignias}
+                                                title="Solicitud de insignias"
+                                            >
+                                                <ClipboardList size={14} />
+                                                <span>Solicitar insignias</span>
+                                            </div>
+
+                                            <div 
+                                                className="header-tag-pill-editar" 
+                                                onClick={handleSolicitarCirios}
+                                                title="Solicitud de cirios"
+                                            >
+                                                <Flame size={14} />
+                                                <span>Solicitar cirio</span>
+                                            </div>
+                                        </div>
+                                    )}
                         </div>
 
                         <div className="plazos-separator-asignacion">
@@ -443,59 +584,6 @@ function HermanoConsultaActo() {
                                     </div>
                                 </div>
 
-                                <div className="plazos-separator-asignacion">
-                                    <div className="plazos-line"></div>
-                                    <span className="plazos-text">Trámites y solicitudes</span>
-                                    <div className="plazos-line"></div>
-                                </div>
-
-                                <div className="action-cards-container">
-                                    <button className="action-card-button" onClick={() => navigate(`/actos/${id}/puestos`)}>
-                                        <ListOrdered size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">LISTADO DE PUESTOS</h3>
-                                            <p className="action-card-description">Consulta el listado de puestos para este acto.</p>
-                                        </div>
-                                    </button>
-
-                                    <button className="action-card-button" onClick={handleSolicitarInsignias}>
-                                        <ClipboardList size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR INSIGNIAS</h3>
-                                            <p className="action-card-description">Realiza tu solicitud para portar una insignia.</p>
-                                        </div>
-                                    </button>
-
-                                    <button className="action-card-button" onClick={handleSolicitarCirios}>
-                                        <Flame size={45} color="#800020" className="action-card-icon" />
-                                        <div className="action-card-text-content">
-                                            <h3 className="action-card-title">SOLICITAR CIRIO</h3>
-                                            <p className="action-card-description">Realiza tu solicitud para participar portando un cirio.</p>
-                                        </div>
-                                    </button>
-                                </div>
-
-                                {currentUser?.esAdmin && (
-                                    <>
-                                        <div className="action-cards-container">
-                                            <button className="action-card-button action-card-button-admin" onClick={() => navigate(`/admin/gestion-reparto-insignias/${id}`)}>
-                                                <ListOrdered size={45} color="#ffffff" className="action-card-icon" />
-                                                <div className="action-card-text-content">
-                                                    <h3 className="action-card-title action-card-title-admin">ASIGNAR INSIGNIAS</h3>
-                                                    <p className="action-card-description action-card-description-admin">Accede a la gestión y adjudicación de insignias.</p>
-                                                </div>
-                                            </button>
-
-                                            <button className="action-card-button action-card-button-admin" onClick={() => navigate(`/admin/gestion-reparto-cirios/${id}`)}>
-                                                <ListOrdered size={45} color="#ffffff" className="action-card-icon" />
-                                                <div className="action-card-text-content">
-                                                    <h3 className="action-card-title action-card-title-admin">ASIGNAR TRAMOS</h3>
-                                                    <p className="action-card-description action-card-description-admin">Accede a la gestión y adjudicación de cirios.</p>
-                                                </div>
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
                             </>
                         )}
 

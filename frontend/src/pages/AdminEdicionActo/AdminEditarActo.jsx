@@ -122,6 +122,13 @@ function AdminEditarActo() {
     }, [successMsg]);
 
     useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
+    useEffect(() => {
         return () => {
             if (previewUrl && previewUrl.startsWith('blob:')) {
                 URL.revokeObjectURL(previewUrl);
@@ -233,17 +240,22 @@ function AdminEditarActo() {
             setTimeout(() => navigate("/listado-actos"), 3000);
 
         } catch (err) {
-            console.error(err);
-            if (err.response?.status === 500) {
+            const errorData = err.response?.data;
+
+            if (typeof errorData === 'object' && errorData !== null && !Array.isArray(errorData)) {
+                const mensajes = Object.entries(errorData)
+                    .map(([campo, errores]) => {
+                        const lista = Array.isArray(errores) ? errores.join(', ') : String(errores);
+                        return lista;
+                    })
+                    .join(' | ');
+                setError(mensajes || "Error al validar los datos del acto.");
+            } else if (typeof errorData === 'string' && errorData.trim()) {
+                setError(errorData);
+            } else if (err.response?.status === 500) {
                 setError("Error interno del servidor. Revisa que las fechas sean lógicas.");
             } else {
-                const errorData = err.response?.data;
-                if (typeof errorData === 'object' && errorData !== null) {
-                    const mensajesLimpios = Object.values(errorData).flat().join(" | ");
-                    setError(mensajesLimpios || "Error al validar los datos del acto.");
-                } else {
-                    setError(typeof errorData === 'string' ? errorData : "Error al guardar el acto.");
-                }
+                setError("Error al guardar el acto.");
             }
         } finally {
             setSaving(false);
@@ -402,7 +414,7 @@ function AdminEditarActo() {
 
                         {/* Cabecera */}
                         <div className="historical-header-container-crear-acto">
-                            <h1 className="historical-header-title-crear-acto">EDITAR ACTO: {formData.nombre}</h1>
+                            <h1 className="historical-header-title-crear-acto">{formData.nombre}</h1>
 
                         </div>
 

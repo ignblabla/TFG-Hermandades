@@ -191,7 +191,9 @@ function EditarMiPerfil() {
             await api.patch("api/me/", payload);
             setSuccessMsg("Sus datos han sido actualizados con éxito");
             setFormData(prev => ({ ...prev, password: '' }));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                navigate("/new-home");
+            }, 3000);
         } catch (err) {
             console.error(err);
             if (err.response && err.response.data) {

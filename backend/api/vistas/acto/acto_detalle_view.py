@@ -1,6 +1,8 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.views import APIView
 
 from django.shortcuts import get_object_or_404
@@ -90,14 +92,16 @@ class ActoDetalleView(APIView):
 
 
     def put(self, request, pk):
-        """
-        Actualización completa de un acto.
-        """
         acto = get_object_or_404(Acto, pk=pk)
         serializer = ActoSerializer(acto, data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        acto_actualizado = update_acto_service(usuario=request.user, acto_id=pk, data_validada=serializer.validated_data)
+        try:
+            acto_actualizado = update_acto_service(
+                usuario=request.user, acto_id=pk, data_validada=serializer.validated_data
+            )
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.message_dict)
 
         response_serializer = ActoSerializer(acto_actualizado)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
@@ -105,28 +109,25 @@ class ActoDetalleView(APIView):
 
 
     def patch(self, request, pk):
-        """
-        Actualización parcial de un acto (solo algunos campos).
-        """
         acto = get_object_or_404(Acto, pk=pk)
-
         serializer = ActoSerializer(acto, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        acto_actualizado = update_acto_service(
-            usuario=request.user,
-            acto_id=pk,
-            data_validada=serializer.validated_data
-        )
+        try:
+            acto_actualizado = update_acto_service(
+                usuario=request.user, acto_id=pk, data_validada=serializer.validated_data
+            )
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.message_dict)
 
         response_serializer = ActoSerializer(acto_actualizado)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
-    
+
 
 
     def delete(self, request, pk):
-        """
-        Eliminar un acto.
-        """
-        delete_acto_service(usuario=request.user, acto_id=pk)
+        try:
+            delete_acto_service(usuario=request.user, acto_id=pk)
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.message_dict)
         return Response(status=status.HTTP_204_NO_CONTENT)
